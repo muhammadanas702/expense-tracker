@@ -1,0 +1,462 @@
+/* =========================
+   BASE
+========================= */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Inter', sans-serif;
+}
+
+/* =========================
+   ROOT COLORS (ENHANCED GREEN SYSTEM)
+========================= */
+
+:root{
+
+    --navy:#0B2545;
+    --teal:#137A7F;
+    --deep:#134074;
+
+    --light:#EEF4F8;
+    --white:#FFFFFF;
+
+    --muted:#5F6C7D;
+
+    --danger:#ef4444;
+}
+
+/* =========================
+   BODY (NO LAYOUT CHANGE)
+========================= */
+
+body{
+
+    background-color:#f4f7f9;
+
+    background-image:
+
+        radial-gradient(
+            circle at top,
+            rgba(255,255,255,0.9),
+            transparent 60%
+        ),
+
+        linear-gradient(
+            to right,
+            rgba(19,122,127,0.03),
+            transparent 1px
+        ),
+
+        linear-gradient(
+            to bottom,
+            rgba(19,122,127,0.03),
+            transparent 1px
+        );
+
+    background-size:
+        100% 100%,
+        25px 25px,
+        25px 25px;
+
+    color:var(--navy);
+
+    display:flex;
+
+    min-height:100vh;
+}
+
+/* =========================
+   SIDEBAR (SOFT POLISH ONLY)
+========================= */
+
+.sidebar{
+
+    width:260px;
+
+    background:rgba(255,255,255,0.88);
+
+    backdrop-filter:blur(18px);
+
+    border-right:1px solid rgba(19,122,127,0.08);
+
+    padding:30px 18px;
+
+    box-shadow:
+    0 8px 20px rgba(0,0,0,0.03);
+}
+
+.logo{
+
+    font-size:30px;
+
+    font-weight:800;
+
+    color:var(--teal);
+
+    margin-bottom:40px;
+}
+
+/* LINKS (NO STRUCTURE CHANGE) */
+
+.sidebar a{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    text-decoration:none;
+
+    color:var(--navy);
+
+    padding:14px 16px;
+
+    border-radius:14px;
+
+    margin-bottom:10px;
+
+    transition:0.25s;
+
+    font-weight:600;
+}
+
+.sidebar a:hover{
+
+    background:rgba(19,122,127,0.12);
+
+    color:var(--teal);
+
+    transform:translateX(3px);
+}
+
+/* =========================
+   MAIN
+========================= */
+
+.main{
+
+    flex:1;
+
+    padding:35px;
+}
+
+.main h1{
+
+    color:var(--teal);
+
+    font-size:38px;
+
+    margin-bottom:6px;
+
+    letter-spacing:0.3px;
+}
+
+.subtext{
+
+    color:var(--muted);
+
+    margin-bottom:28px;
+}
+
+/* =========================
+   FILTERS (CLEAN UI)
+========================= */
+
+.filter-form{
+
+    display:flex;
+
+    gap:12px;
+
+    flex-wrap:wrap;
+
+    margin-bottom:28px;
+}
+
+.filter-form select,
+.filter-form button{
+
+    padding:13px 16px;
+
+    border-radius:14px;
+
+    border:1px solid rgba(19,122,127,0.12);
+
+    background:white;
+
+    color:var(--navy);
+
+    font-size:14px;
+
+    font-weight:500;
+
+    outline:none;
+
+    transition:0.2s;
+}
+
+.filter-form button{
+
+    background:linear-gradient(
+        135deg,
+        var(--teal),
+        var(--deep)
+    );
+
+    color:white;
+
+    border:none;
+
+    cursor:pointer;
+}
+
+.filter-form button:hover{
+
+    transform:translateY(-2px);
+}
+
+/* =========================
+   CARDS (SOFTER + CLEANER)
+========================= */
+
+.cards{
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(auto-fit,minmax(240px,1fr));
+
+    gap:22px;
+
+    margin-bottom:25px;
+}
+
+/* IMPORTANT: ONLY VISUAL POLISH */
+.card{
+
+    background:rgba(255,255,255,0.88);
+
+    border-radius:24px;
+
+    padding:26px;
+
+    border:1px solid rgba(19,122,127,0.10);
+
+    box-shadow:0 10px 25px rgba(0,0,0,0.03);
+
+    transition:0.25s;
+}
+
+.card:hover{
+
+    transform:translateY(-3px);
+}
+
+.card h3{
+
+    font-size:17px;
+
+    color:var(--muted);
+
+    margin-bottom:12px;
+}
+
+.card p{
+
+    font-size:34px;
+
+    font-weight:700;
+
+    color:var(--navy);
+}
+
+/* =========================
+   STATUS BORDERS (UNCHANGED LOGIC)
+========================= */
+
+.income{ border-top:4px solid #22c55e; }
+
+.expense{ border-top:4px solid #ef4444; }
+
+.balance{ border-top:4px solid var(--teal); }
+
+/* =========================
+   BUTTONS
+========================= */
+
+.reset-section{
+
+    display:flex;
+
+    gap:12px;
+
+    flex-wrap:wrap;
+
+    margin:25px 0;
+}
+
+.danger-btn{
+
+    background:#ef4444;
+
+    color:white;
+
+    text-decoration:none;
+
+    padding:12px 16px;
+
+    border-radius:12px;
+
+    font-size:14px;
+
+    transition:0.25s;
+}
+
+.danger-btn:hover{
+
+    opacity:0.9;
+
+    transform:translateY(-2px);
+}
+
+/* =========================
+   TITLES
+========================= */
+
+.section-title{
+
+    margin-top:40px;
+
+    margin-bottom:18px;
+
+    color:var(--teal);
+
+    font-size:24px;
+}
+
+/* =========================
+   TRANSACTIONS (CLEAN FIX)
+========================= */
+
+.transaction{
+
+    background:rgba(255,255,255,0.88);
+
+    border-radius:18px;
+
+    padding:16px;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:14px;
+
+    border:1px solid rgba(19,122,127,0.08);
+
+    transition:0.25s;
+}
+
+.transaction:hover{
+
+    transform:translateX(3px);
+}
+
+.transaction span{
+
+    font-weight:600;
+
+    color:var(--navy);
+}
+
+.transaction small{
+
+    display:block;
+
+    margin-top:6px;
+
+    color:var(--muted);
+}
+
+.transaction b{
+
+    font-size:16px;
+}
+
+.income-item{ border-left:5px solid #22c55e; }
+
+.expense-item{ border-left:5px solid #ef4444; }
+
+/* =========================
+   CHARTS
+========================= */
+
+.charts-container{
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(auto-fit,minmax(320px,1fr));
+
+    gap:24px;
+
+    margin-top:20px;
+}
+
+.chart-box{
+
+    background:rgba(255,255,255,0.88);
+
+    border-radius:24px;
+
+    padding:25px;
+
+    border:1px solid rgba(19,122,127,0.08);
+
+    box-shadow:0 10px 20px rgba(0,0,0,0.03);
+}
+
+/* =========================
+   RESPONSIVE (UNCHANGED)
+========================= */
+
+@media(max-width:900px){
+
+    body{ flex-direction:column; }
+
+    .sidebar{
+
+        width:100%;
+
+        display:flex;
+
+        overflow:auto;
+
+        gap:10px;
+    }
+
+    .sidebar a{ white-space:nowrap; }
+
+    .main{ padding:22px; }
+}
+
+@media(max-width:600px){
+
+    .main h1{ font-size:28px; }
+
+    .card p{ font-size:28px; }
+
+    .transaction{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        gap:12px;
+    }
+}
