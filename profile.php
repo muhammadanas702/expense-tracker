@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once "config/app.php";
 require_once "config/db.php";
 require_once "includes/logging.php";
 
@@ -65,7 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>My Profile - ExpenseFlow</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="/expense-tracker/assets/responsive.css">
+    <link rel="stylesheet" href="/assets/responsive.css">
     <style>
         body { background: #f5f7fc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 2rem; }
         .profile-container { background: white; border-radius: 32px; padding: 2rem; width: 550px; max-width: 100%; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }

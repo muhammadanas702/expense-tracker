@@ -48,7 +48,7 @@ if($prev_expense > 0){
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>View Report - ExpenseFlow</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/expense-tracker/assets/responsive.css">
+    <link rel="stylesheet" href="/assets/responsive.css">
     <style>
         body { background: #f5f7fc; padding: 1rem; font-family: 'Inter', sans-serif; }
         .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 32px; padding: 2rem; box-shadow: 0 8px 20px rgba(0,0,0,0.05); }

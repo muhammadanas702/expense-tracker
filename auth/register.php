@@ -73,7 +73,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 <html lang="en">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="/expense-tracker/assets/responsive.css">
+
 
 <head>
 
@@ -81,8 +81,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
 <title>Register</title>
 
-<link rel="stylesheet"
-href="/expense-tracker/assets/auth.css">
+<link rel="stylesheet"href="../assets/auth.css">
 
 </head>
 
@@ -146,7 +145,7 @@ href="/expense-tracker/assets/auth.css">
 
         </form>
 
-        <div class="links">
+        <div class="auth-links">
 
             Already have an account?
 

@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once "../config/app.php";
 require_once "../config/db.php";
 require_once "../includes/CurrencyConverter.php";
 require_once "../includes/logging.php";
@@ -41,13 +42,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="en">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="/expense-tracker/assets/responsive.css">
+<link rel="stylesheet" href="/assets/responsive.css">
 
 <head>
     <meta charset="UTF-8">
     <title>Add Income - ExpenseFlow</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="/expense-tracker/assets/client-time.js"></script>
+    <script src="/assets/client-time.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: #f5f7fc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 2rem; }

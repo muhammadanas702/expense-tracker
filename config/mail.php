@@ -33,7 +33,7 @@ function sendResetMail($email, $token) {
         $mail->addAddress($email);
 
         $resetLink =
-        "http://localhost/expense-tracker/auth/reset-password.php?token=$token";
+        "http://localhost/auth/reset-password.php?token=$token";
 
         $mail->isHTML(true);
 

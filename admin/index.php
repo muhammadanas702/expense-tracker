@@ -11,7 +11,7 @@ $users = $conn->query("SELECT id, name, email, created_at, is_admin FROM users O
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Admin Panel - Users</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/expense-tracker/assets/responsive.css">
+    <link rel="stylesheet" href="../assets/responsive.css">
     <style>
         /* additional admin-specific styles */
         .edit-btn, .view-btn, .delete-btn {

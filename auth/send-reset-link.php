@@ -30,7 +30,7 @@ $update = $conn->prepare("UPDATE users SET reset_token = ?, token_expiry = ? WHE
 $update->execute([$token, $expires, $user['id']]);
 
 // Build reset link
-$reset_link = "http://" . $_SERVER['HTTP_HOST'] . "/expense-tracker/auth/reset-password.php?token=" . $token;
+$reset_link = "http://" . $_SERVER['HTTP_HOST'] . "/auth/reset-password.php?token=" . $token;
 
 // --- Send email ---
 $to = $email;

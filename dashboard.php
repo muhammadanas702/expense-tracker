@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once "config/app.php";
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
@@ -177,8 +178,8 @@ if ($use_date_range) {
     <title>ExpenseFlow | Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="/expense-tracker/assets/client-time.js"></script>
-    <link rel="stylesheet" href="/expense-tracker/assets/responsive.css">
+    <script src="/assets/client-time.js"></script>
+    <link rel="stylesheet" href="assets/dashboard.css">
     <style>
         /* Additional animations & UI improvements */
         .sidebar a {
@@ -223,11 +224,11 @@ if ($use_date_range) {
 <div class="sidebar" id="sidebar">
     <div class="logo">ExpenseFlow</div>
     <a href="#">📊 Dashboard</a>
-    <a href="/expense-tracker/income/add-income.php">➕ Add Income</a>
-    <a href="/expense-tracker/expense/add-expense.php">➖ Add Expense</a>
-    <a href="/expense-tracker/reports/view-report.php">📄 Full Report</a>
-    <a href="/expense-tracker/auth/logout.php" data-log>🚪 Logout</a>
-    <a href="/expense-tracker/auth/delete-account.php" onclick="return confirm('Delete account permanently?')" style="color:#ef4444;">🗑 Delete Account</a>
+   <a href="<?= $base_url ?>/income/add-income.php">➕ Add Income</a>
+    <a href="<?= $base_url ?>/expense/add-expense.php">➖ Add Expense</a>
+    <a href="<?= $base_url ?>/reports/view-report.php">📄 Full Report</a>
+    <a href="<?= $base_url ?>/auth/logout.php" data-log>🚪 Logout</a>
+    <a href="<?= $base_url ?>/auth/delete-account.php" onclick="return confirm('Delete account permanently?')" style="color:#ef4444;">🗑 Delete Account</a>
 </div>
 
 <div class="main">
@@ -238,39 +239,35 @@ if ($use_date_range) {
             <p><?php echo $use_date_range ? "Custom range: $from_date to $to_date (converted to USD)" : date('F Y', mktime(0,0,0,$month,1,$year)) . " (base: $display_currency)"; ?></p>
         </div>
         <div class="btn-group" style="display: flex; gap: 12px;">
-            <a href="profile.php" class="profile-btn" style="background: linear-gradient(135deg, #4a5568, #2d3748); padding: 8px 20px; border-radius: 40px; color: white; text-decoration: none; font-weight: 500;">👤 Profile</a>
+            <a href="<?= $base_url ?>/profile.php" class="profile-btn" style="background: linear-gradient(135deg, #4a5568, #2d3748); padding: 8px 20px; border-radius: 40px; color: white; text-decoration: none; font-weight: 500;">👤 Profile</a>
             <?php if ($is_admin): ?>
-                <a href="/expense-tracker/admin/index.php" class="admin-btn" style="background: linear-gradient(135deg, #0f766e, #1d4ed8); padding: 8px 20px; border-radius: 40px; color: white; text-decoration: none; font-weight: 500;">👑 Admin Panel</a>
+                <a href="admin/index.php" class="admin-btn" style="background: linear-gradient(135deg, #0f766e, #1d4ed8); padding: 8px 20px; border-radius: 40px; color: white; text-decoration: none; font-weight: 500;">👑 Admin Panel</a>
             <?php endif; ?>
         </div>
     </div>
 
     <!-- Filter Form -->
-    <form method="GET" class="filter-form">
-        <div class="date-range">
+   <form method="GET" class="filter-form">
+
+    <div class="date-range">
+        <div class="field">
             <label>From</label>
             <input type="date" name="from_date" value="<?= htmlspecialchars($from_date) ?>">
+        </div>
+
+        <div class="field">
             <label>To</label>
             <input type="date" name="to_date" value="<?= htmlspecialchars($to_date) ?>">
         </div>
-        <hr class="vertical">
-        <select name="month">
-            <option value="">Month</option>
-            <?php for($m=1;$m<=12;$m++): ?>
-                <option value="<?=$m?>" <?=($month==$m && !$use_date_range)?'selected':''?>><?=date('F',mktime(0,0,0,$m,1))?></option>
-            <?php endfor; ?>
-        </select>
-        <select name="year">
-            <option value="">Year</option>
-            <?php for($y=2023;$y<=2035;$y++): ?>
-                <option value="<?=$y?>" <?=($year==$y && !$use_date_range)?'selected':''?>><?=$y?></option>
-            <?php endfor; ?>
-        </select>
-        <button type="submit">Apply Filter</button>
-        <?php if($use_date_range): ?>
-            <a href="dashboard.php" style="color:#0f766e; text-decoration:none;">Clear date range</a>
-        <?php endif; ?>
-    </form>
+    </div>
+
+    <button type="submit" class="apply-btn">Apply</button>
+
+    <?php if($use_date_range || !empty($_GET)): ?>
+        <a href="dashboard.php" class="clear-btn">Clear</a>
+    <?php endif; ?>
+
+</form>
 
     <!-- Quick Stats -->
     <div class="quick-stats">

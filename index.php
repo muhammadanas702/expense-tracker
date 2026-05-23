@@ -722,12 +722,12 @@ Expense<span>Flow</span>
 
 <a href="#features">Features</a>
 
-<a href="/expense-tracker/auth/login.php"
+<a href="auth/login.php"
 class="login-btn">
 Login
 </a>
 
-<a href="/expense-tracker/auth/register.php"
+<a href="auth/register.php"
 class="register-btn">
 Get Started
 </a>
@@ -770,7 +770,7 @@ professional fintech experience.
 
 <div class="hero-buttons">
 
-<a href="/expense-tracker/auth/register.php"
+<a href="auth/register.php"
 class="primary-btn">
 
 Start Now
@@ -957,7 +957,7 @@ Home
 Features
 </a>
 
-<a href="/expense-tracker/auth/login.php">
+<a href="auth/login.php">
 Login
 </a>
 

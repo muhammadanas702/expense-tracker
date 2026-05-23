@@ -1,13 +1,32 @@
 <?php
-$host = 'localhost';
-$dbname = 'expense_tracker';   // your database name
-$username = 'root';            // your DB username
-$password = 'ipc@umt';                // your DB password
+
+//for public host
+$host = "sql103.infinityfree.com";
+$dbname = "if0_41994702_expenseflow";
+$username = "if0_41994702";
+$password = "Anasali001";
+
+//for local host
+/*$dbname = "expense_tracker";
+$host = "localhost";
+$username = "root";
+$password = "ipc@umt";*/
 
 try {
-    $conn = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    $conn = new PDO(
+        "mysql:host=$host;dbname=$dbname",
+        $username,
+        $password
+    );
+
+    $conn->setAttribute(
+        PDO::ATTR_ERRMODE,
+        PDO::ERRMODE_EXCEPTION
+    );
+
 } catch(PDOException $e) {
+
     die("Connection failed: " . $e->getMessage());
 }
 ?>

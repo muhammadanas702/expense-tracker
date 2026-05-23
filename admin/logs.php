@@ -54,7 +54,7 @@ $users = $conn->query("SELECT id, name, email FROM users ORDER BY name")->fetchA
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>User Logs - Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/expense-tracker/assets/responsive.css">
+    <link rel="stylesheet" href="../assets/responsive.css">
     <style>
         .filter-group { margin-bottom: 0.5rem; }
         @media (min-width: 768px) {

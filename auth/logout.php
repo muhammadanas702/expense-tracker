@@ -8,6 +8,6 @@ if (isset($_SESSION["user_id"])) {
     logAction($_SESSION["user_id"], 'logout', "User logged out", $client_time);
 }
 session_destroy();
-header("Location: login.php");
+header("Location: ../auth/login.php");
 exit();
 ?>
