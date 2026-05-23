@@ -722,12 +722,12 @@ Expense<span>Flow</span>
 
 <a href="#features">Features</a>
 
-<a href="auth/login.php"
+<a href="/expense-tracker/auth/login.php"
 class="login-btn">
 Login
 </a>
 
-<a href="auth/register.php"
+<a href="/expense-tracker/auth/register.php"
 class="register-btn">
 Get Started
 </a>
