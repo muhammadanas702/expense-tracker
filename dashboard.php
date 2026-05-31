@@ -4,11 +4,11 @@ require_once "config/app.php";
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-require_once "config/db.php";
-require_once "includes/CurrencyConverter.php";
+require_once __DIR__ . "/config/db.php";
+require_once __DIR__ . "/includes/CurrencyConverter.php";
 
 if (!isset($_SESSION["user_id"])) {
-    header("Location: auth/login.php");
+    header("Location: " . $base_url . "/auth/login.php");
     exit();
 }
 
@@ -241,7 +241,7 @@ if ($use_date_range) {
         <div class="btn-group" style="display: flex; gap: 12px;">
             <a href="<?= $base_url ?>/profile.php" class="profile-btn" style="background: linear-gradient(135deg, #4a5568, #2d3748); padding: 8px 20px; border-radius: 40px; color: white; text-decoration: none; font-weight: 500;">👤 Profile</a>
             <?php if ($is_admin): ?>
-                <a href="admin/index.php" class="admin-btn" style="background: linear-gradient(135deg, #0f766e, #1d4ed8); padding: 8px 20px; border-radius: 40px; color: white; text-decoration: none; font-weight: 500;">👑 Admin Panel</a>
+                <a href="<?= $base_url ?>/admin/index.php" class="admin-btn" style="background: linear-gradient(135deg, #0f766e, #1d4ed8); padding: 8px 20px; border-radius: 40px; color: white; text-decoration: none; font-weight: 500;">👑 Admin Panel</a>
             <?php endif; ?>
         </div>
     </div>

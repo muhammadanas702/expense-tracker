@@ -58,7 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <form method="POST" data-log>
         <label>Title</label>
         <input type="text" name="title" value="<?= htmlspecialchars($income['title']) ?>" required>
-        <label>Amount (PKR)</label>
+        <label>Amount </label>
         <input type="number" step="0.01" name="amount_pkr" value="<?= $income['amount_pkr'] ?>" required>
         <label>Currency</label>
         <select name="currency">

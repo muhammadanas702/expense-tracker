@@ -20,7 +20,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             $_SESSION["user_id"] = $user["id"];
             $_SESSION["user_name"] = $user["name"];
             logAction($user["id"], 'login', "User logged in", $client_time);
-            header("Location: /expense-tracker/dashboard.php");
+            require_once "../config/app.php";
+
+header("Location: " . $base_url . "/dashboard.php");
 exit();
         } else {
             $error = "Wrong password!";

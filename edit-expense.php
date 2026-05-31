@@ -59,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <form method="POST" data-log>
         <label>Title</label>
         <input type="text" name="title" value="<?= htmlspecialchars($expense['title']) ?>" required>
-        <label>Amount (PKR)</label>
+        <label>Amount </label>
         <input type="number" step="0.01" name="amount" value="<?= $expense['amount'] ?>" required>
         <label>Currency</label>
         <select name="currency">

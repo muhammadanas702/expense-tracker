@@ -1,5 +1,5 @@
 <?php
-// index.php
+require_once "config/app.php";
 ?>
 
 <!DOCTYPE html>
@@ -722,12 +722,12 @@ Expense<span>Flow</span>
 
 <a href="#features">Features</a>
 
-<a href="/expense-tracker/auth/login.php"
+<a href="<?= $base_url ?>/auth/login.php"
 class="login-btn">
 Login
 </a>
 
-<a href="/expense-tracker/auth/register.php"
+<a href="<?= $base_url ?>/auth/register.php"
 class="register-btn">
 Get Started
 </a>

@@ -1,11 +1,12 @@
 <?php
 session_start();
+require_once "../config/app.php";
 ?>
 <!DOCTYPE html>
 <html lang="en">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="/assets/responsive.css">
+<link rel="stylesheet" href="<?= $base_url ?>/assets/responsive.css">
 
 <head>
     <meta charset="UTF-8">
