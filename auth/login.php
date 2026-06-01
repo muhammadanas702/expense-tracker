@@ -20,10 +20,11 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             $_SESSION["user_id"] = $user["id"];
             $_SESSION["user_name"] = $user["name"];
            // logAction($conn, $user["id"], 'login', "User logged in", $client_time);
-            require_once "../config/app.php";
-
-header("Location: " . $base_url . "/dashboard.php");
-exit();
+            //require_once "../config/app.php";
+            //header("Location: " . $base_url . "/dashboard.php");
+            //exit();
+            echo "LOGIN SUCCESS";
+            exit();
         } else {
             $error = "Wrong password!";
         }
