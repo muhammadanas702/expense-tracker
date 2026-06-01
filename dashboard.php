@@ -14,9 +14,18 @@ if (!isset($_SESSION["user_id"])) {
 
 $user_id = $_SESSION["user_id"];
 
+/* check user actually exists */
 $stmt = $conn->prepare("SELECT is_admin FROM users WHERE id = ?");
 $stmt->execute([$user_id]);
-$is_admin = (bool)$stmt->fetchColumn();
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$user) {
+    session_destroy();
+    header("Location: " . $base_url . "/auth/login.php");
+    exit();
+}
+
+$is_admin = (bool)$user['is_admin'];
 
 /* ---------- FILTER LOGIC ---------- */
 $month = isset($_GET['month']) ? (int)$_GET['month'] : (int)date('m');
@@ -35,35 +44,46 @@ $base_currency = null;
 $categories = [];
 $categoryTotals = [];
 $top_category = ['category' => 'N/A', 'total' => 0];
-
+$incomes = [];
+$expenses = [];
 if ($use_date_range) {
     $display_currency = "USD";
     $date_condition = "transaction_date BETWEEN ? AND ?";
     $date_params = [$from_date, $to_date . ' 23:59:59'];
 
-    $stmtInc = $conn->prepare("SELECT amount_pkr, currency FROM income WHERE user_id = ? AND $date_condition");
+    $stmtInc = $conn->prepare("SELECT amount_pkr, preferred_currency FROM income WHERE user_id = ? AND $date_condition");
     $stmtInc->execute(array_merge([$user_id], $date_params));
     $incomesRaw = $stmtInc->fetchAll();
-    $total_income = 0;
+
     foreach ($incomesRaw as $inc) {
-        $total_income += CurrencyConverter::convert($inc['amount_pkr'], $inc['currency'], 'USD');
+        $total_income += CurrencyConverter::convert(
+            $inc['amount_pkr'],
+            $inc['preferred_currency'] ?? 'PKR',
+            'USD'
+        );
     }
 
-    $stmtExp = $conn->prepare("SELECT amount, currency FROM expenses WHERE user_id = ? AND $date_condition");
+    $stmtExp = $conn->prepare("SELECT amount, preferred_currency FROM expenses WHERE user_id = ? AND $date_condition");
     $stmtExp->execute(array_merge([$user_id], $date_params));
     $expensesRaw = $stmtExp->fetchAll();
-    $total_expense = 0;
+
     foreach ($expensesRaw as $exp) {
-        $total_expense += CurrencyConverter::convert($exp['amount'], $exp['currency'], 'USD');
+        $total_expense += CurrencyConverter::convert(
+            $exp['amount'],
+            $exp['preferred_currency'] ?? 'PKR',
+            'USD'
+        );
     }
 
     $balance = $total_income - $total_expense;
-    $trend = 0;
     $days = (strtotime($to_date) - strtotime($from_date)) / 86400 + 1;
     $avgDailySpend = ($total_expense > 0 && $days > 0) ? round($total_expense / $days, 2) : 0;
+
 } else {
+
     $year_month = $year . '-' . str_pad($month, 2, '0', STR_PAD_LEFT);
-    $stmt = $conn->prepare("SELECT `base_currency` FROM `user_monthly_currency` WHERE `user_id` = ? AND `year_month` = ?");
+
+   $stmt = $conn->prepare("SELECT base_currency FROM `user_monthly_currency` WHERE user_id = ? AND `year_month` = ?");
     $stmt->execute([$user_id, $year_month]);
     $base_currency = $stmt->fetchColumn();
 
@@ -72,30 +92,41 @@ if ($use_date_range) {
     $expensesRaw = $stmtExp->fetchAll();
 
     if (!$base_currency) {
-        $display_currency = "";
-        $total_income = 0;
-        $total_expense = 0;
+        $display_currency = "USD";
+
         foreach ($expensesRaw as $exp) {
-            $total_expense += CurrencyConverter::convert($exp['amount'], $exp['currency'], 'USD');
+            $total_expense += CurrencyConverter::convert(
+                $exp['amount'],
+                $exp['currency'] ?? 'PKR',
+                'USD'
+            );
         }
+
         $balance = -$total_expense;
-        $trend = 0;
         $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
         $avgDailySpend = ($total_expense > 0) ? round($total_expense / $daysInMonth, 2) : 0;
+
     } else {
         $display_currency = $base_currency;
 
-        $stmtInc = $conn->prepare("SELECT amount_pkr, currency FROM income WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?");
+        $stmtInc = $conn->prepare("SELECT amount_pkr, preferred_currency FROM income WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?");
         $stmtInc->execute([$user_id, $month, $year]);
         $incomesRaw = $stmtInc->fetchAll();
-        $total_income = 0;
+
         foreach ($incomesRaw as $inc) {
-            $total_income += CurrencyConverter::convert($inc['amount_pkr'], $inc['currency'], $base_currency);
+            $total_income += CurrencyConverter::convert(
+                $inc['amount_pkr'],
+                $inc['preferred_currency'] ?? $base_currency,
+                $base_currency
+            );
         }
 
-        $total_expense = 0;
         foreach ($expensesRaw as $exp) {
-            $total_expense += CurrencyConverter::convert($exp['amount'], $exp['currency'], $base_currency);
+            $total_expense += CurrencyConverter::convert(
+                $exp['amount'],
+                $exp['currency'] ?? $base_currency,
+                $base_currency
+            );
         }
 
         $balance = $total_income - $total_expense;
@@ -106,9 +137,11 @@ if ($use_date_range) {
             $prevMonth = 12;
             $prevYear--;
         }
+
         $prevStmt = $conn->prepare("SELECT SUM(amount) as total FROM expenses WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?");
         $prevStmt->execute([$user_id, $prevMonth, $prevYear]);
         $prev_expense = $prevStmt->fetch()['total'] ?? 0;
+
         $trend = ($prev_expense > 0) ? (($total_expense - $prev_expense) / $prev_expense) * 100 : 0;
 
         $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
@@ -117,57 +150,6 @@ if ($use_date_range) {
 }
 
 $savings_percent = ($total_income > 0) ? ($balance / $total_income) * 100 : 0;
-
-if (!$use_date_range && !empty($base_currency)) {
-    $catStmt = $conn->prepare("SELECT category, amount, currency FROM expenses WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?");
-    $catStmt->execute([$user_id, $month, $year]);
-    $catRows = $catStmt->fetchAll();
-    $categorySum = [];
-    foreach ($catRows as $row) {
-        $conv = CurrencyConverter::convert($row['amount'], $row['currency'], $base_currency);
-        $categorySum[$row['category']] = ($categorySum[$row['category']] ?? 0) + $conv;
-    }
-    arsort($categorySum);
-    $top_category = ['category' => key($categorySum), 'total' => current($categorySum)];
-    $categories = array_keys($categorySum);
-    $categoryTotals = array_values($categorySum);
-} else {
-    $date_condition = $use_date_range ? "transaction_date BETWEEN ? AND ?" : "MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?";
-    if ($use_date_range) {
-        $catStmt = $conn->prepare("SELECT category, SUM(amount) as total FROM expenses WHERE user_id = ? AND $date_condition GROUP BY category");
-        $catStmt->execute(array_merge([$user_id], $date_params));
-    } else {
-        $catStmt = $conn->prepare("SELECT category, SUM(amount) as total FROM expenses WHERE user_id = ? AND $date_condition GROUP BY category");
-        $catStmt->execute([$user_id, $month, $year]);
-    }
-    $rows = $catStmt->fetchAll();
-    $categories = [];
-    $categoryTotals = [];
-    foreach ($rows as $row) {
-        $categories[] = $row['category'];
-        $categoryTotals[] = (float)$row['total'];
-    }
-    if (!empty($categories)) {
-        $maxIndex = array_keys($categoryTotals, max($categoryTotals))[0] ?? 0;
-        $top_category = ['category' => $categories[$maxIndex] ?? 'N/A', 'total' => $categoryTotals[$maxIndex] ?? 0];
-    }
-}
-
-if ($use_date_range) {
-    $stmtInc = $conn->prepare("SELECT * FROM income WHERE user_id = ? AND $date_condition ORDER BY transaction_date DESC LIMIT 5");
-    $stmtInc->execute(array_merge([$user_id], $date_params));
-    $incomes = $stmtInc->fetchAll(PDO::FETCH_ASSOC);
-    $stmtExp = $conn->prepare("SELECT * FROM expenses WHERE user_id = ? AND $date_condition ORDER BY transaction_date DESC LIMIT 5");
-    $stmtExp->execute(array_merge([$user_id], $date_params));
-    $expenses = $stmtExp->fetchAll(PDO::FETCH_ASSOC);
-} else {
-    $stmtInc = $conn->prepare("SELECT * FROM income WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ? ORDER BY transaction_date DESC LIMIT 5");
-    $stmtInc->execute([$user_id, $month, $year]);
-    $incomes = $stmtInc->fetchAll(PDO::FETCH_ASSOC);
-    $stmtExp = $conn->prepare("SELECT * FROM expenses WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ? ORDER BY transaction_date DESC LIMIT 5");
-    $stmtExp->execute([$user_id, $month, $year]);
-    $expenses = $stmtExp->fetchAll(PDO::FETCH_ASSOC);
-}
 ?>
 
 <!DOCTYPE html>
