@@ -87,7 +87,7 @@ if ($use_date_range) {
     $stmt->execute([$user_id, $year_month]);
     $base_currency = $stmt->fetchColumn();
 
-    $stmtExp = $conn->prepare("SELECT amount, currency FROM expenses WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?");
+    $stmtExp = $conn->prepare("SELECT amount, preferred_currency FROM expenses WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?");
     $stmtExp->execute([$user_id, $month, $year]);
     $expensesRaw = $stmtExp->fetchAll();
 
@@ -97,7 +97,7 @@ if ($use_date_range) {
         foreach ($expensesRaw as $exp) {
             $total_expense += CurrencyConverter::convert(
                 $exp['amount'],
-                $exp['currency'] ?? 'PKR',
+                $exp['preferred_currency'] ?? 'PKR',
                 'USD'
             );
         }
@@ -124,7 +124,7 @@ if ($use_date_range) {
         foreach ($expensesRaw as $exp) {
             $total_expense += CurrencyConverter::convert(
                 $exp['amount'],
-                $exp['currency'] ?? $base_currency,
+                $exp['preferred_currency'] ?? $base_currency,
                 $base_currency
             );
         }
@@ -300,7 +300,7 @@ $savings_percent = ($total_income > 0) ? ($balance / $total_income) * 100 : 0;
         <div class="transaction expense-item">
             <div><span>➖ <?=htmlspecialchars($exp['title'])?> (<?=htmlspecialchars($exp['category'])?>)</span><small><br><?=date('d M Y, h:i A',strtotime($exp['transaction_date']))?></small></div>
             <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
-                <b>- <?=number_format($exp['amount'],2)?> <?=htmlspecialchars($exp['currency'])?></b>
+                <b>- <?=number_format($exp['amount'],2)?> <?=htmlspecialchars($exp['preferred_currency'])?></b>
                 <a href="edit-expense.php?id=<?=$exp['id']?>" data-log style="color:#0f766e; text-decoration:none;">✏️</a>
                 <a href="delete-expense.php?id=<?=$exp['id']?>" data-log onclick="return confirm('Delete this expense?')" style="color:#ef4444; text-decoration:none;">🗑️</a>
             </div>
