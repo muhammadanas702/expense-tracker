@@ -19,7 +19,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         if(password_verify($password, $user["password"])){
             $_SESSION["user_id"] = $user["id"];
             $_SESSION["user_name"] = $user["name"];
-            logAction($user["id"], 'login', "User logged in", $client_time);
+           // logAction($conn, $user["id"], 'login', "User logged in", $client_time);
             require_once "../config/app.php";
 
 header("Location: " . $base_url . "/dashboard.php");
