@@ -4,13 +4,16 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 session_start();
+
 require_once "../config/db.php";
+require_once "../config/app.php";
 require_once "../includes/logging.php";
 
 $error = "";
 $email = "";
 
 if($_SERVER["REQUEST_METHOD"] == "POST"){
+
     $email = trim($_POST["email"]);
     $password = $_POST["password"];
     $client_time = $_POST['client_local_time'] ?? null;
@@ -20,23 +23,27 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if($user){
+
         if(password_verify($password, $user["password"])){
+
             $_SESSION["user_id"] = $user["id"];
             $_SESSION["user_name"] = $user["name"];
-           // logAction($conn, $user["id"], 'login', "User logged in", $client_time);
-            //require_once "../config/app.php";
-            //header("Location: " . $base_url . "/dashboard.php");
-            //exit();
-            echo "LOGIN SUCCESS";
+
+            logAction($conn, $user["id"], 'login', "User logged in", $client_time);
+
+            header("Location: " . $base_url . "/dashboard.php");
             exit();
+
         } else {
             $error = "Wrong password!";
         }
+
     } else {
         $error = "Invalid email or password!";
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
