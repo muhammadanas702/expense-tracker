@@ -1,13 +1,22 @@
 <?php
 session_start();
-require_once "../config/db.php";
-require_once "../includes/logging.php";
 
-$client_time = $_GET['client_time'] ?? null;
+require_once __DIR__ . "/../config/db.php";
+require_once __DIR__ . "/../includes/logging.php";
+
 if (isset($_SESSION["user_id"])) {
-    logAction($_SESSION["user_id"], 'logout', "User logged out", $client_time);
+
+    $user_id = $_SESSION["user_id"];
+
+    // log before destroying session
+    logAction($conn, $user_id, 'logout', 'User logged out', date('Y-m-d H:i:s'));
 }
+
+// destroy session
+session_unset();
 session_destroy();
-header("Location: ../auth/login.php");
+
+// redirect to login
+header("Location: login.php");
 exit();
 ?>
