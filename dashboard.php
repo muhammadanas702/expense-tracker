@@ -47,7 +47,6 @@ $top_category = ['category' => 'N/A', 'total' => 0];
 
 if ($use_date_range) {
     $display_currency = "USD";
-    // ✅ CORRECTED: use transaction_date, NOT date
     $date_condition = "transaction_date BETWEEN ? AND ?";
     $date_params = [$from_date, $to_date . ' 23:59:59'];
 
@@ -69,14 +68,12 @@ if ($use_date_range) {
     $balance = $total_income - $total_expense;
     $days = (strtotime($to_date) - strtotime($from_date)) / 86400 + 1;
     $avgDailySpend = ($total_expense > 0 && $days > 0) ? round($total_expense / $days, 2) : 0;
-
 } else {
     $year_month = $year . '-' . str_pad($month, 2, '0', STR_PAD_LEFT);
     $stmt = $conn->prepare("SELECT base_currency FROM user_monthly_currency WHERE user_id = ? AND `year_month` = ?");
     $stmt->execute([$user_id, $year_month]);
     $base_currency = $stmt->fetchColumn();
 
-    // ✅ CORRECTED: use transaction_date in MONTH and YEAR
     $stmtExp = $conn->prepare("SELECT amount, currency FROM expenses WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?");
     $stmtExp->execute([$user_id, $month, $year]);
     $expensesRaw = $stmtExp->fetchAll();
@@ -92,7 +89,6 @@ if ($use_date_range) {
     } else {
         $display_currency = $base_currency;
 
-        // ✅ CORRECTED: income query with transaction_date
         $stmtInc = $conn->prepare("SELECT amount_pkr FROM income WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?");
         $stmtInc->execute([$user_id, $month, $year]);
         $incomesRaw = $stmtInc->fetchAll();
@@ -113,7 +109,6 @@ if ($use_date_range) {
             $prevMonth = 12;
             $prevYear--;
         }
-        // ✅ CORRECTED: prev query with transaction_date
         $prevStmt = $conn->prepare("SELECT SUM(amount) as total FROM expenses WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?");
         $prevStmt->execute([$user_id, $prevMonth, $prevYear]);
         $prev_expense = $prevStmt->fetch()['total'] ?? 0;
@@ -126,12 +121,12 @@ if ($use_date_range) {
 
 $savings_percent = ($total_income > 0) ? ($balance / $total_income) * 100 : 0;
 
-/* RECENT INCOME – using transaction_date */
+/* RECENT INCOME */
 $stmt = $conn->prepare("SELECT id, title, amount_pkr, transaction_date FROM income WHERE user_id = ? ORDER BY transaction_date DESC LIMIT 5");
 $stmt->execute([$user_id]);
 $incomes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-/* RECENT EXPENSES – using transaction_date */
+/* RECENT EXPENSES */
 $stmt = $conn->prepare("SELECT id, title, amount, currency, category, transaction_date FROM expenses WHERE user_id = ? ORDER BY transaction_date DESC LIMIT 5");
 $stmt->execute([$user_id]);
 $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -157,8 +152,10 @@ if (!empty($categoryTotals)) {
     <title>ExpenseFlow | Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="/assets/client-time.js"></script>
     <link rel="stylesheet" href="assets/dashboard.css">
     <style>
+        /* Original dashboard styles restored */
         .sidebar a { transition: all 0.25s cubic-bezier(0.2, 0, 0, 1); }
         .sidebar a:hover { background: #e2e8f0; transform: translateX(6px) scale(1.02); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .menu-toggle { transition: 0.2s; }
@@ -180,7 +177,16 @@ if (!empty($categoryTotals)) {
         .sidebar-logo-img { height: 40px; width: auto; }
         .sidebar-logo-text { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; color: #0B2545; }
         .sidebar-logo-text span { color: #137A7F; font-weight: 500; }
-        .transaction { display: flex; justify-content: space-between; align-items: center; background: white; padding: 12px 16px; margin-bottom: 8px; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .transaction {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
         .income-item { border-left: 4px solid #10b981; }
         .expense-item { border-left: 4px solid #f97316; }
         .filter-form { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; margin-bottom: 24px; }
@@ -285,8 +291,8 @@ if (!empty($categoryTotals)) {
             <div><span>➕ <?=htmlspecialchars($inc['title'])?></span><small><br><?=date('d M Y', strtotime($inc['transaction_date']))?></small></div>
             <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
                 <b>+ <?=number_format($inc['amount_pkr'],2)?> PKR</b>
-                <a href="edit-income.php?id=<?=$inc['id']?>" style="color:#0f766e; text-decoration:none;">✏️</a>
-                <a href="delete-income.php?id=<?=$inc['id']?>" onclick="return confirm('Delete this income?')" style="color:#ef4444; text-decoration:none;">🗑️</a>
+                <a href="edit-income.php?id=<?=$inc['id']?>" data-log style="color:#0f766e; text-decoration:none;">✏️</a>
+                <a href="delete-income.php?id=<?=$inc['id']?>" data-log onclick="return confirm('Delete this income?')" style="color:#ef4444; text-decoration:none;">🗑️</a>
             </div>
         </div>
     <?php endforeach; else: ?><p>No income records for selected period.</p><?php endif; ?>
@@ -297,8 +303,8 @@ if (!empty($categoryTotals)) {
             <div><span>➖ <?=htmlspecialchars($exp['title'])?> (<?=htmlspecialchars($exp['category'])?>)</span><small><br><?=date('d M Y', strtotime($exp['transaction_date']))?></small></div>
             <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
                 <b>- <?=number_format($exp['amount'],2)?> <?=htmlspecialchars($exp['currency'])?></b>
-                <a href="edit-expense.php?id=<?=$exp['id']?>" style="color:#0f766e; text-decoration:none;">✏️</a>
-                <a href="delete-expense.php?id=<?=$exp['id']?>" onclick="return confirm('Delete this expense?')" style="color:#ef4444; text-decoration:none;">🗑️</a>
+                <a href="edit-expense.php?id=<?=$exp['id']?>" data-log style="color:#0f766e; text-decoration:none;">✏️</a>
+                <a href="delete-expense.php?id=<?=$exp['id']?>" data-log onclick="return confirm('Delete this expense?')" style="color:#ef4444; text-decoration:none;">🗑️</a>
             </div>
         </div>
     <?php endforeach; else: ?><p>No expense records for selected period.</p><?php endif; ?>
