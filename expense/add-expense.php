@@ -28,16 +28,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->execute([$user_id, $year_month]);
     $base = $stmt->fetchColumn();
 
-    if (!$base) {
-        $_SESSION['error'] = "Please add at least one income for this month before adding expenses.";
-        header("Location: add-expense.php");
-        exit();
-    }
+   if (!$base) {
+    $base = $currency;
+
+    $insertBase = $conn->prepare("
+        INSERT INTO user_monthly_currency
+        (user_id, year_month, base_currency)
+        VALUES (?, ?, ?)
+    ");
+
+    $insertBase->execute([
+        $user_id,
+        $year_month,
+        $base
+    ]);
+}
 
     $insert = $conn->prepare("INSERT INTO `expenses` (`user_id`, `title`, `amount`, `currency`, `category`, `transaction_date`) VALUES (?, ?, ?, ?, ?, ?)");
     $insert->execute([$user_id, $title, $amount, $currency, $category, $transaction_date]);
 
-    logAction($user_id, 'add_expense', "Title: $title, Category: $category, Amount: $amount $currency", $client_time);
+    logAction(
+    $conn,
+    $user_id,
+    'add_expense',
+    "Title: $title, Category: $category, Amount: $amount $currency",
+    $client_time
+);
     header("Location: ../dashboard.php");
     exit();
 }

@@ -37,6 +37,9 @@ $use_date_range = (!empty($from_date) && !empty($to_date));
 $total_income = 0;
 $total_expense = 0;
 $balance = 0;
+
+$incomes = [];
+$expenses = [];
 $trend = 0;
 $avgDailySpend = 0;
 $display_currency = "PKR";
@@ -51,29 +54,35 @@ if ($use_date_range) {
     $date_condition = "transaction_date BETWEEN ? AND ?";
     $date_params = [$from_date, $to_date . ' 23:59:59'];
 
-    $stmtInc = $conn->prepare("SELECT amount_pkr, preferred_currency FROM income WHERE user_id = ? AND $date_condition");
+    $stmtInc = $conn->prepare("SELECT amount_pkr, currency FROM income WHERE user_id = ? AND $date_condition");
     $stmtInc->execute(array_merge([$user_id], $date_params));
     $incomesRaw = $stmtInc->fetchAll();
 
     foreach ($incomesRaw as $inc) {
-        $total_income += CurrencyConverter::convert(
-            $inc['amount_pkr'],
-            $inc['preferred_currency'] ?? 'PKR',
-            'USD'
-        );
-    }
 
-    $stmtExp = $conn->prepare("SELECT amount, preferred_currency FROM expenses WHERE user_id = ? AND $date_condition");
+    $currency = $inc['currency'] ?? 'PKR';
+
+    $total_income += CurrencyConverter::convert(
+        $inc['amount_pkr'],
+        $currency,
+        'USD'
+    );
+}
+
+    $stmtExp = $conn->prepare("SELECT amount, currency FROM expenses WHERE user_id = ? AND $date_condition");
     $stmtExp->execute(array_merge([$user_id], $date_params));
     $expensesRaw = $stmtExp->fetchAll();
 
     foreach ($expensesRaw as $exp) {
-        $total_expense += CurrencyConverter::convert(
-            $exp['amount'],
-            $exp['preferred_currency'] ?? 'PKR',
-            'USD'
-        );
-    }
+
+    $currency = $exp['currency'] ?? 'PKR';
+
+    $total_expense += CurrencyConverter::convert(
+        $exp['amount'],
+        $currency,
+        'USD'
+    );
+}
 
     $balance = $total_income - $total_expense;
     $days = (strtotime($to_date) - strtotime($from_date)) / 86400 + 1;
@@ -87,7 +96,7 @@ if ($use_date_range) {
     $stmt->execute([$user_id, $year_month]);
     $base_currency = $stmt->fetchColumn();
 
-    $stmtExp = $conn->prepare("SELECT amount, preferred_currency FROM expenses WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?");
+    $stmtExp = $conn->prepare("SELECT amount, currency FROM expenses WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?");
     $stmtExp->execute([$user_id, $month, $year]);
     $expensesRaw = $stmtExp->fetchAll();
 
@@ -109,25 +118,34 @@ if ($use_date_range) {
     } else {
         $display_currency = $base_currency;
 
-        $stmtInc = $conn->prepare("SELECT amount_pkr, preferred_currency FROM income WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?");
+       $stmtInc = $conn->prepare("
+    SELECT amount_pkr, currency
+    FROM income
+    WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?
+");
         $stmtInc->execute([$user_id, $month, $year]);
         $incomesRaw = $stmtInc->fetchAll();
+foreach ($incomesRaw as $inc) {
 
-        foreach ($incomesRaw as $inc) {
-            $total_income += CurrencyConverter::convert(
-                $inc['amount_pkr'],
-                $inc['preferred_currency'] ?? $base_currency,
-                $base_currency
-            );
-        }
+    $currency = $inc['currency'] ?? $base_currency;
+
+    $total_income += CurrencyConverter::convert(
+        $inc['amount_pkr'],
+        $currency,
+        $base_currency
+    );
+}
 
         foreach ($expensesRaw as $exp) {
-            $total_expense += CurrencyConverter::convert(
-                $exp['amount'],
-                $exp['preferred_currency'] ?? $base_currency,
-                $base_currency
-            );
-        }
+
+    $currency = $exp['currency'] ?? $base_currency;
+
+    $total_expense += CurrencyConverter::convert(
+        $exp['amount'],
+        $currency,
+        $base_currency
+    );
+}
 
         $balance = $total_income - $total_expense;
 
@@ -150,6 +168,36 @@ if ($use_date_range) {
 }
 
 $savings_percent = ($total_income > 0) ? ($balance / $total_income) * 100 : 0;
+
+/* RECENT INCOME */
+
+$stmt = $conn->prepare("
+    SELECT *
+    FROM income
+    WHERE user_id = ?
+    ORDER BY transaction_date DESC
+    LIMIT 5
+");
+
+$stmt->execute([$user_id]);
+
+$incomes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+/* RECENT EXPENSES */
+
+$stmt = $conn->prepare("
+    SELECT *
+    FROM expenses
+    WHERE user_id = ?
+    ORDER BY transaction_date DESC
+    LIMIT 5
+");
+
+$stmt->execute([$user_id]);
+
+$expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <!DOCTYPE html>
@@ -300,7 +348,7 @@ $savings_percent = ($total_income > 0) ? ($balance / $total_income) * 100 : 0;
         <div class="transaction expense-item">
             <div><span>➖ <?=htmlspecialchars($exp['title'])?> (<?=htmlspecialchars($exp['category'])?>)</span><small><br><?=date('d M Y, h:i A',strtotime($exp['transaction_date']))?></small></div>
             <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
-                <b>- <?=number_format($exp['amount'],2)?> <?=htmlspecialchars($exp['preferred_currency'])?></b>
+                <b>- <?=number_format($exp['amount'],2)?> <?=htmlspecialchars($exp['currency'])?></b>
                 <a href="edit-expense.php?id=<?=$exp['id']?>" data-log style="color:#0f766e; text-decoration:none;">✏️</a>
                 <a href="delete-expense.php?id=<?=$exp['id']?>" data-log onclick="return confirm('Delete this expense?')" style="color:#ef4444; text-decoration:none;">🗑️</a>
             </div>

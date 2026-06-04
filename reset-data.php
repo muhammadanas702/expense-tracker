@@ -19,12 +19,25 @@ if (isset($_GET["type"])) {
         $stmt->execute([$user_id]);
         $stmt2 = $conn->prepare("DELETE FROM user_monthly_currency WHERE user_id = ?");
         $stmt2->execute([$user_id]);
-        logAction($user_id, 'reset_data', "Reset type: income", $client_time);
+        logAction(
+    $conn,
+    $user_id,
+    'reset_data',
+    "Reset type: income",
+    $client_time
+);
     }
     elseif ($type == "expense") {
+
         $stmt = $conn->prepare("DELETE FROM expenses WHERE user_id = ?");
         $stmt->execute([$user_id]);
-        logAction($user_id, 'reset_data', "Reset type: expense", $client_time);
+        logAction(
+        $conn,
+        $user_id,
+        'reset_data',
+        "Reset type: expense",
+        $client_time
+);
     }
     elseif ($type == "all") {
         $stmt = $conn->prepare("DELETE FROM income WHERE user_id = ?");
@@ -33,7 +46,13 @@ if (isset($_GET["type"])) {
         $stmt->execute([$user_id]);
         $stmt = $conn->prepare("DELETE FROM user_monthly_currency WHERE user_id = ?");
         $stmt->execute([$user_id]);
-        logAction($user_id, 'reset_data', "Reset type: all", $client_time);
+        logAction(
+    $conn,
+    $user_id,
+    'reset_data',
+    "Reset type: all",
+    $client_time
+);
     }
 }
 

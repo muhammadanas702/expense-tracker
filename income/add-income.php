@@ -33,7 +33,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $insert = $conn->prepare("INSERT INTO `income` (`user_id`, `title`, `amount`, `amount_pkr`, `currency`, `transaction_date`) VALUES (?, ?, ?, ?, ?, ?)");
     $insert->execute([$user_id, $title, $amount, $amount, $currency, $transaction_date]);
 
-    logAction($user_id, 'add_income', "Title: $title, Amount: $amount $currency", $client_time);
+    logAction(
+    $conn,
+    $user_id,
+    'add_income',
+    "Title: $title, Amount: $amount $currency",
+    $client_time
+);
     header("Location: ../dashboard.php");
     exit();
 }
