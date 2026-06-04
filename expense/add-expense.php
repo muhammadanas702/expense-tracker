@@ -58,14 +58,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: #f5f7fc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 2rem; }
         .form-container { background: white; border-radius: 32px; padding: 2rem; width: 450px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        h2 { margin-bottom: 1.5rem; color: #0f172a; text-align: center; }
-        label { display: block; font-weight: 500; color: #334155; margin: 1rem 0 0.3rem 0; }
-        input, select { width: 100%; padding: 0.7rem; border: 1px solid #cbd5e1; border-radius: 40px; font-size: 1rem; }
-        button { background: linear-gradient(135deg, #0f766e, #1d4ed8); color: white; border: none; padding: 0.8rem; border-radius: 40px; width: 100%; font-weight: 600; margin-top: 1.5rem; cursor: pointer; transition: 0.2s; }
-        button:hover { background: linear-gradient(135deg, #0d5c55, #1e3a8a); transform: scale(0.98); }
-        .error { background: #fee2e2; color: #b91c1c; padding: 0.5rem; border-radius: 20px; margin-bottom: 1rem; text-align: center; }
-        .back-link { display: block; text-align: center; margin-top: 1rem; color: #0f766e; text-decoration: none; }
-        #other_category_div { margin-top: 10px; display: none; }
+        h2 { margin-bottom: 1.5rem; color: #0B2545; text-align: center; font-size: 28px; }
+        label { display: block; font-weight: 500; color: #2c3e50; margin: 1rem 0 0.3rem 0; }
+        input, select { width: 100%; padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 16px; font-size: 1rem; transition: 0.2s; }
+        input:focus, select:focus { outline: none; border-color: #137A7F; box-shadow: 0 0 0 3px rgba(19,122,127,0.1); }
+        /* Increased margin for button and other elements */
+        button { width: 100%; padding: 14px; background: #137A7F; color: white; border: none; border-radius: 40px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 1.5rem; }
+        button:hover { background: #0b5f63; transform: translateY(-2px); }
+        .error { background: #fee2e2; color: #b91c1c; padding: 12px; border-radius: 16px; margin-bottom: 1rem; text-align: center; }
+        .back-link { display: block; text-align: center; margin-top: 1.5rem; color: #137A7F; text-decoration: none; font-weight: 500; }
+        .back-link:hover { text-decoration: underline; }
+        #other_category_div { margin-top: 0.5rem; display: none; }
+        /* ensure spacing after category select */
+        .form-group-last { margin-bottom: 0; }
     </style>
     <script>
         function toggleOtherCategory() {
@@ -91,8 +96,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <form method="POST" data-log>
         <label>Title</label>
         <input type="text" name="title" placeholder="e.g., Groceries, Rent" required>
+
         <label>Amount</label>
         <input type="number" step="any" name="amount" placeholder="0.00" required>
+
         <label>Currency</label>
         <select name="currency" required>
             <optgroup label="Major Currencies">
@@ -140,6 +147,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <option value="EGP">🇪🇬 Egyptian Pound (EGP)</option>
             </optgroup>
         </select>
+
         <label>Category</label>
         <select name="category" id="category" onchange="toggleOtherCategory()" required>
             <option value="Food">🍔 Food</option>
@@ -151,12 +159,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <option value="Education">📚 Education</option>
             <option value="Other">🔘 Other</option>
         </select>
+
         <div id="other_category_div">
             <label>Other Category Name</label>
             <input type="text" name="other_category" placeholder="e.g., Gym, Subscription">
         </div>
+
+        <!-- Submit button now has proper top margin -->
         <button type="submit">Add Expense</button>
     </form>
+
     <a href="../dashboard.php" class="back-link">← Back to Dashboard</a>
 </div>
 </body>

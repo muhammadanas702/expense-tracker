@@ -40,7 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-   <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="icon" type="image/png" href="/favicon.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Income | ExpenseFlow</title>
@@ -49,15 +49,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: #f4f7f9; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
         .container { max-width: 500px; width: 100%; background: white; border-radius: 32px; padding: 32px; box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
-        h1 { font-size: 28px; margin-bottom: 24px; color: #0B2545; }
+        h1 { font-size: 28px; margin-bottom: 24px; color: #0B2545; text-align: center; }
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50; }
         input, select { width: 100%; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 16px; font-size: 16px; transition: 0.2s; }
         input:focus, select:focus { outline: none; border-color: #137A7F; box-shadow: 0 0 0 3px rgba(19,122,127,0.1); }
         button { width: 100%; padding: 14px; background: #137A7F; color: white; border: none; border-radius: 40px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         button:hover { background: #0b5f63; transform: translateY(-2px); }
-        .error { color: #dc2626; background: #fee2e2; padding: 12px; border-radius: 16px; margin-bottom: 20px; }
-        .back-link { display: inline-block; margin-top: 20px; color: #137A7F; text-decoration: none; }
+        .error { color: #dc2626; background: #fee2e2; padding: 12px; border-radius: 16px; margin-bottom: 20px; text-align: center; }
+        .back-link-wrapper { text-align: center; margin-top: 20px; }
+        .back-link { color: #137A7F; text-decoration: none; font-weight: 500; display: inline-block; }
         .back-link:hover { text-decoration: underline; }
         .info-note { background: #eef2f6; padding: 8px 12px; border-radius: 12px; font-size: 12px; color: #5F6C7D; margin-top: 16px; text-align: center; }
     </style>
@@ -131,7 +132,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="info-note">
         ⏱️ Transaction time is automatically recorded.
     </div>
-    <a href="<?= $base_url ?>/dashboard.php" class="back-link">← Back to Dashboard</a>
+    <div class="back-link-wrapper">
+        <a href="<?= $base_url ?>/dashboard.php" class="back-link">← Back to Dashboard</a>
+    </div>
 </div>
 </body>
 </html>
