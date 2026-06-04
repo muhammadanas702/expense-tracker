@@ -774,7 +774,7 @@ require_once "config/app.php";
             </div>
         </div>
         <div class="modal-footer">
-            <i class="fa-regular fa-star"></i> Version 2.0 | Fintech Grade Platform
+            <i class="fa-regular fa-star"></i> Version 2.0 | © 2026 ExpenseFlow Team
         </div>
     </div>
 </div>
