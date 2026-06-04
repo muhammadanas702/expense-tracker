@@ -1,4 +1,8 @@
 <?php
+
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 require_once "../config/app.php";
 require_once "../config/db.php";
