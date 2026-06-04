@@ -38,8 +38,6 @@ $total_income = 0;
 $total_expense = 0;
 $balance = 0;
 
-$incomes = [];
-$expenses = [];
 $trend = 0;
 $avgDailySpend = 0;
 $display_currency = "PKR";
@@ -47,105 +45,68 @@ $base_currency = null;
 $categories = [];
 $categoryTotals = [];
 $top_category = ['category' => 'N/A', 'total' => 0];
-$incomes = [];
-$expenses = [];
+
 if ($use_date_range) {
     $display_currency = "USD";
-    $date_condition = "transaction_date BETWEEN ? AND ?";
+    $date_condition = "date BETWEEN ? AND ?";
     $date_params = [$from_date, $to_date . ' 23:59:59'];
 
-    $stmtInc = $conn->prepare("SELECT amount_pkr, currency FROM income WHERE user_id = ? AND $date_condition");
+    // Income: amount_pkr is in PKR, convert to USD
+    $stmtInc = $conn->prepare("SELECT amount_pkr FROM income WHERE user_id = ? AND $date_condition");
     $stmtInc->execute(array_merge([$user_id], $date_params));
     $incomesRaw = $stmtInc->fetchAll();
-
     foreach ($incomesRaw as $inc) {
+        $total_income += CurrencyConverter::convert($inc['amount_pkr'], 'PKR', 'USD');
+    }
 
-    $currency = $inc['currency'] ?? 'PKR';
-
-    $total_income += CurrencyConverter::convert(
-        $inc['amount_pkr'],
-        $currency,
-        'USD'
-    );
-}
-
+    // Expenses: have amount and currency
     $stmtExp = $conn->prepare("SELECT amount, currency FROM expenses WHERE user_id = ? AND $date_condition");
     $stmtExp->execute(array_merge([$user_id], $date_params));
     $expensesRaw = $stmtExp->fetchAll();
-
     foreach ($expensesRaw as $exp) {
-
-    $currency = $exp['currency'] ?? 'PKR';
-
-    $total_expense += CurrencyConverter::convert(
-        $exp['amount'],
-        $currency,
-        'USD'
-    );
-}
+        $currency = $exp['currency'] ?? 'PKR';
+        $total_expense += CurrencyConverter::convert($exp['amount'], $currency, 'USD');
+    }
 
     $balance = $total_income - $total_expense;
     $days = (strtotime($to_date) - strtotime($from_date)) / 86400 + 1;
     $avgDailySpend = ($total_expense > 0 && $days > 0) ? round($total_expense / $days, 2) : 0;
 
 } else {
-
     $year_month = $year . '-' . str_pad($month, 2, '0', STR_PAD_LEFT);
-
-   $stmt = $conn->prepare("SELECT base_currency FROM `user_monthly_currency` WHERE user_id = ? AND `year_month` = ?");
+    // Fixed: added backticks around column name `year_month`
+    $stmt = $conn->prepare("SELECT base_currency FROM user_monthly_currency WHERE user_id = ? AND `year_month` = ?");
     $stmt->execute([$user_id, $year_month]);
     $base_currency = $stmt->fetchColumn();
 
-    $stmtExp = $conn->prepare("SELECT amount, currency FROM expenses WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?");
+    $stmtExp = $conn->prepare("SELECT amount, currency FROM expenses WHERE user_id = ? AND MONTH(date) = ? AND YEAR(date) = ?");
     $stmtExp->execute([$user_id, $month, $year]);
     $expensesRaw = $stmtExp->fetchAll();
 
     if (!$base_currency) {
         $display_currency = "USD";
-
         foreach ($expensesRaw as $exp) {
-            $total_expense += CurrencyConverter::convert(
-                $exp['amount'],
-                $exp['preferred_currency'] ?? 'PKR',
-                'USD'
-            );
+            // Fixed: use 'currency' column, not 'preferred_currency'
+            $total_expense += CurrencyConverter::convert($exp['amount'], $exp['currency'] ?? 'PKR', 'USD');
         }
-
         $balance = -$total_expense;
         $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
         $avgDailySpend = ($total_expense > 0) ? round($total_expense / $daysInMonth, 2) : 0;
-
     } else {
         $display_currency = $base_currency;
 
-       $stmtInc = $conn->prepare("
-    SELECT amount_pkr, currency
-    FROM income
-    WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?
-");
+        // Income: amount_pkr is in PKR, convert to base_currency
+        $stmtInc = $conn->prepare("SELECT amount_pkr FROM income WHERE user_id = ? AND MONTH(date) = ? AND YEAR(date) = ?");
         $stmtInc->execute([$user_id, $month, $year]);
         $incomesRaw = $stmtInc->fetchAll();
-foreach ($incomesRaw as $inc) {
-
-    $currency = $inc['currency'] ?? $base_currency;
-
-    $total_income += CurrencyConverter::convert(
-        $inc['amount_pkr'],
-        $currency,
-        $base_currency
-    );
-}
+        foreach ($incomesRaw as $inc) {
+            $total_income += CurrencyConverter::convert($inc['amount_pkr'], 'PKR', $base_currency);
+        }
 
         foreach ($expensesRaw as $exp) {
-
-    $currency = $exp['currency'] ?? $base_currency;
-
-    $total_expense += CurrencyConverter::convert(
-        $exp['amount'],
-        $currency,
-        $base_currency
-    );
-}
+            $currency = $exp['currency'] ?? 'PKR';
+            $total_expense += CurrencyConverter::convert($exp['amount'], $currency, $base_currency);
+        }
 
         $balance = $total_income - $total_expense;
 
@@ -155,11 +116,9 @@ foreach ($incomesRaw as $inc) {
             $prevMonth = 12;
             $prevYear--;
         }
-
-        $prevStmt = $conn->prepare("SELECT SUM(amount) as total FROM expenses WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?");
+        $prevStmt = $conn->prepare("SELECT SUM(amount) as total FROM expenses WHERE user_id = ? AND MONTH(date) = ? AND YEAR(date) = ?");
         $prevStmt->execute([$user_id, $prevMonth, $prevYear]);
         $prev_expense = $prevStmt->fetch()['total'] ?? 0;
-
         $trend = ($prev_expense > 0) ? (($total_expense - $prev_expense) / $prev_expense) * 100 : 0;
 
         $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
@@ -169,37 +128,29 @@ foreach ($incomesRaw as $inc) {
 
 $savings_percent = ($total_income > 0) ? ($balance / $total_income) * 100 : 0;
 
-/* RECENT INCOME */
-
-$stmt = $conn->prepare("
-    SELECT *
-    FROM income
-    WHERE user_id = ?
-    ORDER BY transaction_date DESC
-    LIMIT 5
-");
-
+/* RECENT INCOME (using 'date' column) */
+$stmt = $conn->prepare("SELECT id, title, amount_pkr, date FROM income WHERE user_id = ? ORDER BY date DESC LIMIT 5");
 $stmt->execute([$user_id]);
-
 $incomes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-
-/* RECENT EXPENSES */
-
-$stmt = $conn->prepare("
-    SELECT *
-    FROM expenses
-    WHERE user_id = ?
-    ORDER BY transaction_date DESC
-    LIMIT 5
-");
-
+/* RECENT EXPENSES (using 'date' column) */
+$stmt = $conn->prepare("SELECT id, title, amount, currency, category, date FROM expenses WHERE user_id = ? ORDER BY date DESC LIMIT 5");
 $stmt->execute([$user_id]);
-
 $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+/* Category totals for pie chart */
+$stmt = $conn->prepare("SELECT category, SUM(amount) as total FROM expenses WHERE user_id = ? GROUP BY category");
+$stmt->execute([$user_id]);
+$cats = $stmt->fetchAll(PDO::FETCH_ASSOC);
+foreach ($cats as $cat) {
+    $categories[] = $cat['category'];
+    $categoryTotals[] = (float)$cat['total'];
+}
+if (!empty($categoryTotals)) {
+    $maxIdx = array_keys($categoryTotals, max($categoryTotals))[0];
+    $top_category = ['category' => $categories[$maxIdx], 'total' => $categoryTotals[$maxIdx]];
+}
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -208,7 +159,6 @@ $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <title>ExpenseFlow | Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="/assets/client-time.js"></script>
     <link rel="stylesheet" href="assets/dashboard.css">
     <style>
         /* Additional animations & UI improvements */
@@ -244,7 +194,6 @@ $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-
         /* Sidebar logo with image + text */
         .sidebar-logo {
             display: flex;
@@ -267,6 +216,41 @@ $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .sidebar-logo-text span {
             color: #137A7F;
             font-weight: 500;
+        }
+        .transaction {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .income-item { border-left: 4px solid #10b981; }
+        .expense-item { border-left: 4px solid #f97316; }
+        .filter-form { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; margin-bottom: 24px; }
+        .date-range { display: flex; gap: 16px; }
+        .field { display: flex; flex-direction: column; }
+        .field label { font-size: 12px; color: #5F6C7D; margin-bottom: 4px; }
+        .field input { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 12px; font-family: inherit; }
+        .apply-btn, .clear-btn { padding: 8px 20px; border-radius: 40px; border: none; background: #137A7F; color: white; font-weight: 500; cursor: pointer; text-decoration: none; display: inline-block; text-align: center; }
+        .clear-btn { background: #e2e8f0; color: #334155; }
+        .quick-stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+        .pill { background: #eef2f6; padding: 6px 14px; border-radius: 40px; font-size: 13px; color: #0B2545; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 32px; }
+        .card { background: white; padding: 20px; border-radius: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); text-align: center; }
+        .card h3 { font-size: 16px; margin-bottom: 8px; color: #5F6C7D; }
+        .card p { font-size: 28px; font-weight: 700; color: #0B2545; }
+        .reset-section { display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap; }
+        .danger-btn { background: #fee2e2; color: #dc2626; padding: 8px 16px; border-radius: 40px; text-decoration: none; font-size: 13px; font-weight: 500; }
+        .section-title { font-size: 24px; font-weight: 700; margin: 32px 0 16px; color: #0B2545; }
+        .charts-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; margin-top: 20px; }
+        .chart-box { background: white; padding: 16px; border-radius: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        @media (max-width: 768px) {
+            .cards { grid-template-columns: 1fr; }
+            .filter-form { flex-direction: column; align-items: stretch; }
+            .date-range { flex-direction: column; }
         }
     </style>
 </head>
@@ -307,27 +291,22 @@ $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <!-- Filter Form -->
-   <form method="GET" class="filter-form">
-
-    <div class="date-range">
-        <div class="field">
-            <label>From</label>
-            <input type="date" name="from_date" value="<?= htmlspecialchars($from_date) ?>">
+    <form method="GET" class="filter-form">
+        <div class="date-range">
+            <div class="field">
+                <label>From</label>
+                <input type="date" name="from_date" value="<?= htmlspecialchars($from_date) ?>">
+            </div>
+            <div class="field">
+                <label>To</label>
+                <input type="date" name="to_date" value="<?= htmlspecialchars($to_date) ?>">
+            </div>
         </div>
-
-        <div class="field">
-            <label>To</label>
-            <input type="date" name="to_date" value="<?= htmlspecialchars($to_date) ?>">
-        </div>
-    </div>
-
-    <button type="submit" class="apply-btn">Apply</button>
-
-    <?php if($use_date_range || !empty($_GET)): ?>
-        <a href="dashboard.php" class="clear-btn">Clear</a>
-    <?php endif; ?>
-
-</form>
+        <button type="submit" class="apply-btn">Apply</button>
+        <?php if($use_date_range || !empty($_GET)): ?>
+            <a href="dashboard.php" class="clear-btn">Clear</a>
+        <?php endif; ?>
+    </form>
 
     <!-- Quick Stats -->
     <div class="quick-stats">
@@ -363,9 +342,9 @@ $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <h2 class="section-title">💵 Recent Income</h2>
     <?php if($incomes): foreach($incomes as $inc): ?>
         <div class="transaction income-item">
-            <div><span>➕ <?=htmlspecialchars($inc['title'])?></span><small><br><?=date('d M Y, h:i A',strtotime($inc['transaction_date']))?></small></div>
+            <div><span>➕ <?=htmlspecialchars($inc['title'])?></span><small><br><?=date('d M Y', strtotime($inc['date']))?></small></div>
             <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
-                <b>+ <?=number_format($inc['amount_pkr'],2)?> <?=htmlspecialchars($inc['currency'])?></b>
+                <b>+ <?=number_format($inc['amount_pkr'],2)?> PKR</b>
                 <a href="edit-income.php?id=<?=$inc['id']?>" data-log style="color:#0f766e; text-decoration:none;">✏️</a>
                 <a href="delete-income.php?id=<?=$inc['id']?>" data-log onclick="return confirm('Delete this income?')" style="color:#ef4444; text-decoration:none;">🗑️</a>
             </div>
@@ -376,7 +355,7 @@ $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <h2 class="section-title">💸 Recent Expenses</h2>
     <?php if($expenses): foreach($expenses as $exp): ?>
         <div class="transaction expense-item">
-            <div><span>➖ <?=htmlspecialchars($exp['title'])?> (<?=htmlspecialchars($exp['category'])?>)</span><small><br><?=date('d M Y, h:i A',strtotime($exp['transaction_date']))?></small></div>
+            <div><span>➖ <?=htmlspecialchars($exp['title'])?> (<?=htmlspecialchars($exp['category'])?>)</span><small><br><?=date('d M Y', strtotime($exp['date']))?></small></div>
             <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
                 <b>- <?=number_format($exp['amount'],2)?> <?=htmlspecialchars($exp['currency'])?></b>
                 <a href="edit-expense.php?id=<?=$exp['id']?>" data-log style="color:#0f766e; text-decoration:none;">✏️</a>
