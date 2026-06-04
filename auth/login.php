@@ -51,6 +51,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
 
 <head>
+    <link rel="icon" type="image/png" href="/favicon.png">
     <meta charset="UTF-8">
     <title>Login</title>
     <link rel="stylesheet" href="../assets/auth.css">

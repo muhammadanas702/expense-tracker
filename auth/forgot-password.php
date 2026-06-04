@@ -9,6 +9,7 @@ require_once "../config/app.php";
 <link rel="stylesheet" href="<?= $base_url ?>/assets/responsive.css">
 
 <head>
+    <link rel="icon" type="image/png" href="/favicon.png">
     <meta charset="UTF-8">
     <title>Forgot Password</title>
     <style>

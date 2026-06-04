@@ -21,6 +21,7 @@ $expenses->execute([$id]);
 <link rel="stylesheet" href="/assets/responsive.css">
 
 <head>
+    <link rel="icon" type="image/png" href="/favicon.png">
     <meta charset="UTF-8">
     <title>View User - <?= htmlspecialchars($user['name']) ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
