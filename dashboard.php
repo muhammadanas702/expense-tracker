@@ -1,4 +1,10 @@
 <?php
+
+if (isset($_SESSION['success'])) {
+    echo '<div class="success-message" style="background: #dcfce7; color: #16a34a; padding: 12px 20px; border-radius: 20px; margin-bottom: 20px;">' . htmlspecialchars($_SESSION['success']) . '</div>';
+    unset($_SESSION['success']);
+}
+
 session_start();
 require_once "config/app.php";
 ini_set('display_errors', 1);
