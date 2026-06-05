@@ -305,6 +305,9 @@ if (!empty($categoryTotals)) {
             padding-bottom: 12px;
             border-bottom: 1px solid #e2e8f0;
         }
+        .welcome {
+            flex: 1;
+        }
         .welcome h1 {
             font-size: 1.8rem;
             font-weight: 700;
@@ -352,6 +355,69 @@ if (!empty($categoryTotals)) {
         .profile-btn:hover, .admin-btn:hover {
             transform: translateY(-3px) scale(1.02);
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        /* Change Base Currency Button & Form */
+        .change-base-container {
+            margin-top: 12px;
+        }
+        .change-base-btn {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border: none;
+            padding: 6px 16px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .change-base-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(249,115,22,0.3);
+        }
+        .change-base-form {
+            display: none;
+            margin-top: 12px;
+            background: white;
+            border-radius: 28px;
+            padding: 12px 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+        .change-base-form select {
+            padding: 6px 12px;
+            border-radius: 40px;
+            border: 1px solid #cbd5e1;
+            margin: 0 8px;
+        }
+        .change-base-form button {
+            padding: 5px 14px;
+            border-radius: 40px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .change-base-form button[type="submit"] {
+            background: #0f766e;
+            color: white;
+        }
+        .change-base-form button[type="button"] {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        .success-message, .error-message {
+            padding: 12px;
+            border-radius: 28px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .success-message {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .error-message {
+            background: #fee2e2;
+            color: #b91c1c;
         }
 
         /* Filter form */
@@ -630,6 +696,8 @@ if (!empty($categoryTotals)) {
             .transaction { flex-direction: column; align-items: flex-start; }
             .transaction div:last-child { align-self: flex-end; }
             .charts-container { grid-template-columns: 1fr; }
+            .change-base-form select { margin: 8px 0; width: 100%; }
+            .change-base-form button { margin-top: 6px; width: 100%; }
         }
     </style>
 </head>
@@ -640,7 +708,6 @@ if (!empty($categoryTotals)) {
 
 <div class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-        <!-- YOUR LOGO IMAGE ADDED HERE -->
         <img class="sidebar-logo-img" src="<?= $base_url ?>/ExpenseFlow Logo.png" alt="ExpenseFlow Logo">
         <div class="sidebar-logo-text">Expense<span>Flow</span></div>
     </div>
@@ -653,10 +720,89 @@ if (!empty($categoryTotals)) {
 </div>
 
 <div class="main">
+    <?php if(isset($_SESSION['success'])): ?>
+    <div id="flashMessage" class="success-message"><?= htmlspecialchars($_SESSION['success']) ?></div>
+    <?php unset($_SESSION['success']); ?>
+<?php endif; ?>
+<?php if(isset($_SESSION['error'])): ?>
+    <div id="flashMessage" class="error-message"><?= htmlspecialchars($_SESSION['error']) ?></div>
+    <?php unset($_SESSION['error']); ?>
+<?php endif; ?>
+
     <div class="top-bar">
         <div class="welcome">
             <h1>Welcome back, <?php echo htmlspecialchars($_SESSION["user_name"]); ?> 👋</h1>
             <p><?php echo $use_date_range ? "Custom range: $from_date to $to_date (converted to USD)" : date('F Y', mktime(0,0,0,$month,1,$year)) . " (base: $display_currency)"; ?></p>
+            <?php if (!$use_date_range && $base_currency): ?>
+                <div class="change-base-container">
+                    <button id="changeBaseBtn" class="change-base-btn">🔄 Change Base Currency</button>
+                    <div id="changeBaseForm" class="change-base-form">
+                        <form method="POST" action="change-base-currency.php" id="baseCurrencyForm">
+                            <input type="hidden" name="year_month" value="<?= $year_month ?>">
+                            <input type="hidden" name="month" value="<?= $month ?>">
+                            <input type="hidden" name="year" value="<?= $year ?>">
+                            <label style="font-size: 0.85rem;">New Base Currency:</label>
+                            <select name="new_base_currency" required>
+                                <option value="USD">🇺🇸 USD</option>
+                                <option value="EUR">🇪🇺 EUR</option>
+                                <option value="GBP">🇬🇧 GBP</option>
+                                <option value="PKR">🇵🇰 PKR</option>
+                                <option value="INR">🇮🇳 INR</option>
+                                <option value="AED">🇦🇪 AED</option>
+                                <option value="SAR">🇸🇦 SAR</option>
+                                <option value="KRW">🇰🇷 KRW</option>
+                                <option value="JPY">🇯🇵 JPY</option>
+                                <option value="CNY">🇨🇳 CNY</option>
+                                <option value="CAD">🇨🇦 CAD</option>
+                                <option value="AUD">🇦🇺 AUD</option>
+                                <option value="CHF">🇨🇭 CHF</option>
+                                <option value="NZD">🇳🇿 NZD</option>
+                                <option value="SGD">🇸🇬 SGD</option>
+                                <option value="MYR">🇲🇾 MYR</option>
+                                <option value="THB">🇹🇭 THB</option>
+                                <option value="VND">🇻🇳 VND</option>
+                                <option value="PHP">🇵🇭 PHP</option>
+                                <option value="IDR">🇮🇩 IDR</option>
+                                <option value="BDT">🇧🇩 BDT</option>
+                                <option value="LKR">🇱🇰 LKR</option>
+                                <option value="NPR">🇳🇵 NPR</option>
+                                <option value="AFN">🇦🇫 AFN</option>
+                                <option value="TRY">🇹🇷 TRY</option>
+                                <option value="RUB">🇷🇺 RUB</option>
+                                <option value="BRL">🇧🇷 BRL</option>
+                                <option value="ZAR">🇿🇦 ZAR</option>
+                                <option value="MXN">🇲🇽 MXN</option>
+                                <option value="SEK">🇸🇪 SEK</option>
+                                <option value="NOK">🇳🇴 NOK</option>
+                                <option value="DKK">🇩🇰 DKK</option>
+                                <option value="PLN">🇵🇱 PLN</option>
+                                <option value="HKD">🇭🇰 HKD</option>
+                                <option value="ILS">🇮🇱 ILS</option>
+                                <option value="KWD">🇰🇼 KWD</option>
+                                <option value="BHD">🇧🇭 BHD</option>
+                                <option value="OMR">🇴🇲 OMR</option>
+                                <option value="QAR">🇶🇦 QAR</option>
+                                <option value="EGP">🇪🇬 EGP</option>
+                            </select>
+                            <button type="submit">Change</button>
+                            <button type="button" onclick="document.getElementById('changeBaseForm').style.display='none'">Cancel</button>
+                        </form>
+                    </div>
+                </div>
+                <script>
+                    document.getElementById('changeBaseBtn').addEventListener('click', function() {
+                        var formDiv = document.getElementById('changeBaseForm');
+                        formDiv.style.display = formDiv.style.display === 'none' ? 'block' : 'none';
+                    });
+                    document.getElementById('baseCurrencyForm').addEventListener('submit', function(e) {
+                        var input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'client_local_time';
+                        input.value = getClientLocalDateTime();
+                        this.appendChild(input);
+                    });
+                </script>
+            <?php endif; ?>
         </div>
         <div class="btn-group">
             <a href="<?= $base_url ?>/profile.php" class="profile-btn">👤 Profile</a>
@@ -810,6 +956,18 @@ if (!empty($categoryTotals)) {
     if (menuToggle) menuToggle.addEventListener('click', openSidebar);
     if (overlay) overlay.addEventListener('click', closeSidebar);
     if (window.innerWidth >= 768) closeSidebar();
+
+    // Auto-hide flash message after 4 seconds
+    var flashMsg = document.getElementById('flashMessage');
+    if (flashMsg) {
+        setTimeout(function() {
+            flashMsg.style.transition = 'opacity 0.5s';
+            flashMsg.style.opacity = '0';
+            setTimeout(function() {
+                if (flashMsg && flashMsg.remove) flashMsg.remove();
+            }, 500);
+        }, 4000);
+    }
 </script>
 </body>
 </html>
