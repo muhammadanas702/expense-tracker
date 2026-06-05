@@ -22,8 +22,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         $amount_pkr = CurrencyConverter::convert($amount, $currency, 'PKR');
         $transaction_date = date('Y-m-d H:i:s');
+        $year_month = date('Y-m', strtotime($transaction_date));
         
-        $sql = "INSERT INTO income (user_id, title, amount, amount_pkr, transaction_date) 
+        // Set monthly base currency if not already set – use backticks
+        $stmt = $conn->prepare("SELECT `base_currency` FROM `user_monthly_currency` WHERE `user_id` = ? AND `year_month` = ?");
+        $stmt->execute([$user_id, $year_month]);
+        $base = $stmt->fetchColumn();
+        if (!$base) {
+            $base = $currency;
+            $insertBase = $conn->prepare("INSERT INTO `user_monthly_currency` (`user_id`, `year_month`, `base_currency`) VALUES (?, ?, ?)");
+            $insertBase->execute([$user_id, $year_month, $base]);
+        }
+        
+        $sql = "INSERT INTO `income` (`user_id`, `title`, `amount`, `amount_pkr`, `transaction_date`) 
                 VALUES (?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
         

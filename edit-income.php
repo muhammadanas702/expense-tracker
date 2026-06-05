@@ -16,20 +16,19 @@ $stmt->execute([$id, $user_id]);
 $income = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$income) {
-    die("Income record not found or you don't have permission.");
+    die("Income record not found.");
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $title = trim($_POST['title']);
     $amount_pkr = (float)$_POST['amount_pkr'];
     $currency = $_POST['currency'];
-    $transaction_date = $_POST['transaction_date'];
     $client_time = $_POST['client_local_time'] ?? null;
 
-    $update = $conn->prepare("UPDATE income SET title = ?, amount_pkr = ?, currency = ?, transaction_date = ? WHERE id = ? AND user_id = ?");
-    $update->execute([$title, $amount_pkr, $currency, $transaction_date, $id, $user_id]);
+    $update = $conn->prepare("UPDATE income SET title = ?, amount_pkr = ?, currency = ? WHERE id = ? AND user_id = ?");
+    $update->execute([$title, $amount_pkr, $currency, $id, $user_id]);
 
-    logAction($user_id, 'edit_income', "Updated income ID: $id", $client_time);
+    logAction($conn, $user_id, 'edit_income', "Updated income ID: $id", $client_time);
 
     header("Location: dashboard.php");
     exit();
@@ -40,6 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <head>
     <link rel="icon" type="image/png" href="/favicon.png">
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Income</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="/assets/client-time.js"></script>
@@ -51,6 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         input, select { width: 100%; padding: 0.7rem; margin-top: 0.3rem; border: 1px solid #cbd5e1; border-radius: 20px; font-family: inherit; }
         button { margin-top: 1.5rem; background: linear-gradient(135deg, #0f766e, #1d4ed8); color: white; border: none; padding: 0.7rem; border-radius: 40px; width: 100%; font-weight: 600; cursor: pointer; }
         .cancel { background: #e2e8f0; color: #1e293b; margin-top: 0.5rem; text-align: center; display: block; text-decoration: none; padding: 0.7rem; border-radius: 40px; }
+        .info-note { font-size: 12px; color: #6b7280; margin-top: 12px; text-align: center; }
     </style>
 </head>
 <body>
@@ -59,20 +60,56 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <form method="POST" data-log>
         <label>Title</label>
         <input type="text" name="title" value="<?= htmlspecialchars($income['title']) ?>" required>
-        <label>Amount </label>
+        <label>Amount (PKR)</label>
         <input type="number" step="0.01" name="amount_pkr" value="<?= $income['amount_pkr'] ?>" required>
         <label>Currency</label>
         <select name="currency">
-            <option value="PKR" <?= $income['currency']=='PKR'?'selected':'' ?>>PKR</option>
-            <option value="USD" <?= $income['currency']=='USD'?'selected':'' ?>>USD</option>
-            <option value="EUR" <?= $income['currency']=='EUR'?'selected':'' ?>>EUR</option>
-            <option value="GBP" <?= $income['currency']=='GBP'?'selected':'' ?>>GBP</option>
-            <option value="AED" <?= $income['currency']=='AED'?'selected':'' ?>>AED</option>
-            <option value="SAR" <?= $income['currency']=='SAR'?'selected':'' ?>>SAR</option>
-            <option value="KRW" <?= $income['currency']=='KRW'?'selected':'' ?>>KRW</option>
+            <optgroup label="Major Currencies">
+                <option value="USD" <?= $income['currency']=='USD'?'selected':'' ?>>🇺🇸 US Dollar (USD)</option>
+                <option value="EUR" <?= $income['currency']=='EUR'?'selected':'' ?>>🇪🇺 Euro (EUR)</option>
+                <option value="GBP" <?= $income['currency']=='GBP'?'selected':'' ?>>🇬🇧 British Pound (GBP)</option>
+                <option value="PKR" <?= $income['currency']=='PKR'?'selected':'' ?>>🇵🇰 Pakistani Rupee (PKR)</option>
+                <option value="INR" <?= $income['currency']=='INR'?'selected':'' ?>>🇮🇳 Indian Rupee (INR)</option>
+                <option value="AED" <?= $income['currency']=='AED'?'selected':'' ?>>🇦🇪 UAE Dirham (AED)</option>
+                <option value="SAR" <?= $income['currency']=='SAR'?'selected':'' ?>>🇸🇦 Saudi Riyal (SAR)</option>
+                <option value="KRW" <?= $income['currency']=='KRW'?'selected':'' ?>>🇰🇷 South Korean Won (KRW)</option>
+                <option value="JPY" <?= $income['currency']=='JPY'?'selected':'' ?>>🇯🇵 Japanese Yen (JPY)</option>
+                <option value="CNY" <?= $income['currency']=='CNY'?'selected':'' ?>>🇨🇳 Chinese Yuan (CNY)</option>
+                <option value="CAD" <?= $income['currency']=='CAD'?'selected':'' ?>>🇨🇦 Canadian Dollar (CAD)</option>
+                <option value="AUD" <?= $income['currency']=='AUD'?'selected':'' ?>>🇦🇺 Australian Dollar (AUD)</option>
+                <option value="CHF" <?= $income['currency']=='CHF'?'selected':'' ?>>🇨🇭 Swiss Franc (CHF)</option>
+                <option value="NZD" <?= $income['currency']=='NZD'?'selected':'' ?>>🇳🇿 New Zealand Dollar (NZD)</option>
+                <option value="SGD" <?= $income['currency']=='SGD'?'selected':'' ?>>🇸🇬 Singapore Dollar (SGD)</option>
+                <option value="MYR" <?= $income['currency']=='MYR'?'selected':'' ?>>🇲🇾 Malaysian Ringgit (MYR)</option>
+                <option value="THB" <?= $income['currency']=='THB'?'selected':'' ?>>🇹🇭 Thai Baht (THB)</option>
+                <option value="VND" <?= $income['currency']=='VND'?'selected':'' ?>>🇻🇳 Vietnamese Dong (VND)</option>
+                <option value="PHP" <?= $income['currency']=='PHP'?'selected':'' ?>>🇵🇭 Philippine Peso (PHP)</option>
+                <option value="IDR" <?= $income['currency']=='IDR'?'selected':'' ?>>🇮🇩 Indonesian Rupiah (IDR)</option>
+                <option value="BDT" <?= $income['currency']=='BDT'?'selected':'' ?>>🇧🇩 Bangladeshi Taka (BDT)</option>
+                <option value="LKR" <?= $income['currency']=='LKR'?'selected':'' ?>>🇱🇰 Sri Lankan Rupee (LKR)</option>
+                <option value="NPR" <?= $income['currency']=='NPR'?'selected':'' ?>>🇳🇵 Nepalese Rupee (NPR)</option>
+                <option value="AFN" <?= $income['currency']=='AFN'?'selected':'' ?>>🇦🇫 Afghan Afghani (AFN)</option>
+            </optgroup>
+            <optgroup label="Other Major Currencies">
+                <option value="TRY" <?= $income['currency']=='TRY'?'selected':'' ?>>🇹🇷 Turkish Lira (TRY)</option>
+                <option value="RUB" <?= $income['currency']=='RUB'?'selected':'' ?>>🇷🇺 Russian Ruble (RUB)</option>
+                <option value="BRL" <?= $income['currency']=='BRL'?'selected':'' ?>>🇧🇷 Brazilian Real (BRL)</option>
+                <option value="ZAR" <?= $income['currency']=='ZAR'?'selected':'' ?>>🇿🇦 South African Rand (ZAR)</option>
+                <option value="MXN" <?= $income['currency']=='MXN'?'selected':'' ?>>🇲🇽 Mexican Peso (MXN)</option>
+                <option value="SEK" <?= $income['currency']=='SEK'?'selected':'' ?>>🇸🇪 Swedish Krona (SEK)</option>
+                <option value="NOK" <?= $income['currency']=='NOK'?'selected':'' ?>>🇳🇴 Norwegian Krone (NOK)</option>
+                <option value="DKK" <?= $income['currency']=='DKK'?'selected':'' ?>>🇩🇰 Danish Krone (DKK)</option>
+                <option value="PLN" <?= $income['currency']=='PLN'?'selected':'' ?>>🇵🇱 Polish Zloty (PLN)</option>
+                <option value="HKD" <?= $income['currency']=='HKD'?'selected':'' ?>>🇭🇰 Hong Kong Dollar (HKD)</option>
+                <option value="ILS" <?= $income['currency']=='ILS'?'selected':'' ?>>🇮🇱 Israeli Shekel (ILS)</option>
+                <option value="KWD" <?= $income['currency']=='KWD'?'selected':'' ?>>🇰🇼 Kuwaiti Dinar (KWD)</option>
+                <option value="BHD" <?= $income['currency']=='BHD'?'selected':'' ?>>🇧🇭 Bahraini Dinar (BHD)</option>
+                <option value="OMR" <?= $income['currency']=='OMR'?'selected':'' ?>>🇴🇲 Omani Rial (OMR)</option>
+                <option value="QAR" <?= $income['currency']=='QAR'?'selected':'' ?>>🇶🇦 Qatari Riyal (QAR)</option>
+                <option value="EGP" <?= $income['currency']=='EGP'?'selected':'' ?>>🇪🇬 Egyptian Pound (EGP)</option>
+            </optgroup>
         </select>
-        <label>Date</label>
-        <input type="datetime-local" name="transaction_date" value="<?= date('Y-m-d\TH:i', strtotime($income['transaction_date'])) ?>" required>
+        <div class="info-note">⏱️ Transaction date remains unchanged (original timestamp preserved).</div>
         <button type="submit">Update Income</button>
         <a href="dashboard.php" class="cancel">Cancel</a>
     </form>

@@ -15,7 +15,7 @@ $client_time = $_GET['client_time'] ?? null;
 $stmt = $conn->prepare("DELETE FROM income WHERE id = ? AND user_id = ?");
 $stmt->execute([$id, $user_id]);
 
-logAction($user_id, 'delete_income', "Deleted income ID: $id", $client_time);
+logAction($conn, $user_id, 'delete_income', "Deleted income ID: $id", $client_time);
 
 header("Location: dashboard.php");
 exit();

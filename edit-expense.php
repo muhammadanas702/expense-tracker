@@ -24,13 +24,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $amount = (float)$_POST['amount'];
     $currency = $_POST['currency'];
     $category = $_POST['category'];
-    $transaction_date = $_POST['transaction_date'];
     $client_time = $_POST['client_local_time'] ?? null;
 
-    $update = $conn->prepare("UPDATE expenses SET title = ?, amount = ?, currency = ?, category = ?, transaction_date = ? WHERE id = ? AND user_id = ?");
-    $update->execute([$title, $amount, $currency, $category, $transaction_date, $id, $user_id]);
+    $update = $conn->prepare("UPDATE expenses SET title = ?, amount = ?, currency = ?, category = ? WHERE id = ? AND user_id = ?");
+    $update->execute([$title, $amount, $currency, $category, $id, $user_id]);
 
-    logAction($user_id, 'edit_expense', "Updated expense ID: $id", $client_time);
+    logAction($conn, $user_id, 'edit_expense', "Updated expense ID: $id", $client_time);
 
     header("Location: dashboard.php");
     exit();
@@ -39,8 +38,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="icon" type="image/png" href="/favicon.png">
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Expense</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="/assets/client-time.js"></script>
@@ -52,6 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         input, select { width: 100%; padding: 0.7rem; margin-top: 0.3rem; border: 1px solid #cbd5e1; border-radius: 20px; }
         button { margin-top: 1.5rem; background: linear-gradient(135deg, #0f766e, #1d4ed8); color: white; border: none; padding: 0.7rem; border-radius: 40px; width: 100%; font-weight: 600; cursor: pointer; }
         .cancel { background: #e2e8f0; color: #1e293b; margin-top: 0.5rem; text-align: center; display: block; text-decoration: none; padding: 0.7rem; border-radius: 40px; }
+        .info-note { font-size: 12px; color: #6b7280; margin-top: 12px; text-align: center; }
     </style>
 </head>
 <body>
@@ -60,22 +61,58 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <form method="POST" data-log>
         <label>Title</label>
         <input type="text" name="title" value="<?= htmlspecialchars($expense['title']) ?>" required>
-        <label>Amount </label>
+        <label>Amount</label>
         <input type="number" step="0.01" name="amount" value="<?= $expense['amount'] ?>" required>
         <label>Currency</label>
-        <select name="currency">
-            <option value="PKR" <?= $expense['currency']=='PKR'?'selected':'' ?>>PKR</option>
-            <option value="USD" <?= $expense['currency']=='USD'?'selected':'' ?>>USD</option>
-            <option value="EUR" <?= $expense['currency']=='EUR'?'selected':'' ?>>EUR</option>
-            <option value="GBP" <?= $expense['currency']=='GBP'?'selected':'' ?>>GBP</option>
-            <option value="AED" <?= $expense['currency']=='AED'?'selected':'' ?>>AED</option>
-            <option value="SAR" <?= $expense['currency']=='SAR'?'selected':'' ?>>SAR</option>
-            <option value="KRW" <?= $expense['currency']=='KRW'?'selected':'' ?>>KRW</option>
+        <select name="currency" required>
+            <optgroup label="Major Currencies">
+                <option value="USD">🇺🇸 US Dollar (USD)</option>
+                <option value="EUR">🇪🇺 Euro (EUR)</option>
+                <option value="GBP">🇬🇧 British Pound (GBP)</option>
+                <option value="PKR">🇵🇰 Pakistani Rupee (PKR)</option>
+                <option value="INR">🇮🇳 Indian Rupee (INR)</option>
+                <option value="AED">🇦🇪 UAE Dirham (AED)</option>
+                <option value="SAR">🇸🇦 Saudi Riyal (SAR)</option>
+                <option value="KRW">🇰🇷 South Korean Won (KRW)</option>
+                <option value="JPY">🇯🇵 Japanese Yen (JPY)</option>
+                <option value="CNY">🇨🇳 Chinese Yuan (CNY)</option>
+                <option value="CAD">🇨🇦 Canadian Dollar (CAD)</option>
+                <option value="AUD">🇦🇺 Australian Dollar (AUD)</option>
+                <option value="CHF">🇨🇭 Swiss Franc (CHF)</option>
+                <option value="NZD">🇳🇿 New Zealand Dollar (NZD)</option>
+                <option value="SGD">🇸🇬 Singapore Dollar (SGD)</option>
+                <option value="MYR">🇲🇾 Malaysian Ringgit (MYR)</option>
+                <option value="THB">🇹🇭 Thai Baht (THB)</option>
+                <option value="VND">🇻🇳 Vietnamese Dong (VND)</option>
+                <option value="PHP">🇵🇭 Philippine Peso (PHP)</option>
+                <option value="IDR">🇮🇩 Indonesian Rupiah (IDR)</option>
+                <option value="BDT">🇧🇩 Bangladeshi Taka (BDT)</option>
+                <option value="LKR">🇱🇰 Sri Lankan Rupee (LKR)</option>
+                <option value="NPR">🇳🇵 Nepalese Rupee (NPR)</option>
+                <option value="AFN">🇦🇫 Afghan Afghani (AFN)</option>
+            </optgroup>
+            <optgroup label="Other Major Currencies">
+                <option value="TRY">🇹🇷 Turkish Lira (TRY)</option>
+                <option value="RUB">🇷🇺 Russian Ruble (RUB)</option>
+                <option value="BRL">🇧🇷 Brazilian Real (BRL)</option>
+                <option value="ZAR">🇿🇦 South African Rand (ZAR)</option>
+                <option value="MXN">🇲🇽 Mexican Peso (MXN)</option>
+                <option value="SEK">🇸🇪 Swedish Krona (SEK)</option>
+                <option value="NOK">🇳🇴 Norwegian Krone (NOK)</option>
+                <option value="DKK">🇩🇰 Danish Krone (DKK)</option>
+                <option value="PLN">🇵🇱 Polish Zloty (PLN)</option>
+                <option value="HKD">🇭🇰 Hong Kong Dollar (HKD)</option>
+                <option value="ILS">🇮🇱 Israeli Shekel (ILS)</option>
+                <option value="KWD">🇰🇼 Kuwaiti Dinar (KWD)</option>
+                <option value="BHD">🇧🇭 Bahraini Dinar (BHD)</option>
+                <option value="OMR">🇴🇲 Omani Rial (OMR)</option>
+                <option value="QAR">🇶🇦 Qatari Riyal (QAR)</option>
+                <option value="EGP">🇪🇬 Egyptian Pound (EGP)</option>
+            </optgroup>
         </select>
         <label>Category</label>
         <input type="text" name="category" value="<?= htmlspecialchars($expense['category']) ?>" required>
-        <label>Date</label>
-        <input type="datetime-local" name="transaction_date" value="<?= date('Y-m-d\TH:i', strtotime($expense['transaction_date'])) ?>" required>
+        <div class="info-note">⏱️ Transaction date remains unchanged (original timestamp preserved).</div>
         <button type="submit">Update Expense</button>
         <a href="dashboard.php" class="cancel">Cancel</a>
     </form>

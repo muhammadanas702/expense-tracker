@@ -30,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if (!$base) {
         $base = $currency;
-        $insertBase = $conn->prepare("INSERT INTO user_monthly_currency (user_id, year_month, base_currency) VALUES (?, ?, ?)");
+        $insertBase = $conn->prepare("INSERT INTO `user_monthly_currency` (`user_id`, `year_month`, `base_currency`) VALUES (?, ?, ?)");
         $insertBase->execute([$user_id, $year_month, $base]);
     }
 
@@ -42,15 +42,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     exit();
 }
 ?>
+<!-- HTML form remains unchanged (same as before) -->
 <!DOCTYPE html>
 <html lang="en">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="/assets/responsive.css">
-
 <head>
     <link rel="icon" type="image/png" href="/favicon.png">
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Expense - ExpenseFlow</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="/assets/client-time.js"></script>
@@ -62,15 +60,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         label { display: block; font-weight: 500; color: #2c3e50; margin: 1rem 0 0.3rem 0; }
         input, select { width: 100%; padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 16px; font-size: 1rem; transition: 0.2s; }
         input:focus, select:focus { outline: none; border-color: #137A7F; box-shadow: 0 0 0 3px rgba(19,122,127,0.1); }
-        /* Increased margin for button and other elements */
         button { width: 100%; padding: 14px; background: #137A7F; color: white; border: none; border-radius: 40px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 1.5rem; }
         button:hover { background: #0b5f63; transform: translateY(-2px); }
         .error { background: #fee2e2; color: #b91c1c; padding: 12px; border-radius: 16px; margin-bottom: 1rem; text-align: center; }
         .back-link { display: block; text-align: center; margin-top: 1.5rem; color: #137A7F; text-decoration: none; font-weight: 500; }
         .back-link:hover { text-decoration: underline; }
         #other_category_div { margin-top: 0.5rem; display: none; }
-        /* ensure spacing after category select */
-        .form-group-last { margin-bottom: 0; }
     </style>
     <script>
         function toggleOtherCategory() {
@@ -165,7 +160,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="text" name="other_category" placeholder="e.g., Gym, Subscription">
         </div>
 
-        <!-- Submit button now has proper top margin -->
         <button type="submit">Add Expense</button>
     </form>
 
