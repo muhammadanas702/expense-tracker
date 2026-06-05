@@ -27,7 +27,7 @@ if (!$user) {
 
 $is_admin = (bool)$user['is_admin'];
 
-/* ---------- FILTER LOGIC (unchanged) ---------- */
+/* ---------- FILTER LOGIC ---------- */
 $month = isset($_GET['month']) ? (int)$_GET['month'] : (int)date('m');
 $year  = isset($_GET['year'])  ? (int)$_GET['year']  : (int)date('Y');
 $from_date = $_GET['from_date'] ?? '';
@@ -79,9 +79,13 @@ if ($use_date_range) {
     $expensesRaw = $stmtExp->fetchAll();
 
     if (!$base_currency) {
-        $display_currency = "USD";
+        // No base currency – treat as "null"
+        $display_currency = "null";
+        $total_income = 0;
+        $total_expense = 0;
         foreach ($expensesRaw as $exp) {
-            $total_expense += CurrencyConverter::convert($exp['amount'], $exp['currency'] ?? 'PKR', 'USD');
+            // Do not convert – just sum original amounts (mixed currencies)
+            $total_expense += $exp['amount'];
         }
         $balance = -$total_expense;
         $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
@@ -121,17 +125,17 @@ if ($use_date_range) {
 
 $savings_percent = ($total_income > 0) ? ($balance / $total_income) * 100 : 0;
 
-/* RECENT INCOME */
-$stmt = $conn->prepare("SELECT id, title, amount_pkr, transaction_date FROM income WHERE user_id = ? ORDER BY transaction_date DESC LIMIT 5");
+/* RECENT INCOME – select original amount and currency */
+$stmt = $conn->prepare("SELECT id, title, amount, currency, transaction_date FROM income WHERE user_id = ? ORDER BY transaction_date DESC LIMIT 5");
 $stmt->execute([$user_id]);
 $incomes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-/* RECENT EXPENSES */
+/* RECENT EXPENSES – already correct */
 $stmt = $conn->prepare("SELECT id, title, amount, currency, category, transaction_date FROM expenses WHERE user_id = ? ORDER BY transaction_date DESC LIMIT 5");
 $stmt->execute([$user_id]);
 $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-/* Category totals */
+/* Category totals – keep original amounts (no change) */
 $stmt = $conn->prepare("SELECT category, SUM(amount) as total FROM expenses WHERE user_id = ? GROUP BY category");
 $stmt->execute([$user_id]);
 $cats = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -156,7 +160,7 @@ if (!empty($categoryTotals)) {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="/assets/client-time.js"></script>
     <style>
-        /* ---------- RESET & GLOBAL ---------- */
+        /* ---------- YOUR EXISTING CSS (same as before – keep unchanged) ---------- */
         * {
             margin: 0;
             padding: 0;
@@ -175,8 +179,6 @@ if (!empty($categoryTotals)) {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        /* ---------- SIDEBAR (MOBILE DRAWER) ---------- */
         .sidebar {
             position: fixed;
             top: 0;
@@ -283,8 +285,6 @@ if (!empty($categoryTotals)) {
         }
         .menu-toggle:active { transform: scale(0.94); }
         .menu-toggle:hover { background: #0d5c55; transform: scale(1.02); }
-
-        /* ---------- MAIN CONTENT ---------- */
         .main {
             flex: 1;
             padding: 80px 20px 40px;
@@ -293,8 +293,6 @@ if (!empty($categoryTotals)) {
             margin: 0 auto;
             width: 100%;
         }
-
-        /* Top bar */
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -356,8 +354,6 @@ if (!empty($categoryTotals)) {
             transform: translateY(-3px) scale(1.02);
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }
-
-        /* Change Base Currency Button & Form */
         .change-base-container {
             margin-top: 12px;
         }
@@ -419,8 +415,6 @@ if (!empty($categoryTotals)) {
             background: #fee2e2;
             color: #b91c1c;
         }
-
-        /* Filter form */
         .filter-form {
             background: white;
             border-radius: 32px;
@@ -490,8 +484,6 @@ if (!empty($categoryTotals)) {
             background: #cbd5e1;
             transform: translateY(-2px);
         }
-
-        /* Quick stats pills */
         .quick-stats {
             display: flex;
             flex-wrap: wrap;
@@ -516,8 +508,6 @@ if (!empty($categoryTotals)) {
             transform: translateY(-2px) scale(1.02);
             background: #e2e8f0;
         }
-
-        /* Cards grid */
         .cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -556,8 +546,6 @@ if (!empty($categoryTotals)) {
         .income p { color: #10b981; }
         .expense p { color: #f97316; }
         .balance p { color: #0f766e; }
-
-        /* Reset buttons */
         .reset-section {
             display: flex;
             flex-wrap: wrap;
@@ -578,8 +566,6 @@ if (!empty($categoryTotals)) {
             background: #fecaca;
             transform: translateY(-2px) scale(1.02);
         }
-
-        /* Section titles */
         .section-title {
             font-size: 1.6rem;
             font-weight: 700;
@@ -598,8 +584,6 @@ if (!empty($categoryTotals)) {
             background: linear-gradient(90deg, #0f766e, #1d4ed8);
             border-radius: 3px;
         }
-
-        /* Transaction rows */
         .transaction {
             background: white;
             border-radius: 20px;
@@ -636,8 +620,6 @@ if (!empty($categoryTotals)) {
         }
         .income-item b { color: #10b981; }
         .expense-item b { color: #f97316; }
-
-        /* Charts */
         .charts-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -664,8 +646,6 @@ if (!empty($categoryTotals)) {
             max-height: 260px;
             width: 100%;
         }
-
-        /* Responsive */
         @media (min-width: 768px) {
             body { flex-direction: row; }
             .menu-toggle, .sidebar-overlay { display: none; }
@@ -824,15 +804,15 @@ if (!empty($categoryTotals)) {
     </form>
 
     <div class="quick-stats">
-        <div class="pill">📅 Avg daily spend: <?= number_format($avgDailySpend,2) ?> <?= $display_currency ?></div>
+        <div class="pill">📅 Avg daily spend: <?= number_format($avgDailySpend,2) ?> <?= $display_currency == 'null' ? '' : $display_currency ?></div>
         <div class="pill">🎯 Savings goal: <?= round($savings_percent,1) ?>% of income</div>
         <div class="pill">💡 Tip: <?= ($savings_percent < 15) ? "Try reducing dining out 🍔" : "Great saving habit! 🚀" ?></div>
     </div>
 
     <div class="cards">
-        <div class="card income"><h3>💰 Total Income</h3><p><?= number_format($total_income,2) ?> <?= $display_currency ?></p></div>
-        <div class="card expense"><h3>💸 Total Expense</h3><p><?= number_format($total_expense,2) ?> <?= $display_currency ?></p></div>
-        <div class="card balance"><h3>⚖️ Net Balance</h3><p><?= number_format($balance,2) ?> <?= $display_currency ?></p></div>
+        <div class="card income"><h3>💰 Total Income</h3><p><?= $total_income == 0 ? '0.00' : number_format($total_income,2) . ' ' . $display_currency ?></p></div>
+        <div class="card expense"><h3>💸 Total Expense</h3><p><?= $total_expense == 0 ? '0.00' : number_format($total_expense,2) . ' ' . $display_currency ?></p></div>
+        <div class="card balance"><h3>⚖️ Net Balance</h3><p><?= $balance == 0 ? '0.00' : number_format($balance,2) . ' ' . $display_currency ?></p></div>
     </div>
 
     <div class="reset-section">
@@ -854,7 +834,7 @@ if (!empty($categoryTotals)) {
         <div class="transaction income-item">
             <div><span>➕ <?=htmlspecialchars($inc['title'])?></span><small><?=date('d M Y', strtotime($inc['transaction_date']))?></small></div>
             <div style="display: flex; gap: 12px; align-items: center;">
-                <b>+ <?=number_format($inc['amount_pkr'],2)?> PKR</b>
+                <b>+ <?=number_format($inc['amount'],2)?> <?=htmlspecialchars($inc['currency'])?></b>
                 <a href="<?= $base_url ?>/edit-income.php?id=<?=$inc['id']?>" data-log style="color:#0f766e; text-decoration:none;">✏️</a>
                 <a href="<?= $base_url ?>/delete-income.php?id=<?=$inc['id']?>" data-log onclick="return confirm('Delete this income?')" style="color:#ef4444; text-decoration:none;">🗑️</a>
             </div>
@@ -888,14 +868,14 @@ if (!empty($categoryTotals)) {
     const catValues = <?= json_encode($categoryTotals) ?>;
 
     function showDetails(title, amount, percentage, extra = '') {
-        alert(`${title}\nAmount: <?= $display_currency ?> ${amount.toFixed(2)}\nPercentage: ${percentage.toFixed(1)}%${extra ? '\n' + extra : ''}`);
+        alert(`${title}\nAmount: ${amount.toFixed(2)}\nPercentage: ${percentage.toFixed(1)}%${extra ? '\n' + extra : ''}`);
     }
 
     const doughnutCtx = document.getElementById('doughnutChart').getContext('2d');
     const doughnutChart = new Chart(doughnutCtx, {
         type: 'doughnut',
         data: { labels: ['Income','Expense'], datasets: [{ data: [totalIncome,totalExpense], backgroundColor: ['#10b981','#f97316'], borderWidth: 0 }] },
-        options: { responsive: true, maintainAspectRatio: true, plugins: { tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: <?= $display_currency ?> ${ctx.raw.toFixed(2)}` } }, legend: { labels: { color: '#1e293b' } } } }
+        options: { responsive: true, maintainAspectRatio: true, plugins: { tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw.toFixed(2)}` } }, legend: { labels: { color: '#1e293b' } } } }
     });
     document.getElementById('doughnutChart').addEventListener('click', (event) => {
         const activePoints = doughnutChart.getElementsAtEvent(event);
@@ -912,7 +892,7 @@ if (!empty($categoryTotals)) {
     const barCtx = document.getElementById('barChart').getContext('2d');
     const barChart = new Chart(barCtx, {
         type: 'bar',
-        data: { labels: ['Income','Expense'], datasets: [{ label: '<?= $display_currency ?>', data: [totalIncome,totalExpense], backgroundColor: ['#10b981','#f97316'], borderRadius: 8 }] },
+        data: { labels: ['Income','Expense'], datasets: [{ label: 'Amount', data: [totalIncome,totalExpense], backgroundColor: ['#10b981','#f97316'], borderRadius: 8 }] },
         options: { responsive: true, maintainAspectRatio: true, scales: { y: { ticks: { color: '#334155' } }, x: { ticks: { color: '#1e293b' } } }, plugins: { tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label} ${ctx.raw.toFixed(2)}` } } } }
     });
     document.getElementById('barChart').addEventListener('click', (event) => {
@@ -931,7 +911,7 @@ if (!empty($categoryTotals)) {
         const pieChart = new Chart(document.getElementById('categoryPieChart'), {
             type: 'pie',
             data: { labels: catLabels, datasets: [{ data: catValues, backgroundColor: ['#137A7F','#0B2545','#4DA8DA','#F59E0B','#10b981','#a855f7','#ef4444'], borderWidth: 0 }] },
-            options: { responsive: true, maintainAspectRatio: true, plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.label}: <?= $display_currency ?> ${ctx.raw.toFixed(2)}` } }, legend: { position: 'bottom', labels: { color: '#1e293b' } } } }
+            options: { responsive: true, maintainAspectRatio: true, plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw.toFixed(2)}` } }, legend: { position: 'bottom', labels: { color: '#1e293b' } } } }
         });
         document.getElementById('categoryPieChart').addEventListener('click', (event) => {
             const active = pieChart.getElementsAtEvent(event);
@@ -941,7 +921,7 @@ if (!empty($categoryTotals)) {
                 const value = pieChart.data.datasets[0].data[idx];
                 const totalExp = catValues.reduce((a,b) => a + b, 0);
                 const pct = totalExp > 0 ? (value / totalExp) * 100 : 0;
-                showDetails(`Category: ${label}`, value, pct, `Out of total expenses: <?= $display_currency ?> ${totalExp.toFixed(2)}`);
+                showDetails(`Category: ${label}`, value, pct, `Out of total expenses: ${totalExp.toFixed(2)}`);
             }
         });
     } else {

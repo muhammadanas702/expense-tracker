@@ -26,6 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $category = $_POST['category'];
     $client_time = $_POST['client_local_time'] ?? null;
 
+    // Do NOT update transaction_date – keep original timestamp
     $update = $conn->prepare("UPDATE expenses SET title = ?, amount = ?, currency = ?, category = ? WHERE id = ? AND user_id = ?");
     $update->execute([$title, $amount, $currency, $category, $id, $user_id]);
 
@@ -52,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         input, select { width: 100%; padding: 0.7rem; margin-top: 0.3rem; border: 1px solid #cbd5e1; border-radius: 20px; }
         button { margin-top: 1.5rem; background: linear-gradient(135deg, #0f766e, #1d4ed8); color: white; border: none; padding: 0.7rem; border-radius: 40px; width: 100%; font-weight: 600; cursor: pointer; }
         .cancel { background: #e2e8f0; color: #1e293b; margin-top: 0.5rem; text-align: center; display: block; text-decoration: none; padding: 0.7rem; border-radius: 40px; }
-        .info-note { font-size: 12px; color: #6b7280; margin-top: 12px; text-align: center; }
+        .info-note { font-size: 12px; color: #6b7280; margin-top: 8px; text-align: center; }
     </style>
 </head>
 <body>
@@ -61,57 +62,61 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <form method="POST" data-log>
         <label>Title</label>
         <input type="text" name="title" value="<?= htmlspecialchars($expense['title']) ?>" required>
+
         <label>Amount</label>
         <input type="number" step="0.01" name="amount" value="<?= $expense['amount'] ?>" required>
+
         <label>Currency</label>
         <select name="currency" required>
             <optgroup label="Major Currencies">
-                <option value="USD">🇺🇸 US Dollar (USD)</option>
-                <option value="EUR">🇪🇺 Euro (EUR)</option>
-                <option value="GBP">🇬🇧 British Pound (GBP)</option>
-                <option value="PKR">🇵🇰 Pakistani Rupee (PKR)</option>
-                <option value="INR">🇮🇳 Indian Rupee (INR)</option>
-                <option value="AED">🇦🇪 UAE Dirham (AED)</option>
-                <option value="SAR">🇸🇦 Saudi Riyal (SAR)</option>
-                <option value="KRW">🇰🇷 South Korean Won (KRW)</option>
-                <option value="JPY">🇯🇵 Japanese Yen (JPY)</option>
-                <option value="CNY">🇨🇳 Chinese Yuan (CNY)</option>
-                <option value="CAD">🇨🇦 Canadian Dollar (CAD)</option>
-                <option value="AUD">🇦🇺 Australian Dollar (AUD)</option>
-                <option value="CHF">🇨🇭 Swiss Franc (CHF)</option>
-                <option value="NZD">🇳🇿 New Zealand Dollar (NZD)</option>
-                <option value="SGD">🇸🇬 Singapore Dollar (SGD)</option>
-                <option value="MYR">🇲🇾 Malaysian Ringgit (MYR)</option>
-                <option value="THB">🇹🇭 Thai Baht (THB)</option>
-                <option value="VND">🇻🇳 Vietnamese Dong (VND)</option>
-                <option value="PHP">🇵🇭 Philippine Peso (PHP)</option>
-                <option value="IDR">🇮🇩 Indonesian Rupiah (IDR)</option>
-                <option value="BDT">🇧🇩 Bangladeshi Taka (BDT)</option>
-                <option value="LKR">🇱🇰 Sri Lankan Rupee (LKR)</option>
-                <option value="NPR">🇳🇵 Nepalese Rupee (NPR)</option>
-                <option value="AFN">🇦🇫 Afghan Afghani (AFN)</option>
+                <option value="USD" <?= $expense['currency']=='USD' ? 'selected' : '' ?>>🇺🇸 US Dollar (USD)</option>
+                <option value="EUR" <?= $expense['currency']=='EUR' ? 'selected' : '' ?>>🇪🇺 Euro (EUR)</option>
+                <option value="GBP" <?= $expense['currency']=='GBP' ? 'selected' : '' ?>>🇬🇧 British Pound (GBP)</option>
+                <option value="PKR" <?= $expense['currency']=='PKR' ? 'selected' : '' ?>>🇵🇰 Pakistani Rupee (PKR)</option>
+                <option value="INR" <?= $expense['currency']=='INR' ? 'selected' : '' ?>>🇮🇳 Indian Rupee (INR)</option>
+                <option value="AED" <?= $expense['currency']=='AED' ? 'selected' : '' ?>>🇦🇪 UAE Dirham (AED)</option>
+                <option value="SAR" <?= $expense['currency']=='SAR' ? 'selected' : '' ?>>🇸🇦 Saudi Riyal (SAR)</option>
+                <option value="KRW" <?= $expense['currency']=='KRW' ? 'selected' : '' ?>>🇰🇷 South Korean Won (KRW)</option>
+                <option value="JPY" <?= $expense['currency']=='JPY' ? 'selected' : '' ?>>🇯🇵 Japanese Yen (JPY)</option>
+                <option value="CNY" <?= $expense['currency']=='CNY' ? 'selected' : '' ?>>🇨🇳 Chinese Yuan (CNY)</option>
+                <option value="CAD" <?= $expense['currency']=='CAD' ? 'selected' : '' ?>>🇨🇦 Canadian Dollar (CAD)</option>
+                <option value="AUD" <?= $expense['currency']=='AUD' ? 'selected' : '' ?>>🇦🇺 Australian Dollar (AUD)</option>
+                <option value="CHF" <?= $expense['currency']=='CHF' ? 'selected' : '' ?>>🇨🇭 Swiss Franc (CHF)</option>
+                <option value="NZD" <?= $expense['currency']=='NZD' ? 'selected' : '' ?>>🇳🇿 New Zealand Dollar (NZD)</option>
+                <option value="SGD" <?= $expense['currency']=='SGD' ? 'selected' : '' ?>>🇸🇬 Singapore Dollar (SGD)</option>
+                <option value="MYR" <?= $expense['currency']=='MYR' ? 'selected' : '' ?>>🇲🇾 Malaysian Ringgit (MYR)</option>
+                <option value="THB" <?= $expense['currency']=='THB' ? 'selected' : '' ?>>🇹🇭 Thai Baht (THB)</option>
+                <option value="VND" <?= $expense['currency']=='VND' ? 'selected' : '' ?>>🇻🇳 Vietnamese Dong (VND)</option>
+                <option value="PHP" <?= $expense['currency']=='PHP' ? 'selected' : '' ?>>🇵🇭 Philippine Peso (PHP)</option>
+                <option value="IDR" <?= $expense['currency']=='IDR' ? 'selected' : '' ?>>🇮🇩 Indonesian Rupiah (IDR)</option>
+                <option value="BDT" <?= $expense['currency']=='BDT' ? 'selected' : '' ?>>🇧🇩 Bangladeshi Taka (BDT)</option>
+                <option value="LKR" <?= $expense['currency']=='LKR' ? 'selected' : '' ?>>🇱🇰 Sri Lankan Rupee (LKR)</option>
+                <option value="NPR" <?= $expense['currency']=='NPR' ? 'selected' : '' ?>>🇳🇵 Nepalese Rupee (NPR)</option>
+                <option value="AFN" <?= $expense['currency']=='AFN' ? 'selected' : '' ?>>🇦🇫 Afghan Afghani (AFN)</option>
             </optgroup>
             <optgroup label="Other Major Currencies">
-                <option value="TRY">🇹🇷 Turkish Lira (TRY)</option>
-                <option value="RUB">🇷🇺 Russian Ruble (RUB)</option>
-                <option value="BRL">🇧🇷 Brazilian Real (BRL)</option>
-                <option value="ZAR">🇿🇦 South African Rand (ZAR)</option>
-                <option value="MXN">🇲🇽 Mexican Peso (MXN)</option>
-                <option value="SEK">🇸🇪 Swedish Krona (SEK)</option>
-                <option value="NOK">🇳🇴 Norwegian Krone (NOK)</option>
-                <option value="DKK">🇩🇰 Danish Krone (DKK)</option>
-                <option value="PLN">🇵🇱 Polish Zloty (PLN)</option>
-                <option value="HKD">🇭🇰 Hong Kong Dollar (HKD)</option>
-                <option value="ILS">🇮🇱 Israeli Shekel (ILS)</option>
-                <option value="KWD">🇰🇼 Kuwaiti Dinar (KWD)</option>
-                <option value="BHD">🇧🇭 Bahraini Dinar (BHD)</option>
-                <option value="OMR">🇴🇲 Omani Rial (OMR)</option>
-                <option value="QAR">🇶🇦 Qatari Riyal (QAR)</option>
-                <option value="EGP">🇪🇬 Egyptian Pound (EGP)</option>
+                <option value="TRY" <?= $expense['currency']=='TRY' ? 'selected' : '' ?>>🇹🇷 Turkish Lira (TRY)</option>
+                <option value="RUB" <?= $expense['currency']=='RUB' ? 'selected' : '' ?>>🇷🇺 Russian Ruble (RUB)</option>
+                <option value="BRL" <?= $expense['currency']=='BRL' ? 'selected' : '' ?>>🇧🇷 Brazilian Real (BRL)</option>
+                <option value="ZAR" <?= $expense['currency']=='ZAR' ? 'selected' : '' ?>>🇿🇦 South African Rand (ZAR)</option>
+                <option value="MXN" <?= $expense['currency']=='MXN' ? 'selected' : '' ?>>🇲🇽 Mexican Peso (MXN)</option>
+                <option value="SEK" <?= $expense['currency']=='SEK' ? 'selected' : '' ?>>🇸🇪 Swedish Krona (SEK)</option>
+                <option value="NOK" <?= $expense['currency']=='NOK' ? 'selected' : '' ?>>🇳🇴 Norwegian Krone (NOK)</option>
+                <option value="DKK" <?= $expense['currency']=='DKK' ? 'selected' : '' ?>>🇩🇰 Danish Krone (DKK)</option>
+                <option value="PLN" <?= $expense['currency']=='PLN' ? 'selected' : '' ?>>🇵🇱 Polish Zloty (PLN)</option>
+                <option value="HKD" <?= $expense['currency']=='HKD' ? 'selected' : '' ?>>🇭🇰 Hong Kong Dollar (HKD)</option>
+                <option value="ILS" <?= $expense['currency']=='ILS' ? 'selected' : '' ?>>🇮🇱 Israeli Shekel (ILS)</option>
+                <option value="KWD" <?= $expense['currency']=='KWD' ? 'selected' : '' ?>>🇰🇼 Kuwaiti Dinar (KWD)</option>
+                <option value="BHD" <?= $expense['currency']=='BHD' ? 'selected' : '' ?>>🇧🇭 Bahraini Dinar (BHD)</option>
+                <option value="OMR" <?= $expense['currency']=='OMR' ? 'selected' : '' ?>>🇴🇲 Omani Rial (OMR)</option>
+                <option value="QAR" <?= $expense['currency']=='QAR' ? 'selected' : '' ?>>🇶🇦 Qatari Riyal (QAR)</option>
+                <option value="EGP" <?= $expense['currency']=='EGP' ? 'selected' : '' ?>>🇪🇬 Egyptian Pound (EGP)</option>
             </optgroup>
         </select>
+
         <label>Category</label>
         <input type="text" name="category" value="<?= htmlspecialchars($expense['category']) ?>" required>
+
         <div class="info-note">⏱️ Transaction date remains unchanged (original timestamp preserved).</div>
         <button type="submit">Update Expense</button>
         <a href="dashboard.php" class="cancel">Cancel</a>
