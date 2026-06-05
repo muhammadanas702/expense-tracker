@@ -123,10 +123,28 @@ if ($use_date_range) {
 
 $savings_percent = ($total_income > 0) ? ($balance / $total_income) * 100 : 0;
 
-/* RECENT INCOME – now selects amount and currency (original values) */
-$stmt = $conn->prepare("SELECT id, title, amount, currency, transaction_date FROM income WHERE user_id = ? ORDER BY transaction_date DESC LIMIT 5");
-$stmt->execute([$user_id]);
-$incomes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+/* ---------- SAFE RECENT INCOME (handles missing 'currency' column) ---------- */
+// Check if 'currency' column exists in 'income' table
+$hasCurrency = false;
+try {
+    $check = $conn->query("SHOW COLUMNS FROM income LIKE 'currency'");
+    $hasCurrency = $check->rowCount() > 0;
+} catch (PDOException $e) {
+    $hasCurrency = false;
+}
+
+if ($hasCurrency) {
+    $stmt = $conn->prepare("SELECT id, title, amount, currency, transaction_date FROM income WHERE user_id = ? ORDER BY transaction_date DESC LIMIT 5");
+    $stmt->execute([$user_id]);
+    $incomes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    $stmt = $conn->prepare("SELECT id, title, amount_pkr as amount, transaction_date FROM income WHERE user_id = ? ORDER BY transaction_date DESC LIMIT 5");
+    $stmt->execute([$user_id]);
+    $incomes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($incomes as &$inc) {
+        $inc['currency'] = 'PKR';
+    }
+}
 
 /* RECENT EXPENSES – already correct */
 $stmt = $conn->prepare("SELECT id, title, amount, currency, category, transaction_date FROM expenses WHERE user_id = ? ORDER BY transaction_date DESC LIMIT 5");
