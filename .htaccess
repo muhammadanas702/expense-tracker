@@ -1,4 +1,10 @@
-RewriteEngine On
+# ========== FORCE HTTPS (ONLY ON LIVE SERVER) ==========
+# Comment the next three lines when working on localhost
+# RewriteEngine On
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+# ========== YOUR EXISTING RULES ==========
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^ index.php [QSA,L]
 
