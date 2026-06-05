@@ -79,12 +79,10 @@ if ($use_date_range) {
     $expensesRaw = $stmtExp->fetchAll();
 
     if (!$base_currency) {
-        // No base currency – treat as "null"
         $display_currency = "null";
         $total_income = 0;
         $total_expense = 0;
         foreach ($expensesRaw as $exp) {
-            // Do not convert – just sum original amounts (mixed currencies)
             $total_expense += $exp['amount'];
         }
         $balance = -$total_expense;
@@ -125,7 +123,7 @@ if ($use_date_range) {
 
 $savings_percent = ($total_income > 0) ? ($balance / $total_income) * 100 : 0;
 
-/* RECENT INCOME – select original amount and currency */
+/* RECENT INCOME – now selects amount and currency (original values) */
 $stmt = $conn->prepare("SELECT id, title, amount, currency, transaction_date FROM income WHERE user_id = ? ORDER BY transaction_date DESC LIMIT 5");
 $stmt->execute([$user_id]);
 $incomes = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -160,7 +158,7 @@ if (!empty($categoryTotals)) {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="/assets/client-time.js"></script>
     <style>
-        /* ---------- YOUR EXISTING CSS (same as before – keep unchanged) ---------- */
+        /* YOUR EXISTING CSS (unchanged) – same as before */
         * {
             margin: 0;
             padding: 0;
