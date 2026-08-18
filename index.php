@@ -730,7 +730,7 @@ require_once "config/app.php";
             <p>📬 Need assistance? Report an issue or share feedback — we're here to help.</p>
             <div class="contact-email">
                 <i class="fa-regular fa-paper-plane"></i>
-                <span class="email-text">expenseflow82@gmail.com</span>
+                <span class="email-text">expenseflowteam@gmail.com</span>
             </div>
             <div class="contact-help-text">
                 <i class="fa-regular fa-message"></i> <strong>How can we help?</strong><br>
