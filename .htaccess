@@ -1,0 +1,18 @@
+# ========== FORCE HTTPS (ONLY ON LIVE SERVER) ==========
+# Uncomment these lines only after HTTPS is confirmed on the live domain.
+# RewriteEngine On
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+# ========== EXISTING ROUTE RULES ==========
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [QSA,L]
+
+# Never expose diagnostic or one-time administrator setup scripts.
+<FilesMatch "^(phpinfo|fix-admin|set-admin)\.php$">
+    Require all denied
+</FilesMatch>
+
+<Files ".ftp-deploy-sync-state.json">
+    Require all denied
+</Files>

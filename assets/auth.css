@@ -1,0 +1,222 @@
+/* =========================================
+   AUTH - SAFE UPGRADE (EXPENSEFLOW)
+========================================= */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Inter','Segoe UI',sans-serif;
+}
+
+/* BODY (UNCHANGED LOGIC - ONLY POLISHED COLORS) */
+body{
+
+    min-height:100vh;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    background-color:#f4f7f9;
+
+    background-image:
+        radial-gradient(circle at 50% 20%, rgba(255,255,255,0.95), transparent 60%),
+        radial-gradient(circle at 80% 10%, rgba(19,122,127,0.06), transparent 40%),
+        linear-gradient(to right, rgba(19,122,127,0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(19,122,127,0.04) 1px, transparent 1px);
+
+    background-size:100% 100%,100% 100%,25px 25px,25px 25px;
+}
+
+/* WRAPPER (NO CHANGE) */
+.auth-wrapper{
+    width:100%;
+    min-height:100vh;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    padding:40px 20px;
+}
+
+/* CARD (ONLY SIZE + PREMIUM FEEL IMPROVED) */
+.card{
+
+    width:100%;
+    max-width:420px;   /* slightly smaller for cleaner UI */
+
+    background:rgba(255,255,255,0.92);
+    backdrop-filter:blur(16px);
+
+    border:1px solid rgba(19,122,127,0.10);
+
+    border-radius:26px;
+
+    padding:36px 32px;
+
+    box-shadow:0 18px 45px rgba(11,37,69,0.10);
+}
+
+/* LOGO (UNCHANGED STYLE, JUST CLEAN ALIGNMENT) */
+.logo{
+    text-align:center;
+    font-size:36px;
+    font-weight:800;
+    color:#137A7F;
+    margin-bottom:14px;
+}
+
+/* HEADING (GREEN REFINED) */
+.card h2{
+    text-align:center;
+    font-size:32px;
+    font-weight:700;
+
+    color:#137A7F;
+
+    margin-bottom:10px;
+}
+
+/* TEXT (SOFT GREEN TONE) */
+.card p{
+    text-align:center;
+    color:#137A7F;
+    opacity:0.72;
+
+    margin-bottom:22px;
+
+    font-size:14.8px;
+    line-height:1.6;
+}
+
+/* FORM (NO CHANGE) */
+.card form{
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+}
+
+/* INPUTS (ONLY SOFTER BORDER) */
+.card input{
+
+    width:100%;
+    padding:15px 16px;
+
+    border-radius:14px;
+
+    border:1px solid #dbe5ec;
+
+    font-size:15px;
+
+    background:#fff;
+
+    color:#0B2545;
+
+    transition:0.25s;
+}
+
+.card input:focus{
+    outline:none;
+    border-color:#137A7F;
+    box-shadow:0 0 0 3px rgba(19,122,127,0.10);
+}
+
+/* BUTTON (UNCHANGED LOGIC) */
+.card button{
+
+    width:100%;
+
+    padding:15px;
+
+    border:none;
+
+    border-radius:14px;
+
+    background:linear-gradient(135deg,#137A7F,#134074);
+
+    color:white;
+
+    font-size:15px;
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:0.25s;
+}
+
+.card button:hover{
+    transform:translateY(-2px);
+    box-shadow:0 10px 22px rgba(19,122,127,0.16);
+}
+
+/* LINKS (GREEN UNIFIED) */
+.auth-links{
+
+    margin-top:18px;
+
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+
+    text-align:center;
+}
+
+.auth-links a{
+    color:#137A7F;
+    text-decoration:none;
+
+    font-weight:600;
+    font-size:13.8px;
+
+    transition:0.2s;
+}
+
+.auth-links a:hover{
+    color:#0B2545;
+}
+
+/* ERROR (UNCHANGED FUNCTIONALLY) */
+.error{
+    background:#fee2e2;
+    border:1px solid #fecaca;
+
+    color:#b91c1c;
+
+    padding:11px;
+    border-radius:10px;
+
+    text-align:center;
+    margin-bottom:12px;
+}
+
+/* SUCCESS */
+.success{
+    background:#dcfce7;
+    border:1px solid #bbf7d0;
+
+    color:#166534;
+
+    padding:11px;
+    border-radius:10px;
+
+    text-align:center;
+    margin-bottom:12px;
+}
+
+/* MOBILE SAFE */
+@media(max-width:600px){
+    .card{
+        max-width:92%;
+        padding:28px 20px;
+    }
+
+    .card h2{
+        font-size:26px;
+    }
+
+    .logo{
+        font-size:28px;
+    }
+}

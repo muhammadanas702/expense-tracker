@@ -1,0 +1,23 @@
+# Local secrets. The deployment workflow creates production copies from Actions secrets.
+/config/db.local.php
+/config/mail.local.php
+/.env
+/.env.*
+!/.env.example
+
+# Local database dumps, archives, and generated user data.
+*.sql
+*.sql.gz
+*.bak
+*.backup
+*.zip
+/storage/*
+!/storage/.gitkeep
+/exports/*
+!/exports/.gitkeep
+/.ftp-deploy-sync-state.json
+
+# Local diagnostics and one-time admin maintenance scripts.
+/phpinfo.php
+/fix-admin.php
+/set-admin.php

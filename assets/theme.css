@@ -1,0 +1,171 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+:root{
+
+    --primary:#0B2545;
+    --secondary:#134074;
+    --teal:#137A7F;
+
+    --bg:#EEF4F8;
+
+    --white:#FFFFFF;
+
+    --text:#0B2545;
+
+    --muted:#5F6C7D;
+
+    --border:#dce6ee;
+
+    --shadow:
+    0 10px 30px rgba(11,37,69,0.08);
+
+    --radius:22px;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+
+    font-family:'Inter',sans-serif;
+}
+
+body{
+
+    min-height:100vh;
+
+    background-color:#f4f7f9;
+
+    background-image:
+
+    radial-gradient(
+        circle at 50% 30%,
+        #ffffff 0%,
+        transparent 70%
+    ),
+
+    linear-gradient(
+        to right,
+        rgba(19,122,127,0.04) 1px,
+        transparent 1px
+    ),
+
+    linear-gradient(
+        to bottom,
+        rgba(19,122,127,0.04) 1px,
+        transparent 1px
+    );
+
+    background-size:
+    100% 100%,
+    25px 25px,
+    25px 25px;
+
+    color:var(--text);
+}
+
+/* GLASS CARD */
+
+.glass{
+
+    background:
+    rgba(255,255,255,0.75);
+
+    backdrop-filter:blur(18px);
+
+    border:
+    1px solid rgba(255,255,255,0.5);
+
+    box-shadow:var(--shadow);
+
+    border-radius:var(--radius);
+}
+
+/* BUTTON */
+
+.btn{
+
+    background:var(--primary);
+
+    color:white;
+
+    border:none;
+
+    padding:14px 22px;
+
+    border-radius:14px;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+    transition:0.3s;
+}
+
+.btn:hover{
+
+    background:var(--secondary);
+
+    transform:translateY(-2px);
+}
+
+/* INPUTS */
+
+input,
+select,
+textarea{
+
+    width:100%;
+
+    padding:15px;
+
+    border-radius:14px;
+
+    border:1px solid var(--border);
+
+    background:white;
+
+    color:var(--text);
+
+    font-size:15px;
+
+    outline:none;
+
+    transition:0.3s;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+
+    border-color:var(--teal);
+
+    box-shadow:
+    0 0 0 4px rgba(19,122,127,0.12);
+}
+
+/* HEADINGS */
+
+h1,h2,h3,h4{
+
+    color:var(--primary);
+}
+
+p{
+
+    color:var(--muted);
+}
+
+/* LINKS */
+
+a{
+
+    color:var(--teal);
+
+    text-decoration:none;
+}
+
+a:hover{
+
+    opacity:0.8;
+}

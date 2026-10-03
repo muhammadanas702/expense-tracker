@@ -1,0 +1,663 @@
+/* =========================
+   BASE
+========================= */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Inter', sans-serif;
+}
+
+/* =========================
+   ROOT COLORS (ENHANCED GREEN SYSTEM)
+========================= */
+
+:root{
+
+    --navy:#0B2545;
+    --teal:#137A7F;
+    --deep:#134074;
+
+    --light:#EEF4F8;
+    --white:#FFFFFF;
+
+    --muted:#5F6C7D;
+
+    --danger:#ef4444;
+}
+
+/* =========================
+   BODY (NO LAYOUT CHANGE)
+========================= */
+
+body{
+
+    background-color:#f4f7f9;
+
+    background-image:
+
+        radial-gradient(
+            circle at top,
+            rgba(255,255,255,0.9),
+            transparent 60%
+        ),
+
+        linear-gradient(
+            to right,
+            rgba(19,122,127,0.03),
+            transparent 1px
+        ),
+
+        linear-gradient(
+            to bottom,
+            rgba(19,122,127,0.03),
+            transparent 1px
+        );
+
+    background-size:
+        100% 100%,
+        25px 25px,
+        25px 25px;
+
+    color:var(--navy);
+
+    display:flex;
+
+    min-height:100vh;
+}
+
+/* =========================
+   SIDEBAR (SOFT POLISH ONLY)
+========================= */
+
+.sidebar{
+    width:260px;
+    background:rgba(255,255,255,0.88);
+    backdrop-filter:blur(18px);
+    border-right:1px solid rgba(19,122,127,0.08);
+    padding:30px 18px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.03);
+
+    /* 🔥 NEW FIX */
+    position:fixed;
+    top:0;
+    left:0;
+    height:100vh;
+    overflow-y:auto;
+}
+
+.logo{
+
+    font-size:30px;
+
+    font-weight:800;
+
+    color:var(--teal);
+
+    margin-bottom:40px;
+}
+
+/* LINKS (NO STRUCTURE CHANGE) */
+
+.sidebar a{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    text-decoration:none;
+
+    color:var(--navy);
+
+    padding:14px 16px;
+
+    border-radius:14px;
+
+    margin-bottom:10px;
+
+    transition:0.25s;
+
+    font-weight:600;
+}
+
+.sidebar a:hover{
+
+    background:rgba(19,122,127,0.12);
+
+    color:var(--teal);
+
+    transform:translateX(3px);
+}
+
+/* =========================
+   MAIN
+========================= */
+
+.main{
+    flex:1;
+    padding:35px;
+
+    /* 🔥 push content so it doesn't go under sidebar */
+    margin-left:260px;
+}
+
+.main h1{
+
+    color:var(--teal);
+
+    font-size:38px;
+
+    margin-bottom:6px;
+
+    letter-spacing:0.3px;
+}
+
+.subtext{
+
+    color:var(--muted);
+
+    margin-bottom:28px;
+}
+
+/* =========================
+   FILTERS (CLEAN UI)
+========================= */
+
+.filter-form{
+
+    display:flex;
+
+    gap:12px;
+
+    flex-wrap:wrap;
+
+    margin-bottom:28px;
+}
+
+.filter-form select,
+.filter-form button{
+
+    padding:13px 16px;
+
+    border-radius:14px;
+
+    border:1px solid rgba(19,122,127,0.12);
+
+    background:white;
+
+    color:var(--navy);
+
+    font-size:14px;
+
+    font-weight:500;
+
+    outline:none;
+
+    transition:0.2s;
+}
+
+.filter-form button{
+
+    background:linear-gradient(
+        135deg,
+        var(--teal),
+        var(--deep)
+    );
+
+    color:white;
+
+    border:none;
+
+    cursor:pointer;
+}
+
+.filter-form button:hover{
+
+    transform:translateY(-2px);
+}
+
+/* =========================
+   CARDS (SOFTER + CLEANER)
+========================= */
+
+.cards{
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(auto-fit,minmax(240px,1fr));
+
+    gap:22px;
+
+    margin-bottom:25px;
+}
+
+/* IMPORTANT: ONLY VISUAL POLISH */
+.card{
+
+    background:rgba(255,255,255,0.88);
+
+    border-radius:24px;
+
+    padding:26px;
+
+    border:1px solid rgba(19,122,127,0.10);
+
+    box-shadow:0 10px 25px rgba(0,0,0,0.03);
+
+    transition:0.25s;
+}
+
+.card:hover{
+
+    transform:translateY(-3px);
+}
+
+.card h3{
+
+    font-size:17px;
+
+    color:var(--muted);
+
+    margin-bottom:12px;
+}
+
+.card p{
+
+    font-size:34px;
+
+    font-weight:700;
+
+    color:var(--navy);
+}
+
+/* =========================
+   STATUS BORDERS (UNCHANGED LOGIC)
+========================= */
+
+.income{ border-top:4px solid #22c55e; }
+
+.expense{ border-top:4px solid #ef4444; }
+
+.balance{ border-top:4px solid var(--teal); }
+
+/* =========================
+   BUTTONS
+========================= */
+
+.reset-section{
+
+    display:flex;
+
+    gap:12px;
+
+    flex-wrap:wrap;
+
+    margin:25px 0;
+}
+
+.danger-btn{
+
+    background:#ef4444;
+
+    color:white;
+
+    text-decoration:none;
+
+    padding:12px 16px;
+
+    border-radius:12px;
+
+    font-size:14px;
+
+    transition:0.25s;
+}
+
+.danger-btn:hover{
+
+    opacity:0.9;
+
+    transform:translateY(-2px);
+}
+
+/* =========================
+   TITLES
+========================= */
+
+.section-title{
+
+    margin-top:40px;
+
+    margin-bottom:18px;
+
+    color:var(--teal);
+
+    font-size:24px;
+}
+
+/* =========================
+   TRANSACTIONS (CLEAN FIX)
+========================= */
+
+.transaction{
+
+    background:rgba(255,255,255,0.88);
+
+    border-radius:18px;
+
+    padding:16px;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:14px;
+
+    border:1px solid rgba(19,122,127,0.08);
+
+    transition:0.25s;
+}
+
+.transaction:hover{
+
+    transform:translateX(3px);
+}
+
+.transaction span{
+
+    font-weight:600;
+
+    color:var(--navy);
+}
+
+.transaction small{
+
+    display:block;
+
+    margin-top:6px;
+
+    color:var(--muted);
+}
+
+.transaction b{
+
+    font-size:16px;
+}
+
+.income-item{ border-left:5px solid #22c55e; }
+
+.expense-item{ border-left:5px solid #ef4444; }
+
+/* =========================
+   CHARTS
+========================= */
+
+.charts-container{
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(auto-fit,minmax(320px,1fr));
+
+    gap:24px;
+
+    margin-top:20px;
+}
+
+.chart-box{
+
+    background:rgba(255,255,255,0.88);
+
+    border-radius:24px;
+
+    padding:25px;
+
+    border:1px solid rgba(19,122,127,0.08);
+
+    box-shadow:0 10px 20px rgba(0,0,0,0.03);
+}
+
+
+
+/* =========================
+   RESPONSIVE (UNCHANGED)
+========================= */
+
+@media(max-width:900px){
+
+    body{ flex-direction:column; }
+
+    .sidebar{
+
+        width:100%;
+
+        display:flex;
+
+        overflow:auto;
+
+        gap:10px;
+    }
+
+    .sidebar a{ white-space:nowrap; }
+
+    .main{ padding:22px; }
+}
+
+@media(max-width:600px){
+
+    .main h1{ font-size:28px; }
+
+    .card p{ font-size:28px; }
+
+    .transaction{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        gap:12px;
+    }
+}
+
+/* =========================
+   TOP BAR FIX
+========================= */
+
+.top-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+    flex-wrap:wrap;
+    gap:15px;
+}
+
+.welcome h1{
+    margin:0;
+    font-size:28px;
+}
+
+.btn-group a{
+    display:inline-block;
+}
+
+/* =========================
+   QUICK STATS FIX
+========================= */
+
+.quick-stats{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+}
+
+.pill{
+    background:rgba(255,255,255,0.8);
+    padding:10px 14px;
+    border-radius:999px;
+    border:1px solid rgba(19,122,127,0.15);
+    font-size:13px;
+}
+
+/* =========================
+   AI INSIGHTS FIX (dashboard-card missing)
+========================= */
+
+.dashboard-card{
+    background:rgba(255,255,255,0.88);
+    border-radius:24px;
+    padding:26px;
+    border:1px solid rgba(19,122,127,0.10);
+    box-shadow:0 10px 25px rgba(0,0,0,0.03);
+    transition:0.25s;
+}
+
+.dashboard-card:hover{
+    transform:translateY(-3px);
+}
+
+/* =========================
+   SIDEBAR OVERLAY FIX
+========================= */
+
+.sidebar-overlay{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.3);
+    display:none;
+}
+
+.sidebar-overlay.active{
+    display:block;
+}
+
+/* mobile sidebar open behavior */
+.sidebar{
+    transition:0.3s;
+}
+
+@media(max-width:768px){
+
+    .sidebar{
+        position:fixed;
+        left:-100%;
+        top:0;
+        height:100%;
+        z-index:999;
+        overflow-y:auto;
+    }
+
+    .sidebar.open{
+        left:0;
+    }
+
+    .main{
+        margin-left:0;
+    }
+}
+
+.date-range{
+    display:flex;
+    gap:14px;
+    align-items:flex-end;
+    flex-wrap:wrap;
+}
+
+.date-range .field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+}
+
+.date-range label{
+    font-size:12px;
+    color:#5F6C7D;
+    font-weight:600;
+    letter-spacing:0.3px;
+}
+
+.date-range input{
+    padding:12px 14px;
+    border-radius:14px;
+    border:1px solid rgba(19,122,127,0.2);
+    background:rgba(255,255,255,0.9);
+    outline:none;
+    transition:0.2s;
+    font-size:14px;
+}
+
+.date-range input:focus{
+    border-color:#137A7F;
+    box-shadow:0 0 0 3px rgba(19,122,127,0.15);
+}
+
+/* =========================
+   FILTER BUTTON FIX
+========================= */
+
+.filter-form{
+    display:flex;
+    align-items:flex-end;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-bottom:28px;
+}
+
+/* smaller apply button */
+.apply-btn{
+    padding:10px 14px;
+    border-radius:12px;
+    border:none;
+    background:linear-gradient(135deg,#137A7F,#134074);
+    color:white;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.apply-btn:hover{
+    transform:translateY(-2px);
+    opacity:0.9;
+}
+
+/* clear filter button */
+.clear-btn{
+    padding:10px 14px;
+    border-radius:12px;
+    border:1px solid rgba(19,122,127,0.25);
+    background:rgba(255,255,255,0.8);
+    color:#134074;
+    font-size:13px;
+    font-weight:600;
+    text-decoration:none;
+    transition:0.2s;
+}
+
+.clear-btn:hover{
+    background:#fff;
+    transform:translateY(-2px);
+}
+
+/* mobile spacing fix */
+@media(max-width:600px){
+    .filter-form{
+        flex-direction:column;
+        align-items:stretch;
+    }
+
+    .apply-btn,
+    .clear-btn{
+        width:100%;
+        text-align:center;
+    }
+}
