@@ -6,7 +6,7 @@ if (!isset($base_url) || !is_string($base_url) || $base_url === '') {
 $expenseFlowPwaBaseUrl = rtrim($base_url, '/');
 $expenseFlowPwaSafeBaseUrl = htmlspecialchars($expenseFlowPwaBaseUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 ?>
-<link rel="manifest" href="<?= $expenseFlowPwaSafeBaseUrl ?>/manifest.json">
+<link rel="manifest" href="<?= $expenseFlowPwaSafeBaseUrl ?>/manifest.json" crossorigin="use-credentials">
 <meta name="theme-color" content="#0B2545">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
