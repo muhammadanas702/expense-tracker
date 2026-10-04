@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+
+# Private application areas
+Disallow: /admin/
+Disallow: /config/
+Disallow: /includes/
+Disallow: /expense/
+Disallow: /income/
+Disallow: /reports/
+Disallow: /storage/
+Disallow: /exports/
+Disallow: /dashboard.php
+Disallow: /profile.php
+Disallow: /auth/logout.php
+Disallow: /auth/delete-account.php
+
+Sitemap: https://expenseflow.rf.gd/sitemap.xml

@@ -9,7 +9,29 @@ require_once "config/app.php";
    <?php require_once __DIR__ . '/includes/pwa-head.php'; ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ExpenseFlow | Professional Expense Management</title>
+    <title>ExpenseFlow – Expense Tracker &amp; Budget Planner</title>
+
+    <!-- ===== ExpenseFlow SEO: Phase 1 ===== -->
+    <?php
+    $seo_base_url = rtrim($base_url, '/');
+    $seo_canonical_url = $seo_base_url . '/';
+    $seo_description = 'Track expenses and income, manage your budget, and view financial reports with ExpenseFlow, an online expense tracker and budget planner.';
+    ?>
+    <meta name="description" content="<?= htmlspecialchars($seo_description, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="<?= htmlspecialchars($seo_canonical_url, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+
+    <!-- Social sharing metadata -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="ExpenseFlow">
+    <meta property="og:title" content="ExpenseFlow – Expense Tracker &amp; Budget Planner">
+    <meta property="og:description" content="Track expenses and income, manage your budget, and view financial reports with ExpenseFlow.">
+    <meta property="og:url" content="<?= htmlspecialchars($seo_canonical_url, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="ExpenseFlow – Expense Tracker &amp; Budget Planner">
+    <meta name="twitter:description" content="Track expenses and income, manage your budget, and view financial reports with ExpenseFlow.">
+    <!-- ===== End ExpenseFlow SEO: Phase 1 ===== -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
