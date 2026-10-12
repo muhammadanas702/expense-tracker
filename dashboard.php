@@ -1,168 +1,145 @@
 <?php
-// Start session and include required files
-session_start();
-require_once "config/app.php";
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+require_once __DIR__ . '/includes/security.php';
+secure_session_start();
 
-require_once __DIR__ . "/config/db.php";
-require_once __DIR__ . "/includes/CurrencyConverter.php";
+require_once __DIR__ . '/config/db.php';
+require_once __DIR__ . '/includes/CurrencyConverter.php';
 
 if (!isset($_SESSION["user_id"])) {
     header("Location: " . $base_url . "/auth/login.php");
     exit();
 }
 
-$user_id = $_SESSION["user_id"];
+$user_id = (int) $_SESSION["user_id"];
 
 $stmt = $conn->prepare("SELECT is_admin FROM users WHERE id = ?");
 $stmt->execute([$user_id]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$user) {
+    // The account no longer exists (for example it was deleted by an admin).
+    session_unset();
     session_destroy();
     header("Location: " . $base_url . "/auth/login.php");
     exit();
 }
 
-$is_admin = (bool)$user['is_admin'];
+$is_admin = (bool) $user['is_admin'];
 
-/* ---------- FILTER LOGIC ---------- */
-$month = isset($_GET['month']) ? (int)$_GET['month'] : (int)date('m');
-$year  = isset($_GET['year'])  ? (int)$_GET['year']  : (int)date('Y');
-$from_date = $_GET['from_date'] ?? '';
-$to_date   = $_GET['to_date'] ?? '';
-$use_date_range = (!empty($from_date) && !empty($to_date));
+/* ---------- FILTER LOGIC (everything from the URL is validated) ---------- */
+$month = request_month();
+$year  = request_year();
+$from_date = valid_date($_GET['from_date'] ?? '');
+$to_date   = valid_date($_GET['to_date'] ?? '');
+$use_date_range = ($from_date !== null && $to_date !== null);
 
-$total_income = 0;
-$total_expense = 0;
-$balance = 0;
-$trend = 0;
-$avgDailySpend = 0;
-$display_currency = "PKR";
-$base_currency = null;
+if ($use_date_range && $from_date > $to_date) {
+    [$from_date, $to_date] = [$to_date, $from_date];
+}
+$from_date = $from_date ?? '';
+$to_date   = $to_date ?? '';
+
+if ($use_date_range) {
+    $period_start = new DateTimeImmutable($from_date);
+    $period_end   = (new DateTimeImmutable($to_date))->modify('+1 day'); // exclusive
+} else {
+    $period_start = new DateTimeImmutable(sprintf('%04d-%02d-01', $year, $month));
+    $period_end   = $period_start->modify('+1 month');                   // exclusive
+}
+$days_in_period = max(1, (int) $period_start->diff($period_end)->days);
+$range_from = $period_start->format('Y-m-d H:i:s');
+$range_to   = $period_end->format('Y-m-d H:i:s');
+
+/* ---------- DISPLAY CURRENCY ---------- */
+$year_month = sprintf('%04d-%02d', $year, $month);
+$base_currency = null;      // explicitly chosen for this month (if any)
+$display_currency = 'PKR';
+
+if ($use_date_range) {
+    $display_currency = 'USD';
+} else {
+    $stmt = $conn->prepare("SELECT base_currency FROM user_monthly_currency WHERE user_id = ? AND `year_month` = ?");
+    $stmt->execute([$user_id, $year_month]);
+    $base_currency = normalize_currency($stmt->fetchColumn() ?: '');
+
+    if ($base_currency !== null) {
+        $display_currency = $base_currency;
+    } else {
+        // No base currency picked for this month yet: use the one picked most recently, else PKR.
+        $stmt = $conn->prepare("SELECT base_currency FROM user_monthly_currency WHERE user_id = ? ORDER BY `year_month` DESC LIMIT 1");
+        $stmt->execute([$user_id]);
+        $display_currency = normalize_currency($stmt->fetchColumn() ?: '') ?? 'PKR';
+    }
+}
+
+// Every amount is converted PKR -> display currency (rows keep the rate they were saved with).
+$toDisplay = static function (array $row) use ($display_currency): float {
+    return CurrencyConverter::convert(CurrencyConverter::expenseInPkr($row), 'PKR', $display_currency);
+};
+
+$total_income = 0.0;
+$total_expense = 0.0;
+$trend = 0.0;
 $categories = [];
 $categoryTotals = [];
 $top_category = ['category' => 'N/A', 'total' => 0];
 
-if ($use_date_range) {
-    $display_currency = "USD";
-    $date_condition = "transaction_date BETWEEN ? AND ?";
-    $date_params = [$from_date, $to_date . ' 23:59:59'];
-
-    $stmtInc = $conn->prepare("SELECT amount_pkr FROM income WHERE user_id = ? AND $date_condition");
-    $stmtInc->execute(array_merge([$user_id], $date_params));
-    $incomesRaw = $stmtInc->fetchAll();
-    foreach ($incomesRaw as $inc) {
-        $total_income += CurrencyConverter::convert($inc['amount_pkr'], 'PKR', 'USD');
-    }
-
-    $stmtExp = $conn->prepare("SELECT amount, currency FROM expenses WHERE user_id = ? AND $date_condition");
-    $stmtExp->execute(array_merge([$user_id], $date_params));
-    $expensesRaw = $stmtExp->fetchAll();
-    foreach ($expensesRaw as $exp) {
-        $currency = $exp['currency'] ?? 'PKR';
-        $total_expense += CurrencyConverter::convert($exp['amount'], $currency, 'USD');
-    }
-
-    $balance = $total_income - $total_expense;
-    $days = (strtotime($to_date) - strtotime($from_date)) / 86400 + 1;
-    $avgDailySpend = ($total_expense > 0 && $days > 0) ? round($total_expense / $days, 2) : 0;
-} else {
-    $year_month = $year . '-' . str_pad($month, 2, '0', STR_PAD_LEFT);
-    $stmt = $conn->prepare("SELECT base_currency FROM user_monthly_currency WHERE user_id = ? AND `year_month` = ?");
-    $stmt->execute([$user_id, $year_month]);
-    $base_currency = $stmt->fetchColumn();
-
-    $stmtExp = $conn->prepare("SELECT amount, currency FROM expenses WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?");
-    $stmtExp->execute([$user_id, $month, $year]);
-    $expensesRaw = $stmtExp->fetchAll();
-
-    if (!$base_currency) {
-        $display_currency = "null";
-        $total_income = 0;
-        $total_expense = 0;
-        foreach ($expensesRaw as $exp) {
-            $total_expense += $exp['amount'];
-        }
-        $balance = -$total_expense;
-        $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-        $avgDailySpend = ($total_expense > 0) ? round($total_expense / $daysInMonth, 2) : 0;
-    } else {
-        $display_currency = $base_currency;
-
-        $stmtInc = $conn->prepare("SELECT amount_pkr FROM income WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?");
-        $stmtInc->execute([$user_id, $month, $year]);
-        $incomesRaw = $stmtInc->fetchAll();
-        foreach ($incomesRaw as $inc) {
-            $total_income += CurrencyConverter::convert($inc['amount_pkr'], 'PKR', $base_currency);
-        }
-
-        foreach ($expensesRaw as $exp) {
-            $currency = $exp['currency'] ?? 'PKR';
-            $total_expense += CurrencyConverter::convert($exp['amount'], $currency, $base_currency);
-        }
-
-        $balance = $total_income - $total_expense;
-
-        $prevMonth = $month - 1;
-        $prevYear = $year;
-        if ($prevMonth == 0) {
-            $prevMonth = 12;
-            $prevYear--;
-        }
-        $prevStmt = $conn->prepare("SELECT SUM(amount) as total FROM expenses WHERE user_id = ? AND MONTH(transaction_date) = ? AND YEAR(transaction_date) = ?");
-        $prevStmt->execute([$user_id, $prevMonth, $prevYear]);
-        $prev_expense = $prevStmt->fetch()['total'] ?? 0;
-        $trend = ($prev_expense > 0) ? (($total_expense - $prev_expense) / $prev_expense) * 100 : 0;
-
-        $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-        $avgDailySpend = ($total_expense > 0) ? round($total_expense / $daysInMonth, 2) : 0;
-    }
+$stmtInc = $conn->prepare("SELECT amount_pkr FROM income WHERE user_id = ? AND transaction_date >= ? AND transaction_date < ?");
+$stmtInc->execute([$user_id, $range_from, $range_to]);
+foreach ($stmtInc->fetchAll(PDO::FETCH_ASSOC) as $inc) {
+    $total_income += CurrencyConverter::convert($inc['amount_pkr'] ?? 0, 'PKR', $display_currency);
 }
 
+$stmtExp = $conn->prepare("SELECT category, amount, currency, amount_pkr FROM expenses WHERE user_id = ? AND transaction_date >= ? AND transaction_date < ?");
+$stmtExp->execute([$user_id, $range_from, $range_to]);
+$categoryMap = [];
+foreach ($stmtExp->fetchAll(PDO::FETCH_ASSOC) as $exp) {
+    $value = $toDisplay($exp);
+    $total_expense += $value;
+    $cat = trim((string) ($exp['category'] ?? '')) !== '' ? (string) $exp['category'] : 'Uncategorized';
+    $categoryMap[$cat] = ($categoryMap[$cat] ?? 0) + $value;
+}
+
+$total_income  = round($total_income, 2);
+$total_expense = round($total_expense, 2);
+$balance = round($total_income - $total_expense, 2);
+$avgDailySpend = ($total_expense > 0) ? round($total_expense / $days_in_period, 2) : 0;
 $savings_percent = ($total_income > 0) ? ($balance / $total_income) * 100 : 0;
 
-/* ---------- SAFE RECENT INCOME (handles missing 'currency' column) ---------- */
-// Check if 'currency' column exists in 'income' table
-$hasCurrency = false;
-try {
-    $check = $conn->query("SHOW COLUMNS FROM income LIKE 'currency'");
-    $hasCurrency = $check->rowCount() > 0;
-} catch (PDOException $e) {
-    $hasCurrency = false;
-}
-
-if ($hasCurrency) {
-    $stmt = $conn->prepare("SELECT id, title, amount, currency, transaction_date FROM income WHERE user_id = ? ORDER BY transaction_date DESC LIMIT 5");
-    $stmt->execute([$user_id]);
-    $incomes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} else {
-    $stmt = $conn->prepare("SELECT id, title, amount_pkr as amount, transaction_date FROM income WHERE user_id = ? ORDER BY transaction_date DESC LIMIT 5");
-    $stmt->execute([$user_id]);
-    $incomes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    foreach ($incomes as &$inc) {
-        $inc['currency'] = 'PKR';
+// Spending trend compares with the previous calendar month (month view only).
+if (!$use_date_range) {
+    $prev_start = $period_start->modify('-1 month');
+    $stmtPrev = $conn->prepare("SELECT amount, currency, amount_pkr FROM expenses WHERE user_id = ? AND transaction_date >= ? AND transaction_date < ?");
+    $stmtPrev->execute([$user_id, $prev_start->format('Y-m-d H:i:s'), $range_from]);
+    $prev_expense = 0.0;
+    foreach ($stmtPrev->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $prev_expense += $toDisplay($row);
     }
+    $trend = ($prev_expense > 0) ? (($total_expense - $prev_expense) / $prev_expense) * 100 : 0;
 }
 
-/* RECENT EXPENSES – already correct */
-$stmt = $conn->prepare("SELECT id, title, amount, currency, category, transaction_date FROM expenses WHERE user_id = ? ORDER BY transaction_date DESC LIMIT 5");
+// Category breakdown for the selected period, biggest first.
+arsort($categoryMap);
+foreach ($categoryMap as $name => $value) {
+    $categories[] = (string) $name;
+    $categoryTotals[] = round($value, 2);
+}
+if ($categories) {
+    $top_category = ['category' => $categories[0], 'total' => $categoryTotals[0]];
+}
+
+/* ---------- RECENT TRANSACTIONS (latest five, all time) ---------- */
+$incomeColumns = schema_has($conn, 'income', 'currency') ? 'amount, currency' : "amount_pkr AS amount, 'PKR' AS currency";
+$stmt = $conn->prepare("SELECT id, title, $incomeColumns, transaction_date FROM income WHERE user_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 5");
+$stmt->execute([$user_id]);
+$incomes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$stmt = $conn->prepare("SELECT id, title, amount, currency, category, transaction_date FROM expenses WHERE user_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 5");
 $stmt->execute([$user_id]);
 $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-/* Category totals – keep original amounts (no change) */
-$stmt = $conn->prepare("SELECT category, SUM(amount) as total FROM expenses WHERE user_id = ? GROUP BY category");
-$stmt->execute([$user_id]);
-$cats = $stmt->fetchAll(PDO::FETCH_ASSOC);
-foreach ($cats as $cat) {
-    $categories[] = $cat['category'];
-    $categoryTotals[] = (float)$cat['total'];
-}
-if (!empty($categoryTotals)) {
-    $maxIdx = array_keys($categoryTotals, max($categoryTotals))[0];
-    $top_category = ['category' => $categories[$maxIdx], 'total' => $categoryTotals[$maxIdx]];
-}
+$csrf = csrf_token();
+$json_flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
 ?>
 
 <!DOCTYPE html>
@@ -174,9 +151,8 @@ if (!empty($categoryTotals)) {
     <title>ExpenseFlow | Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="/assets/client-time.js"></script>
+    <script src="<?= e($base_url) ?>/assets/client-time.js"></script>
     <style>
-        /* YOUR EXISTING CSS (unchanged) – same as before */
         * {
             margin: 0;
             padding: 0;
@@ -704,81 +680,41 @@ if (!empty($categoryTotals)) {
 
 <div class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-        <img class="sidebar-logo-img" src="<?= $base_url ?>/ExpenseFlow Logo.png" alt="ExpenseFlow Logo">
+        <img class="sidebar-logo-img" src="<?= e($base_url) ?>/ExpenseFlow Logo.png" alt="ExpenseFlow Logo">
         <div class="sidebar-logo-text">Expense<span>Flow</span></div>
     </div>
     <a href="#">📊 Dashboard</a>
-    <a href="<?= $base_url ?>/income/add-income.php">➕ Add Income</a>
-    <a href="<?= $base_url ?>/expense/add-expense.php">➖ Add Expense</a>
-    <a href="<?= $base_url ?>/reports/view-report.php">📄 Full Report</a>
-    <a href="<?= $base_url ?>/auth/logout.php" data-log>🚪 Logout</a>
-    <a href="<?= $base_url ?>/auth/delete-account.php" onclick="return confirm('Delete account permanently?')" style="color:#ef4444;">🗑 Delete Account</a>
+    <a href="<?= e($base_url) ?>/income/add-income.php">➕ Add Income</a>
+    <a href="<?= e($base_url) ?>/expense/add-expense.php">➖ Add Expense</a>
+    <a href="<?= e($base_url) ?>/reports/view-report.php">📄 Full Report</a>
+    <a href="<?= e($base_url) ?>/auth/logout.php" data-post data-csrf="<?= e($csrf) ?>">🚪 Logout</a>
+    <a href="<?= e($base_url) ?>/auth/delete-account.php" style="color:#ef4444;">🗑 Delete Account</a>
 </div>
 
 <div class="main">
     <?php if(isset($_SESSION['success'])): ?>
-    <div id="flashMessage" class="success-message"><?= htmlspecialchars($_SESSION['success']) ?></div>
+    <div id="flashMessage" class="success-message"><?= e($_SESSION['success']) ?></div>
     <?php unset($_SESSION['success']); ?>
 <?php endif; ?>
 <?php if(isset($_SESSION['error'])): ?>
-    <div id="flashMessage" class="error-message"><?= htmlspecialchars($_SESSION['error']) ?></div>
+    <div id="flashMessage" class="error-message"><?= e($_SESSION['error']) ?></div>
     <?php unset($_SESSION['error']); ?>
 <?php endif; ?>
 
     <div class="top-bar">
         <div class="welcome">
-            <h1>Welcome back, <?php echo htmlspecialchars($_SESSION["user_name"]); ?> 👋</h1>
-            <p><?php echo $use_date_range ? "Custom range: $from_date to $to_date (converted to USD)" : date('F Y', mktime(0,0,0,$month,1,$year)) . " (base: $display_currency)"; ?></p>
-            <?php if (!$use_date_range && $base_currency): ?>
+            <h1>Welcome back, <?= e($_SESSION["user_name"] ?? '') ?> 👋</h1>
+            <p><?= e($use_date_range ? "Custom range: $from_date to $to_date (converted to USD)" : $period_start->format('F Y') . " (base: $display_currency)") ?></p>
+            <?php if (!$use_date_range): ?>
                 <div class="change-base-container">
-                    <button id="changeBaseBtn" class="change-base-btn">🔄 Change Base Currency</button>
+                    <button type="button" id="changeBaseBtn" class="change-base-btn">🔄 Change Base Currency</button>
                     <div id="changeBaseForm" class="change-base-form">
                         <form method="POST" action="change-base-currency.php" id="baseCurrencyForm">
-                            <input type="hidden" name="year_month" value="<?= $year_month ?>">
-                            <input type="hidden" name="month" value="<?= $month ?>">
-                            <input type="hidden" name="year" value="<?= $year ?>">
-                            <label style="font-size: 0.85rem;">New Base Currency:</label>
-                            <select name="new_base_currency" required>
-                                <option value="USD">🇺🇸 USD</option>
-                                <option value="EUR">🇪🇺 EUR</option>
-                                <option value="GBP">🇬🇧 GBP</option>
-                                <option value="PKR">🇵🇰 PKR</option>
-                                <option value="INR">🇮🇳 INR</option>
-                                <option value="AED">🇦🇪 AED</option>
-                                <option value="SAR">🇸🇦 SAR</option>
-                                <option value="KRW">🇰🇷 KRW</option>
-                                <option value="JPY">🇯🇵 JPY</option>
-                                <option value="CNY">🇨🇳 CNY</option>
-                                <option value="CAD">🇨🇦 CAD</option>
-                                <option value="AUD">🇦🇺 AUD</option>
-                                <option value="CHF">🇨🇭 CHF</option>
-                                <option value="NZD">🇳🇿 NZD</option>
-                                <option value="SGD">🇸🇬 SGD</option>
-                                <option value="MYR">🇲🇾 MYR</option>
-                                <option value="THB">🇹🇭 THB</option>
-                                <option value="VND">🇻🇳 VND</option>
-                                <option value="PHP">🇵🇭 PHP</option>
-                                <option value="IDR">🇮🇩 IDR</option>
-                                <option value="BDT">🇧🇩 BDT</option>
-                                <option value="LKR">🇱🇰 LKR</option>
-                                <option value="NPR">🇳🇵 NPR</option>
-                                <option value="AFN">🇦🇫 AFN</option>
-                                <option value="TRY">🇹🇷 TRY</option>
-                                <option value="RUB">🇷🇺 RUB</option>
-                                <option value="BRL">🇧🇷 BRL</option>
-                                <option value="ZAR">🇿🇦 ZAR</option>
-                                <option value="MXN">🇲🇽 MXN</option>
-                                <option value="SEK">🇸🇪 SEK</option>
-                                <option value="NOK">🇳🇴 NOK</option>
-                                <option value="DKK">🇩🇰 DKK</option>
-                                <option value="PLN">🇵🇱 PLN</option>
-                                <option value="HKD">🇭🇰 HKD</option>
-                                <option value="ILS">🇮🇱 ILS</option>
-                                <option value="KWD">🇰🇼 KWD</option>
-                                <option value="BHD">🇧🇭 BHD</option>
-                                <option value="OMR">🇴🇲 OMR</option>
-                                <option value="QAR">🇶🇦 QAR</option>
-                                <option value="EGP">🇪🇬 EGP</option>
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="year_month" value="<?= e($year_month) ?>">
+                            <label for="newBaseCurrency" style="font-size: 0.85rem;">New Base Currency:</label>
+                            <select name="new_base_currency" id="newBaseCurrency" required>
+                                <?= currency_select_options($display_currency) ?>
                             </select>
                             <button type="submit">Change</button>
                             <button type="button" onclick="document.getElementById('changeBaseForm').style.display='none'">Cancel</button>
@@ -788,86 +724,79 @@ if (!empty($categoryTotals)) {
                 <script>
                     document.getElementById('changeBaseBtn').addEventListener('click', function() {
                         var formDiv = document.getElementById('changeBaseForm');
-                        formDiv.style.display = formDiv.style.display === 'none' ? 'block' : 'none';
-                    });
-                    document.getElementById('baseCurrencyForm').addEventListener('submit', function(e) {
-                        var input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = 'client_local_time';
-                        input.value = getClientLocalDateTime();
-                        this.appendChild(input);
+                        formDiv.style.display = (window.getComputedStyle(formDiv).display === 'none') ? 'block' : 'none';
                     });
                 </script>
             <?php endif; ?>
         </div>
         <div class="btn-group">
-            <a href="<?= $base_url ?>/profile.php" class="profile-btn">👤 Profile</a>
+            <a href="<?= e($base_url) ?>/profile.php" class="profile-btn">👤 Profile</a>
             <?php if ($is_admin): ?>
-                <a href="<?= $base_url ?>/admin/index.php" class="admin-btn">👑 Admin Panel</a>
+                <a href="<?= e($base_url) ?>/admin/index.php" class="admin-btn">👑 Admin Panel</a>
             <?php endif; ?>
         </div>
     </div>
 
     <form method="GET" class="filter-form">
         <div class="date-range">
-            <div class="field"><label>From</label><input type="date" name="from_date" value="<?= htmlspecialchars($from_date) ?>"></div>
-            <div class="field"><label>To</label><input type="date" name="to_date" value="<?= htmlspecialchars($to_date) ?>"></div>
+            <div class="field"><label>From</label><input type="date" name="from_date" value="<?= e($from_date) ?>"></div>
+            <div class="field"><label>To</label><input type="date" name="to_date" value="<?= e($to_date) ?>"></div>
         </div>
         <button type="submit" class="apply-btn">Apply</button>
         <?php if($use_date_range || !empty($_GET)): ?>
-            <a href="<?= $base_url ?>/dashboard.php" class="clear-btn">Clear</a>
+            <a href="<?= e($base_url) ?>/dashboard.php" class="clear-btn">Clear</a>
         <?php endif; ?>
     </form>
 
     <div class="quick-stats">
-        <div class="pill">📅 Avg daily spend: <?= number_format($avgDailySpend,2) ?> <?= $display_currency == 'null' ? '' : $display_currency ?></div>
+        <div class="pill">📅 Avg daily spend: <?= number_format($avgDailySpend,2) ?> <?= e($display_currency) ?></div>
         <div class="pill">🎯 Savings goal: <?= round($savings_percent,1) ?>% of income</div>
         <div class="pill">💡 Tip: <?= ($savings_percent < 15) ? "Try reducing dining out 🍔" : "Great saving habit! 🚀" ?></div>
     </div>
 
     <div class="cards">
-        <div class="card income"><h3>💰 Total Income</h3><p><?= $total_income == 0 ? '0.00' : number_format($total_income,2) . ' ' . $display_currency ?></p></div>
-        <div class="card expense"><h3>💸 Total Expense</h3><p><?= $total_expense == 0 ? '0.00' : number_format($total_expense,2) . ' ' . $display_currency ?></p></div>
-        <div class="card balance"><h3>⚖️ Net Balance</h3><p><?= $balance == 0 ? '0.00' : number_format($balance,2) . ' ' . $display_currency ?></p></div>
+        <div class="card income"><h3>💰 Total Income</h3><p><?= $total_income == 0 ? '0.00' : number_format($total_income,2) . ' ' . e($display_currency) ?></p></div>
+        <div class="card expense"><h3>💸 Total Expense</h3><p><?= $total_expense == 0 ? '0.00' : number_format($total_expense,2) . ' ' . e($display_currency) ?></p></div>
+        <div class="card balance"><h3>⚖️ Net Balance</h3><p><?= $balance == 0 ? '0.00' : number_format($balance,2) . ' ' . e($display_currency) ?></p></div>
     </div>
 
     <div class="reset-section">
-        <a href="<?= $base_url ?>/reset-data.php?type=income" class="danger-btn" onclick="return confirm('Reset all income?')">⟳ Reset Income</a>
-        <a href="<?= $base_url ?>/reset-data.php?type=expense" class="danger-btn" onclick="return confirm('Reset all expenses?')">⟳ Reset Expenses</a>
-        <a href="<?= $base_url ?>/reset-data.php?type=all" class="danger-btn" onclick="return confirm('⚠️ Delete all financial data?')">⚠️ Reset All</a>
+        <a href="<?= e($base_url) ?>/reset-data.php" class="danger-btn" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"type":"income"}' onclick="return confirm('Reset all income?')">⟳ Reset Income</a>
+        <a href="<?= e($base_url) ?>/reset-data.php" class="danger-btn" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"type":"expense"}' onclick="return confirm('Reset all expenses?')">⟳ Reset Expenses</a>
+        <a href="<?= e($base_url) ?>/reset-data.php" class="danger-btn" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"type":"all"}' onclick="return confirm('⚠️ Delete all financial data?')">⚠️ Reset All</a>
     </div>
 
-    <h2 class="section-title">🧠 AI Insights</h2>
+    <h2 class="section-title">🧠 Smart Insights</h2>
     <div class="cards">
         <div class="card"><h3>📈 Financial Health</h3><p><?= $savings_percent>=30?"Excellent 🔥":($savings_percent>=15?"Good 🙂":"Needs Control ⚠️") ?></p><small><?=round($savings_percent,1)?>% savings rate</small></div>
         <div class="card"><h3>📉 Spending Trend</h3><p><?= (!$use_date_range && $trend!=0) ? ($trend>0?"↑ +".round($trend,1):"↓ ".round(abs($trend),1))."%" : "N/A" ?></p><small><?= $use_date_range ? "Custom range" : "vs last month" ?></small></div>
-        <div class="card"><h3>🏷️ Top Category</h3><p><?= htmlspecialchars($top_category['category']??'N/A') ?></p><small>highest expense area</small></div>
+        <div class="card"><h3>🏷️ Top Category</h3><p><?= e($top_category['category'] ?? 'N/A') ?></p><small>highest expense area</small></div>
         <div class="card"><h3>📌 Monthly Status</h3><p><?= $balance>0?"Surplus 🟢":($balance<0?"Deficit 🔴":"Neutral ⚪") ?></p><small>income vs expense</small></div>
     </div>
 
     <h2 class="section-title">💵 Recent Income</h2>
-    <?php if($incomes): foreach($incomes as $inc): ?>
+    <?php if ($incomes): foreach ($incomes as $inc): ?>
         <div class="transaction income-item">
-            <div><span>➕ <?=htmlspecialchars($inc['title'])?></span><small><?=date('d M Y', strtotime($inc['transaction_date']))?></small></div>
+            <div><span>➕ <?= e($inc['title']) ?></span><small><?= e(date('d M Y', strtotime($inc['transaction_date']))) ?></small></div>
             <div style="display: flex; gap: 12px; align-items: center;">
-                <b>+ <?=number_format($inc['amount'],2)?> <?=htmlspecialchars($inc['currency'])?></b>
-                <a href="<?= $base_url ?>/edit-income.php?id=<?=$inc['id']?>" data-log style="color:#0f766e; text-decoration:none;">✏️</a>
-                <a href="<?= $base_url ?>/delete-income.php?id=<?=$inc['id']?>" data-log onclick="return confirm('Delete this income?')" style="color:#ef4444; text-decoration:none;">🗑️</a>
+                <b>+ <?= number_format((float) $inc['amount'], 2) ?> <?= e($inc['currency']) ?></b>
+                <a href="<?= e($base_url) ?>/edit-income.php?id=<?= (int) $inc['id'] ?>" style="color:#0f766e; text-decoration:none;" aria-label="Edit income">✏️</a>
+                <a href="<?= e($base_url) ?>/delete-income.php" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"id":<?= (int) $inc['id'] ?>}' onclick="return confirm('Delete this income?')" style="color:#ef4444; text-decoration:none;" aria-label="Delete income">🗑️</a>
             </div>
         </div>
-    <?php endforeach; else: ?><p>No income records for selected period.</p><?php endif; ?>
+    <?php endforeach; else: ?><p>No income records yet.</p><?php endif; ?>
 
     <h2 class="section-title">💸 Recent Expenses</h2>
-    <?php if($expenses): foreach($expenses as $exp): ?>
+    <?php if ($expenses): foreach ($expenses as $exp): ?>
         <div class="transaction expense-item">
-            <div><span>➖ <?=htmlspecialchars($exp['title'])?> (<?=htmlspecialchars($exp['category'])?>)</span><small><?=date('d M Y', strtotime($exp['transaction_date']))?></small></div>
+            <div><span>➖ <?= e($exp['title']) ?> (<?= e($exp['category']) ?>)</span><small><?= e(date('d M Y', strtotime($exp['transaction_date']))) ?></small></div>
             <div style="display: flex; gap: 12px; align-items: center;">
-                <b>- <?=number_format($exp['amount'],2)?> <?=htmlspecialchars($exp['currency'])?></b>
-                <a href="<?= $base_url ?>/edit-expense.php?id=<?=$exp['id']?>" data-log style="color:#0f766e; text-decoration:none;">✏️</a>
-                <a href="<?= $base_url ?>/delete-expense.php?id=<?=$exp['id']?>" data-log onclick="return confirm('Delete this expense?')" style="color:#ef4444; text-decoration:none;">🗑️</a>
+                <b>- <?= number_format((float) $exp['amount'], 2) ?> <?= e($exp['currency']) ?></b>
+                <a href="<?= e($base_url) ?>/edit-expense.php?id=<?= (int) $exp['id'] ?>" style="color:#0f766e; text-decoration:none;" aria-label="Edit expense">✏️</a>
+                <a href="<?= e($base_url) ?>/delete-expense.php" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"id":<?= (int) $exp['id'] ?>}' onclick="return confirm('Delete this expense?')" style="color:#ef4444; text-decoration:none;" aria-label="Delete expense">🗑️</a>
             </div>
         </div>
-    <?php endforeach; else: ?><p>No expense records for selected period.</p><?php endif; ?>
+    <?php endforeach; else: ?><p>No expense records yet.</p><?php endif; ?>
 
     <h2 class="section-title">📊 Analytics Center (Click on any chart for details)</h2>
     <div class="charts-container">
@@ -878,10 +807,15 @@ if (!empty($categoryTotals)) {
 </div>
 
 <script>
-    const totalIncome = <?= json_encode($total_income) ?>;
-    const totalExpense = <?= json_encode($total_expense) ?>;
-    const catLabels = <?= json_encode($categories) ?>;
-    const catValues = <?= json_encode($categoryTotals) ?>;
+    const totalIncome = <?= json_encode($total_income, $json_flags) ?>;
+    const totalExpense = <?= json_encode($total_expense, $json_flags) ?>;
+    const catLabels = <?= json_encode($categories, $json_flags) ?>;
+    const catValues = <?= json_encode($categoryTotals, $json_flags) ?>;
+
+    // Chart.js 4 replaced getElementsAtEvent() with getElementsAtEventForMode().
+    function pointsAt(chart, event) {
+        return chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
+    }
 
     function showDetails(title, amount, percentage, extra = '') {
         alert(`${title}\nAmount: ${amount.toFixed(2)}\nPercentage: ${percentage.toFixed(1)}%${extra ? '\n' + extra : ''}`);
@@ -894,7 +828,7 @@ if (!empty($categoryTotals)) {
         options: { responsive: true, maintainAspectRatio: true, plugins: { tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw.toFixed(2)}` } }, legend: { labels: { color: '#1e293b' } } } }
     });
     document.getElementById('doughnutChart').addEventListener('click', (event) => {
-        const activePoints = doughnutChart.getElementsAtEvent(event);
+        const activePoints = pointsAt(doughnutChart, event);
         if (activePoints.length) {
             const idx = activePoints[0].index;
             const label = doughnutChart.data.labels[idx];
@@ -912,7 +846,7 @@ if (!empty($categoryTotals)) {
         options: { responsive: true, maintainAspectRatio: true, scales: { y: { ticks: { color: '#334155' } }, x: { ticks: { color: '#1e293b' } } }, plugins: { tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label} ${ctx.raw.toFixed(2)}` } } } }
     });
     document.getElementById('barChart').addEventListener('click', (event) => {
-        const active = barChart.getElementsAtEvent(event);
+        const active = pointsAt(barChart, event);
         if (active.length) {
             const idx = active[0].index;
             const label = barChart.data.labels[idx];
@@ -930,7 +864,7 @@ if (!empty($categoryTotals)) {
             options: { responsive: true, maintainAspectRatio: true, plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw.toFixed(2)}` } }, legend: { position: 'bottom', labels: { color: '#1e293b' } } } }
         });
         document.getElementById('categoryPieChart').addEventListener('click', (event) => {
-            const active = pieChart.getElementsAtEvent(event);
+            const active = pointsAt(pieChart, event);
             if (active.length) {
                 const idx = active[0].index;
                 const label = pieChart.data.labels[idx];

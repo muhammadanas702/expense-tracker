@@ -63,6 +63,7 @@ It is built for people who earn or spend across several currencies, for example 
 ### Reports
 - Full report for any date range with summary, monthly breakdown and detailed transactions.
 - **Export to Excel** (styled, Excel-compatible file) or **Save as PDF** through the browser's print dialog.
+- Totals use the exchange rate saved with each entry, so past numbers do not change when rates move.
 
 ### Accounts
 - Register, log in and log out.
@@ -128,10 +129,9 @@ It is built for people who earn or spend across several currencies, for example 
 ├── expense/                Add expense
 ├── income/                 Add income
 ├── reports/                Full report with Excel export and print-to-PDF
-├── includes/               CurrencyConverter, activity logging, PWA head tags
-├── exports/                Server-side Excel/PDF export scripts (not linked from the UI)
+├── includes/               Security helpers, currencies, schema upgrade, CurrencyConverter, logging, PWA head tags
 ├── storage/                Cached exchange rates
-├── tcpdf/, vendor/         Bundled third-party libraries
+├── tcpdf/, vendor/         Bundled third-party libraries (not used at runtime)
 ├── .github/workflows/      GitHub Actions deployment workflow
 ├── dashboard.php           Main dashboard
 ├── profile.php             Profile and password settings
@@ -140,6 +140,7 @@ It is built for people who earn or spend across several currencies, for example 
 ├── reset-data.php          Reset income, expenses or all data
 ├── index.php               Landing page
 ├── sw.js, manifest.json, offline.html   PWA files
+├── schema.sql              Database schema for a fresh install
 └── DEPLOYMENT.md           Deployment guide
 ```
 
@@ -151,15 +152,18 @@ ExpenseFlow uses MySQL. These are the main tables and the columns the applicatio
 | --- | --- | --- |
 | `users` | Accounts and roles | `id`, `name`, `email`, `password` (hashed), `is_admin`, `created_at` |
 | `income` | Income entries | `id`, `user_id`, `title`, `amount`, `amount_pkr`, `currency`, `transaction_date` |
-| `expenses` | Expense entries | `id`, `user_id`, `title`, `amount`, `currency`, `category`, `transaction_date` |
+| `expenses` | Expense entries | `id`, `user_id`, `title`, `amount`, `currency`, `amount_pkr`, `category`, `transaction_date` |
 | `user_monthly_currency` | Base currency per user per month | `user_id`, `year_month`, `base_currency` |
 | `user_logs` | Activity log shown in the admin panel | `user_id`, `action`, `details`, `ip_address`, `created_at` |
+| `rate_limit_hits` | Login and password-reset attempt limits | `bucket`, `key_hash`, `created_at` |
+
+The full definition is in [`schema.sql`](schema.sql). An older database is upgraded automatically on first use.
 
 ## Getting started
 
 ### Prerequisites
 
-- PHP 8.1 or newer with the **PDO MySQL**, **calendar** and **OpenSSL** extensions, and `allow_url_fopen` enabled (used to fetch exchange rates)
+- PHP 8.1 or newer with the **PDO MySQL** and **OpenSSL** extensions, and `allow_url_fopen` enabled (used to fetch exchange rates)
 - MySQL or MariaDB
 - Apache, for example through XAMPP, WAMP or similar
 
@@ -171,7 +175,7 @@ ExpenseFlow uses MySQL. These are the main tables and the columns the applicatio
    git clone https://github.com/muhammadanas702/expense-tracker.git
    ```
 
-2. Create an empty MySQL database and the tables described in [Database](#database).
+2. Create an empty MySQL database and import [`schema.sql`](schema.sql) into it (phpMyAdmin > Import, or `mysql -u USER -p DBNAME < schema.sql`).
 
 3. Create `config/db.local.php` with your local credentials:
 
@@ -225,13 +229,16 @@ Once the site is served over HTTPS:
 
 When the connection drops, the service worker shows a custom offline page instead of a browser error.
 
+## Security
+
+ExpenseFlow uses prepared statements, CSRF tokens on every form, POST-only delete and reset actions, escaped output, hardened session cookies, login and reset rate limiting, a strong password policy and one-time reset codes that are stored hashed. To report a vulnerability, please open a private security advisory on GitHub instead of a public issue.
+
 ## Project status and roadmap
 
 ExpenseFlow is an actively developed personal project. Planned next:
 
 - Split-bill groups (shared expenses between friends or hostel mates)
 - Email verification at sign-up
-- A ready-to-import database schema script
 
 ## Contributing
 

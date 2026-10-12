@@ -1,59 +1,70 @@
 <?php
-session_start();
-require_once "config/app.php";
-require_once "config/db.php";
-require_once "includes/logging.php";
+require_once __DIR__ . '/includes/security.php';
+secure_session_start();
+
+require_once __DIR__ . '/config/db.php';
+require_once __DIR__ . '/includes/logging.php';
 
 if (!isset($_SESSION["user_id"])) {
     header("Location: auth/login.php");
     exit();
 }
-$user_id = $_SESSION["user_id"];
+$user_id = (int) $_SESSION["user_id"];
 $error = "";
 $success = "";
 
 $stmt = $conn->prepare("SELECT name, email FROM users WHERE id = ?");
 $stmt->execute([$user_id]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-function isStrongPassword($password) {
-    return preg_match('/[A-Z]/', $password) && preg_match('/[a-z]/', $password) && preg_match('/[0-9]/', $password) && preg_match('/[\W_]/', $password);
+if (!$user) {
+    session_unset();
+    session_destroy();
+    header("Location: auth/login.php");
+    exit();
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $client_time = $_POST['client_local_time'] ?? null;
-    if (isset($_POST['update_profile'])) {
-        $new_name = trim($_POST['name']);
-        $update = $conn->prepare("UPDATE users SET name = ? WHERE id = ?");
-        $update->execute([$new_name, $user_id]);
-        $_SESSION["user_name"] = $new_name;
-        $success = "Profile updated successfully.";
-        $user['name'] = $new_name;
-        logAction($user_id, 'update_profile', "Updated name", $client_time);
-    }
-    elseif (isset($_POST['update_password'])) {
-        $current = $_POST['current_password'];
-        $new_pass = $_POST['new_password'];
-        $confirm = $_POST['confirm_password'];
-
-        $pass_stmt = $conn->prepare("SELECT password FROM users WHERE id = ?");
-        $pass_stmt->execute([$user_id]);
-        $hashed = $pass_stmt->fetchColumn();
-
-        if (!password_verify($current, $hashed)) {
-            $error = "Current password is incorrect.";
-        } elseif ($new_pass !== $confirm) {
-            $error = "New passwords do not match.";
-        } elseif (strlen($new_pass) < 8) {
-            $error = "Password must be at least 8 characters long.";
-        } elseif (!isStrongPassword($new_pass)) {
-            $error = "Password must contain uppercase, lowercase, number, and special character.";
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    if (!csrf_valid()) {
+        $error = "Your session expired. Please try again.";
+    } elseif (isset($_POST['update_profile'])) {
+        $new_name = clean_text($_POST['name'] ?? '', 100);
+        if ($new_name === null) {
+            $error = "Please enter a name (up to 100 characters).";
         } else {
-            $new_hashed = password_hash($new_pass, PASSWORD_DEFAULT);
-            $update = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
-            $update->execute([$new_hashed, $user_id]);
-            $success = "Password changed successfully.";
-            logAction($user_id, 'update_profile', "Changed password", $client_time);
+            $conn->prepare("UPDATE users SET name = ? WHERE id = ?")->execute([$new_name, $user_id]);
+            $_SESSION["user_name"] = $new_name;
+            $user['name'] = $new_name;
+            $success = "Profile updated successfully.";
+            logAction($conn, $user_id, 'update_profile', "Updated name");
+        }
+    } elseif (isset($_POST['update_password'])) {
+        $current  = (string) ($_POST['current_password'] ?? '');
+        $new_pass = (string) ($_POST['new_password'] ?? '');
+        $confirm  = (string) ($_POST['confirm_password'] ?? '');
+
+        $key = rl_key((string) $user_id);
+        if (rl_blocked($conn, 'change_password', $key, 5, 900)) {
+            $error = "Too many attempts. Please try again in a few minutes.";
+        } else {
+            $pass_stmt = $conn->prepare("SELECT password FROM users WHERE id = ?");
+            $pass_stmt->execute([$user_id]);
+            $hashed = (string) $pass_stmt->fetchColumn();
+
+            if (!password_verify($current, $hashed)) {
+                rl_hit($conn, 'change_password', $key);
+                $error = "Current password is incorrect.";
+            } elseif ($new_pass !== $confirm) {
+                $error = "New passwords do not match.";
+            } elseif (($policy = password_policy_error($new_pass)) !== null) {
+                $error = $policy;
+            } else {
+                $conn->prepare("UPDATE users SET password = ? WHERE id = ?")
+                    ->execute([password_hash($new_pass, PASSWORD_DEFAULT), $user_id]);
+                rl_clear($conn, 'change_password', $key);
+                session_regenerate_id(true);
+                $success = "Password changed successfully.";
+                logAction($conn, $user_id, 'update_profile', "Changed password");
+            }
         }
     }
 }
@@ -67,7 +78,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>My Profile - ExpenseFlow</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="/assets/responsive.css">
+    <link rel="stylesheet" href="assets/responsive.css">
     <style>
         body { background: #f5f7fc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 2rem; }
         .profile-container { background: white; border-radius: 32px; padding: 2rem; width: 550px; max-width: 100%; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
@@ -93,21 +104,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
 <div class="profile-container">
     <h2>👤 My Profile</h2>
-    <?php if ($error): ?><div class="error"><?= htmlspecialchars($error) ?></div><?php endif; ?>
-    <?php if ($success): ?><div class="success"><?= htmlspecialchars($success) ?></div><?php endif; ?>
-    <form method="POST" data-log>
+    <?php if ($error): ?><div class="error"><?= e($error) ?></div><?php endif; ?>
+    <?php if ($success): ?><div class="success"><?= e($success) ?></div><?php endif; ?>
+    <form method="POST">
+        <?= csrf_field() ?>
         <div class="form-group">
             <label>Name</label>
-            <input type="text" name="name" value="<?= htmlspecialchars($user['name']) ?>" required>
+            <input type="text" name="name" value="<?= e($user['name']) ?>" required>
         </div>
         <div class="form-group">
             <label>Email</label>
-            <input type="email" name="email" value="<?= htmlspecialchars($user['email']) ?>" readonly>
+            <input type="email" name="email" value="<?= e($user['email']) ?>" readonly>
         </div>
         <button type="submit" name="update_profile">Update Profile</button>
     </form>
     <hr class="separator">
-    <form method="POST" data-log>
+    <form method="POST">
+        <?= csrf_field() ?>
         <div class="form-group">
             <label>Current Password</label>
             <div class="password-wrapper"><input type="password" name="current_password" id="current_password" required><i class="fas fa-eye-slash" onclick="togglePassword('current_password', this)"></i></div>

@@ -1,0 +1,9 @@
+.git
+.github
+config/db.local.php
+config/mail.local.php
+.env
+.env.*
+storage/*
+!storage/.gitkeep
+*.md

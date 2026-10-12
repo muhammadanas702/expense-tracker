@@ -28,3 +28,14 @@ The SMTP host and port default to Gmail's `smtp.gmail.com:587` with TLS. The wor
 ## Installing the PWA
 
 After the workflow succeeds and HTTPS is active for `https://expenseflow.rf.gd`, open the site in Chrome on Android and choose **Install app** from Chrome's menu. On iPhone/iPad, open the site in Safari and use **Share → Add to Home Screen**. Local development works at `http://localhost/expense-tracker/`.
+
+
+## Database
+
+Import `schema.sql` into an empty database for a fresh install. An existing database is upgraded automatically the first time the new code runs (it adds the `rate_limit_hits` table, `income.currency` and `expenses.amount_pkr`). The deployment workflow never uploads `.sql` files.
+
+## After upgrading
+
+- The deploy removes files that were deleted from the repository (old reset-link and setup scripts). Confirm that `/auth/reset_links.log` no longer exists on the server.
+- Rotate the SMTP app password and database password if they were ever committed or shared, then update the matching GitHub Actions secrets.
+- Once HTTPS works on the live domain, you may enable the redirect lines in `.htaccess`.

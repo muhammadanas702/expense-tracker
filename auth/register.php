@@ -1,6 +1,9 @@
 <?php
 
-require_once "../config/db.php";
+require_once __DIR__ . '/../includes/security.php';
+secure_session_start();
+
+require_once __DIR__ . '/../config/db.php';
 
 $msg = "";
 
@@ -9,24 +12,43 @@ $email = "";
 
 if($_SERVER["REQUEST_METHOD"] == "POST"){
 
-    $name = trim($_POST["name"]);
-    $email = trim($_POST["email"]);
+    $name = trim((string) ($_POST["name"] ?? ''));
+    $email = trim((string) ($_POST["email"] ?? ''));
 
-    $pass = $_POST["password"];
-    $cpass = $_POST["confirm_password"];
+    $pass = (string) ($_POST["password"] ?? '');
+    $cpass = (string) ($_POST["confirm_password"] ?? '');
+
+    $ipKey = rl_key(client_ip());
+
+    if(!csrf_valid()){
+
+        $msg = "Your session expired. Please try again.";
+    }
+
+    elseif(rl_blocked($conn, 'register_ip', $ipKey, 10, 3600)){
+
+        $msg = "Too many sign-ups from this connection. Please try again later.";
+    }
+
+    /* NAME VALIDATION */
+
+    elseif(clean_text($name, 100) === null){
+
+        $msg = "Please enter your name (up to 100 characters).";
+    }
 
     /* EMAIL VALIDATION */
 
-    if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
+    elseif(strlen($email) > 190 || !filter_var($email, FILTER_VALIDATE_EMAIL)){
 
         $msg = "Invalid email format!";
     }
 
     /* PASSWORD VALIDATION */
 
-    elseif(!preg_match("/^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{6,}$/", $pass)){
+    elseif(($policyError = password_policy_error($pass)) !== null){
 
-        $msg = "Password must contain uppercase, lowercase, number & special character!";
+        $msg = $policyError;
     }
 
     /* PASSWORD MATCH */
@@ -38,6 +60,10 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
     else{
 
+        rl_hit($conn, 'register_ip', $ipKey);
+
+        $name = clean_text($name, 100);
+
         $check = $conn->prepare("
             SELECT id
             FROM users
@@ -46,7 +72,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
         $check->execute([$email]);
 
-        if($check->rowCount() > 0){
+        if($check->fetch()){
 
             $msg = "User already exists!";
 
@@ -54,15 +80,31 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
             $hash = password_hash($pass, PASSWORD_DEFAULT);
 
-            $stmt = $conn->prepare("
-                INSERT INTO users(name,email,password)
-                VALUES(?,?,?)
-            ");
+            try {
 
-            $stmt->execute([$name,$email,$hash]);
+                $stmt = $conn->prepare("
+                    INSERT INTO users(name,email,password)
+                    VALUES(?,?,?)
+                ");
 
-            header("Location: login.php");
-            exit();
+                $stmt->execute([$name,$email,$hash]);
+
+                $_SESSION['reset_message'] = "Account created. Please log in.";
+                $_SESSION['reset_type'] = "success";
+
+                header("Location: login.php");
+                exit();
+
+            } catch (PDOException $e) {
+
+                // Two sign-ups with the same email at the same moment hit the UNIQUE index.
+                if ($e->getCode() === '23000') {
+                    $msg = "User already exists!";
+                } else {
+                    error_log('ExpenseFlow registration failed: ' . $e->getMessage());
+                    $msg = "Could not create the account. Please try again.";
+                }
+            }
         }
     }
 }
@@ -105,17 +147,20 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
         <?php if(!empty($msg)) { ?>
             <div class="error">
-                <?php echo $msg; ?>
+                <?= e($msg) ?>
             </div>
         <?php } ?>
 
         <form method="POST">
 
+            <?= csrf_field() ?>
+
             <input
                 type="text"
                 name="name"
                 placeholder="Full Name"
-                value="<?php echo htmlspecialchars($name ?? '') ?>"
+                maxlength="100"
+                value="<?= e($name) ?>"
                 required
             >
 
@@ -123,7 +168,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 type="email"
                 name="email"
                 placeholder="Email Address"
-                value="<?php echo htmlspecialchars($email ?? '') ?>"
+                maxlength="190"
+                value="<?= e($email) ?>"
                 required
             >
 

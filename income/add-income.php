@@ -1,49 +1,72 @@
 <?php
-session_start();
-require_once "../config/app.php";
-require_once "../config/db.php";
-require_once "../includes/CurrencyConverter.php";
+require_once __DIR__ . '/../includes/security.php';
+secure_session_start();
+
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/CurrencyConverter.php';
+require_once __DIR__ . '/../includes/logging.php';
 
 if (!isset($_SESSION["user_id"])) {
     header("Location: " . $base_url . "/auth/login.php");
     exit();
 }
 
-$user_id = $_SESSION["user_id"];
+$user_id = (int) $_SESSION["user_id"];
 $error = '';
+$old = ['title' => '', 'amount' => '', 'currency' => null];
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $title = trim($_POST['title'] ?? '');
-    $amount = floatval($_POST['amount'] ?? 0);
-    $currency = strtoupper(trim($_POST['currency'] ?? 'PKR'));
-    
-    if (empty($title) || $amount <= 0) {
-        $error = "Please enter valid title and amount.";
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    foreach ($old as $field => $default) {
+        $value = $_POST[$field] ?? $default;
+        $old[$field] = is_string($value) ? $value : $default;
+    }
+
+    $title    = clean_text($old['title'], 100);
+    $amount   = parse_amount($old['amount']);
+    $currency = normalize_currency($old['currency']);
+
+    if (!csrf_valid()) {
+        $error = "Your session expired. Please try again.";
+    } elseif ($title === null) {
+        $error = "Please enter a title (up to 100 characters).";
+    } elseif ($amount === null) {
+        $error = "Please enter a valid amount greater than zero.";
+    } elseif ($currency === null) {
+        $error = "Please choose a supported currency.";
     } else {
-        $amount_pkr = CurrencyConverter::convert($amount, $currency, 'PKR');
+        // Both the original amount and its PKR value are stored, so the entry keeps its own currency.
+        $amount_pkr = round(CurrencyConverter::convert($amount, $currency, 'PKR'), 2);
         $transaction_date = date('Y-m-d H:i:s');
-        $year_month = date('Y-m', strtotime($transaction_date));
-        
-        // Set monthly base currency if not already set – use backticks
-        $stmt = $conn->prepare("SELECT `base_currency` FROM `user_monthly_currency` WHERE `user_id` = ? AND `year_month` = ?");
-        $stmt->execute([$user_id, $year_month]);
-        $base = $stmt->fetchColumn();
-        if (!$base) {
-            $base = $currency;
-            $insertBase = $conn->prepare("INSERT INTO `user_monthly_currency` (`user_id`, `year_month`, `base_currency`) VALUES (?, ?, ?)");
-            $insertBase->execute([$user_id, $year_month, $base]);
+        $year_month = date('Y-m');
+
+        try {
+            $conn->beginTransaction();
+
+            // The first entry of a month decides that month's base currency.
+            $stmt = $conn->prepare("SELECT `base_currency` FROM `user_monthly_currency` WHERE `user_id` = ? AND `year_month` = ?");
+            $stmt->execute([$user_id, $year_month]);
+            if (!$stmt->fetchColumn()) {
+                $conn->prepare("INSERT INTO `user_monthly_currency` (`user_id`, `year_month`, `base_currency`) VALUES (?, ?, ?)")
+                    ->execute([$user_id, $year_month, $currency]);
+            }
+
+            $conn->prepare("INSERT INTO `income` (`user_id`, `title`, `amount`, `currency`, `amount_pkr`, `transaction_date`) VALUES (?, ?, ?, ?, ?, ?)")
+                ->execute([$user_id, $title, $amount, $currency, $amount_pkr, $transaction_date]);
+
+            $conn->commit();
+        } catch (Throwable $e) {
+            if ($conn->inTransaction()) {
+                $conn->rollBack();
+            }
+            error_log('ExpenseFlow add income failed: ' . $e->getMessage());
+            $error = "Something went wrong. Please try again.";
         }
-        
-        $sql = "INSERT INTO `income` (`user_id`, `title`, `amount`, `amount_pkr`, `transaction_date`) 
-                VALUES (?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        
-        if ($stmt->execute([$user_id, $title, $amount, $amount_pkr, $transaction_date])) {
+
+        if ($error === '') {
+            logAction($conn, $user_id, 'add_income', "Title: $title, Amount: $amount $currency");
             $_SESSION['success'] = "Income added successfully!";
             header("Location: " . $base_url . "/dashboard.php");
             exit();
-        } else {
-            $error = "Something went wrong. Please try again.";
         }
     }
 }
@@ -77,66 +100,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
 <div class="container">
     <h1>➕ Add Income</h1>
-    <?php if($error): ?>
-        <div class="error"><?= htmlspecialchars($error) ?></div>
+    <?php if ($error !== ''): ?>
+        <div class="error"><?= e($error) ?></div>
     <?php endif; ?>
     <form method="POST">
+        <?= csrf_field() ?>
         <div class="form-group">
             <label>Title / Source</label>
-            <input type="text" name="title" required placeholder="e.g., Salary, Freelance, Gift">
+            <input type="text" name="title" maxlength="100" value="<?= e($old['title']) ?>" required placeholder="e.g., Salary, Freelance, Gift">
         </div>
         <div class="form-group">
             <label>Amount</label>
-            <input type="number" step="0.01" name="amount" required placeholder="Enter amount">
+            <input type="number" step="0.01" min="0.01" max="99999999.99" name="amount" value="<?= e($old['amount']) ?>" required placeholder="Enter amount">
         </div>
         <div class="form-group">
             <label>Currency</label>
             <select name="currency" required>
-                <optgroup label="Major Currencies">
-                    <option value="USD">🇺🇸 US Dollar (USD)</option>
-                    <option value="EUR">🇪🇺 Euro (EUR)</option>
-                    <option value="GBP">🇬🇧 British Pound (GBP)</option>
-                    <option value="PKR">🇵🇰 Pakistani Rupee (PKR)</option>
-                    <option value="INR">🇮🇳 Indian Rupee (INR)</option>
-                    <option value="AED">🇦🇪 UAE Dirham (AED)</option>
-                    <option value="SAR">🇸🇦 Saudi Riyal (SAR)</option>
-                    <option value="KRW">🇰🇷 South Korean Won (KRW)</option>
-                    <option value="JPY">🇯🇵 Japanese Yen (JPY)</option>
-                    <option value="CNY">🇨🇳 Chinese Yuan (CNY)</option>
-                    <option value="CAD">🇨🇦 Canadian Dollar (CAD)</option>
-                    <option value="AUD">🇦🇺 Australian Dollar (AUD)</option>
-                    <option value="CHF">🇨🇭 Swiss Franc (CHF)</option>
-                    <option value="NZD">🇳🇿 New Zealand Dollar (NZD)</option>
-                    <option value="SGD">🇸🇬 Singapore Dollar (SGD)</option>
-                    <option value="MYR">🇲🇾 Malaysian Ringgit (MYR)</option>
-                    <option value="THB">🇹🇭 Thai Baht (THB)</option>
-                    <option value="VND">🇻🇳 Vietnamese Dong (VND)</option>
-                    <option value="PHP">🇵🇭 Philippine Peso (PHP)</option>
-                    <option value="IDR">🇮🇩 Indonesian Rupiah (IDR)</option>
-                    <option value="BDT">🇧🇩 Bangladeshi Taka (BDT)</option>
-                    <option value="LKR">🇱🇰 Sri Lankan Rupee (LKR)</option>
-                    <option value="NPR">🇳🇵 Nepalese Rupee (NPR)</option>
-                    <option value="AFN">🇦🇫 Afghan Afghani (AFN)</option>
-                </optgroup>
-                <optgroup label="Other Major Currencies">
-                    <option value="TRY">🇹🇷 Turkish Lira (TRY)</option>
-                    <option value="RUB">🇷🇺 Russian Ruble (RUB)</option>
-                    <option value="BRL">🇧🇷 Brazilian Real (BRL)</option>
-                    <option value="ZAR">🇿🇦 South African Rand (ZAR)</option>
-                    <option value="MXN">🇲🇽 Mexican Peso (MXN)</option>
-                    <option value="SEK">🇸🇪 Swedish Krona (SEK)</option>
-                    <option value="NOK">🇳🇴 Norwegian Krone (NOK)</option>
-                    <option value="DKK">🇩🇰 Danish Krone (DKK)</option>
-                    <option value="PLN">🇵🇱 Polish Zloty (PLN)</option>
-                    <option value="HKD">🇭🇰 Hong Kong Dollar (HKD)</option>
-                    <option value="ILS">🇮🇱 Israeli Shekel (ILS)</option>
-                    <option value="KWD">🇰🇼 Kuwaiti Dinar (KWD)</option>
-                    <option value="BHD">🇧🇭 Bahraini Dinar (BHD)</option>
-                    <option value="OMR">🇴🇲 Omani Rial (OMR)</option>
-                    <option value="QAR">🇶🇦 Qatari Riyal (QAR)</option>
-                    <option value="EGP">🇪🇬 Egyptian Pound (EGP)</option>
-                </optgroup>
-            </select>
+            <?= currency_select_options($old['currency']) ?>
+        </select>
         </div>
         <button type="submit">Add Income</button>
     </form>
@@ -144,7 +125,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         ⏱️ Transaction time is automatically recorded.
     </div>
     <div class="back-link-wrapper">
-        <a href="<?= $base_url ?>/dashboard.php" class="back-link">← Back to Dashboard</a>
+        <a href="<?= e($base_url) ?>/dashboard.php" class="back-link">← Back to Dashboard</a>
     </div>
 </div>
 </body>

@@ -1,0 +1,2 @@
+# Code, templates and library internals are never opened directly in a browser.
+Require all denied

@@ -1,6 +1,6 @@
 <?php
-session_start();
-require_once "../config/app.php";
+require_once __DIR__ . '/../includes/security.php';
+secure_session_start();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -30,15 +30,15 @@ require_once "../config/app.php";
     <p style="color: #475569;">Enter your email address and we'll send you a <strong>6‑digit OTP</strong> to reset your password.</p>
 
     <?php if(isset($_SESSION['reset_message'])): ?>
-        <div class="message <?= $_SESSION['reset_type'] ?? 'error' ?>">
-            <?= htmlspecialchars($_SESSION['reset_message']) ?>
+        <div class="message <?= (($_SESSION['reset_type'] ?? '') === 'success') ? 'success' : 'error' ?>">
+            <?= e($_SESSION['reset_message']) ?>
         </div>
         <?php unset($_SESSION['reset_message'], $_SESSION['reset_type']); ?>
     <?php endif; ?>
 
-    <!-- Changed action to send-otp.php -->
     <form action="send-otp.php" method="POST">
-        <input type="email" name="email" placeholder="Your registered email" required>
+        <?= csrf_field() ?>
+        <input type="email" name="email" placeholder="Your registered email" maxlength="190" required>
         <button type="submit">Send OTP</button>
     </form>
     <a href="login.php">← Back to Login</a>
