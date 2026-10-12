@@ -39,7 +39,7 @@ $users = $conn->query("SELECT id, name, email, created_at, is_admin FROM users O
     <a href="index.php">👥 All Users</a>
     <a href="logs.php">📜 User Logs</a>
     <a href="../dashboard.php">← Back to App</a>
-    <a href="../auth/logout.php" data-log>🚪 Logout</a>
+    <a href="../auth/logout.php" data-post data-csrf="<?= e(csrf_token()) ?>">🚪 Logout</a>
 </div>
 
 <div class="main">
@@ -60,15 +60,15 @@ $users = $conn->query("SELECT id, name, email, created_at, is_admin FROM users O
             <tbody>
                 <?php foreach ($users as $u): ?>
                 <tr>
-                    <td><?= $u['id'] ?></td>
-                    <td><?= htmlspecialchars($u['name']) ?></td>
-                    <td><?= htmlspecialchars($u['email']) ?></td>
-                    <td><?= date('d M Y', strtotime($u['created_at'])) ?></td>
+                    <td><?= (int) $u['id'] ?></td>
+                    <td><?= e($u['name']) ?></td>
+                    <td><?= e($u['email']) ?></td>
+                    <td><?= e(date('d M Y', strtotime((string) $u['created_at']))) ?></td>
                     <td><?= $u['is_admin'] ? '<span class="badge">Admin</span>' : 'User' ?></td>
                     <td>
-                        <a href="edit-user.php?id=<?= $u['id'] ?>" class="edit-btn">Edit</a>
-                        <a href="view-user.php?id=<?= $u['id'] ?>" class="view-btn">View</a>
-                        <a href="delete-user.php?id=<?= $u['id'] ?>" class="delete-btn" onclick="return confirm('Delete user and all their data?')">Delete</a>
+                        <a href="edit-user.php?id=<?= (int) $u['id'] ?>" class="edit-btn">Edit</a>
+                        <a href="view-user.php?id=<?= (int) $u['id'] ?>" class="view-btn">View</a>
+                        <a href="delete-user.php" class="delete-btn" data-post data-csrf="<?= e(csrf_token()) ?>" data-fields="<?= e(json_encode(['id' => (int) $u['id']])) ?>" onclick="return confirm('Delete user and all their data?')">Delete</a>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -77,6 +77,7 @@ $users = $conn->query("SELECT id, name, email, created_at, is_admin FROM users O
     </div>
 </div>
 
+<script src="../assets/client-time.js"></script>
 <script>
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');

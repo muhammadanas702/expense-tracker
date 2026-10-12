@@ -695,7 +695,7 @@ require_once "config/app.php";
 <section id="features" class="section">
     <div class="container">
         <h2 class="section-title">Powerful Features</h2>
-        <p class="section-sub">Everything you built till now is preserved. This new interface only upgrades the UI without disturbing your old working system.</p>
+        <p class="section-sub">Everything you need to track income and spending, in any currency, in one clean dashboard.</p>
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon"><i class="fa-solid fa-wallet"></i></div>

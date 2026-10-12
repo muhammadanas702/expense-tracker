@@ -2,11 +2,12 @@
 require_once "auth.php";
 require_once "../config/db.php";
 
-$user_filter = $_GET['user_id'] ?? '';
-$action_filter = $_GET['action'] ?? '';
-$from_date = $_GET['from_date'] ?? '';
-$to_date = $_GET['to_date'] ?? '';
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$user_filter = filter_var($_GET['user_id'] ?? '', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+$user_filter = $user_filter === false ? '' : $user_filter;
+$action_filter = preg_match('/^[a-z_]{1,40}$/', (string)($_GET['action'] ?? '')) ? $_GET['action'] : '';
+$from_date = valid_date($_GET['from_date'] ?? '') ?? '';
+$to_date = valid_date($_GET['to_date'] ?? '') ?? '';
+$page = max(1, (int)($_GET['page'] ?? 1));
 $limit = 50;
 $offset = ($page - 1) * $limit;
 
@@ -33,14 +34,14 @@ $where_sql = $where ? "WHERE " . implode(" AND ", $where) : "";
 $count_stmt = $conn->prepare("SELECT COUNT(*) FROM user_logs l $where_sql");
 $count_stmt->execute($params);
 $total = $count_stmt->fetchColumn();
-$total_pages = ceil($total / $limit);
+$total_pages = (int) ceil($total / $limit);
 
 $sql = "SELECT l.*, u.name as user_name 
         FROM user_logs l 
         JOIN users u ON l.user_id = u.id 
         $where_sql 
         ORDER BY l.created_at DESC 
-        LIMIT $offset, $limit";
+        LIMIT " . (int) $offset . ", " . (int) $limit;
 $stmt = $conn->prepare($sql);
 $stmt->execute($params);
 $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -78,7 +79,7 @@ $users = $conn->query("SELECT id, name, email FROM users ORDER BY name")->fetchA
     <a href="index.php">👥 All Users</a>
     <a href="logs.php">📜 User Logs</a>
     <a href="../dashboard.php">← Back to App</a>
-    <a href="../auth/logout.php" data-log>🚪 Logout</a>
+    <a href="../auth/logout.php" data-post data-csrf="<?= e(csrf_token()) ?>">🚪 Logout</a>
 </div>
 
 <div class="main">
@@ -95,7 +96,7 @@ $users = $conn->query("SELECT id, name, email FROM users ORDER BY name")->fetchA
             <select name="user_id">
                 <option value="">All users</option>
                 <?php foreach ($users as $u): ?>
-                    <option value="<?= $u['id'] ?>" <?= $user_filter == $u['id'] ? 'selected' : '' ?>><?= htmlspecialchars($u['name']) ?> (<?= $u['email'] ?>)</option>
+                    <option value="<?= (int) $u['id'] ?>" <?= $user_filter == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?> (<?= e($u['email']) ?>)</option>
                 <?php endforeach; ?>
             </select>
         </div>
@@ -113,15 +114,19 @@ $users = $conn->query("SELECT id, name, email FROM users ORDER BY name")->fetchA
                 <option value="delete_expense" <?= $action_filter=='delete_expense'?'selected':'' ?>>Delete Expense</option>
                 <option value="reset_data" <?= $action_filter=='reset_data'?'selected':'' ?>>Reset Data</option>
                 <option value="update_profile" <?= $action_filter=='update_profile'?'selected':'' ?>>Update Profile</option>
+                <option value="password_reset" <?= $action_filter=='password_reset'?'selected':'' ?>>Password Reset</option>
+                <option value="change_base_currency" <?= $action_filter=='change_base_currency'?'selected':'' ?>>Change Base Currency</option>
+                <option value="admin_edit_user" <?= $action_filter=='admin_edit_user'?'selected':'' ?>>Admin: Edit User</option>
+                <option value="admin_delete_user" <?= $action_filter=='admin_delete_user'?'selected':'' ?>>Admin: Delete User</option>
             </select>
         </div>
         <div class="filter-group">
             <label>From Date</label>
-            <input type="date" name="from_date" value="<?= htmlspecialchars($from_date) ?>">
+            <input type="date" name="from_date" value="<?= e($from_date) ?>">
         </div>
         <div class="filter-group">
             <label>To Date</label>
-            <input type="date" name="to_date" value="<?= htmlspecialchars($to_date) ?>">
+            <input type="date" name="to_date" value="<?= e($to_date) ?>">
         </div>
         <div class="filter-group" style="display: flex; gap: 0.5rem;">
             <button type="submit" style="background: #0f766e; color: white; border: none; padding: 0.5rem 1rem; border-radius: 40px;">Filter</button>
@@ -137,13 +142,14 @@ $users = $conn->query("SELECT id, name, email FROM users ORDER BY name")->fetchA
             </thead>
             <tbody>
                 <?php if (empty($logs)): ?>
-                    <tr><td colspan="5">No logs found.<?php else: foreach ($logs as $log): ?>
+                    <tr><td colspan="5">No logs found.</td></tr>
+                <?php else: foreach ($logs as $log): ?>
                 <tr>
-                    <td><?= htmlspecialchars($log['created_at']) ?></td>
-                    <td><?= htmlspecialchars($log['user_name']) ?> (ID: <?= $log['user_id'] ?>)</td>
-                    <td><span class="badge"><?= str_replace('_', ' ', $log['action']) ?></span></td>
-                    <td><?= htmlspecialchars($log['details'] ?? '') ?></td>
-                    <td><?= $log['ip_address'] ?></td>
+                    <td><?= e($log['created_at']) ?></td>
+                    <td><?= e($log['user_name']) ?> (ID: <?= (int) $log['user_id'] ?>)</td>
+                    <td><span class="badge"><?= e(str_replace('_', ' ', $log['action'])) ?></span></td>
+                    <td><?= e($log['details'] ?? '') ?></td>
+                    <td><?= e($log['ip_address']) ?></td>
                 </tr>
                 <?php endforeach; endif; ?>
             </tbody>
@@ -153,17 +159,18 @@ $users = $conn->query("SELECT id, name, email FROM users ORDER BY name")->fetchA
     <!-- Pagination -->
     <?php if ($total_pages > 1): ?>
         <div class="pagination">
-            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+            <?php for ($i = max(1, $page - 5); $i <= min($total_pages, $page + 5); $i++): ?>
                 <?php if ($i == $page): ?>
                     <span class="current"><?= $i ?></span>
                 <?php else: ?>
-                    <a href="?<?= http_build_query(array_merge($_GET, ['page' => $i])) ?>"><?= $i ?></a>
+                    <a href="?<?= e(http_build_query(array_merge($_GET, ['page' => $i]))) ?>"><?= $i ?></a>
                 <?php endif; ?>
             <?php endfor; ?>
         </div>
     <?php endif; ?>
 </div>
 
+<script src="../assets/client-time.js"></script>
 <script>
     // Mobile sidebar toggle (same as dashboard)
     const menuToggle = document.getElementById('menuToggle');

@@ -8,9 +8,8 @@ function getClientLocalDateTime() {
         String(now.getSeconds()).padStart(2, '0');
 }
 
-// For forms: add hidden field before submit
 document.addEventListener('DOMContentLoaded', function() {
-    // All forms that need client time (add data-log attribute to form)
+    // Forms marked with data-log get the browser's local time as a hidden field.
     const forms = document.querySelectorAll('form[data-log]');
     forms.forEach(form => {
         const input = document.createElement('input');
@@ -22,13 +21,44 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // For links (delete, reset, logout) – add client time as query param
-    const links = document.querySelectorAll('a[data-log]');
-    links.forEach(link => {
+    // Links that change data (logout, delete, reset) must be sent as POST with a CSRF token,
+    // never as a plain GET link that any other web page could trigger.
+    //   <a href="delete.php" data-post data-csrf="TOKEN" data-fields='{"id":5}'>Delete</a>
+    // An onclick="return confirm(...)" on the link still runs first and can cancel the action.
+    const postLinks = document.querySelectorAll('a[data-post]');
+    postLinks.forEach(link => {
         link.addEventListener('click', function(e) {
-            const url = new URL(link.href, window.location.origin);
-            url.searchParams.set('client_time', getClientLocalDateTime());
-            link.href = url.toString();
+            if (e.defaultPrevented) {
+                return;
+            }
+            e.preventDefault();
+
+            const url = new URL(link.getAttribute('href'), window.location.href);
+            url.search = '';
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url.toString();
+
+            let fields = {};
+            try {
+                fields = JSON.parse(link.getAttribute('data-fields') || '{}') || {};
+            } catch (err) {
+                fields = {};
+            }
+            fields.csrf_token = link.getAttribute('data-csrf') || '';
+            fields.client_local_time = getClientLocalDateTime();
+
+            Object.keys(fields).forEach(name => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = String(fields[name]);
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
         });
     });
 });

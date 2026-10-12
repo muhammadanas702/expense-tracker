@@ -1,49 +1,55 @@
 <?php
-session_start();
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+require_once __DIR__ . '/includes/security.php';
+secure_session_start();
 
-require_once "config/db.php";
-require_once "includes/logging.php";
-require_once "includes/CurrencyConverter.php";
+require_once __DIR__ . '/config/db.php';
+require_once __DIR__ . '/includes/logging.php';
 
 if (!isset($_SESSION["user_id"])) {
     header("Location: auth/login.php");
     exit();
 }
 
-$user_id = $_SESSION["user_id"];
+$user_id = (int) $_SESSION["user_id"];
+
+$month = '';
+$year = '';
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $new_base = strtoupper(trim($_POST['new_base_currency'] ?? ''));
-    $year_month = $_POST['year_month'] ?? '';
-    $month = $_POST['month'] ?? '';
-    $year = $_POST['year'] ?? '';
-    $client_time = $_POST['client_local_time'] ?? null;
-    
-    if ($new_base && $year_month && preg_match('/^\d{4}-\d{2}$/', $year_month)) {
-        $stmt = $conn->prepare("SELECT 1 FROM `user_monthly_currency` WHERE `user_id` = ? AND `year_month` = ?");
-        $stmt->execute([$user_id, $year_month]);
-        if ($stmt->fetchColumn()) {
-            $update = $conn->prepare("UPDATE `user_monthly_currency` SET `base_currency` = ? WHERE `user_id` = ? AND `year_month` = ?");
-            $update->execute([$new_base, $user_id, $year_month]);
-            
-            // ✅ Pass $conn as first argument
-            logAction($conn, $user_id, 'change_base_currency', "Changed base currency to $new_base for $year_month", $client_time);
-            
+    if (!csrf_valid()) {
+        $_SESSION['error'] = "Your session expired. Please try again.";
+    } else {
+        // Only currencies from the supported list are accepted.
+        $new_base = normalize_currency($_POST['new_base_currency'] ?? '');
+        $year_month = (string) ($_POST['year_month'] ?? '');
+
+        if ($new_base !== null && preg_match('/^(\d{4})-(0[1-9]|1[0-2])$/', $year_month, $m)) {
+            $year = $m[1];
+            $month = (string) (int) $m[2];
+
+            $stmt = $conn->prepare("SELECT 1 FROM `user_monthly_currency` WHERE `user_id` = ? AND `year_month` = ?");
+            $stmt->execute([$user_id, $year_month]);
+
+            if ($stmt->fetchColumn()) {
+                $conn->prepare("UPDATE `user_monthly_currency` SET `base_currency` = ? WHERE `user_id` = ? AND `year_month` = ?")
+                    ->execute([$new_base, $user_id, $year_month]);
+            } else {
+                $conn->prepare("INSERT INTO `user_monthly_currency` (`user_id`, `year_month`, `base_currency`) VALUES (?, ?, ?)")
+                    ->execute([$user_id, $year_month, $new_base]);
+            }
+
+            logAction($conn, $user_id, 'change_base_currency', "Changed base currency to $new_base for $year_month");
+
             $_SESSION['success'] = "Base currency changed to $new_base. All totals recalculated.";
         } else {
-            $_SESSION['error'] = "No base currency found for this month.";
+            $_SESSION['error'] = "Invalid request.";
         }
-    } else {
-        $_SESSION['error'] = "Invalid request.";
     }
 }
 
 $redirect = "dashboard.php";
-if ($month && $year) {
+if ($month !== '' && $year !== '') {
     $redirect .= "?month=" . urlencode($month) . "&year=" . urlencode($year);
 }
 header("Location: $redirect");
 exit();
-?>

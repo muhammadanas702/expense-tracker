@@ -1,18 +1,29 @@
-# ========== FORCE HTTPS (ONLY ON LIVE SERVER) ==========
-# Uncomment these lines only after HTTPS is confirmed on the live domain.
+# ExpenseFlow – Apache rules (InfinityFree / shared hosting friendly).
+#
+# HTTPS: once https://expenseflow.rf.gd is confirmed working, you can uncomment these
+# 4 lines to force it. They stay off by default because a wrong redirect on some free
+# hosts causes a redirect loop.
 # RewriteEngine On
 # RewriteCond %{HTTPS} off
 # RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
 
-# ========== EXISTING ROUTE RULES ==========
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^ index.php [QSA,L]
-
-# Never expose diagnostic or one-time administrator setup scripts.
-<FilesMatch "^(phpinfo|fix-admin|set-admin)\.php$">
+# Never serve logs, dumps, docs, dependency manifests or backups.
+<FilesMatch "\.(log|sql|md|lock|yml|yaml|bak|backup|dist|sh|ini)$|^(composer\.json|Dockerfile|Procfile|phpinfo\.php|fix-admin\.php|set-admin\.php)$">
     Require all denied
 </FilesMatch>
 
+# Private configuration and deploy state.
+<FilesMatch "^(db|mail)\.local\.php$">
+    Require all denied
+</FilesMatch>
 <Files ".ftp-deploy-sync-state.json">
     Require all denied
 </Files>
+
+# Extra response headers (only if the host has mod_headers; ignored otherwise).
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>

@@ -1,19 +1,43 @@
 <?php
 require_once "auth.php";
-require_once "../config/db.php";
+require_once __DIR__ . '/../config/db.php';
 
-$id = $_GET['id'] ?? 0;
+// Deleting a user must be a POST with a valid CSRF token (never a plain link).
+require_post_csrf();
 
-// Prevent admin from deleting themselves
-if ($id == $_SESSION['user_id']) {
-    die("You cannot delete your own admin account.");
+$id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+if (!$id) {
+    http_response_code(400);
+    exit("Invalid user.");
 }
 
-// Delete user's income, expenses, then user
-$conn->prepare("DELETE FROM income WHERE user_id = ?")->execute([$id]);
-$conn->prepare("DELETE FROM expenses WHERE user_id = ?")->execute([$id]);
-$conn->prepare("DELETE FROM users WHERE id = ?")->execute([$id]);
+// Prevent admin from deleting themselves
+if ($id === (int) $_SESSION['user_id']) {
+    exit("You cannot delete your own admin account.");
+}
+
+$stmt = $conn->prepare("SELECT id FROM users WHERE id = ?");
+$stmt->execute([$id]);
+if (!$stmt->fetch()) {
+    exit("User not found.");
+}
+
+// Delete everything that belongs to the user, then the user (all or nothing)
+$conn->beginTransaction();
+try {
+    foreach (['income', 'expenses', 'user_monthly_currency', 'user_logs'] as $table) {
+        $conn->prepare("DELETE FROM `$table` WHERE user_id = ?")->execute([$id]);
+    }
+    $conn->prepare("DELETE FROM users WHERE id = ?")->execute([$id]);
+    $conn->commit();
+} catch (Throwable $e) {
+    $conn->rollBack();
+    error_log('ExpenseFlow admin delete user failed: ' . $e->getMessage());
+    http_response_code(500);
+    exit("Could not delete the user. Nothing was changed.");
+}
+
+logAction($conn, $_SESSION['user_id'], 'admin_delete_user', "Deleted user ID: $id");
 
 header("Location: index.php");
 exit();
-?>

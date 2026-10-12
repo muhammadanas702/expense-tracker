@@ -1,7 +1,9 @@
 <?php
 
-$requestHost = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
-$isLocalHost = in_array($requestHost, ['localhost', '127.0.0.1'], true);
+require_once __DIR__ . '/app.php';
+require_once __DIR__ . '/../includes/schema.php';
+
+$isLocalHost = app_is_local_host();
 $privateConfigPath = __DIR__ . '/db.local.php';
 $privateConfig = is_file($privateConfigPath) ? require $privateConfigPath : null;
 $dbConfig = null;
@@ -45,3 +47,6 @@ try {
     http_response_code(500);
     exit('Unable to connect to the database.');
 }
+
+// Adds tables/columns that newer code needs when an older database is in use.
+ensure_schema($conn);

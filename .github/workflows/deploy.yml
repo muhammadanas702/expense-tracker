@@ -113,12 +113,13 @@ jobs:
             **/*.sql.gz
             **/*.zip
             phpinfo.php
-            fix-admin.php
-            set-admin.php
             Dockerfile
+            .dockerignore
             Procfile
+            router.php
             composer.json
             composer.lock
             .gitignore
             DEPLOYMENT.md
+            README.md
           timeout: 60000

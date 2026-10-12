@@ -1,48 +1,86 @@
 <?php
-session_start();
-require_once "../config/app.php";
-require_once "../config/db.php";
-require_once "../includes/CurrencyConverter.php";
-require_once "../includes/logging.php";
+require_once __DIR__ . '/../includes/security.php';
+secure_session_start();
+
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/CurrencyConverter.php';
+require_once __DIR__ . '/../includes/logging.php';
 
 if (!isset($_SESSION["user_id"])) {
     header("Location: ../auth/login.php");
     exit();
 }
-$user_id = $_SESSION["user_id"];
+$user_id = (int) $_SESSION["user_id"];
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $title = trim($_POST['title']);
-    $amount = (float)$_POST['amount'];
-    $currency = strtoupper($_POST['currency']);
-    $category = trim($_POST['category']);
-    if ($category === "Other" && !empty($_POST['other_category'])) {
-        $category = trim($_POST['other_category']);
-    }
-    $client_time = $_POST['client_local_time'] ?? null;
-    
-    $transaction_date = date('Y-m-d H:i:s');
-    $year_month = date('Y-m', strtotime($transaction_date));
+$allowed_categories = ['Food', 'Transport', 'Shopping', 'Entertainment', 'Bills', 'Healthcare', 'Education', 'Other'];
+$error = '';
+$old = ['title' => '', 'amount' => '', 'currency' => null, 'category' => 'Food', 'other_category' => ''];
 
-    $stmt = $conn->prepare("SELECT `base_currency` FROM `user_monthly_currency` WHERE `user_id` = ? AND `year_month` = ?");
-    $stmt->execute([$user_id, $year_month]);
-    $base = $stmt->fetchColumn();
-
-    if (!$base) {
-        $base = $currency;
-        $insertBase = $conn->prepare("INSERT INTO `user_monthly_currency` (`user_id`, `year_month`, `base_currency`) VALUES (?, ?, ?)");
-        $insertBase->execute([$user_id, $year_month, $base]);
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    foreach ($old as $field => $default) {
+        $value = $_POST[$field] ?? $default;
+        $old[$field] = is_string($value) ? $value : $default;
     }
 
-    $insert = $conn->prepare("INSERT INTO `expenses` (`user_id`, `title`, `amount`, `currency`, `category`, `transaction_date`) VALUES (?, ?, ?, ?, ?, ?)");
-    $insert->execute([$user_id, $title, $amount, $currency, $category, $transaction_date]);
+    $title    = clean_text($old['title'], 100);
+    $amount   = parse_amount($old['amount']);
+    $currency = normalize_currency($old['currency']);
+    $category = $old['category'];
 
-    logAction($conn, $user_id, 'add_expense', "Title: $title, Category: $category, Amount: $amount $currency", $client_time);
-    header("Location: ../dashboard.php");
-    exit();
+    if (!csrf_valid()) {
+        $error = "Your session expired. Please try again.";
+    } elseif ($title === null) {
+        $error = "Please enter a title (up to 100 characters).";
+    } elseif ($amount === null) {
+        $error = "Please enter a valid amount greater than zero.";
+    } elseif ($currency === null) {
+        $error = "Please choose a supported currency.";
+    } elseif (!in_array($category, $allowed_categories, true)) {
+        $error = "Please choose a valid category.";
+    } else {
+        if ($category === 'Other') {
+            $custom = clean_text($old['other_category'], 50);
+            if ($custom !== null) {
+                $category = $custom;
+            }
+        }
+
+        // The PKR value is saved together with the expense, so totals do not shift when rates change.
+        $amount_pkr = round(CurrencyConverter::convert($amount, $currency, 'PKR'), 2);
+        $transaction_date = date('Y-m-d H:i:s');
+        $year_month = date('Y-m');
+
+        try {
+            $conn->beginTransaction();
+
+            $stmt = $conn->prepare("SELECT `base_currency` FROM `user_monthly_currency` WHERE `user_id` = ? AND `year_month` = ?");
+            $stmt->execute([$user_id, $year_month]);
+            if (!$stmt->fetchColumn()) {
+                $conn->prepare("INSERT INTO `user_monthly_currency` (`user_id`, `year_month`, `base_currency`) VALUES (?, ?, ?)")
+                    ->execute([$user_id, $year_month, $currency]);
+            }
+
+            $conn->prepare("INSERT INTO `expenses` (`user_id`, `title`, `amount`, `currency`, `amount_pkr`, `category`, `transaction_date`) VALUES (?, ?, ?, ?, ?, ?, ?)")
+                ->execute([$user_id, $title, $amount, $currency, $amount_pkr, $category, $transaction_date]);
+
+            $conn->commit();
+        } catch (Throwable $e) {
+            if ($conn->inTransaction()) {
+                $conn->rollBack();
+            }
+            error_log('ExpenseFlow add expense failed: ' . $e->getMessage());
+            $error = "Something went wrong. Please try again.";
+        }
+
+        if ($error === '') {
+            logAction($conn, $user_id, 'add_expense', "Title: $title, Category: $category, Amount: $amount $currency");
+            $_SESSION['success'] = "Expense added successfully!";
+            header("Location: ../dashboard.php");
+            exit();
+        }
+    }
 }
 ?>
-<!-- HTML form remains unchanged (same as before) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -51,8 +89,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Expense - ExpenseFlow</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="/assets/client-time.js"></script>
-    <style>
+        <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: #f5f7fc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 2rem; }
         .form-container { background: white; border-radius: 32px; padding: 2rem; width: 450px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
@@ -77,87 +114,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 otherDiv.style.display = 'none';
             }
         }
+        document.addEventListener('DOMContentLoaded', toggleOtherCategory);
     </script>
 </head>
 <body>
 <div class="form-container">
     <h2>➖ Add Expense</h2>
 
-    <?php if(isset($_SESSION['error'])): ?>
-        <div class="error"><?= htmlspecialchars($_SESSION['error']) ?></div>
-        <?php unset($_SESSION['error']); ?>
+    <?php if ($error !== ''): ?>
+        <div class="error"><?= e($error) ?></div>
     <?php endif; ?>
 
-    <form method="POST" data-log>
+    <form method="POST">
+        <?= csrf_field() ?>
         <label>Title</label>
-        <input type="text" name="title" placeholder="e.g., Groceries, Rent" required>
+        <input type="text" name="title" maxlength="100" value="<?= e($old['title']) ?>" placeholder="e.g., Groceries, Rent" required>
 
         <label>Amount</label>
-        <input type="number" step="any" name="amount" placeholder="0.00" required>
+        <input type="number" step="0.01" min="0.01" max="99999999.99" name="amount" value="<?= e($old['amount']) ?>" placeholder="0.00" required>
 
         <label>Currency</label>
         <select name="currency" required>
-            <optgroup label="Major Currencies">
-                <option value="USD">🇺🇸 US Dollar (USD)</option>
-                <option value="EUR">🇪🇺 Euro (EUR)</option>
-                <option value="GBP">🇬🇧 British Pound (GBP)</option>
-                <option value="PKR">🇵🇰 Pakistani Rupee (PKR)</option>
-                <option value="INR">🇮🇳 Indian Rupee (INR)</option>
-                <option value="AED">🇦🇪 UAE Dirham (AED)</option>
-                <option value="SAR">🇸🇦 Saudi Riyal (SAR)</option>
-                <option value="KRW">🇰🇷 South Korean Won (KRW)</option>
-                <option value="JPY">🇯🇵 Japanese Yen (JPY)</option>
-                <option value="CNY">🇨🇳 Chinese Yuan (CNY)</option>
-                <option value="CAD">🇨🇦 Canadian Dollar (CAD)</option>
-                <option value="AUD">🇦🇺 Australian Dollar (AUD)</option>
-                <option value="CHF">🇨🇭 Swiss Franc (CHF)</option>
-                <option value="NZD">🇳🇿 New Zealand Dollar (NZD)</option>
-                <option value="SGD">🇸🇬 Singapore Dollar (SGD)</option>
-                <option value="MYR">🇲🇾 Malaysian Ringgit (MYR)</option>
-                <option value="THB">🇹🇭 Thai Baht (THB)</option>
-                <option value="VND">🇻🇳 Vietnamese Dong (VND)</option>
-                <option value="PHP">🇵🇭 Philippine Peso (PHP)</option>
-                <option value="IDR">🇮🇩 Indonesian Rupiah (IDR)</option>
-                <option value="BDT">🇧🇩 Bangladeshi Taka (BDT)</option>
-                <option value="LKR">🇱🇰 Sri Lankan Rupee (LKR)</option>
-                <option value="NPR">🇳🇵 Nepalese Rupee (NPR)</option>
-                <option value="AFN">🇦🇫 Afghan Afghani (AFN)</option>
-            </optgroup>
-            <optgroup label="Other Major Currencies">
-                <option value="TRY">🇹🇷 Turkish Lira (TRY)</option>
-                <option value="RUB">🇷🇺 Russian Ruble (RUB)</option>
-                <option value="BRL">🇧🇷 Brazilian Real (BRL)</option>
-                <option value="ZAR">🇿🇦 South African Rand (ZAR)</option>
-                <option value="MXN">🇲🇽 Mexican Peso (MXN)</option>
-                <option value="SEK">🇸🇪 Swedish Krona (SEK)</option>
-                <option value="NOK">🇳🇴 Norwegian Krone (NOK)</option>
-                <option value="DKK">🇩🇰 Danish Krone (DKK)</option>
-                <option value="PLN">🇵🇱 Polish Zloty (PLN)</option>
-                <option value="HKD">🇭🇰 Hong Kong Dollar (HKD)</option>
-                <option value="ILS">🇮🇱 Israeli Shekel (ILS)</option>
-                <option value="KWD">🇰🇼 Kuwaiti Dinar (KWD)</option>
-                <option value="BHD">🇧🇭 Bahraini Dinar (BHD)</option>
-                <option value="OMR">🇴🇲 Omani Rial (OMR)</option>
-                <option value="QAR">🇶🇦 Qatari Riyal (QAR)</option>
-                <option value="EGP">🇪🇬 Egyptian Pound (EGP)</option>
-            </optgroup>
+            <?= currency_select_options($old['currency']) ?>
         </select>
 
         <label>Category</label>
         <select name="category" id="category" onchange="toggleOtherCategory()" required>
-            <option value="Food">🍔 Food</option>
-            <option value="Transport">🚗 Transport</option>
-            <option value="Shopping">🛍️ Shopping</option>
-            <option value="Entertainment">🎬 Entertainment</option>
-            <option value="Bills">💡 Bills</option>
-            <option value="Healthcare">🏥 Healthcare</option>
-            <option value="Education">📚 Education</option>
-            <option value="Other">🔘 Other</option>
+            <option value="Food"<?= $old['category'] === 'Food' ? ' selected' : '' ?>>🍔 Food</option>
+            <option value="Transport"<?= $old['category'] === 'Transport' ? ' selected' : '' ?>>🚗 Transport</option>
+            <option value="Shopping"<?= $old['category'] === 'Shopping' ? ' selected' : '' ?>>🛍️ Shopping</option>
+            <option value="Entertainment"<?= $old['category'] === 'Entertainment' ? ' selected' : '' ?>>🎬 Entertainment</option>
+            <option value="Bills"<?= $old['category'] === 'Bills' ? ' selected' : '' ?>>💡 Bills</option>
+            <option value="Healthcare"<?= $old['category'] === 'Healthcare' ? ' selected' : '' ?>>🏥 Healthcare</option>
+            <option value="Education"<?= $old['category'] === 'Education' ? ' selected' : '' ?>>📚 Education</option>
+            <option value="Other"<?= $old['category'] === 'Other' ? ' selected' : '' ?>>🔘 Other</option>
         </select>
 
         <div id="other_category_div">
             <label>Other Category Name</label>
-            <input type="text" name="other_category" placeholder="e.g., Gym, Subscription">
+            <input type="text" name="other_category" maxlength="50" value="<?= e($old['other_category']) ?>" placeholder="e.g., Gym, Subscription">
         </div>
 
         <button type="submit">Add Expense</button>

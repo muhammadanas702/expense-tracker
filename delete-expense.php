@@ -1,22 +1,27 @@
 <?php
-session_start();
-require_once "config/db.php";
-require_once "includes/logging.php";
+require_once __DIR__ . '/includes/security.php';
+secure_session_start();
+
+require_once __DIR__ . '/config/db.php';
+require_once __DIR__ . '/includes/logging.php';
 
 if (!isset($_SESSION["user_id"])) {
     header("Location: auth/login.php");
     exit();
 }
 
-$user_id = $_SESSION["user_id"];
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-$client_time = $_GET['client_time'] ?? null;
+// Deleting must be a POST with a valid CSRF token (never a plain link).
+require_post_csrf();
+
+$user_id = (int) $_SESSION["user_id"];
+$id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
 
 $stmt = $conn->prepare("DELETE FROM expenses WHERE id = ? AND user_id = ?");
 $stmt->execute([$id, $user_id]);
 
-logAction($conn, $user_id, 'delete_expense', "Deleted expense ID: $id", $client_time);
+if ($stmt->rowCount() > 0) {
+    logAction($conn, $user_id, 'delete_expense', "Deleted expense ID: $id");
+}
 
 header("Location: dashboard.php");
 exit();
-?>
