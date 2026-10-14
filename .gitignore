@@ -18,3 +18,6 @@
 
 # Local diagnostics and one-time admin maintenance scripts.
 /phpinfo.php
+
+# SQL files for manual import are meant to be kept
+!database/*.sql
