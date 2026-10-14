@@ -64,6 +64,7 @@ function ef_page_start(array $o): void
       <a class="nv<?= $n[3] === $active ? ' on' : '' ?>" href="<?= e(ef_url($n[0])) ?>"><?= ef_icon($n[1]) ?><?= e($n[2]) ?></a>
     <?php endforeach; ?>
     <div class="sp"></div>
+    <?php if (!empty($user['is_admin'])): ?><a class="nv" href="<?= e(ef_url('admin/index.php')) ?>"><?= ef_icon('shield') ?>Admin</a><?php endif; ?>
     <a class="nv" href="<?= e(ef_url('profile.php')) ?>"><?= ef_icon('usr') ?>Profile</a>
     <a class="nv" href="<?= e(ef_url('auth/logout.php')) ?>" data-post data-csrf="<?= e(csrf_token()) ?>"><?= ef_icon('out') ?>Logout</a>
   </aside>
@@ -80,6 +81,12 @@ function ef_page_start(array $o): void
     </div>
     <div class="view">
 <?php
+    foreach (['success' => 'ok', 'error' => 'err'] as $key => $cls) {
+        if (!empty($_SESSION[$key]) && is_string($_SESSION[$key])) {
+            echo '<div class="msg ' . $cls . '" role="status" data-flash>' . e($_SESSION[$key]) . '</div>';
+        }
+        unset($_SESSION[$key]);
+    }
 }
 
 function ef_page_end(array $o = []): void
