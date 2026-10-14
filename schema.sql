@@ -39,6 +39,8 @@ CREATE TABLE IF NOT EXISTS `income` (
   `currency`         VARCHAR(3)    NOT NULL DEFAULT 'PKR',
   `amount_pkr`       DECIMAL(15,2) NOT NULL,
   `transaction_date` DATETIME      NOT NULL,
+  `payment_method`   VARCHAR(20)   NULL DEFAULT NULL,
+  `note`             VARCHAR(255)  NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_income_user_date` (`user_id`, `transaction_date`),
   CONSTRAINT `fk_income_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
@@ -53,6 +55,8 @@ CREATE TABLE IF NOT EXISTS `expenses` (
   `amount_pkr`       DECIMAL(15,2) NULL DEFAULT NULL,
   `category`         VARCHAR(50)   NOT NULL,
   `transaction_date` DATETIME      NOT NULL,
+  `payment_method`   VARCHAR(20)   NULL DEFAULT NULL,
+  `note`             VARCHAR(255)  NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_expenses_user_date` (`user_id`, `transaction_date`),
   CONSTRAINT `fk_expenses_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
@@ -92,4 +96,24 @@ CREATE TABLE IF NOT EXISTS `rate_limit_hits` (
   PRIMARY KEY (`id`),
   KEY `idx_bucket_key_time` (`bucket`, `key_hash`, `created_at`),
   KEY `idx_created` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Part 3: monthly repeating items
+CREATE TABLE IF NOT EXISTS `recurring_items` (
+  `id`             INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  `user_id`        INT UNSIGNED  NOT NULL,
+  `kind`           VARCHAR(7)    NOT NULL,                -- 'income' or 'expense'
+  `title`          VARCHAR(100)  NOT NULL,
+  `amount`         DECIMAL(15,2) NOT NULL,
+  `currency`       VARCHAR(3)    NOT NULL DEFAULT 'PKR',
+  `category`       VARCHAR(50)   NULL DEFAULT NULL,
+  `payment_method` VARCHAR(20)   NULL DEFAULT NULL,
+  `note`           VARCHAR(255)  NULL DEFAULT NULL,
+  `day_of_month`   TINYINT UNSIGNED NOT NULL,
+  `next_run`       DATE          NOT NULL,
+  `active`         TINYINT(1)    NOT NULL DEFAULT 1,
+  `created_at`     TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_recurring_user` (`user_id`, `active`, `next_run`),
+  CONSTRAINT `fk_recurring_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

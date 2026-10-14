@@ -26,6 +26,10 @@ if (!$user) {
 
 $is_admin = (bool) $user['is_admin'];
 
+// Repeating (monthly) items that became due are added now.
+require_once __DIR__ . '/modules/personal/lib.php';
+personal_run_recurring($conn, $user_id);
+
 /* ---------- FILTER LOGIC (everything from the URL is validated) ---------- */
 $month = request_month();
 $year  = request_year();
