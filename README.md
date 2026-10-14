@@ -268,3 +268,4 @@ Each feature is its own module under `modules/` so changing one does not affect 
 - Repeating items are added automatically when you open the dashboard after they are due.
 - New dashboard: period chips (this month, last month, last 3 months, this year, custom), insights, category chart, recent activity, list of repeating items with a stop button.
 - Edit pages show payment method and note too.
+- Full Report in the new design: date and type filters, monthly comparison, category breakdown, all transactions. Export to CSV, Excel, or PDF (print).

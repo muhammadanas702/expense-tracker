@@ -4,6 +4,8 @@ secure_session_start();
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/CurrencyConverter.php';
+require_once __DIR__ . '/../includes/layout.php';
+require_once __DIR__ . '/../modules/personal/lib.php';
 
 if (!isset($_SESSION["user_id"])) {
     header("Location: " . $base_url . "/auth/login.php");
@@ -12,7 +14,7 @@ if (!isset($_SESSION["user_id"])) {
 
 $user_id = (int) $_SESSION["user_id"];
 
-$stmtUser = $conn->prepare("SELECT name, email FROM users WHERE id = ?");
+$stmtUser = $conn->prepare("SELECT name, email, is_admin FROM users WHERE id = ?");
 $stmtUser->execute([$user_id]);
 $user = $stmtUser->fetch(PDO::FETCH_ASSOC);
 if (!$user) {
@@ -31,18 +33,23 @@ if ($from_date > $to_date) {
 $range_from = $from_date . ' 00:00:00';
 $range_to   = (new DateTimeImmutable($to_date))->modify('+1 day')->format('Y-m-d H:i:s'); // exclusive
 
-/* ---------- Data (shared by the page and the Excel export) ---------- */
-$stmt = $conn->prepare("SELECT title, amount, currency, amount_pkr, transaction_date FROM income WHERE user_id = ? AND transaction_date >= ? AND transaction_date < ? ORDER BY transaction_date DESC");
+personal_ensure_schema($conn);
+$type = in_array($_GET['type'] ?? 'all', ['all', 'income', 'expense'], true) ? (string) ($_GET['type'] ?? 'all') : 'all';
+
+/* ---------- Data (shared by the page and the exports) ---------- */
+$stmt = $conn->prepare("SELECT title, amount, currency, amount_pkr, transaction_date, payment_method, note FROM income WHERE user_id = ? AND transaction_date >= ? AND transaction_date < ? ORDER BY transaction_date DESC");
 $stmt->execute([$user_id, $range_from, $range_to]);
 $incomes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$stmt = $conn->prepare("SELECT title, amount, currency, amount_pkr, category, transaction_date FROM expenses WHERE user_id = ? AND transaction_date >= ? AND transaction_date < ? ORDER BY transaction_date DESC");
+$stmt = $conn->prepare("SELECT title, amount, currency, amount_pkr, category, transaction_date, payment_method, note FROM expenses WHERE user_id = ? AND transaction_date >= ? AND transaction_date < ? ORDER BY transaction_date DESC");
 $stmt->execute([$user_id, $range_from, $range_to]);
 $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+if ($type === 'income') { $expenses = []; }
+if ($type === 'expense') { $incomes = []; }
 
 $total_income = 0.0;
 $total_expense = 0.0;
-$monthlyInc = $monthlyExp = $yearlyInc = $yearlyExp = [];
+$monthlyInc = $monthlyExp = $yearlyInc = $yearlyExp = $catTotals = [];
 
 foreach ($incomes as &$inc) {
     $inc['pkr'] = (float) ($inc['amount_pkr'] ?? 0);
@@ -61,6 +68,8 @@ foreach ($expenses as &$exp) {
     $y = substr($exp['transaction_date'], 0, 4);
     $monthlyExp[$m] = ($monthlyExp[$m] ?? 0) + $exp['pkr'];
     $yearlyExp[$y] = ($yearlyExp[$y] ?? 0) + $exp['pkr'];
+    $cn = trim((string) $exp['category']) !== '' ? (string) $exp['category'] : 'Uncategorized';
+    $catTotals[$cn] = ($catTotals[$cn] ?? 0) + $exp['pkr'];
 }
 unset($exp);
 
@@ -80,6 +89,30 @@ if ($savings_percent >= 30) {
     $ai_insight = "You're saving {$savings_percent}% of your income. Consider reducing non-essential expenses to save more. 💡";
 } else {
     $ai_insight = "Your expenses exceed income. Review your spending habits and prioritize needs over wants. ⚠️";
+}
+
+/* ---------- CSV export (plain UTF-8 file; opens in Excel, Sheets, Numbers) ---------- */
+if (($_GET['export'] ?? '') === 'csv') {
+    header('Content-Type: text/csv; charset=UTF-8');
+    header('Content-Disposition: attachment; filename="expense_report_' . date('Y-m-d') . '.csv"');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+    $out = fopen('php://output', 'w');
+    fwrite($out, "\xEF\xBB\xBF"); // so Excel reads it as UTF-8
+    fputcsv($out, ['Type', 'Date', 'Title', 'Category', 'Payment method', 'Note', 'Amount', 'Currency', 'Amount (PKR)']);
+    $rows = [];
+    foreach ($incomes as $r) { $rows[] = ['Income', $r, '']; }
+    foreach ($expenses as $r) { $rows[] = ['Expense', $r, (string) $r['category']]; }
+    usort($rows, static fn($a, $b) => strcmp($b[1]['transaction_date'], $a[1]['transaction_date']));
+    foreach ($rows as [$kind, $r, $cat]) {
+        fputcsv($out, [
+            $kind, substr($r['transaction_date'], 0, 10), spreadsheet_safe($r['title']), spreadsheet_safe($cat),
+            (string) ($r['payment_method'] ?? ''), spreadsheet_safe($r['note'] ?? ''),
+            number_format((float) $r['amount'], 2, '.', ''), (string) ($r['currency'] ?? 'PKR'), number_format((float) $r['pkr'], 2, '.', ''),
+        ]);
+    }
+    fclose($out);
+    exit();
 }
 
 /* ---------- Excel export (an HTML table that Excel opens) ---------- */
@@ -145,157 +178,97 @@ function spreadsheet_safe($value): string
     return ($value !== '' && strpbrk($value[0], "=+-@\t\r") !== false) ? "'" . $value : $value;
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-   <?php require_once __DIR__ . '/../includes/pwa-head.php'; ?>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Full Report | ExpenseFlow</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: #f4f7f9; padding: 40px 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .report-header { background: white; border-radius: 28px; padding: 24px 32px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
-        h1 { font-size: 32px; margin-bottom: 8px; color: #0B2545; }
-        .user-info { margin-top: 16px; padding-top: 16px; border-top: 1px solid #eef2f6; color: #5F6C7D; }
-        .filter-form { background: white; border-radius: 28px; padding: 20px 32px; margin-bottom: 24px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
-        .filter-group { display: flex; flex-direction: column; gap: 6px; }
-        .filter-group label { font-size: 13px; font-weight: 500; color: #5F6C7D; }
-        .filter-group input { padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 20px; font-size: 14px; }
-        button, .btn { padding: 10px 20px; border-radius: 40px; font-weight: 500; border: none; cursor: pointer; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background: #137A7F; color: white; }
-        .btn-secondary { background: #e2e8f0; color: #334155; }
-        .toolbar { display: flex; gap: 12px; justify-content: flex-end; margin-bottom: 20px; }
-        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 32px; }
-        .card { background: white; border-radius: 24px; padding: 20px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
-        .card h3 { font-size: 14px; color: #5F6C7D; margin-bottom: 8px; }
-        .card p { font-size: 28px; font-weight: 700; color: #0B2545; }
-        .section-title { font-size: 22px; font-weight: 600; margin: 32px 0 16px; color: #0B2545; border-left: 4px solid #137A7F; padding-left: 16px; }
-        table { width: 100%; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.04); border-collapse: collapse; margin-bottom: 20px; }
-        th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #eef2f6; }
-        th { background: #f8fafc; font-weight: 600; color: #0B2545; }
-        .ai-insight { background: white; border-radius: 20px; padding: 20px 24px; margin: 20px 0; border-left: 4px solid <?= $ai_color ?>; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
-        /* Hide UI elements when printing (for PDF) */
-        @media print {
-            .toolbar, .filter-form, .back-link, .no-print { display: none !important; }
-            body { background: white; padding: 0; }
-            .container { max-width: 100%; }
-            .card { box-shadow: none; border: 1px solid #ddd; }
-            .ai-insight { box-shadow: none; border: 1px solid #ddd; }
-        }
-        @media (max-width: 768px) { .filter-form { flex-direction: column; align-items: stretch; } th, td { font-size: 12px; padding: 8px 12px; } }
-    </style>
-</head>
-<body>
-<div class="container">
-    <div class="report-header">
-        <h1>📄 Full Financial Report</h1>
-        <div class="user-info">
-            <strong><?= e($user['name']) ?></strong> &nbsp;|&nbsp;
-            <?= e($user['email']) ?>
-        </div>
+<?php
+arsort($catTotals);
+$fmt = static fn(float $n): string => number_format($n, 2);
+$maxMonth = 0.0;
+foreach ($allMonths as $m) { $maxMonth = max($maxMonth, $monthlyInc[$m] ?? 0, $monthlyExp[$m] ?? 0); }
+$catIcons = ['Food' => 'food', 'Transport' => 'car', 'Shopping' => 'bag', 'Entertainment' => 'tag', 'Bills' => 'zap', 'Healthcare' => 'heart', 'Education' => 'book'];
+$qs = static fn(array $extra = []) => http_build_query(array_merge(['from_date' => $from_date, 'to_date' => $to_date, 'type' => $type], $extra));
+
+$rows = [];
+foreach ($incomes as $r) { $r['kind'] = 'income'; $rows[] = $r; }
+foreach ($expenses as $r) { $r['kind'] = 'expense'; $rows[] = $r; }
+usort($rows, static fn($a, $b) => strcmp($b['transaction_date'], $a['transaction_date']));
+
+ef_page_start(['title' => 'Full Report', 'sub' => 'Filter, analyse and export', 'active' => 'rep', 'user' => $user]);
+?>
+<form method="GET" class="g card rf no-print" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+    <div class="fl" style="margin:0"><label for="from_date">From</label><input class="inp" id="from_date" type="date" name="from_date" value="<?= e($from_date) ?>"></div>
+    <div class="fl" style="margin:0"><label for="to_date">To</label><input class="inp" id="to_date" type="date" name="to_date" value="<?= e($to_date) ?>"></div>
+    <div class="fl" style="margin:0"><label for="type">Type</label>
+        <select class="inp" id="type" name="type">
+            <?php foreach (['all' => 'All', 'income' => 'Income only', 'expense' => 'Expenses only'] as $v => $t): ?>
+                <option value="<?= e($v) ?>"<?= $type === $v ? ' selected' : '' ?>><?= e($t) ?></option>
+            <?php endforeach; ?>
+        </select></div>
+    <button class="btn" type="submit">Apply</button>
+    <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+        <a class="btn o" href="?<?= e($qs(['export' => 'csv'])) ?>"><?= ef_icon('dl') ?> CSV</a>
+        <a class="btn o" href="?<?= e($qs(['export' => 'excel'])) ?>"><?= ef_icon('dl') ?> Excel</a>
+        <button class="btn o" type="button" onclick="window.print()"><?= ef_icon('dl') ?> PDF</button>
+    </span>
+</form>
+
+<div class="G4">
+    <div class="g card"><div class="k">Total income (PKR)</div><div class="v in"><?= $fmt($total_income) ?></div></div>
+    <div class="g card"><div class="k">Total expense (PKR)</div><div class="v ex"><?= $fmt($total_expense) ?></div></div>
+    <div class="g card"><div class="k">Net savings (PKR)</div><div class="v"><?= $fmt($total_savings) ?></div></div>
+    <div class="g card"><div class="k">Savings rate</div><div class="v"><?= e((string) $savings_percent) ?>%</div></div>
+</div>
+<div class="g card"><div class="k">Smart insight</div><div style="font-weight:600;margin-top:4px"><?= e($ai_insight) ?></div></div>
+
+<div class="G2">
+    <div class="g card">
+        <div class="t">Monthly comparison <span class="k">Income vs expense (PKR)</span></div>
+        <?php foreach ($allMonths as $m): $i = $monthlyInc[$m] ?? 0; $x = $monthlyExp[$m] ?? 0; ?>
+            <div style="margin-bottom:12px;font-size:.8rem">
+                <div style="display:flex;justify-content:space-between"><b><?= e(date('M Y', strtotime($m . '-01'))) ?></b><span class="<?= $i - $x >= 0 ? 'in' : 'ex' ?>"><?= $fmt($i - $x) ?></span></div>
+                <div class="bar"><i style="width:<?= $maxMonth > 0 ? round($i / $maxMonth * 100, 1) : 0 ?>%;background:#10b981"></i></div>
+                <div class="bar"><i style="width:<?= $maxMonth > 0 ? round($x / $maxMonth * 100, 1) : 0 ?>%;background:#f97316"></i></div>
+            </div>
+        <?php endforeach; if (!$allMonths): ?><p class="k">No data in this period.</p><?php endif; ?>
     </div>
-
-    <form method="GET" class="filter-form">
-        <div class="filter-group">
-            <label>From Date</label>
-            <input type="date" name="from_date" value="<?= e($from_date) ?>">
-        </div>
-        <div class="filter-group">
-            <label>To Date</label>
-            <input type="date" name="to_date" value="<?= e($to_date) ?>">
-        </div>
-        <button type="submit">Apply Filter</button>
-        <a href="view-report.php" class="btn-secondary" style="background:#e2e8f0; color:#334155;">Reset</a>
-    </form>
-
-    <!-- Toolbar with both Excel and PDF buttons -->
-    <div class="toolbar">
-        <a href="?<?= e(http_build_query(array_merge($_GET, ['export'=>'excel']))) ?>" class="btn">📎 Export to Excel (Styled)</a>
-        <button onclick="window.print();" class="btn">🖨️ Save as PDF / Print</button>
-    </div>
-
-    <div class="summary-cards">
-        <div class="card"><h3>💰 Total Income (PKR)</h3><p><?= number_format($total_income, 2) ?></p></div>
-        <div class="card"><h3>💸 Total Expense (PKR)</h3><p><?= number_format($total_expense, 2) ?></p></div>
-        <div class="card"><h3>📈 Total Savings (PKR)</h3><p><?= number_format($total_savings, 2) ?></p></div>
-    </div>
-
-    <div class="ai-insight">
-        <strong>🧠 Smart Insight:</strong> <?= e($ai_insight) ?>
-    </div>
-
-    <h2 class="section-title">📅 Monthly Breakdown</h2>
-    <table>
-        <thead>
-            <tr><th>Month</th><th>Income (PKR)</th><th>Expense (PKR)</th><th>Savings (PKR)</th></tr>
-        </thead>
-        <tbody>
-        <?php foreach ($allMonths as $month): 
-            $inc = $monthlyInc[$month] ?? 0;
-            $exp = $monthlyExp[$month] ?? 0;
-            $sav = $inc - $exp;
-        ?>
-            <tr><td><?= e($month) ?></td><td><?= number_format($inc,2) ?></td><td><?= number_format($exp,2) ?></td><td><?= number_format($sav,2) ?></td></tr>
-        <?php endforeach; ?>
-        <?php if(empty($allMonths)) echo "<tr><td colspan='4'>No data for selected period.</td></tr>"; ?>
-        </tbody>
-    </table>
-
-    <h2 class="section-title">📆 Yearly Breakdown</h2>
-    <table>
-        <thead>
-            <tr><th>Year</th><th>Income (PKR)</th><th>Expense (PKR)</th><th>Savings (PKR)</th></tr>
-        </thead>
-        <tbody>
-        <?php foreach ($allYears as $year): 
-            $incY = $yearlyInc[$year] ?? 0;
-            $expY = $yearlyExp[$year] ?? 0;
-            $savY = $incY - $expY;
-        ?>
-            <tr><td><?= e($year) ?></td><td><?= number_format($incY,2) ?></td><td><?= number_format($expY,2) ?></td><td><?= number_format($savY,2) ?></td></tr>
-        <?php endforeach; ?>
-        <?php if(empty($allYears)) echo "<tr><td colspan='4'>No data for selected period.</td></tr>"; ?>
-        </tbody>
-    </table>
-
-    <h2 class="section-title">📋 Detailed Transactions</h2>
-    <table>
-        <thead>
-            <tr><th>Type</th><th>Title</th><th>Category</th><th>Amount</th><th>Currency</th><th>Amount (PKR)</th><th>Date</th></tr>
-        </thead>
-        <tbody>
-        <?php foreach ($incomes as $inc): ?>
-            <tr style="background:#f0fdf4">
-                <td>💰 Income</td>
-                <td><?= e($inc['title']) ?></td>
-                <td>-</td>
-                <td><?= number_format($inc['amount'],2) ?></td>
-                <td><?= e($inc['currency'] ?? 'PKR') ?></td>
-                <td><?= number_format($inc['pkr'],2) ?></td>
-                <td><?= date('d M Y', strtotime($inc['transaction_date'])) ?></td>
-            </tr>
-        <?php endforeach; ?>
-        <?php foreach ($expenses as $exp): 
-        ?>
-            <tr style="background:#fff5f5">
-                <td>💸 Expense</td>
-                <td><?= e($exp['title']) ?></td>
-                <td><?= e($exp['category']) ?></td>
-                <td><?= number_format($exp['amount'],2) ?></td>
-                <td><?= e($exp['currency']) ?></td>
-                <td><?= number_format($exp['pkr'],2) ?></td>
-                <td><?= date('d M Y', strtotime($exp['transaction_date'])) ?></td>
-            </tr>
-        <?php endforeach; ?>
-        <?php if(empty($incomes) && empty($expenses)) echo "<tr><td colspan='7'>No transactions for selected period.</td></tr>"; ?>
-        </tbody>
-    </table>
-
-    <div style="margin-top: 30px; text-align: center;">
-        <a href="<?= e($base_url) ?>/dashboard.php" class="back-link btn" style="background:#137A7F;">← Back to Dashboard</a>
+    <div class="g card">
+        <div class="t">Category breakdown</div>
+        <?php foreach ($catTotals as $name => $val): $pct = $total_expense > 0 ? $val / $total_expense * 100 : 0; ?>
+            <div style="margin-bottom:12px;font-size:.8rem">
+                <div style="display:flex;justify-content:space-between;gap:8px"><span><?= ef_icon($catIcons[$name] ?? 'more') ?> <?= e($name) ?></span><b><?= $fmt((float) $val) ?> · <?= round($pct) ?>%</b></div>
+                <div class="bar"><i style="width:<?= round($pct, 1) ?>%;background:var(--a1)"></i></div>
+            </div>
+        <?php endforeach; if (!$catTotals): ?><p class="k">No expenses in this period.</p><?php endif; ?>
     </div>
 </div>
-</body>
-</html>
+
+<?php if (count($allYears) > 1): ?>
+<div class="g card">
+    <div class="t">Yearly breakdown</div>
+    <?php foreach ($allYears as $y): $i = $yearlyInc[$y] ?? 0; $x = $yearlyExp[$y] ?? 0; ?>
+        <div class="row"><span><b><?= e($y) ?></b><small>Income <?= $fmt($i) ?> · Expense <?= $fmt($x) ?></small></span><b class="<?= $i - $x >= 0 ? 'in' : 'ex' ?>"><?= $fmt($i - $x) ?></b></div>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>
+
+<div class="g card">
+    <div class="t">All transactions <span class="k"><?= count($rows) ?> entries</span></div>
+    <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:.82rem;min-width:620px">
+        <thead><tr style="text-align:left;color:var(--mu);font-size:.72rem;text-transform:uppercase"><th style="padding:8px 6px">Date</th><th>Title</th><th>Category</th><th>Method</th><th style="text-align:right">Amount</th><th style="text-align:right">PKR</th></tr></thead>
+        <tbody>
+        <?php foreach ($rows as $r): $isInc = $r['kind'] === 'income'; ?>
+            <tr style="border-top:1px solid rgba(91,107,128,.14)">
+                <td style="padding:9px 6px;white-space:nowrap"><?= e(date('d M Y', strtotime($r['transaction_date']))) ?></td>
+                <td><?= e($r['title']) ?><?php if (!empty($r['note'])): ?><small style="display:block;color:var(--mu)"><?= e($r['note']) ?></small><?php endif; ?></td>
+                <td><?= $isInc ? '<span class="tag tg">Income</span>' : e($r['category']) ?></td>
+                <td><?= e((string) ($r['payment_method'] ?? '')) ?></td>
+                <td style="text-align:right;white-space:nowrap" class="<?= $isInc ? 'in' : 'ex' ?>"><?= $isInc ? '+' : '−' ?> <?= $fmt((float) $r['amount']) ?> <?= e($r['currency'] ?? 'PKR') ?></td>
+                <td style="text-align:right;white-space:nowrap"><?= $fmt((float) $r['pkr']) ?></td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+    </div>
+    <?php if (!$rows): ?><p class="k" style="padding:12px 0">No transactions in this period.</p><?php endif; ?>
+</div>
+<?php
+ef_page_end(['active' => 'rep']);
