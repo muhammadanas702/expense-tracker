@@ -7,9 +7,10 @@ require_once __DIR__ . '/../../includes/security.php';
 require_once __DIR__ . '/../../includes/layout.php';
 require_once __DIR__ . '/lib.php';
 
-function personal_tx_page(string $kind): void
+function personal_tx_page(string $kind, ?int $editId = null): void
 {
     global $conn, $base_url;
+    $isEdit = $editId !== null;
     $isExpense = $kind === 'expense';
     secure_session_start();
     require_once __DIR__ . '/../../config/db.php';
@@ -20,7 +21,7 @@ function personal_tx_page(string $kind): void
         exit();
     }
     $user_id = (int) $_SESSION['user_id'];
-    $u = $conn->prepare('SELECT name FROM users WHERE id = ?');
+    $u = $conn->prepare('SELECT name, is_admin FROM users WHERE id = ?');
     $u->execute([$user_id]);
     $user = $u->fetch(PDO::FETCH_ASSOC);
     if (!$user) {
@@ -34,6 +35,31 @@ function personal_tx_page(string $kind): void
     $categories = ['Food' => 'food', 'Transport' => 'car', 'Shopping' => 'bag', 'Entertainment' => 'tag', 'Bills' => 'zap', 'Healthcare' => 'heart', 'Education' => 'book', 'Other' => 'more'];
     $error = '';
     $old = ['title' => '', 'amount' => '', 'currency' => null, 'category' => 'Food', 'other_category' => '', 'payment_method' => 'Cash', 'note' => '', 'repeat' => ''];
+
+    $row = null;
+    if ($isEdit) {
+        $q = $conn->prepare('SELECT * FROM `' . ($isExpense ? 'expenses' : 'income') . '` WHERE id = ? AND user_id = ?');
+        $q->execute([$editId, $user_id]);
+        $row = $q->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            http_response_code(404);
+            exit('Record not found.');
+        }
+        $old['title'] = (string) $row['title'];
+        $old['amount'] = (string) $row['amount'];
+        $old['currency'] = strtoupper(trim((string) ($row['currency'] ?? 'PKR')));
+        $old['payment_method'] = personal_payment_method($row['payment_method'] ?? null) ?? '';
+        $old['note'] = (string) ($row['note'] ?? '');
+        if ($isExpense) {
+            $cat = (string) $row['category'];
+            if (isset($categories[$cat])) {
+                $old['category'] = $cat;
+            } else {
+                $old['category'] = 'Other';
+                $old['other_category'] = $cat;
+            }
+        }
+    }
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($old as $field => $default) {
@@ -65,6 +91,24 @@ function personal_tx_page(string $kind): void
                 if ($custom !== null) {
                     $category = $custom;
                 }
+            }
+            if ($isEdit) {
+                // Keep the PKR value saved with the entry unless the amount or currency really changed.
+                $moneyChanged = $row['amount_pkr'] === null
+                    || abs($amount - (float) $row['amount']) > 0.004
+                    || $currency !== strtoupper((string) ($row['currency'] ?? 'PKR'));
+                $pkr = $moneyChanged ? round(CurrencyConverter::convert($amount, $currency, 'PKR'), 2) : (float) $row['amount_pkr'];
+                if ($isExpense) {
+                    $conn->prepare('UPDATE expenses SET title=?, amount=?, currency=?, amount_pkr=?, category=?, payment_method=?, note=? WHERE id=? AND user_id=?')
+                        ->execute([$title, $amount, $currency, $pkr, $category, $method, $note, $editId, $user_id]);
+                } else {
+                    $conn->prepare('UPDATE income SET title=?, amount=?, currency=?, amount_pkr=?, payment_method=?, note=? WHERE id=? AND user_id=?')
+                        ->execute([$title, $amount, $currency, $pkr, $method, $note, $editId, $user_id]);
+                }
+                logAction($conn, $user_id, $isExpense ? 'edit_expense' : 'edit_income', "Updated record ID: $editId");
+                $_SESSION['success'] = ($isExpense ? 'Expense' : 'Income') . ' updated.';
+                header('Location: ' . $base_url . '/dashboard.php');
+                exit();
             }
             // The PKR value is stored with the entry, so totals do not shift when rates change.
             $amount_pkr = round(CurrencyConverter::convert($amount, $currency, 'PKR'), 2);
@@ -111,9 +155,9 @@ function personal_tx_page(string $kind): void
     $label = $isExpense ? 'Expense' : 'Income';
     $accent = $isExpense ? '#ea580c' : '#0d9f6e';
     ef_page_start([
-        'title' => "Add $label",
-        'sub' => $isExpense ? 'Record money going out' : 'Record money coming in',
-        'active' => $isExpense ? 'exp' : 'inc',
+        'title' => ($isEdit ? 'Edit ' : 'Add ') . $label,
+        'sub' => $isEdit ? 'Change this entry' : ($isExpense ? 'Record money going out' : 'Record money coming in'),
+        'active' => $isEdit ? '' : ($isExpense ? 'exp' : 'inc'),
         'user' => $user,
     ]);
     ?>
@@ -145,11 +189,14 @@ function personal_tx_page(string $kind): void
           </div></div>
         <div class="fl"><label for="note">Note <span style="text-transform:none;font-weight:500">(optional)</span></label>
           <input class="inp" id="note" type="text" name="note" maxlength="255" value="<?= e($old['note']) ?>" placeholder="Anything to remember"></div>
+        <?php if (!$isEdit): ?>
         <label class="row" style="cursor:pointer">
           <span><?= ef_icon('rpt') ?> Repeat every month<small>Adds this <?= e(strtolower($label)) ?> automatically each month</small></span>
           <b><input class="swc" type="checkbox" name="repeat" value="1"<?= $old['repeat'] === '1' ? ' checked' : '' ?>><i class="sw"></i></b>
         </label>
-        <button class="btn" type="submit" style="width:100%;margin-top:14px;padding:14px">Save <?= e(strtolower($label)) ?></button>
+        <?php endif; ?>
+        <button class="btn" type="submit" style="width:100%;margin-top:14px;padding:14px"><?= $isEdit ? 'Save changes' : 'Save ' . e(strtolower($label)) ?></button>
+        <?php if ($isEdit): ?><a class="btn o" href="<?= e($base_url) ?>/dashboard.php" style="display:block;text-align:center;margin-top:10px">Cancel</a><?php endif; ?>
       </form>
     </div>
     <?php
@@ -157,5 +204,5 @@ function personal_tx_page(string $kind): void
     if ($isExpense) {
         $js = '<script>(function(){var w=document.getElementById("other-wrap");function f(){var c=document.querySelector("input[name=category]:checked");w.hidden=!(c&&c.value==="Other")}document.querySelectorAll("input[name=category]").forEach(function(r){r.addEventListener("change",f)});f()})()</script>';
     }
-    ef_page_end(['active' => $isExpense ? 'exp' : 'inc', 'scripts' => $js]);
+    ef_page_end(['active' => $isEdit ? '' : ($isExpense ? 'exp' : 'inc'), 'scripts' => $js]);
 }
