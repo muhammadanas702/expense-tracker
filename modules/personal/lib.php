@@ -50,8 +50,7 @@ function personal_ensure_schema(PDO $conn): void
               `active` TINYINT(1) NOT NULL DEFAULT 1,
               `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
               PRIMARY KEY (`id`),
-              KEY `idx_recurring_user` (`user_id`, `active`, `next_run`),
-              CONSTRAINT `fk_recurring_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+              KEY `idx_recurring_user` (`user_id`, `active`, `next_run`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
         );
     } catch (Throwable $e) {

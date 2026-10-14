@@ -47,9 +47,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $error = "You are the only administrator. Make another user an admin before deleting this account.";
         } else {
             /* DELETE ALL USER DATA (all or nothing) */
+            require_once __DIR__ . '/../modules/personal/lib.php';
+            personal_ensure_schema($conn); // makes sure recurring_items exists before it is cleaned
             $conn->beginTransaction();
             try {
-                foreach (['income', 'expenses', 'user_monthly_currency', 'user_logs'] as $table) {
+                foreach (['income', 'expenses', 'user_monthly_currency', 'user_logs', 'recurring_items'] as $table) {
                     $conn->prepare("DELETE FROM `$table` WHERE user_id=?")->execute([$user_id]);
                 }
                 $conn->prepare("DELETE FROM users WHERE id=?")->execute([$user_id]);
