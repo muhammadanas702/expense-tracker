@@ -20,10 +20,12 @@ $type = (string) ($_POST["type"] ?? '');
 $targets = [
     "income"  => ["income", "user_monthly_currency"],
     "expense" => ["expenses"],
-    "all"     => ["income", "expenses", "user_monthly_currency"],
+    "all"     => ["income", "expenses", "user_monthly_currency", "recurring_items"],
 ];
 
 if (isset($targets[$type])) {
+    require_once __DIR__ . '/modules/personal/lib.php';
+    personal_ensure_schema($conn);
     $conn->beginTransaction();
     try {
         foreach ($targets[$type] as $table) {

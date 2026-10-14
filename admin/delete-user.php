@@ -23,9 +23,11 @@ if (!$stmt->fetch()) {
 }
 
 // Delete everything that belongs to the user, then the user (all or nothing)
+require_once __DIR__ . '/../modules/personal/lib.php';
+personal_ensure_schema($conn); // makes sure recurring_items exists before it is cleaned
 $conn->beginTransaction();
 try {
-    foreach (['income', 'expenses', 'user_monthly_currency', 'user_logs'] as $table) {
+    foreach (['income', 'expenses', 'user_monthly_currency', 'user_logs', 'recurring_items'] as $table) {
         $conn->prepare("DELETE FROM `$table` WHERE user_id = ?")->execute([$id]);
     }
     $conn->prepare("DELETE FROM users WHERE id = ?")->execute([$id]);
