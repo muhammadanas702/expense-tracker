@@ -131,3 +131,15 @@ details{padding:16px 18px;margin-bottom:10px}summary{list-style:none;display:fle
 @media(max-width:768px){.nb{padding:12px 16px;gap:12px}.nb .lk,.nb .btn{display:none}.nb .lnk{margin-left:auto}.h2s{grid-template-columns:1fr;padding:26px 18px 14px;gap:22px;text-align:center}.h2s h1{font-size:2.15rem}.lead{margin:12px auto 20px;font-size:.95rem}.cta{flex-direction:column}.cta .btn{width:100%}.trust{justify-content:center}.hv .chp{position:static;margin-bottom:10px;display:inline-flex}.hv .m2{margin:-30px 12px 0}.sec{padding:26px 18px}.sec>h2{font-size:1.45rem}.F3{grid-template-columns:1fr}.band{margin:6px 16px 28px;padding:28px 20px}.fo{padding:20px 18px;flex-direction:column;align-items:flex-start;gap:12px}.fo .lk2{margin:0}}
 @media print{.sb,.bn,.tb,.fabf,.no-print{display:none!important}.fr{background:#fff}.fr:before,.fr:after{display:none}.g{box-shadow:none;backdrop-filter:none;background:#fff}.ap{display:block;padding:0}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* auth extras */
+.ey{position:absolute;right:14px;top:50%;margin-top:-9px;color:var(--mu);background:none;border:0;cursor:pointer;padding:0}.ey svg{width:18px;height:18px}
+.fw .inp.hasey{padding-right:44px}
+.cb{display:flex;gap:8px;align-items:center;color:var(--mu);font-weight:600;cursor:pointer}.cb input{position:absolute;opacity:0;width:0;height:0}
+.cb i{width:18px;height:18px;border-radius:6px;background:#fff;border:1.5px solid #cbd5e1;display:grid;place-items:center;color:#fff;flex:none}.cb i svg{width:12px;height:12px;display:none}
+.cb input:checked+i{background:var(--a1);border-color:var(--a1)}.cb input:checked+i svg{display:block}
+.stp{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:20px;font-size:.74rem;font-weight:700;color:var(--mu)}
+.stp i{width:26px;height:26px;border-radius:50%;background:#e2e8f0;display:grid;place-items:center;font-style:normal}.stp i.d{background:var(--inc);color:#fff}.stp i.c{background:var(--a1);color:#fff}.stp s{width:26px;height:2px;background:#cbd5e1}.stp i svg{width:13px;height:13px}
+.dim{background:rgba(11,37,69,.38)}
+.mt i.g{background:#10b981}
+.brand-card{padding:16px;background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.3)}
+.sel2{height:48px}

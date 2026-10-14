@@ -1,4 +1,5 @@
 <?php
+global $base_url;
 if (!isset($base_url) || !is_string($base_url) || $base_url === '') {
     require_once __DIR__ . '/../config/app.php';
 }
