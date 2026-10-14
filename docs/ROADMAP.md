@@ -16,7 +16,9 @@ Never push to `main` directly (a push to `main` auto-deploys).
 |---|---|---|
 | 1 | Foundation: app.css, layout, icons, module registry, design files, roadmap | done |
 | 2 | Landing page + login/register/forgot/OTP/reset/delete-account UI, offline page | done (setup wizard moved to Part 4, invite page to Part 5; both need SQL) |
-| 3 | Personal: new dashboard, add income/expense (payment method, note, repeat), report + CSV/PDF | todo (SQL) |
+| 3a | Personal: Add Income/Expense in new UI (payment method, note, monthly repeat) + `database/part-3.sql` | done |
+| 3b | Personal: new dashboard (period chips, charts, insights) + edit pages (payment method, note) + list/stop repeating items | todo |
+| 3c | Personal: Full Report in new UI + CSV/PDF export | todo |
 | 4 | Profile/Settings: savings goal, notifications, danger zone, delete account | todo (SQL) |
 | 5 | Shared 1: groups, members, invites | todo (SQL) |
 | 6 | Shared 2: shared expense, 4 split types, add my share to Personal | todo (SQL) |

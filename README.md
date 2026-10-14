@@ -261,3 +261,8 @@ If ExpenseFlow is useful to you, a star on the repository is appreciated.
 A new UI (Personal + Shared expenses, new landing/auth pages) and installable apps are being built in small parts.
 See [`docs/ROADMAP.md`](docs/ROADMAP.md) for status. Design references are in `docs/design/`.
 Each feature is its own module under `modules/` so changing one does not affect another.
+
+### Personal module (new)
+
+- Add income and expenses with payment method, an optional note and a **Repeat every month** switch.
+- Repeating items are added automatically when you open the dashboard after they are due.
