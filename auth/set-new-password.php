@@ -62,37 +62,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 }
+
+require_once __DIR__ . '/../includes/auth-layout.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <?php require_once __DIR__ . '/../includes/pwa-head.php'; ?>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Set New Password</title>
-    <style>
-        body { font-family: 'Inter', sans-serif; background: #f5f7fc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: white; border-radius: 28px; padding: 2rem; width: 380px; max-width: calc(100% - 32px); border: 1px solid #e2e8f0; }
-        input { width: 100%; padding: 0.7rem; margin: 0.8rem 0; border: 1px solid #cbd5e1; border-radius: 40px; box-sizing: border-box; }
-        button { background: linear-gradient(135deg, #0f766e, #1d4ed8); color: white; border: none; padding: 0.7rem; border-radius: 40px; width: 100%; font-weight: 600; cursor: pointer; }
-        .error { background: #fee2e2; color: #b91c1c; padding: 0.5rem; border-radius: 20px; margin-bottom: 1rem; }
-        .hint { font-size: 0.8rem; color: #64748b; }
-    </style>
-</head>
-<body>
-<div class="container">
-    <h2>✏️ Set New Password</h2>
-    <p>Hello <?= e($user['name']) ?>, create a new password for your account.</p>
-    <?php if ($error): ?>
-        <div class="error"><?= e($error) ?></div>
-    <?php endif; ?>
-    <form method="POST">
-        <?= csrf_field() ?>
-        <input type="password" name="password" placeholder="New password" required>
-        <input type="password" name="confirm_password" placeholder="Confirm new password" required>
-        <p class="hint">At least 8 characters with an uppercase letter, a lowercase letter, a number and a special character.</p>
-        <button type="submit">Reset Password</button>
-    </form>
-</div>
-</body>
-</html>
+<?php ef_auth_start(['title' => 'New password']); ?>
+<h2>Create new password</h2>
+<p class="s3">Hello <?= e($user['name']) ?>, choose a strong password you have not used before.</p>
+<?= ef_msg($error) ?>
+<form method="POST">
+    <?= csrf_field() ?>
+    <?= ef_field('NEW PASSWORD', 'password', 'lock', 'password', '', ['placeholder' => 'Min. 8 characters', 'required' => true, 'autocomplete' => 'new-password', 'data-strength' => true]) ?>
+    <div class="mt"><i></i><i></i><i></i><i></i></div>
+    <div style="margin:14px 0 16px">
+        <?= ef_check('At least 8 characters') ?>
+        <?= ef_check('Upper and lower case letters') ?>
+        <?= ef_check('A number and a symbol') ?>
+    </div>
+    <?= ef_field('CONFIRM PASSWORD', 'confirm_password', 'lock', 'password', '', ['placeholder' => 'Repeat password', 'required' => true, 'autocomplete' => 'new-password']) ?>
+    <button class="btn lg" style="width:100%" type="submit">Reset password</button>
+</form>
+<?php ef_auth_end(); ?>

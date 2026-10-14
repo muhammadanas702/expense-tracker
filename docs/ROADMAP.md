@@ -15,7 +15,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | Part | Scope | Status |
 |---|---|---|
 | 1 | Foundation: app.css, layout, icons, module registry, design files, roadmap | done |
-| 2 | Landing page + login/register/forgot/OTP/reset UI, offline page | todo |
+| 2 | Landing page + login/register/forgot/OTP/reset/delete-account UI, offline page | done (setup wizard moved to Part 4, invite page to Part 5; both need SQL) |
 | 3 | Personal: new dashboard, add income/expense (payment method, note, repeat), report + CSV/PDF | todo (SQL) |
 | 4 | Profile/Settings: savings goal, notifications, danger zone, delete account | todo (SQL) |
 | 5 | Shared 1: groups, members, invites | todo (SQL) |

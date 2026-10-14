@@ -1,4 +1,4 @@
-const CACHE_NAME = "expenseflow-static-v1";
+const CACHE_NAME = "expenseflow-static-v2";
 const APP_SCOPE = self.registration.scope;
 const OFFLINE_URL = new URL("offline.html", APP_SCOPE).href;
 const STATIC_URLS = [

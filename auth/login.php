@@ -70,47 +70,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 }
+
+require_once __DIR__ . '/../includes/auth-layout.php';
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-<head>
-    <?php require_once __DIR__ . '/../includes/pwa-head.php'; ?>
-    <meta charset="UTF-8">
-    <title>Login</title>
-    <link rel="stylesheet" href="../assets/auth.css">
-
-
-</head>
-<body>
-<div class="auth-wrapper">
-    <div class="card">
-        <div class="logo">Expense<span>Flow</span></div>
-        <h2>Welcome Back</h2>
-        <p class="subtitle">Login to continue managing your finances</p>
-        <?php if ($notice !== '') { ?>
-            <div class="<?= e($noticeType) ?>"><?= e($notice) ?></div>
-        <?php } ?>
-        <?php if(!empty($error)) { ?>
-            <div class="error"><?= e($error) ?></div>
-        <?php } ?>
-        <form method="POST">
-            <?= csrf_field() ?>
-            <input type="email" name="email" placeholder="Enter Email" value="<?= e($email) ?>" required>
-            <input type="password" name="password" placeholder="Enter Password" required>
-            <div style="text-align: right; margin-top: -0.5rem; margin-bottom: 1rem;">
-                <a href="forgot-password.php" style="font-size: 0.85rem; color: #0f766e; text-decoration: none;">Forgot password?</a>
-            </div>
-            <button type="submit">Login</button>
-        </form>
-        <div class="links">
-            Don't have an account? <a href="register.php">Register</a>
-        </div>
-    </div>
-</div>
-</body>
-</html>
+<?php ef_auth_start(['title' => 'Log in']); ?>
+<h2>Welcome back</h2>
+<p class="s3">Log in to continue to ExpenseFlow.</p>
+<?= ef_msg($notice, $noticeType === 'success' ? 'ok' : 'err') ?>
+<?= ef_msg($error) ?>
+<form method="POST" autocomplete="on">
+    <?= csrf_field() ?>
+    <?= ef_field('EMAIL', 'email', 'mail', 'email', $email, ['placeholder' => 'you@example.com', 'required' => true, 'maxlength' => 190, 'autocomplete' => 'email']) ?>
+    <?= ef_field('PASSWORD', 'password', 'lock', 'password', '', ['placeholder' => 'Your password', 'required' => true, 'autocomplete' => 'current-password']) ?>
+    <div class="rw"><span></span><a class="lnk" href="forgot-password.php">Forgot password?</a></div>
+    <button class="btn lg" style="width:100%" type="submit">Log in</button>
+</form>
+<div class="ft2">New to ExpenseFlow? <a class="lnk" href="register.php">Create account</a></div>
+<div class="ft2"><a class="lnk" href="<?= e(ef_url('index.php')) ?>"><?= ef_icon('bk') ?> Back to home</a></div>
+<?php ef_auth_end(); ?>

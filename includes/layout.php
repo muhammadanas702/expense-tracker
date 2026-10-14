@@ -65,7 +65,7 @@ function ef_page_start(array $o): void
     <?php endforeach; ?>
     <div class="sp"></div>
     <a class="nv" href="<?= e(ef_url('profile.php')) ?>"><?= ef_icon('usr') ?>Profile</a>
-    <a class="nv" href="<?= e(ef_url('auth/logout.php')) ?>"><?= ef_icon('out') ?>Logout</a>
+    <a class="nv" href="<?= e(ef_url('auth/logout.php')) ?>" data-post data-csrf="<?= e(csrf_token()) ?>"><?= ef_icon('out') ?>Logout</a>
   </aside>
   <div class="mn">
     <div class="g tb">

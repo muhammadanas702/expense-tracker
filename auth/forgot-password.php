@@ -1,47 +1,22 @@
 <?php
 require_once __DIR__ . '/../includes/security.php';
 secure_session_start();
+
+require_once __DIR__ . '/../includes/auth-layout.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="<?= $base_url ?>/assets/responsive.css">
-
-<head>
-    <?php require_once __DIR__ . '/../includes/pwa-head.php'; ?>
-    <meta charset="UTF-8">
-    <title>Forgot Password</title>
-    <style>
-        body { font-family: 'Inter', sans-serif; background: #f5f7fc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: white; border-radius: 28px; padding: 2rem; width: 380px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        h2 { margin-bottom: 1rem; color: #0f172a; }
-        input { width: 100%; padding: 0.7rem; margin: 0.8rem 0; border: 1px solid #cbd5e1; border-radius: 40px; font-family: inherit; }
-        button { background: linear-gradient(135deg, #0f766e, #1d4ed8); color: white; border: none; padding: 0.7rem; border-radius: 40px; width: 100%; font-weight: 600; cursor: pointer; }
-        .message { margin-top: 1rem; padding: 0.5rem; border-radius: 20px; text-align: center; }
-        .error { background: #fee2e2; color: #b91c1c; }
-        .success { background: #d1fae5; color: #065f46; }
-        a { display: block; text-align: center; margin-top: 1rem; color: #0f766e; text-decoration: none; }
-    </style>
-</head>
-<body>
-<div class="container">
-    <h2>🔐 Reset your password</h2>
-    <p style="color: #475569;">Enter your email address and we'll send you a <strong>6‑digit OTP</strong> to reset your password.</p>
-
-    <?php if(isset($_SESSION['reset_message'])): ?>
-        <div class="message <?= (($_SESSION['reset_type'] ?? '') === 'success') ? 'success' : 'error' ?>">
-            <?= e($_SESSION['reset_message']) ?>
-        </div>
-        <?php unset($_SESSION['reset_message'], $_SESSION['reset_type']); ?>
-    <?php endif; ?>
-
-    <form action="send-otp.php" method="POST">
-        <?= csrf_field() ?>
-        <input type="email" name="email" placeholder="Your registered email" maxlength="190" required>
-        <button type="submit">Send OTP</button>
-    </form>
-    <a href="login.php">← Back to Login</a>
-</div>
-</body>
-</html>
+<?php
+$fpMsg = (string) ($_SESSION['reset_message'] ?? '');
+$fpType = (($_SESSION['reset_type'] ?? '') === 'success') ? 'ok' : 'err';
+unset($_SESSION['reset_message'], $_SESSION['reset_type']);
+ef_auth_start(['title' => 'Forgot password']); ?>
+<div class="big"><?= ef_icon('key') ?></div>
+<h2 class="c2">Forgot password?</h2>
+<p class="s3 c2">Enter your email and we will send you a 6-digit code to reset it.</p>
+<?= ef_msg($fpMsg, $fpType) ?>
+<form action="send-otp.php" method="POST">
+    <?= csrf_field() ?>
+    <?= ef_field('EMAIL', 'email', 'mail', 'email', '', ['placeholder' => 'you@example.com', 'required' => true, 'maxlength' => 190, 'autocomplete' => 'email']) ?>
+    <button class="btn lg" style="width:100%" type="submit">Send code</button>
+</form>
+<div class="ft2"><a class="lnk" href="login.php"><?= ef_icon('bk') ?> Back to login</a></div>
+<?php ef_auth_end(); ?>

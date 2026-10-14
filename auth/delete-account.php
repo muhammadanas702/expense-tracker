@@ -72,38 +72,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 }
+
+require_once __DIR__ . '/../includes/auth-layout.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <?php require_once __DIR__ . '/../includes/pwa-head.php'; ?>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delete Account</title>
-    <style>
-        body { font-family: 'Inter', sans-serif; background: #f5f7fc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: white; border-radius: 28px; padding: 2rem; width: 400px; max-width: calc(100% - 32px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        h2 { margin-top: 0; color: #b91c1c; }
-        input { width: 100%; padding: 0.7rem; margin: 0.8rem 0; border: 1px solid #cbd5e1; border-radius: 40px; box-sizing: border-box; }
-        button { background: #dc2626; color: white; border: none; padding: 0.7rem; border-radius: 40px; width: 100%; font-weight: 600; cursor: pointer; }
-        .error { background: #fee2e2; color: #b91c1c; padding: 0.5rem 0.8rem; border-radius: 20px; margin-bottom: 1rem; }
-        .cancel { display: block; text-align: center; margin-top: 1rem; color: #0f766e; text-decoration: none; }
-    </style>
-</head>
-<body>
-<div class="container">
-    <h2>🗑 Delete account</h2>
-    <p>This permanently deletes your account, <strong>all your income and expenses</strong>, and your activity history. It cannot be undone.</p>
-    <?php if ($error): ?>
-        <div class="error"><?= e($error) ?></div>
-    <?php endif; ?>
-    <form method="POST" onsubmit="return confirm('Delete your account permanently?');">
-        <?= csrf_field() ?>
-        <label for="password">Enter your password to confirm</label>
-        <input type="password" id="password" name="password" placeholder="Your password" required autofocus>
-        <button type="submit">Delete my account permanently</button>
-    </form>
-    <a class="cancel" href="<?= e($base_url) ?>/dashboard.php">← Cancel, keep my account</a>
+<?php ef_auth_start(['title' => 'Delete account', 'split' => false]); ?>
+<div class="big wr"><?= ef_icon('warn') ?></div>
+<h2 class="c2">Delete account permanently?</h2>
+<p class="s3 c2">This cannot be undone. The following will be erased:</p>
+<div style="margin-bottom:16px">
+    <?= ef_check('All income and expense records') ?>
+    <?= ef_check('Your activity history and settings') ?>
+    <?= ef_check('Your profile and login') ?>
 </div>
-</body>
-</html>
+<?= ef_msg($error) ?>
+<form method="POST" onsubmit="return confirm('Delete your account permanently?');">
+    <?= csrf_field() ?>
+    <?= ef_field('ENTER YOUR PASSWORD TO CONFIRM', 'password', 'lock', 'password', '', ['placeholder' => 'Your password', 'required' => true, 'autofocus' => true, 'autocomplete' => 'current-password']) ?>
+    <div class="GE">
+        <a class="btn lg o" style="width:100%" href="<?= e($base_url) ?>/dashboard.php">Cancel</a>
+        <button class="btn lg e2" style="width:100%" type="submit">Delete</button>
+    </div>
+</form>
+<?php ef_auth_end(['split' => false]); ?>
