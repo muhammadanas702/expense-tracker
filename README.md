@@ -255,3 +255,9 @@ For bugs and feature ideas, please open an issue.
 Developed by **Muhammad Anas** ([@muhammadanas702](https://github.com/muhammadanas702)).
 
 If ExpenseFlow is useful to you, a star on the repository is appreciated.
+
+## Development roadmap
+
+A new UI (Personal + Shared expenses, new landing/auth pages) and installable apps are being built in small parts.
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for status. Design references are in `docs/design/`.
+Each feature is its own module under `modules/` so changing one does not affect another.

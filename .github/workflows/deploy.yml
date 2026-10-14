@@ -122,4 +122,6 @@ jobs:
             .gitignore
             DEPLOYMENT.md
             README.md
+            docs/**
+            database/**
           timeout: 60000
