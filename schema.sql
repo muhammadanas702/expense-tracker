@@ -116,3 +116,13 @@ CREATE TABLE IF NOT EXISTS `recurring_items` (
   PRIMARY KEY (`id`),
   KEY `idx_recurring_user` (`user_id`, `active`, `next_run`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Part 4: per-user settings (savings goal, notifications, first-run setup)
+CREATE TABLE IF NOT EXISTS `user_settings` (
+  `user_id`       INT UNSIGNED NOT NULL,
+  `savings_goal`  TINYINT UNSIGNED NOT NULL DEFAULT 20,
+  `notifications` TINYINT(1)   NOT NULL DEFAULT 1,
+  `setup_done`    TINYINT(1)   NOT NULL DEFAULT 0,
+  `updated_at`    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
