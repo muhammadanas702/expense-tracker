@@ -269,3 +269,9 @@ Each feature is its own module under `modules/` so changing one does not affect 
 - New dashboard: period chips (this month, last month, last 3 months, this year, custom), insights, category chart, recent activity, list of repeating items with a stop button.
 - Edit pages show payment method and note too.
 - Full Report in the new design: date and type filters, monthly comparison, category breakdown, all transactions. Export to CSV, Excel, or PDF (print).
+
+### Profile & settings (new)
+
+- Profile & Settings page: name, password, monthly savings goal, notifications switch, reset data and delete account in one Danger zone.
+- The savings goal is used on the dashboard tip and savings rate.
+- New users see a short first-run setup card (main currency + savings goal) that can be skipped.

@@ -4,6 +4,8 @@ secure_session_start();
 
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/includes/logging.php';
+require_once __DIR__ . '/includes/layout.php';
+require_once __DIR__ . '/modules/profile/lib.php';
 
 if (!isset($_SESSION["user_id"])) {
     header("Location: auth/login.php");
@@ -13,7 +15,7 @@ $user_id = (int) $_SESSION["user_id"];
 $error = "";
 $success = "";
 
-$stmt = $conn->prepare("SELECT name, email FROM users WHERE id = ?");
+$stmt = $conn->prepare("SELECT name, email, is_admin FROM users WHERE id = ?");
 $stmt->execute([$user_id]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$user) {
@@ -36,6 +38,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $user['name'] = $new_name;
             $success = "Profile updated successfully.";
             logAction($conn, $user_id, 'update_profile', "Updated name");
+        }
+    } elseif (isset($_POST['update_settings'])) {
+        $goal = filter_var($_POST['savings_goal'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 100]]);
+        if ($goal === false || $goal === null) {
+            $error = "Savings goal must be a whole number from 0 to 100.";
+        } else {
+            profile_save_settings($conn, $user_id, ['savings_goal' => $goal, 'notifications' => !empty($_POST['notifications'])]);
+            $success = "Preferences saved.";
+            logAction($conn, $user_id, 'update_profile', "Updated preferences");
         }
     } elseif (isset($_POST['update_password'])) {
         $current  = (string) ($_POST['current_password'] ?? '');
@@ -69,97 +80,77 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-   <?php require_once __DIR__ . '/includes/pwa-head.php'; ?>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>My Profile - ExpenseFlow</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="assets/responsive.css">
-    <style>
-        body { background: #f5f7fc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 2rem; }
-        .profile-container { background: white; border-radius: 32px; padding: 2rem; width: 550px; max-width: 100%; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        h2 { margin-bottom: 1.5rem; color: #0f172a; }
-        .form-group { margin-bottom: 1.2rem; }
-        label { display: block; font-weight: 500; color: #334155; margin-bottom: 0.3rem; }
-        input { width: 100%; padding: 0.7rem; border: 1px solid #cbd5e1; border-radius: 40px; outline: none; }
-        input:focus { border-color: #0f766e; }
-        input[readonly] { background-color: #f1f5f9; cursor: not-allowed; }
-        .password-wrapper { position: relative; display: flex; align-items: center; }
-        .password-wrapper input { padding-right: 2.5rem; }
-        .password-wrapper i { position: absolute; right: 15px; cursor: pointer; color: #64748b; }
-        button { background: linear-gradient(135deg, #0f766e, #1d4ed8); color: white; border: none; padding: 0.7rem; border-radius: 40px; width: 100%; font-weight: 600; cursor: pointer; margin-top: 0.5rem; }
-        .error, .success { padding: 0.5rem; border-radius: 20px; margin-bottom: 1rem; text-align: center; }
-        .error { background: #fee2e2; color: #b91c1c; }
-        .success { background: #d1fae5; color: #065f46; }
-        .separator { height: 1px; background: #e2e8f0; margin: 2rem 0; }
-        .back-link { display: inline-block; margin-top: 1rem; color: #0f766e; text-decoration: none; text-align: center; width: 100%; }
-        .requirements { list-style: none; margin-top: 8px; font-size: 0.7rem; color: #64748b; display: flex; flex-wrap: wrap; gap: 12px; }
-        .requirements li.valid { color: #10b981; text-decoration: line-through; }
-    </style>
-</head>
-<body>
-<div class="profile-container">
-    <h2>👤 My Profile</h2>
-    <?php if ($error): ?><div class="error"><?= e($error) ?></div><?php endif; ?>
-    <?php if ($success): ?><div class="success"><?= e($success) ?></div><?php endif; ?>
-    <form method="POST">
+<?php
+$settings = profile_settings($conn, $user_id);
+$csrf = csrf_token();
+if ($success !== '') { $_SESSION['success'] = $success; }
+if ($error !== '') { $_SESSION['error'] = $error; }
+ef_page_start(['title' => 'Profile & Settings', 'sub' => 'Account, goals and data', 'active' => '', 'user' => $user]);
+?>
+<div class="GE">
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div class="g card">
+      <div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">
+        <i class="av" style="width:56px;height:56px;font-size:1.1rem"><?= e(ef_initials($user['name'])) ?></i>
+        <div><b style="font-size:1.05rem"><?= e($user['name']) ?></b><div class="k"><?= e($user['email']) ?></div></div>
+      </div>
+      <form method="POST">
         <?= csrf_field() ?>
-        <div class="form-group">
-            <label>Name</label>
-            <input type="text" name="name" value="<?= e($user['name']) ?>" required>
-        </div>
-        <div class="form-group">
-            <label>Email</label>
-            <input type="email" name="email" value="<?= e($user['email']) ?>" readonly>
-        </div>
-        <button type="submit" name="update_profile">Update Profile</button>
-    </form>
-    <hr class="separator">
-    <form method="POST">
+        <div class="fl"><label for="name">Name</label><input class="inp" id="name" type="text" name="name" maxlength="100" value="<?= e($user['name']) ?>" required></div>
+        <div class="fl"><label for="email">Email</label><input class="inp" id="email" type="email" value="<?= e($user['email']) ?>" readonly></div>
+        <button class="btn" type="submit" name="update_profile" value="1">Update profile</button>
+      </form>
+    </div>
+
+    <div class="g card">
+      <div class="t">Preferences</div>
+      <form method="POST">
         <?= csrf_field() ?>
-        <div class="form-group">
-            <label>Current Password</label>
-            <div class="password-wrapper"><input type="password" name="current_password" id="current_password" required><i class="fas fa-eye-slash" onclick="togglePassword('current_password', this)"></i></div>
-        </div>
-        <div class="form-group">
-            <label>New Password</label>
-            <div class="password-wrapper"><input type="password" name="new_password" id="new_password" required><i class="fas fa-eye-slash" onclick="togglePassword('new_password', this)"></i></div>
-            <ul class="requirements" id="passwordRequirements">
-                <li id="req-length">✗ 8+ characters</li>
-                <li id="req-upper">✗ Uppercase (A-Z)</li>
-                <li id="req-lower">✗ Lowercase (a-z)</li>
-                <li id="req-number">✗ Number (0-9)</li>
-                <li id="req-special">✗ Special char (@#$%^&+=)</li>
-            </ul>
-        </div>
-        <div class="form-group">
-            <label>Confirm New Password</label>
-            <div class="password-wrapper"><input type="password" name="confirm_password" id="confirm_password" required><i class="fas fa-eye-slash" onclick="togglePassword('confirm_password', this)"></i></div>
-        </div>
-        <button type="submit" name="update_password">Change Password</button>
-    </form>
-    <a href="dashboard.php" class="back-link">← Back to Dashboard</a>
+        <div class="fl"><label for="savings_goal">Monthly savings goal (% of income)</label>
+          <input class="inp" id="savings_goal" type="number" name="savings_goal" min="0" max="100" step="1" value="<?= (int) $settings['savings_goal'] ?>" required></div>
+        <label class="row" style="cursor:pointer">
+          <span><?= ef_icon('bell') ?> Notifications<small>Reminders for shared bills and settle-ups (they start with the Shared feature)</small></span>
+          <b><input class="swc" type="checkbox" name="notifications" value="1"<?= $settings['notifications'] ? ' checked' : '' ?>><i class="sw"></i></b>
+        </label>
+        <div class="row"><span><?= ef_icon('globe') ?> Base currency<small>Chosen per month on the dashboard</small></span><b><a class="lnk" href="<?= e($base_url) ?>/dashboard.php#base">Change</a></b></div>
+        <button class="btn" type="submit" name="update_settings" value="1" style="margin-top:10px">Save preferences</button>
+      </form>
+    </div>
+
+    <div class="g card">
+      <div class="t">Change password</div>
+      <form method="POST" autocomplete="off">
+        <?= csrf_field() ?>
+        <div class="fl"><label for="current_password">Current password</label><input class="inp" id="current_password" type="password" name="current_password" autocomplete="current-password" required></div>
+        <div class="fl"><label for="new_password">New password</label><input class="inp" id="new_password" type="password" name="new_password" autocomplete="new-password" required><small class="k">At least 8 characters with letters and numbers.</small></div>
+        <div class="fl"><label for="confirm_password">Confirm new password</label><input class="inp" id="confirm_password" type="password" name="confirm_password" autocomplete="new-password" required></div>
+        <button class="btn" type="submit" name="update_password" value="1">Change password</button>
+      </form>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div class="g card dz">
+      <div class="t"><?= ef_icon('warn', '#ea580c') ?> Danger zone</div>
+      <?php foreach (['income' => ['Reset income', 'Deletes all income entries'], 'expense' => ['Reset expenses', 'Deletes all expense entries'], 'all' => ['Reset all data', 'Deletes income, expenses and repeating items']] as $type => [$text, $hint]): ?>
+      <div class="row"><span><?= e($text) ?><small><?= e($hint) ?></small></span>
+        <b><a class="btn o sm" style="color:#b91c1c" href="<?= e($base_url) ?>/reset-data.php" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"type":"<?= e($type) ?>"}' onclick="return confirm('<?= e($text) ?>? This cannot be undone.')">Reset</a></b></div>
+      <?php endforeach; ?>
+      <div class="row"><span>Delete account<small>Permanent, cannot be undone</small></span>
+        <b><a class="btn o sm" style="color:#b91c1c" href="<?= e($base_url) ?>/auth/delete-account.php">Delete</a></b></div>
+    </div>
+
+    <div class="g card">
+      <div class="t">More</div>
+      <?php if (!empty($user['is_admin'])): ?>
+      <div class="row"><span><?= ef_icon('shield') ?> Admin panel<small>Manage users and data</small></span><b><a class="lnk" href="<?= e($base_url) ?>/admin/index.php">Open</a></b></div>
+      <?php endif; ?>
+      <div class="row" id="install-row" hidden><span><?= ef_icon('phone') ?> Install app<small>Works offline on your phone or PC</small></span><b><a class="lnk" href="#" id="install-btn">Install</a></b></div>
+      <div class="row"><span><?= ef_icon('doc') ?> Full report<small>Export CSV, Excel or PDF</small></span><b><a class="lnk" href="<?= e($base_url) ?>/reports/view-report.php">Open</a></b></div>
+      <a class="btn" style="width:100%;margin-top:12px" href="<?= e($base_url) ?>/auth/logout.php" data-post data-csrf="<?= e($csrf) ?>"><?= ef_icon('out') ?> Logout</a>
+    </div>
+  </div>
 </div>
-<script>
-    function togglePassword(fieldId, icon) {
-        const field = document.getElementById(fieldId);
-        if (field.type === "password") { field.type = "text"; icon.classList.remove("fa-eye-slash"); icon.classList.add("fa-eye"); }
-        else { field.type = "password"; icon.classList.remove("fa-eye"); icon.classList.add("fa-eye-slash"); }
-    }
-    const newPass = document.getElementById('new_password');
-    function checkStrength(){
-        const val = newPass.value;
-        document.getElementById('req-length').innerHTML = val.length>=8 ? '✓ 8+ characters' : '✗ 8+ characters'; document.getElementById('req-length').classList.toggle('valid', val.length>=8);
-        document.getElementById('req-upper').innerHTML = /[A-Z]/.test(val) ? '✓ Uppercase (A-Z)' : '✗ Uppercase (A-Z)'; document.getElementById('req-upper').classList.toggle('valid', /[A-Z]/.test(val));
-        document.getElementById('req-lower').innerHTML = /[a-z]/.test(val) ? '✓ Lowercase (a-z)' : '✗ Lowercase (a-z)'; document.getElementById('req-lower').classList.toggle('valid', /[a-z]/.test(val));
-        document.getElementById('req-number').innerHTML = /[0-9]/.test(val) ? '✓ Number (0-9)' : '✗ Number (0-9)'; document.getElementById('req-number').classList.toggle('valid', /[0-9]/.test(val));
-        document.getElementById('req-special').innerHTML = /[\W_]/.test(val) ? '✓ Special char' : '✗ Special char'; document.getElementById('req-special').classList.toggle('valid', /[\W_]/.test(val));
-    }
-    newPass.addEventListener('input', checkStrength);
-</script>
-</body>
-</html>
+<?php
+$js = '<script>(function(){var p=null,r=document.getElementById("install-row"),b=document.getElementById("install-btn");window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();p=e;r.hidden=false});b.addEventListener("click",function(e){e.preventDefault();if(p){p.prompt();p=null;r.hidden=true}});window.addEventListener("appinstalled",function(){r.hidden=true})})()</script>';
+ef_page_end(['active' => '', 'scripts' => $js]);

@@ -48,10 +48,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         } else {
             /* DELETE ALL USER DATA (all or nothing) */
             require_once __DIR__ . '/../modules/personal/lib.php';
-            personal_ensure_schema($conn); // makes sure recurring_items exists before it is cleaned
+            personal_ensure_schema($conn);
+            require_once __DIR__ . '/../modules/profile/lib.php';
+            profile_ensure_schema($conn); // makes sure the extra tables exist before they are cleaned
             $conn->beginTransaction();
             try {
-                foreach (['income', 'expenses', 'user_monthly_currency', 'user_logs', 'recurring_items'] as $table) {
+                foreach (['income', 'expenses', 'user_monthly_currency', 'user_logs', 'recurring_items', 'user_settings'] as $table) {
                     $conn->prepare("DELETE FROM `$table` WHERE user_id=?")->execute([$user_id]);
                 }
                 $conn->prepare("DELETE FROM users WHERE id=?")->execute([$user_id]);

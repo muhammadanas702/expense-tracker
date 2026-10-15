@@ -29,6 +29,7 @@ $is_admin = (bool) $user['is_admin'];
 
 // Repeating (monthly) items that became due are added now.
 require_once __DIR__ . '/modules/personal/lib.php';
+require_once __DIR__ . '/modules/profile/lib.php';
 personal_run_recurring($conn, $user_id);
 
 /* ---------- FILTER LOGIC (everything from the URL is validated) ---------- */
@@ -139,6 +140,9 @@ $stmt = $conn->prepare("SELECT id, title, amount, currency, category, transactio
 $stmt->execute([$user_id]);
 $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+$settings = profile_settings($conn, $user_id);
+$needs_setup = profile_needs_setup($conn, $user_id);
+$goal = (int) $settings['savings_goal'];
 $csrf = csrf_token();
 $json_flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
 
@@ -166,7 +170,7 @@ if (!$use_date_range && !empty($_GET) && $month === (int) date('n') && $year ===
 
 $catIcons = ['Food' => 'food', 'Transport' => 'car', 'Shopping' => 'bag', 'Entertainment' => 'tag', 'Bills' => 'zap', 'Healthcare' => 'heart', 'Education' => 'book'];
 $fmt = static fn(float $n): string => number_format($n, 2);
-$tip = $savings_percent < 15 ? 'Try cutting one regular expense this week.' : 'Great saving habit, keep it up!';
+$tip = $savings_percent < $goal ? 'Below your ' . $goal . '% goal: try cutting one regular expense.' : 'You reached your savings goal, keep it up!';
 
 ef_page_start([
     'title' => 'Welcome back, ' . (string) ($_SESSION['user_name'] ?? $user['name']),
@@ -176,6 +180,9 @@ ef_page_start([
     'head' => '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>',
 ]);
 ?>
+<?php if ($needs_setup): ?>
+<div class="g card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><span><b>Welcome! Finish your quick setup</b><div class="k">Pick your main currency and savings goal (20 seconds).</div></span><a class="btn" style="margin-left:auto" href="<?= e($base_url) ?>/modules/profile/setup.php">Start</a></div>
+<?php endif; ?>
 <div class="chips" style="margin-bottom:2px">
 <?php foreach ($presets as $label => $q): ?>
     <a class="chip<?= $activePreset === $label ? ' on' : '' ?>" href="<?= e($base_url . '/dashboard.php' . ($q ? '?' . http_build_query($q) : '')) ?>"><?= e($label) ?></a>
@@ -192,7 +199,7 @@ ef_page_start([
 
 <div class="pills">
     <div class="pl g"><?= ef_icon('cal') ?>Avg daily spend <b><?= $fmt((float) $avgDailySpend) ?> <?= e($display_currency) ?></b></div>
-    <div class="pl g"><?= ef_icon('tgt') ?>Savings rate <b><?= round($savings_percent, 1) ?>%</b></div>
+    <div class="pl g"><?= ef_icon('tgt') ?>Savings rate <b><?= round($savings_percent, 1) ?>%</b> of <?= $goal ?>% goal</div>
     <div class="pl g"><?= ef_icon('bulb', '#d97706') ?><?= e($tip) ?></div>
 </div>
 
@@ -258,7 +265,7 @@ ef_page_start([
             <?php endforeach; if (!$repeating): ?><p class="k">None. Turn on “Repeat every month” when adding an entry.</p><?php endif; ?>
         </div>
         <?php if (!$use_date_range): ?>
-        <div class="g card">
+        <div class="g card" id="base">
             <div class="t">Base currency for <?= e($period_start->format('F Y')) ?></div>
             <form method="POST" action="<?= e($base_url) ?>/change-base-currency.php" style="display:flex;gap:10px;flex-wrap:wrap">
                 <?= csrf_field() ?>
@@ -268,14 +275,7 @@ ef_page_start([
             </form>
         </div>
         <?php endif; ?>
-        <details class="g card">
-            <summary>Danger zone</summary>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-                <?php foreach (['income' => 'Reset income', 'expense' => 'Reset expenses', 'all' => 'Reset all'] as $type => $text): ?>
-                <a class="btn o sm" style="color:#b91c1c" href="<?= e($base_url) ?>/reset-data.php" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"type":"<?= e($type) ?>"}' onclick="return confirm('<?= e($text) ?>? This cannot be undone.')"><?= e($text) ?></a>
-                <?php endforeach; ?>
-            </div>
-        </details>
+        <div class="g card"><div class="row" style="border:0;padding:0"><span>Reset data or delete account<small>Now in Profile &amp; Settings</small></span><b><a class="lnk" href="<?= e($base_url) ?>/profile.php">Open</a></b></div></div>
     </div>
 </div>
 <?php
