@@ -57,7 +57,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 logAction($conn, $user["id"], 'login', "User logged in");
 
-                header("Location: " . $base_url . "/dashboard.php");
+                // Someone who opened a group invite link before signing in goes back to it.
+                $pending = $_SESSION['pending_join'] ?? '';
+                unset($_SESSION['pending_join']);
+                if (is_string($pending) && preg_match('/^[0-9a-f]{32}$/', $pending)) {
+                    header("Location: " . $base_url . "/shared/join.php?code=" . $pending);
+                } else {
+                    header("Location: " . $base_url . "/dashboard.php");
+                }
                 exit();
 
             } else {

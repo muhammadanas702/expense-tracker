@@ -27,11 +27,14 @@ require_once __DIR__ . '/../modules/personal/lib.php';
 personal_ensure_schema($conn);
 require_once __DIR__ . '/../modules/profile/lib.php';
 profile_ensure_schema($conn); // makes sure the extra tables exist before they are cleaned
+require_once __DIR__ . '/../modules/shared/lib.php';
+shared_ensure_schema($conn);
 $conn->beginTransaction();
 try {
     foreach (['income', 'expenses', 'user_monthly_currency', 'user_logs', 'recurring_items', 'user_settings'] as $table) {
         $conn->prepare("DELETE FROM `$table` WHERE user_id = ?")->execute([$id]);
     }
+    shared_on_user_deleted($conn, (int) $id);
     $conn->prepare("DELETE FROM users WHERE id = ?")->execute([$id]);
     $conn->commit();
 } catch (Throwable $e) {
