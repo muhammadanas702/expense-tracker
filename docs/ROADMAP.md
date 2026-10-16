@@ -20,7 +20,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 3b | Personal: new dashboard (period chips, charts, insights) + edit pages (payment method, note) + list/stop repeating items | done (no new SQL) |
 | 3c | Personal: Full Report in new UI + CSV/Excel/PDF export | done (no new SQL) |
 | 4 | Profile/Settings: savings goal, notifications, danger zone, delete account, first-run setup card | done (SQL: database/part-4.sql) |
-| 5 | Shared 1: groups, members, invites | todo (SQL) |
+| 5 | Shared 1: groups, members, invite link (join, leave, remove, rename, delete) | done (SQL: database/part-5.sql) |
 | 6 | Shared 2: shared expense, 4 split types, add my share to Personal | todo (SQL) |
 | 7 | Shared 3: balances, simplified debts, settle up | todo (SQL) |
 | 8 | Shared 4: friends, activity feed, notifications, receipts, comments | todo (SQL) |

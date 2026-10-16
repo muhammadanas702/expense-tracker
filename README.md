@@ -275,3 +275,9 @@ Each feature is its own module under `modules/` so changing one does not affect 
 - Profile & Settings page: name, password, monthly savings goal, notifications switch, reset data and delete account in one Danger zone.
 - The savings goal is used on the dashboard tip and savings rate.
 - New users see a short first-run setup card (main currency + savings goal) that can be skipped.
+
+### Shared module (new, in progress)
+
+- Create groups (trip, rent, family...), invite friends with a link or WhatsApp, join after signing in.
+- Owner can rename, remove members, make a new invite link or delete the group; members can leave.
+- Split expenses, balances and settle up arrive in the next parts.
