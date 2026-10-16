@@ -10,13 +10,8 @@
  */
 require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/icons.php';
+require_once __DIR__ . '/assets.php';
 require_once __DIR__ . '/modules.php';
-
-function ef_url(string $path): string
-{
-    global $base_url;
-    return rtrim((string) ($base_url ?? ''), '/') . '/' . ltrim($path, '/');
-}
 
 function ef_initials(string $name): string
 {
@@ -51,7 +46,7 @@ function ef_page_start(array $o): void
 <meta name="theme-color" content="#0B2545">
 <link rel="manifest" href="<?= e(ef_url('manifest.json')) ?>">
 <link rel="icon" href="<?= e(ef_url('favicon.png')) ?>">
-<link rel="stylesheet" href="<?= e(ef_url('assets/app.css')) ?>">
+<link rel="stylesheet" href="<?= e(ef_asset('assets/app.css')) ?>">
 <?= $o['head'] ?? '' ?>
 </head>
 <body>
@@ -107,7 +102,7 @@ function ef_page_end(array $o = []): void
 <?php endforeach; ?>
 </nav>
 </div>
-<script src="<?= e(ef_url('assets/client-time.js')) ?>" defer></script>
+<script src="<?= e(ef_asset('assets/client-time.js')) ?>" defer></script>
 <?= $o['scripts'] ?? '' ?>
 </body>
 </html>

@@ -12,13 +12,7 @@ require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/icons.php';
 require_once __DIR__ . '/../config/app.php';
 
-if (!function_exists('ef_url')) {
-    function ef_url(string $path): string
-    {
-        global $base_url;
-        return rtrim((string) ($base_url ?? ''), '/') . '/' . ltrim($path, '/');
-    }
-}
+require_once __DIR__ . '/assets.php';
 
 function ef_auth_brand(): string
 {
@@ -66,7 +60,7 @@ function ef_auth_start(array $o = []): void
 <title><?= e($o['title'] ?? 'ExpenseFlow') ?> · ExpenseFlow</title>
 <meta name="robots" content="noindex">
 <?php require __DIR__ . '/pwa-head.php'; ?>
-<link rel="stylesheet" href="<?= e(ef_url('assets/app.css')) ?>">
+<link rel="stylesheet" href="<?= e(ef_asset('assets/app.css')) ?>">
 </head>
 <body>
 <div class="fr" data-mode="p">
@@ -96,7 +90,7 @@ function ef_auth_end(array $o = []): void
   </div><?= $split ? '</div>' : '' ?>
 </div>
 </div>
-<script src="<?= e(ef_url('assets/auth-ui.js')) ?>" defer></script>
+<script src="<?= e(ef_asset('assets/auth-ui.js')) ?>" defer></script>
 </body>
 </html>
 <?php
