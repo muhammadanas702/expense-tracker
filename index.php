@@ -49,7 +49,7 @@ $logo = '<span class="logo"><img src="' . e($base) . '/assets/icons/icon-192.png
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="<?= e($title) ?>">
 <meta name="twitter:description" content="<?= e($desc) ?>">
-<link rel="stylesheet" href="<?= e($base) ?>/assets/app.css">
+<link rel="stylesheet" href="<?= e($base) ?>/assets/app.css?v=<?= (int) @filemtime(__DIR__ . '/assets/app.css') ?>">
 </head>
 <body>
 <div class="fr" data-mode="p">

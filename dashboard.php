@@ -187,15 +187,14 @@ ef_page_start([
 <?php foreach ($presets as $label => $q): ?>
     <a class="chip<?= $activePreset === $label ? ' on' : '' ?>" href="<?= e($base_url . '/dashboard.php' . ($q ? '?' . http_build_query($q) : '')) ?>"><?= e($label) ?></a>
 <?php endforeach; ?>
-    <details style="padding:0;background:none;border:0;display:inline-block">
-        <summary class="chip<?= $activePreset === 'Custom' ? ' on' : '' ?>" style="list-style:none;cursor:pointer"><?= ef_icon('cal') ?>Custom</summary>
-        <form method="GET" class="g" style="position:absolute;z-index:15;padding:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:6px">
-            <div class="fl" style="margin:0"><label>From</label><input class="inp" type="date" name="from_date" value="<?= e($from_date) ?>" required></div>
-            <div class="fl" style="margin:0"><label>To</label><input class="inp" type="date" name="to_date" value="<?= e($to_date) ?>" required></div>
-            <button class="btn" type="submit">Apply</button>
-        </form>
-    </details>
+    <button type="button" class="chip<?= $activePreset === 'Custom' ? ' on' : '' ?>" id="custom-toggle" aria-expanded="<?= $activePreset === 'Custom' ? 'true' : 'false' ?>" aria-controls="custom-range"><?= ef_icon('cal') ?>Custom</button>
 </div>
+<?php /* The date fields sit outside .chips on purpose: .chips hides every input inside it (for the radio chips). */ ?>
+<form method="GET" id="custom-range" class="g card" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end"<?= $activePreset === 'Custom' ? '' : ' hidden' ?>>
+    <div class="fl" style="margin:0"><label for="cr-from">From</label><input class="inp" id="cr-from" type="date" name="from_date" value="<?= e($from_date) ?>" required></div>
+    <div class="fl" style="margin:0"><label for="cr-to">To</label><input class="inp" id="cr-to" type="date" name="to_date" value="<?= e($to_date) ?>" required></div>
+    <button class="btn" type="submit">Apply</button>
+</form>
 
 <div class="pills">
     <div class="pl g"><?= ef_icon('cal') ?>Avg daily spend <b><?= $fmt((float) $avgDailySpend) ?> <?= e($display_currency) ?></b></div>
@@ -280,6 +279,7 @@ ef_page_start([
 </div>
 <?php
 $js = '<script>
+(function(){var t=document.getElementById("custom-toggle"),f=document.getElementById("custom-range");if(t&&f)t.addEventListener("click",function(){f.hidden=!f.hidden;t.setAttribute("aria-expanded",f.hidden?"false":"true");if(!f.hidden)document.getElementById("cr-from").focus()})})();
 (function(){
   if (typeof Chart === "undefined") return;
   var cats = ' . json_encode($categories, $json_flags) . ', vals = ' . json_encode($categoryTotals, $json_flags) . ';

@@ -35,3 +35,10 @@ Never push to `main` directly (a push to `main` auto-deploys).
 
 ## Handoff notes for the next chat
 Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the design file for that part only.
+
+## Review notes (after Part 4)
+- Fixed: sidebar and top bar now stay in place on PC while the page scrolls (`.fr` used `overflow:hidden`, which breaks `position:sticky`).
+- Fixed: dashboard "Custom" range (date inputs were inside `.chips`, which hides inputs for the radio chips).
+- Fixed: CSS/JS files get `?v=<file time>` so browsers load the new copy after each deploy.
+- Fixed: dashboard info pills wrap on phones (the tip was cut off).
+- Still old style (restyle in Part 9): admin pages and the delete-account page.
