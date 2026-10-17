@@ -179,3 +179,19 @@ CREATE TABLE IF NOT EXISTS `shared_splits` (
   UNIQUE KEY `uq_shared_splits` (`expense_id`, `user_id`),
   KEY `idx_shared_splits_user` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Part 7: settle up
+CREATE TABLE IF NOT EXISTS `shared_settlements` (
+  `id`           INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `group_id`     INT UNSIGNED NOT NULL,
+  `from_user`    INT UNSIGNED NOT NULL,
+  `to_user`      INT UNSIGNED NOT NULL,
+  `amount_minor` BIGINT UNSIGNED NOT NULL,
+  `currency`     VARCHAR(3)   NOT NULL DEFAULT 'PKR',
+  `settled_on`   DATE         NOT NULL,
+  `note`         VARCHAR(255) NULL DEFAULT NULL,
+  `created_by`   INT UNSIGNED NOT NULL,
+  `created_at`   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_shared_settlements_group` (`group_id`, `settled_on`, `id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

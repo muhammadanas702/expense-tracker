@@ -14,6 +14,10 @@ $wa = 'https://wa.me/?text=' . rawurlencode('Join my ExpenseFlow group "' . $gro
 $action = ef_url('shared/action.php');
 $expenses = shared_expenses_of($conn, $gid, $user_id);
 $totals = shared_group_totals($conn, $gid);
+$nets = shared_group_nets($conn, [$gid])[$gid] ?? [];
+$settlements = shared_settlements_of($conn, $gid);
+$nameMap = shared_names($conn, array_merge([], ...array_values(array_map('array_keys', $nets))));
+$nm = fn(int $id) => $nameMap[$id] ?? 'Former member';
 $splitNames = [];
 if ($expenses) {
     $ids = array_map(fn($x) => (int) $x['id'], $expenses);
@@ -32,6 +36,42 @@ ef_page_start(['title' => $group['name'], 'sub' => count($members) . ' member' .
       <div class="stk" style="margin-top:6px"><?php foreach (array_slice($members, 0, 6) as $i => $m) { echo shared_avatar($m['name'], $i); } ?></div></div>
     <div style="text-align:right"><div class="k">Total spent</div>
       <?php if ($totals): foreach (array_slice($totals, 0, 3) as $t): ?><div class="v" style="margin:0;font-size:1.15rem"><?= shared_money((int) $t['total'], $t['currency']) ?></div><?php endforeach; else: ?><div class="v" style="margin:0">0.00</div><?php endif; ?></div>
+  </div>
+</div>
+
+<?php
+$myNet = []; $debts = [];
+foreach ($nets as $cur => $byUser) {
+    $myNet[$cur] = $byUser[$user_id] ?? 0;
+    foreach (shared_simplify($byUser) as $p) { $p['currency'] = $cur; $debts[] = $p; }
+}
+?>
+<div class="G2" style="margin-bottom:14px">
+  <div class="g card">
+    <div class="t">Who pays whom</div>
+    <?php if (!$debts): ?><p class="k" style="padding:10px 0"><?= $expenses || $settlements ? 'Everyone is settled up.' : 'Add an expense to see who owes what.' ?></p><?php endif; ?>
+    <?php foreach ($debts as $p):
+      $mineFrom = $p['from'] === $user_id; $mineTo = $p['to'] === $user_id;
+      $url = ef_url('shared/settle.php?' . http_build_query(['group' => $gid, 'from' => $p['from'], 'to' => $p['to'], 'amount' => shared_from_minor($p['amount']), 'currency' => $p['currency']]));
+    ?>
+    <div class="row">
+      <span><?= $mineFrom ? '<b>You</b> pay' : e($nm($p['from'])) . ' pays' ?> <?= $mineTo ? '<b>you</b>' : e($nm($p['to'])) ?><small><?= $mineFrom ? 'you owe' : ($mineTo ? 'you get' : 'between others') ?></small></span>
+      <b class="<?= $mineFrom ? 'ex' : ($mineTo ? 'in' : '') ?>"><?= shared_money($p['amount'], $p['currency']) ?></b>
+      <?php if ($mineFrom || $mineTo || $isOwner): ?><a class="btn sm o" href="<?= e($url) ?>">Settle</a><?php endif; ?>
+    </div>
+    <?php endforeach; ?>
+    <a class="btn sm" style="margin-top:10px" href="<?= e(ef_url('shared/settle.php?group=' . $gid)) ?>">Record a payment</a>
+  </div>
+  <div class="g card">
+    <div class="t">Balances</div>
+    <?php if (!$nets): ?><p class="k" style="padding:10px 0">No balances yet.</p><?php endif; ?>
+    <?php foreach ($nets as $cur => $byUser): ksort($byUser); ?>
+      <div class="k" style="margin-top:6px"><?= e($cur) ?></div>
+      <?php foreach ($byUser as $uid => $n): if ($n === 0) { continue; } ?>
+      <div class="row"><span><?= $uid === $user_id ? 'You' : e($nm($uid)) ?></span>
+        <b class="<?= $n > 0 ? 'in' : 'ex' ?>"><?= $n > 0 ? 'gets ' : 'owes ' ?><?= shared_money(abs($n), $cur) ?></b></div>
+      <?php endforeach; ?>
+    <?php endforeach; ?>
   </div>
 </div>
 
@@ -64,6 +104,19 @@ ef_page_start(['title' => $group['name'], 'sub' => count($members) . ' member' .
   </div>
   <?php endforeach; ?>
 </div>
+
+<?php if ($settlements): ?>
+<div class="g card" style="margin-bottom:14px">
+  <div class="t">Payments <span class="k"><?= count($settlements) ?></span></div>
+  <?php foreach ($settlements as $st): $canDel = (int) $st['created_by'] === $user_id || $isOwner; ?>
+  <div class="row">
+    <span><?= e($st['from_name'] ?? 'Former member') ?> paid <?= e($st['to_name'] ?? 'Former member') ?><small><?= e(date('d M Y', strtotime($st['settled_on']))) ?><?= $st['note'] ? ' · ' . e($st['note']) : '' ?></small></span>
+    <b><?= shared_money((int) $st['amount_minor'], $st['currency']) ?></b>
+    <?php if ($canDel): ?><span class="acts"><a class="del" href="<?= e($action) ?>" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"do":"delete_settlement","group_id":<?= $gid ?>,"settlement_id":<?= (int) $st['id'] ?>}' onclick="return confirm('Delete this payment record? Balances will change.')" aria-label="Delete payment"><?= ef_icon('tr') ?></a></span><?php endif; ?>
+  </div>
+  <?php endforeach; ?>
+</div>
+<?php endif; ?>
 
 <div class="G2">
   <div class="g card">

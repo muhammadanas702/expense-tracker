@@ -283,4 +283,6 @@ Each feature is its own module under `modules/` so changing one does not affect 
 - **Shared expenses:** add a bill to a group, choose who paid and split it **equally, by exact amounts, by percent or by shares**. Splits always add up to the total to the last paisa.
 - Optional **Add my share to Personal expenses** switch saves only your own share as a Personal expense.
 - The group page lists expenses with "you owe / you lent" and who owes what. The person who added an expense (or the group owner) can edit or delete it.
-- Balances, simplified debts and settle up arrive in the next parts.
+- **Balances and settle up:** the group page shows each person's balance and **Who pays whom** (debts simplified to the fewest payments). Record a payment with **Settle**; it lowers the balance. Balances are kept per currency.
+- The Shared Overview shows your net balance, what you are owed and what you owe across all groups, plus a "To settle" list.
+- A member cannot leave (or be removed) while they still owe or are owed money.

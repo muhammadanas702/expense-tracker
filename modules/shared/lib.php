@@ -6,6 +6,7 @@
  * shared_delete_group() / shared_on_user_deleted() for cleanup.
  */
 require_once __DIR__ . '/split.php';
+require_once __DIR__ . '/balance.php';
 require_once __DIR__ . '/../personal/lib.php';
 const SHARED_MAX_GROUPS_PER_USER = 30;
 const SHARED_MAX_MEMBERS = 50;
@@ -82,6 +83,22 @@ function shared_ensure_schema(PDO $conn): void
               PRIMARY KEY (`id`),
               UNIQUE KEY `uq_shared_splits` (`expense_id`, `user_id`),
               KEY `idx_shared_splits_user` (`user_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+        );
+        $conn->exec(
+            "CREATE TABLE IF NOT EXISTS `shared_settlements` (
+              `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+              `group_id` INT UNSIGNED NOT NULL,
+              `from_user` INT UNSIGNED NOT NULL,
+              `to_user` INT UNSIGNED NOT NULL,
+              `amount_minor` BIGINT UNSIGNED NOT NULL,
+              `currency` VARCHAR(3) NOT NULL DEFAULT 'PKR',
+              `settled_on` DATE NOT NULL,
+              `note` VARCHAR(255) NULL DEFAULT NULL,
+              `created_by` INT UNSIGNED NOT NULL,
+              `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY (`id`),
+              KEY `idx_shared_settlements_group` (`group_id`, `settled_on`, `id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
         );
     } catch (Throwable $e) {
@@ -191,6 +208,7 @@ function shared_delete_group(PDO $conn, int $groupId): void
 {
     $conn->prepare('DELETE FROM shared_splits WHERE expense_id IN (SELECT id FROM shared_expenses WHERE group_id = ?)')->execute([$groupId]);
     $conn->prepare('DELETE FROM shared_expenses WHERE group_id = ?')->execute([$groupId]);
+    $conn->prepare('DELETE FROM shared_settlements WHERE group_id = ?')->execute([$groupId]);
     $conn->prepare('DELETE FROM shared_members WHERE group_id = ?')->execute([$groupId]);
     $conn->prepare('DELETE FROM shared_groups WHERE id = ?')->execute([$groupId]);
 }
@@ -367,4 +385,80 @@ function shared_expense_delete(PDO $conn, array $expense): void
 function shared_can_edit(array $expense, array $group, int $userId): bool
 {
     return (int) $expense['created_by'] === $userId || $group['my_role'] === 'owner';
+}
+
+
+// ---------------------------------------------------------------- balances and settle up (Part 7)
+
+/**
+ * Net balance of every person, per group and currency:
+ *   paid - own shares + payments sent - payments received.  Positive = is owed, negative = owes.
+ * @return array<int,array<string,array<int,int>>>  [group_id][currency][user_id] => minor units
+ */
+function shared_group_nets(PDO $conn, array $groupIds): array
+{
+    $groupIds = array_values(array_unique(array_filter(array_map('intval', $groupIds))));
+    if (!$groupIds) {
+        return [];
+    }
+    $in = implode(',', $groupIds); // integers only
+    $net = [];
+    $add = function (int $g, string $cur, int $uid, int $v) use (&$net) {
+        $net[$g][$cur][$uid] = ($net[$g][$cur][$uid] ?? 0) + $v;
+    };
+    foreach ($conn->query("SELECT group_id, currency, paid_by, SUM(amount_minor) t FROM shared_expenses WHERE group_id IN ($in) GROUP BY group_id, currency, paid_by") as $r) {
+        $add((int) $r['group_id'], $r['currency'], (int) $r['paid_by'], (int) $r['t']);
+    }
+    foreach ($conn->query("SELECT e.group_id, e.currency, s.user_id, SUM(s.share_minor) t FROM shared_splits s JOIN shared_expenses e ON e.id = s.expense_id WHERE e.group_id IN ($in) GROUP BY e.group_id, e.currency, s.user_id") as $r) {
+        $add((int) $r['group_id'], $r['currency'], (int) $r['user_id'], -(int) $r['t']);
+    }
+    foreach ($conn->query("SELECT group_id, currency, from_user, to_user, SUM(amount_minor) t FROM shared_settlements WHERE group_id IN ($in) GROUP BY group_id, currency, from_user, to_user") as $r) {
+        $add((int) $r['group_id'], $r['currency'], (int) $r['from_user'], (int) $r['t']);
+        $add((int) $r['group_id'], $r['currency'], (int) $r['to_user'], -(int) $r['t']);
+    }
+    return $net;
+}
+
+/** True when the user still owes or is owed something in this group. */
+function shared_has_open_balance(PDO $conn, int $groupId, int $userId): bool
+{
+    foreach (shared_group_nets($conn, [$groupId])[$groupId] ?? [] as $users) {
+        if (($users[$userId] ?? 0) !== 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/** Latest payments of a group. */
+function shared_settlements_of(PDO $conn, int $groupId, int $limit = 30): array
+{
+    $q = $conn->prepare(
+        'SELECT s.*, f.name AS from_name, t.name AS to_name FROM shared_settlements s
+         LEFT JOIN users f ON f.id = s.from_user LEFT JOIN users t ON t.id = s.to_user
+         WHERE s.group_id = ? ORDER BY s.settled_on DESC, s.id DESC LIMIT ' . (int) $limit
+    );
+    $q->execute([$groupId]);
+    return $q->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function shared_settlement_get(PDO $conn, int $id, int $groupId): ?array
+{
+    $q = $conn->prepare('SELECT * FROM shared_settlements WHERE id = ? AND group_id = ?');
+    $q->execute([$id, $groupId]);
+    $r = $q->fetch(PDO::FETCH_ASSOC);
+    return $r ?: null;
+}
+
+/** Names for a set of user ids; deleted accounts become "Former member". */
+function shared_names(PDO $conn, array $ids): array
+{
+    $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+    $out = [];
+    if ($ids) {
+        foreach ($conn->query('SELECT id, name FROM users WHERE id IN (' . implode(',', $ids) . ')') as $r) {
+            $out[(int) $r['id']] = $r['name'];
+        }
+    }
+    return $out;
 }

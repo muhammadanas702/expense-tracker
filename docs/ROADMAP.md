@@ -22,7 +22,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 4 | Profile/Settings: savings goal, notifications, danger zone, delete account, first-run setup card | done (SQL: database/part-4.sql) |
 | 5 | Shared 1: groups, members, invite link (join, leave, remove, rename, delete) | done (SQL: database/part-5.sql) |
 | 6 | Shared 2: shared expense, 4 split types, add my share to Personal | done (SQL: database/part-6.sql) |
-| 7 | Shared 3: balances, simplified debts, settle up | todo (SQL) |
+| 7 | Shared 3: balances, simplified debts, settle up | done (SQL: database/part-7.sql) |
 | 8 | Shared 4: friends, activity feed, notifications, receipts, comments | todo (SQL) |
 | 9 | Full review, security pass, tests, final README | todo |
 | 10 | Native apps: APK (Android), EXE (Windows), iOS (see below), GitHub Releases workflow | todo |
@@ -45,6 +45,6 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 
 ## Notes for Part 7
 
-- A member who left or was removed, or an account that was deleted, can still appear in old expenses (shown as "Former member"). Balances must include them or ask for settlement before leaving.
+- Done in Part 7: leaving or removal is blocked while a balance is open. A deleted account still shows as "Former member" in old expenses.
 - Expenses are stored per currency (minor units). Balances are calculated per currency.
-- Run `php tests/shared_split_test.php` to check the split maths.
+- Run `php tests/shared_split_test.php` and `php tests/shared_balance_test.php` to check the split and balance maths.
