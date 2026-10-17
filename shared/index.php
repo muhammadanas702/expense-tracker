@@ -25,7 +25,7 @@ ef_page_start(['title' => 'Shared Overview', 'sub' => 'Who owes whom, across all
   <div class="g card"><div class="k">You owe</div><div class="v ex"><?= $fmt($owe) ?></div></div>
 </div>
 
-<p class="k" style="margin:-4px 4px 14px">Balances are netted per group: if two people owe each other, the amounts cancel out. Open a group to see every expense and who paid what.</p>
+<p class="k" style="margin:-4px 4px 14px">Debts are kept person by person: what Munna owes you never cancels what you owe Ali. Only two people who owe each other cancel out.</p>
 <?php if ($todo): ?>
 <div class="g card" style="margin-bottom:14px">
   <div class="t">To settle</div>

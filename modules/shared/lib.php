@@ -225,9 +225,9 @@ function shared_on_user_deleted(PDO $conn, int $userId): void
     $mine = $conn->prepare('SELECT group_id FROM shared_members WHERE user_id = ?');
     $mine->execute([$userId]);
     $gids = array_map('intval', $mine->fetchAll(PDO::FETCH_COLUMN));
-    foreach (shared_group_nets($conn, $gids) as $g => $byCur) {
-        foreach ($byCur as $cur => $byUser) {
-            foreach (shared_simplify($byUser) as $p) {
+    foreach (shared_group_pairs($conn, $gids) as $g => $byCur) {
+        foreach ($byCur as $cur => $list) {
+            foreach ($list as $p) {
                 if ($p['from'] === $userId || $p['to'] === $userId) {
                     $other = $p['from'] === $userId ? $p['to'] : $p['from'];
                     $conn->prepare('INSERT INTO shared_settlements (group_id,from_user,to_user,amount_minor,currency,settled_on,note,created_by) VALUES (?,?,?,?,?,?,?,?)')
@@ -455,16 +455,48 @@ function shared_group_nets(PDO $conn, array $groupIds): array
 }
 
 /**
- * What the user has to pay / will get, from the simplified payments of every group
- * (the same list the group pages show).
+ * Who owes whom, person to person, per group and currency. Each expense makes every
+ * participant owe the payer their share; payments reduce that debt. Two people who owe each
+ * other only cancel each other out; debts with different people never mix.
+ * @return array<int,array<string,array<int,array{from:int,to:int,amount:int}>>>  [group_id][currency][] => payment
+ */
+function shared_group_pairs(PDO $conn, array $groupIds): array
+{
+    $groupIds = array_values(array_unique(array_filter(array_map('intval', $groupIds))));
+    if (!$groupIds) {
+        return [];
+    }
+    $in = implode(',', $groupIds); // integers only
+    $debt = []; // [g][cur][from][to]
+    foreach ($conn->query("SELECT e.group_id, e.currency, s.user_id AS f, e.paid_by AS t, SUM(s.share_minor) AS v FROM shared_splits s JOIN shared_expenses e ON e.id = s.expense_id WHERE e.group_id IN ($in) AND s.user_id <> e.paid_by GROUP BY e.group_id, e.currency, s.user_id, e.paid_by")->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        $g = (int) $r['group_id'];
+        $debt[$g][$r['currency']][(int) $r['f']][(int) $r['t']] = ($debt[$g][$r['currency']][(int) $r['f']][(int) $r['t']] ?? 0) + (int) $r['v'];
+    }
+    foreach ($conn->query("SELECT group_id, currency, from_user AS f, to_user AS t, SUM(amount_minor) AS v FROM shared_settlements WHERE group_id IN ($in) GROUP BY group_id, currency, from_user, to_user")->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        $g = (int) $r['group_id'];
+        $debt[$g][$r['currency']][(int) $r['f']][(int) $r['t']] = ($debt[$g][$r['currency']][(int) $r['f']][(int) $r['t']] ?? 0) - (int) $r['v'];
+    }
+    $out = [];
+    foreach ($debt as $g => $byCur) {
+        foreach ($byCur as $cur => $d) {
+            if ($list = shared_pair_debts($d)) {
+                $out[$g][$cur] = $list;
+            }
+        }
+    }
+    return $out;
+}
+
+/**
+ * What the user owes and is owed, person by person, across the given groups.
  * @return array{owed:array<string,int>,owe:array<string,int>,todo:array<int,array>}
  */
 function shared_user_summary(PDO $conn, array $groupIds, int $userId): array
 {
     $out = ['owed' => [], 'owe' => [], 'todo' => []];
-    foreach (shared_group_nets($conn, $groupIds) as $g => $byCur) {
-        foreach ($byCur as $cur => $byUser) {
-            foreach (shared_simplify($byUser) as $p) {
+    foreach (shared_group_pairs($conn, $groupIds) as $g => $byCur) {
+        foreach ($byCur as $cur => $list) {
+            foreach ($list as $p) {
                 if ($p['to'] === $userId) {
                     $out['owed'][$cur] = ($out['owed'][$cur] ?? 0) + $p['amount'];
                 } elseif ($p['from'] === $userId) {
@@ -484,9 +516,11 @@ function shared_user_summary(PDO $conn, array $groupIds, int $userId): array
 /** True when the user still owes or is owed something in this group. */
 function shared_has_open_balance(PDO $conn, int $groupId, int $userId): bool
 {
-    foreach (shared_group_nets($conn, [$groupId])[$groupId] ?? [] as $users) {
-        if (($users[$userId] ?? 0) !== 0) {
-            return true;
+    foreach (shared_group_pairs($conn, [$groupId])[$groupId] ?? [] as $list) {
+        foreach ($list as $p) {
+            if ($p['from'] === $userId || $p['to'] === $userId) {
+                return true;
+            }
         }
     }
     return false;

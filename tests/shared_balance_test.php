@@ -13,4 +13,10 @@ for($i=0;$i<3000;$i++){
   ok(array_sum(array_map('abs',$chk))===0,'settles all');
   ok(count($r)<=$n-1,'at most n-1 payments');
 }
+// person-to-person debts: different people never cancel each other
+$r=shared_pair_debts([1=>[2=>2000],3=>[1=>500]]); // user1 owes user2 2000, user3 owes user1 500
+ok($r==[['from'=>1,'to'=>2,'amount'=>2000],['from'=>3,'to'=>1,'amount'=>500]],'pairwise keeps both '.json_encode($r));
+$r=shared_pair_debts([1=>[2=>1000],2=>[1=>1000]]); ok($r==[],'same pair cancels');
+$r=shared_pair_debts([1=>[2=>300],2=>[1=>100]]); ok($r==[['from'=>1,'to'=>2,'amount'=>200]],'pair net');
+$r=shared_pair_debts([1=>[2=>-50]]); ok($r==[['from'=>2,'to'=>1,'amount'=>50]],'overpaid flips');
 echo $fail?"FAILED $fail\n":"balance tests OK\n";
