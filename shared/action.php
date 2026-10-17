@@ -90,6 +90,7 @@ switch ($do) {
         if (!$isOwner) { $_SESSION['error'] = 'Only the group owner can do that.'; break; }
         $uid = filter_var($_POST['user_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
         if ($uid === $user_id) { $_SESSION['error'] = 'You are the owner. Delete the group instead.'; break; }
+        if (shared_has_open_balance($conn, $gid, $uid)) { $_SESSION['error'] = 'This member still owes or is owed money. Settle up first.'; break; }
         shared_remove_member($conn, $gid, $uid);
         logAction($conn, $user_id, 'shared_remove_member', "Group ID: $gid, user ID: $uid");
         $_SESSION['success'] = 'Member removed.';
@@ -97,6 +98,7 @@ switch ($do) {
 
     case 'leave':
         if ($isOwner) { $_SESSION['error'] = 'The owner cannot leave. Delete the group instead.'; break; }
+        if (shared_has_open_balance($conn, $gid, $user_id)) { $_SESSION['error'] = 'You still owe or are owed money in this group. Settle up before leaving.'; break; }
         shared_remove_member($conn, $gid, $user_id);
         logAction($conn, $user_id, 'shared_leave_group', "Group ID: $gid");
         $_SESSION['success'] = 'You left the group.';
@@ -110,6 +112,16 @@ switch ($do) {
         shared_expense_delete($conn, $x);
         logAction($conn, $user_id, 'shared_delete_expense', "Group ID: $gid, expense ID: $xid");
         $_SESSION['success'] = 'Expense deleted.';
+        break;
+
+    case 'delete_settlement':
+        $sid = filter_var($_POST['settlement_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
+        $st = $sid ? shared_settlement_get($conn, $sid, $gid) : null;
+        if (!$st) { $_SESSION['error'] = 'Payment not found.'; break; }
+        if ((int) $st['created_by'] !== $user_id && !$isOwner) { $_SESSION['error'] = 'Only the person who recorded it, or the group owner, can delete this payment.'; break; }
+        $conn->prepare('DELETE FROM shared_settlements WHERE id = ?')->execute([$sid]);
+        logAction($conn, $user_id, 'shared_delete_settlement', "Group ID: $gid, settlement ID: $sid");
+        $_SESSION['success'] = 'Payment deleted.';
         break;
 
     case 'delete':
