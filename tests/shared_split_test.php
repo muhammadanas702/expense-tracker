@@ -1,8 +1,8 @@
 <?php
-require __DIR__ . '/../modules/shared/split.php'';
+require __DIR__ . '/../modules/shared/split.php';
 $fail=0; function ok($c,$m){global $fail; if(!$c){$fail++; echo "FAIL $m\n";}}
 // equal: 100.00 / 3
-$r=shared_compute_split(10000,'equal',[3,1,2],[]); ok(array_sum($r['shares'])===10000,'eq sum'); ok($r['shares']===[1=>3334,2=>3333,3=>3333],'eq dist '.json_encode($r['shares']));
+$r=shared_compute_split(10000,'equal',[3,1,2],[]); ok(array_sum($r['shares'])===10000,'eq sum'); ok($r['shares']===[1=>3334,2=>3333,3=>3333],'eq dist');
 // random fuzz
 mt_srand(7);
 for($i=0;$i<3000;$i++){
