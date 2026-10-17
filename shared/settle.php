@@ -61,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $conn->prepare('INSERT INTO shared_settlements (group_id,from_user,to_user,amount_minor,currency,settled_on,note,created_by) VALUES (?,?,?,?,?,?,?,?)')
             ->execute([$gid, $from, $to, (int) round($amount * 100), $currency, $date, $note, $user_id]);
         rl_hit($conn, 'shared_settle', $key);
+        shared_emit($conn, $gid, $from, 'settle', ['amount_minor' => (int) round($amount * 100), 'currency' => $currency, 'target_id' => $to, 'by' => $user_id], [$from, $to]);
         logAction($conn, $user_id, 'shared_settle', "Group ID: $gid, $from -> $to, $amount $currency");
         $_SESSION['success'] = 'Payment recorded. Balances updated.';
         shared_back('shared/group.php?id=' . $gid);

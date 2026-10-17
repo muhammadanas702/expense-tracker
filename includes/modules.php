@@ -12,6 +12,7 @@
  *   'mode'    => 'p' | 's'             p = Personal (teal), s = Shared (blue)
  *   'enabled' => true|false            false hides it everywhere
  *   'nav'     => [[url, icon, label, key], ...]   key marks the active item
+ *   'order'   => 50                    optional; lower comes first (the first Shared item is the Shared home)
  */
 function ef_modules(): array
 {
@@ -26,6 +27,7 @@ function ef_modules(): array
             $cache[$m['id']] = $m;
         }
     }
+    uasort($cache, fn($a, $b) => ($a['order'] ?? 50) <=> ($b['order'] ?? 50) ?: strcmp($a['id'], $b['id']));
     return $cache;
 }
 

@@ -288,3 +288,10 @@ Each feature is its own module under `modules/` so changing one does not affect 
 - A member cannot leave (or be removed) while they still owe or are owed money. If an account is deleted, debts with it are written off automatically.
 - Group page shows, for every member, what they paid, their share and what they paid back, so every balance can be checked by hand.
 - Add-expense and settle forms ignore a second submit of the same form (double tap or refresh), so nothing is saved twice.
+
+### Activity module (new)
+
+- **Activity feed:** everything that happens in your groups (expenses added, changed or deleted, payments, people joining or leaving), grouped by Today / Yesterday / Earlier, with a filter per group. You only see what happened after you joined.
+- **Notifications:** a bell in the top bar with a count. You are told when someone adds or changes an expense that involves you, records a payment to you, or adds/removes you. Opening the page marks them read. Turn them off in Profile & Settings.
+- The Shared Overview shows your latest activity.
+- It is a separate module (`modules/activity`). Other modules only call one guarded helper, so it can be switched off in `modules/activity/module.php` without breaking Shared.

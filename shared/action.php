@@ -24,6 +24,7 @@ if ($do === 'create') {
         shared_back('shared/groups.php');
     }
     rl_hit($conn, 'shared_create', $key);
+    shared_emit($conn, $id, $user_id, 'group_create', ['title' => $name]);
     logAction($conn, $user_id, 'shared_create_group', "Group ID: $id");
     $_SESSION['success'] = 'Group created. Invite your friends with the link below.';
     shared_back('shared/group.php?id=' . $id);
@@ -53,6 +54,8 @@ if ($do === 'join') {
         shared_back('shared/groups.php');
     }
     if ($res === 'joined') {
+        $others = array_map(fn($m) => (int) $m['id'], shared_members_of($conn, (int) $g['id']));
+        shared_emit($conn, (int) $g['id'], $user_id, 'member_join', [], $others);
         logAction($conn, $user_id, 'shared_join_group', 'Group ID: ' . (int) $g['id']);
         $_SESSION['success'] = 'You joined ' . $g['name'] . '.';
     }
@@ -75,6 +78,7 @@ switch ($do) {
         $name = clean_text($_POST['name'] ?? '', 60);
         if ($name === null) { $_SESSION['error'] = 'Please enter a group name (up to 60 characters).'; break; }
         $conn->prepare('UPDATE shared_groups SET name = ?, icon = ? WHERE id = ?')->execute([$name, shared_icon_key($_POST['icon'] ?? ''), $gid]);
+        if ($name !== $group['name']) { shared_emit($conn, $gid, $user_id, 'group_rename', ['title' => $name]); }
         logAction($conn, $user_id, 'shared_rename_group', "Group ID: $gid");
         $_SESSION['success'] = 'Group updated.';
         break;
@@ -92,6 +96,7 @@ switch ($do) {
         if ($uid === $user_id) { $_SESSION['error'] = 'You are the owner. Delete the group instead.'; break; }
         if (shared_has_open_balance($conn, $gid, $uid)) { $_SESSION['error'] = 'This member still owes or is owed money. Settle up first.'; break; }
         shared_remove_member($conn, $gid, $uid);
+        shared_emit($conn, $gid, $user_id, 'member_remove', ['target_id' => $uid], [$uid]);
         logAction($conn, $user_id, 'shared_remove_member', "Group ID: $gid, user ID: $uid");
         $_SESSION['success'] = 'Member removed.';
         break;
@@ -100,6 +105,7 @@ switch ($do) {
         if ($isOwner) { $_SESSION['error'] = 'The owner cannot leave. Delete the group instead.'; break; }
         if (shared_has_open_balance($conn, $gid, $user_id)) { $_SESSION['error'] = 'You still owe or are owed money in this group. Settle up before leaving.'; break; }
         shared_remove_member($conn, $gid, $user_id);
+        shared_emit($conn, $gid, $user_id, 'member_leave', [], [(int) $group['owner_id']]);
         logAction($conn, $user_id, 'shared_leave_group', "Group ID: $gid");
         $_SESSION['success'] = 'You left the group.';
         shared_back('shared/groups.php');
@@ -109,7 +115,9 @@ switch ($do) {
         $x = $xid ? shared_expense_get($conn, $xid, $gid) : null;
         if (!$x) { $_SESSION['error'] = 'Expense not found.'; break; }
         if (!shared_can_edit($x, $group, $user_id)) { $_SESSION['error'] = 'Only the person who added it, or the group owner, can delete this expense.'; break; }
+        $involved = array_merge(array_keys(shared_splits_of($conn, $xid)), [(int) $x['paid_by']]);
         shared_expense_delete($conn, $x);
+        shared_emit($conn, $gid, $user_id, 'expense_delete', ['title' => $x['title'], 'amount_minor' => (int) $x['amount_minor'], 'currency' => $x['currency']], $involved);
         logAction($conn, $user_id, 'shared_delete_expense', "Group ID: $gid, expense ID: $xid");
         $_SESSION['success'] = 'Expense deleted.';
         break;
@@ -120,6 +128,7 @@ switch ($do) {
         if (!$st) { $_SESSION['error'] = 'Payment not found.'; break; }
         if ((int) $st['created_by'] !== $user_id && !$isOwner) { $_SESSION['error'] = 'Only the person who recorded it, or the group owner, can delete this payment.'; break; }
         $conn->prepare('DELETE FROM shared_settlements WHERE id = ?')->execute([$sid]);
+        shared_emit($conn, $gid, (int) $st['from_user'], 'settle_delete', ['amount_minor' => (int) $st['amount_minor'], 'currency' => $st['currency'], 'target_id' => (int) $st['to_user'], 'by' => $user_id], [(int) $st['from_user'], (int) $st['to_user']]);
         logAction($conn, $user_id, 'shared_delete_settlement', "Group ID: $gid, settlement ID: $sid");
         $_SESSION['success'] = 'Payment deleted.';
         break;
