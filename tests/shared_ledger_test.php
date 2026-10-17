@@ -29,6 +29,7 @@ for ($round = 0; $round < 40; $round++) {
     $group = shared_group_for($conn, $gid, $owner);
     $ledger = []; // [cur][uid] => net
     $exp = [];    // id => [cur, paid_by, amount, shares]
+    $sets = [];   // settlements [cur, from, to, amount]
     $add = function ($cur, $uid, $v) use (&$ledger) { $ledger[$cur][$uid] = ($ledger[$cur][$uid] ?? 0) + $v; };
     $apply = function ($e, $sign) use ($add) { $add($e['cur'], $e['paid'], $sign * $e['amount']); foreach ($e['shares'] as $u => $m) { $add($e['cur'], $u, -$sign * $m); } };
     for ($k = 0; $k < mt_rand(3, 14); $k++) {
@@ -58,7 +59,7 @@ for ($round = 0; $round < 40; $round++) {
             $f = $mem[mt_rand(0, $n - 1)]; $t = $mem[mt_rand(0, $n - 1)]; if ($f === $t) { continue; }
             $cur = ['PKR', 'USD', 'EUR'][mt_rand(0, 2)]; $amt = mt_rand(1, 100000);
             $conn->prepare('INSERT INTO shared_settlements (group_id,from_user,to_user,amount_minor,currency,settled_on,created_by) VALUES (?,?,?,?,?,?,?)')->execute([$gid, $f, $t, $amt, $cur, date('Y-m-d'), $owner]);
-            $add($cur, $f, $amt); $add($cur, $t, -$amt);
+            $add($cur, $f, $amt); $add($cur, $t, -$amt); $sets[] = [$cur, $f, $t, $amt];
         }
     }
     $nets = shared_group_nets($conn, [$gid])[$gid] ?? [];
@@ -67,13 +68,22 @@ for ($round = 0; $round < 40; $round++) {
     }
     foreach ($nets as $cur => $by) {
         ok(array_sum($by) === 0, "round $round $cur nets sum to zero");
-        // simplified payments must settle everybody
-        $chk = $by; foreach (shared_simplify($by) as $p) { $chk[$p['from']] += $p['amount']; $chk[$p['to']] -= $p['amount']; }
-        ok(array_sum(array_map('abs', $chk)) === 0, "round $round $cur simplify settles");
+        // person-to-person payments must settle everybody, and never be zero or between the same person
+        $chk = $by; foreach (shared_group_pairs($conn, [$gid])[$gid][$cur] ?? [] as $p) { ok($p['amount'] > 0 && $p['from'] !== $p['to'], 'pair sane'); $chk[$p['from']] += $p['amount']; $chk[$p['to']] -= $p['amount']; }
+        ok(array_sum(array_map('abs', $chk)) === 0, "round $round $cur pair payments settle everyone");
     }
     // every expense's splits add up to its total
     $bad = $conn->prepare('SELECT COUNT(*) FROM shared_expenses e WHERE e.group_id = ? AND e.amount_minor <> (SELECT COALESCE(SUM(share_minor),0) FROM shared_splits s WHERE s.expense_id = e.id)');
     $bad->execute([$gid]); ok((int) $bad->fetchColumn() === 0, "round $round splits sum to totals");
+    // independent pairwise ledger from the same inputs
+    $pl = [];
+    foreach ($exp as $e) { foreach ($e['shares'] as $u => $m) { if ($u !== $e['paid']) { $pl[$e['cur']][$u][$e['paid']] = ($pl[$e['cur']][$u][$e['paid']] ?? 0) + $m; } } }
+    foreach ($sets as $st) { $pl[$st[0]][$st[1]][$st[2]] = ($pl[$st[0]][$st[1]][$st[2]] ?? 0) - $st[3]; }
+    foreach (['PKR', 'USD', 'EUR'] as $cur) {
+        $want = shared_pair_debts($pl[$cur] ?? []);
+        $got = shared_group_pairs($conn, [$gid])[$gid][$cur] ?? [];
+        ok($want == $got, "round $round $cur pairwise matches independent ledger");
+    }
     // the user summary matches the group nets
     $sum = shared_user_summary($conn, [$gid], $mem[0]);
     foreach (['PKR', 'USD', 'EUR'] as $cur) {
@@ -91,6 +101,7 @@ shared_on_user_deleted($conn, $users[1]);
 $conn->prepare('DELETE FROM users WHERE id = ?')->execute([$users[1]]);
 $nets = shared_group_nets($conn, [$gid])[$gid]['PKR'] ?? [];
 ok(($nets[$users[1]] ?? 0) === 0 && ($nets[$users[0]] ?? 0) === 0 && ($nets[$users[2]] ?? 0) === 0, 'deleted account debts written off ' . json_encode($nets));
+ok(!shared_has_open_balance($conn, $gid, $users[0]), 'no open balance after write-off');
 shared_delete_group($conn, $gid);
 $conn->exec('DELETE FROM users WHERE email LIKE ' . $conn->quote($tag . '%'));
 echo $fail ? "FAILED $fail\n" : "ledger tests OK\n";

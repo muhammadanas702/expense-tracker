@@ -20,7 +20,10 @@ foreach ($parts as $cur => $byUser) {
     foreach ($byUser as $uid => $pt) { $nets[$cur][$uid] = $pt['paid'] - $pt['share'] + $pt['sent'] - $pt['recv']; }
 }
 $settlements = shared_settlements_of($conn, $gid);
-$nameMap = shared_names($conn, array_merge([], ...array_values(array_map('array_keys', $nets))));
+$pairs = shared_group_pairs($conn, [$gid])[$gid] ?? [];
+$nameIds = array_merge([], ...array_values(array_map('array_keys', $nets)));
+foreach ($pairs as $list) { foreach ($list as $p) { $nameIds[] = $p['from']; $nameIds[] = $p['to']; } }
+$nameMap = shared_names($conn, $nameIds);
 $nm = fn(int $id) => $nameMap[$id] ?? 'Former member';
 $splitNames = [];
 if ($expenses) {
@@ -44,11 +47,11 @@ ef_page_start(['title' => $group['name'], 'sub' => count($members) . ' member' .
 </div>
 
 <?php
-$myNet = []; $debts = [];
-foreach ($nets as $cur => $byUser) {
-    $myNet[$cur] = $byUser[$user_id] ?? 0;
-    foreach (shared_simplify($byUser) as $p) { $p['currency'] = $cur; $debts[] = $p; }
+$debts = [];
+foreach ($pairs as $cur => $list) {
+    foreach ($list as $p) { $p['currency'] = $cur; $debts[] = $p; }
 }
+usort($debts, fn($x, $y) => (($y['from'] === $user_id || $y['to'] === $user_id) <=> ($x['from'] === $user_id || $x['to'] === $user_id)));
 ?>
 <div class="G2" style="margin-bottom:14px">
   <div class="g card">
@@ -67,7 +70,7 @@ foreach ($nets as $cur => $byUser) {
     <a class="btn sm" style="margin-top:10px" href="<?= e(ef_url('shared/settle.php?group=' . $gid)) ?>">Record a payment</a>
   </div>
   <div class="g card">
-    <div class="t">Balances</div>
+    <div class="t">Net per person</div>
     <?php if (!$nets): ?><p class="k" style="padding:10px 0">No balances yet.</p><?php endif; ?>
     <?php foreach ($nets as $cur => $byUser): ksort($byUser); ?>
       <div class="k" style="margin-top:6px"><?= e($cur) ?></div>
