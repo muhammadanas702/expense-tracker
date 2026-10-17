@@ -7,5 +7,6 @@ return [
     'nav' => [
         ['shared/index.php', 'grid', 'Overview', 'shome'],
         ['shared/groups.php', 'users', 'Groups', 'grp'],
+        ['shared/add.php', 'pl', 'Add Shared', 'sadd'],
     ],
 ];

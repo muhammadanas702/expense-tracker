@@ -280,4 +280,7 @@ Each feature is its own module under `modules/` so changing one does not affect 
 
 - Create groups (trip, rent, family...), invite friends with a link or WhatsApp, join after signing in.
 - Owner can rename, remove members, make a new invite link or delete the group; members can leave.
-- Split expenses, balances and settle up arrive in the next parts.
+- **Shared expenses:** add a bill to a group, choose who paid and split it **equally, by exact amounts, by percent or by shares**. Splits always add up to the total to the last paisa.
+- Optional **Add my share to Personal expenses** switch saves only your own share as a Personal expense.
+- The group page lists expenses with "you owe / you lent" and who owes what. The person who added an expense (or the group owner) can edit or delete it.
+- Balances, simplified debts and settle up arrive in the next parts.

@@ -12,6 +12,16 @@ $csrf = csrf_token();
 $invite = shared_invite_url($group['invite_code']);
 $wa = 'https://wa.me/?text=' . rawurlencode('Join my ExpenseFlow group "' . $group['name'] . '": ' . $invite);
 $action = ef_url('shared/action.php');
+$expenses = shared_expenses_of($conn, $gid, $user_id);
+$totals = shared_group_totals($conn, $gid);
+$splitNames = [];
+if ($expenses) {
+    $ids = array_map(fn($x) => (int) $x['id'], $expenses);
+    $q = $conn->query('SELECT s.expense_id, s.share_minor, u.name FROM shared_splits s LEFT JOIN users u ON u.id = s.user_id WHERE s.expense_id IN (' . implode(',', $ids) . ') ORDER BY s.user_id');
+    foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        $splitNames[(int) $r['expense_id']][] = [$r['name'] ?? 'Former member', (int) $r['share_minor']];
+    }
+}
 
 ef_page_start(['title' => $group['name'], 'sub' => count($members) . ' member' . (count($members) === 1 ? '' : 's'), 'mode' => 's', 'active' => 'grp', 'user' => $user]);
 ?>
@@ -20,8 +30,39 @@ ef_page_start(['title' => $group['name'], 'sub' => count($members) . ' member' .
     <div class="gi" style="margin:0"><?= ef_icon(shared_icon_key($group['icon']), '#1d4ed8') ?></div>
     <div style="flex:1"><b style="font-size:1.1rem"><?= e($group['name']) ?></b>
       <div class="stk" style="margin-top:6px"><?php foreach (array_slice($members, 0, 6) as $i => $m) { echo shared_avatar($m['name'], $i); } ?></div></div>
-    <div style="text-align:right"><div class="k">Total spent</div><div class="v" style="margin:0">0.00</div></div>
+    <div style="text-align:right"><div class="k">Total spent</div>
+      <?php if ($totals): foreach (array_slice($totals, 0, 3) as $t): ?><div class="v" style="margin:0;font-size:1.15rem"><?= shared_money((int) $t['total'], $t['currency']) ?></div><?php endforeach; else: ?><div class="v" style="margin:0">0.00</div><?php endif; ?></div>
   </div>
+</div>
+
+<div class="g card" style="margin-bottom:14px">
+  <div class="t">Expenses <span class="k"><?= count($expenses) ?></span>
+    <a class="btn sm" style="margin-left:auto" href="<?= e(ef_url('shared/add.php?group=' . $gid)) ?>"><?= ef_icon('pl') ?> Add expense</a></div>
+  <?php if (!$expenses): ?><p class="k" style="padding:10px 0">No expenses yet. Add the first one and choose how to split it.</p><?php endif; ?>
+  <?php foreach ($expenses as $x):
+    $cur = $x['currency']; $mine = $x['my_share'] !== null ? (int) $x['my_share'] : null;
+    $paidMe = (int) $x['paid_by'] === $user_id; $total = (int) $x['amount_minor'];
+    if ($paidMe) { $net = $total - (int) ($mine ?? 0); $label = $net > 0 ? 'you lent' : 'you paid'; $cls = 'tg'; }
+    elseif ($mine) { $net = $mine; $label = 'you owe'; $cls = 'tx'; }
+    else { $net = 0; $label = 'not involved'; $cls = 'tn'; }
+    $can = shared_can_edit($x, $group, $user_id);
+  ?>
+  <div class="row" style="align-items:flex-start;flex-wrap:wrap">
+    <span style="flex:1;min-width:0"><b><?= e($x['title']) ?></b>
+      <small><?= e($x['payer_name'] ?? 'Former member') ?> paid <?= shared_money($total, $cur) ?> · <?= e(date('d M Y', strtotime($x['expense_date']))) ?> · <?= e(SHARED_SPLIT_TYPES[$x['split_type']] ?? 'Split') ?></small>
+      <details style="margin-top:4px"><summary class="k" style="cursor:pointer">Who owes what</summary>
+        <?php foreach ($splitNames[(int) $x['id']] ?? [] as [$nm, $sh]): ?><small><?= e($nm) ?>: <?= shared_money($sh, $cur) ?></small><?php endforeach; ?>
+        <?php if (!empty($x['note'])): ?><small>Note: <?= e($x['note']) ?></small><?php endif; ?>
+      </details></span>
+    <span class="tag <?= $cls ?>" style="white-space:nowrap"><?= e($label) ?><?= $net > 0 ? ' ' . shared_money($net, $cur) : '' ?></span>
+    <?php if ($can): ?>
+    <span class="acts">
+      <a href="<?= e(ef_url('shared/add.php?edit=' . (int) $x['id'])) ?>" aria-label="Edit expense"><?= ef_icon('pen') ?></a>
+      <a class="del" href="<?= e($action) ?>" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"do":"delete_expense","group_id":<?= $gid ?>,"expense_id":<?= (int) $x['id'] ?>}' onclick="return confirm('Delete this expense for everyone in the group?')" aria-label="Delete expense"><?= ef_icon('tr') ?></a>
+    </span>
+    <?php endif; ?>
+  </div>
+  <?php endforeach; ?>
 </div>
 
 <div class="G2">
