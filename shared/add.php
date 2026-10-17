@@ -93,11 +93,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $type = $old['split_type'];
     $parts = array_values(array_filter(array_map('intval', array_keys($old['part'])), fn($i) => in_array($i, $memberIds, true)));
     $key = rl_key((string) $user_id);
+    $ft = (string) ($_POST['ft'] ?? '');
 
     if (!$group) {
         $error = 'Choose a group first.';
     } elseif (!csrf_valid()) {
         $error = 'Your session expired. Please try again.';
+    } elseif (!shared_token_valid($ft)) {
+        // Already saved (double tap or refresh): go to the group instead of saving twice.
+        shared_back('shared/group.php?id=' . $gid);
     } elseif (!$existing && rl_blocked($conn, 'shared_expense', $key, SHARED_MAX_EXPENSES_PER_HOUR, 3600)) {
         $error = 'You added many expenses just now. Please try again later.';
     } elseif ($title === null) {
@@ -131,6 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($isCreator) {
                     $personal = $old['personal'] === '1' ? $old['category'] : false;
                 }
+                shared_token_use($ft);
                 $id = shared_expense_save($conn, $group, $user_id, [
                     'title' => $title, 'amount_minor' => $totalMinor, 'currency' => $currency, 'paid_by' => $payer,
                     'split_type' => $type, 'expense_date' => $date, 'note' => $note,
@@ -151,6 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $csrf = csrf_token();
+$ftoken = ($_SERVER['REQUEST_METHOD'] === 'POST' && shared_token_valid($_POST['ft'] ?? null)) ? (string) $_POST['ft'] : shared_token_new();
 ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expense', 'sub' => $group ? $group['name'] : 'Split a bill with your group', 'mode' => 's', 'active' => 'sadd', 'user' => $user]);
 ?>
 <div class="g" style="max-width:720px;margin:0 auto;padding:22px">
@@ -175,7 +181,7 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
   <?php endif; ?>
   <form method="POST" autocomplete="off" id="sx" data-type="<?= e($old['split_type']) ?>">
     <?= csrf_field() ?>
-    <input type="hidden" name="group_id" value="<?= $gid ?>">
+    <input type="hidden" name="group_id" value="<?= $gid ?>"><input type="hidden" name="ft" value="<?= e($ftoken) ?>">
     <div class="fl"><label for="title">Description</label>
       <input class="inp" id="title" type="text" name="title" maxlength="100" value="<?= e($old['title']) ?>" placeholder="e.g. Dinner, Hotel, Petrol" required></div>
     <div class="fl"><label for="amount">Total amount</label>
@@ -250,7 +256,7 @@ rows.forEach(function(r){var on=r.querySelector(".pc").checked,pv=r.querySelecto
 if(on&&total>0){if(t==="equal"&&n)s=(total/n/100).toFixed(2);else if(t==="exact")s=(v/100).toFixed(2);else if(t==="percent")s=(total*v/10000/100).toFixed(2);else if(t==="shares"&&base>0)s=(total*v/base/100).toFixed(2)}pv.textContent=s?"≈ "+s:""});
 if(t==="exact"){var left=total-base;sum.textContent=total?(left===0?"Amounts add up.":(left>0?(left/100).toFixed(2)+" left to assign.":(-left/100).toFixed(2)+" too much.")):""}
 else if(t==="percent"){sum.textContent=(base/100).toFixed(2)+"% of 100%"}else{sum.textContent=n?n+" selected":"Choose at least one person."}}
-f.addEventListener("input",upd);f.addEventListener("change",upd);
+f.addEventListener("submit",function(){var b=f.querySelector('button[type=submit]');if(b){setTimeout(function(){b.disabled=true},0)}});f.addEventListener("input",upd);f.addEventListener("change",upd);
 var p=document.getElementById("personal"),cb=document.getElementById("catbox");if(p&&cb){var t2=function(){cb.style.display=p.checked?"block":"none"};p.addEventListener("change",t2);t2()}
 upd()})()</script>
 JS;

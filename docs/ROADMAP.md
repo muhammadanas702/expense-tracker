@@ -47,4 +47,4 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 
 - Done in Part 7: leaving or removal is blocked while a balance is open. A deleted account still shows as "Former member" in old expenses.
 - Expenses are stored per currency (minor units). Balances are calculated per currency.
-- Run `php tests/shared_split_test.php` and `php tests/shared_balance_test.php` to check the split and balance maths.
+- Run `php tests/shared_split_test.php` and `php tests/shared_balance_test.php` to check the split and balance maths. `php tests/shared_ledger_test.php` checks balances against a test database (never run it on the live database).

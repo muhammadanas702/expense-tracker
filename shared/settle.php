@@ -36,9 +36,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $date = valid_date($old['settled_on']);
     $note = trim($old['note']) === '' ? null : clean_text($old['note'], 255);
     $key = rl_key((string) $user_id);
+    $ft = (string) ($_POST['ft'] ?? '');
 
     if (!csrf_valid()) {
         $error = 'Your session expired. Please try again.';
+    } elseif (!shared_token_valid($ft)) {
+        shared_back('shared/group.php?id=' . $gid);
     } elseif (rl_blocked($conn, 'shared_settle', $key, 60, 3600)) {
         $error = 'You recorded many payments just now. Please try again later.';
     } elseif (!in_array($from, $memberIds, true) || !in_array($to, $memberIds, true) || $from === $to) {
@@ -54,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (trim($old['note']) !== '' && $note === null) {
         $error = 'The note is too long (255 characters at most).';
     } else {
+        shared_token_use($ft);
         $conn->prepare('INSERT INTO shared_settlements (group_id,from_user,to_user,amount_minor,currency,settled_on,note,created_by) VALUES (?,?,?,?,?,?,?,?)')
             ->execute([$gid, $from, $to, (int) round($amount * 100), $currency, $date, $note, $user_id]);
         rl_hit($conn, 'shared_settle', $key);
@@ -63,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$ftoken = ($_SERVER['REQUEST_METHOD'] === 'POST' && shared_token_valid($_POST['ft'] ?? null)) ? (string) $_POST['ft'] : shared_token_new();
 ef_page_start(['title' => 'Settle up', 'sub' => $group['name'], 'mode' => 's', 'active' => 'grp', 'user' => $user]);
 $opts = function (string $sel) use ($members, $user_id) {
     $h = '';
@@ -76,7 +81,7 @@ $opts = function (string $sel) use ($members, $user_id) {
   <?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e($error) ?></div><?php endif; ?>
   <form method="POST" autocomplete="off">
     <?= csrf_field() ?>
-    <input type="hidden" name="group_id" value="<?= $gid ?>">
+    <input type="hidden" name="group_id" value="<?= $gid ?>"><input type="hidden" name="ft" value="<?= e($ftoken) ?>">
     <div class="fl"><label for="from">Who paid</label><select class="inp" id="from" name="from"><?= $opts($old['from']) ?></select></div>
     <div class="fl"><label for="to">Paid to</label><select class="inp" id="to" name="to"><option value="">Choose…</option><?= $opts($old['to']) ?></select></div>
     <div class="fl"><label for="amount">Amount</label>
@@ -89,4 +94,4 @@ $opts = function (string $sel) use ($members, $user_id) {
     <a class="btn o" style="width:100%;margin-top:8px;text-align:center" href="<?= e(ef_url('shared/group.php?id=' . $gid)) ?>">Cancel</a>
   </form>
 </div>
-<?php ef_page_end(['mode' => 's', 'active' => 'grp']);
+<?php ef_page_end(['mode' => 's', 'active' => 'grp', 'scripts' => '<script>(function(){var f=document.querySelector("form");if(f)f.addEventListener("submit",function(){var b=f.querySelector("button[type=submit]");if(b)setTimeout(function(){b.disabled=true},0)})})()</script>']);

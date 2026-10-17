@@ -14,7 +14,11 @@ $wa = 'https://wa.me/?text=' . rawurlencode('Join my ExpenseFlow group "' . $gro
 $action = ef_url('shared/action.php');
 $expenses = shared_expenses_of($conn, $gid, $user_id);
 $totals = shared_group_totals($conn, $gid);
-$nets = shared_group_nets($conn, [$gid])[$gid] ?? [];
+$parts = shared_group_parts($conn, [$gid])[$gid] ?? [];
+$nets = [];
+foreach ($parts as $cur => $byUser) {
+    foreach ($byUser as $uid => $pt) { $nets[$cur][$uid] = $pt['paid'] - $pt['share'] + $pt['sent'] - $pt['recv']; }
+}
 $settlements = shared_settlements_of($conn, $gid);
 $nameMap = shared_names($conn, array_merge([], ...array_values(array_map('array_keys', $nets))));
 $nm = fn(int $id) => $nameMap[$id] ?? 'Former member';
@@ -49,7 +53,7 @@ foreach ($nets as $cur => $byUser) {
 <div class="G2" style="margin-bottom:14px">
   <div class="g card">
     <div class="t">Who pays whom</div>
-    <?php if (!$debts): ?><p class="k" style="padding:10px 0"><?= $expenses || $settlements ? 'Everyone is settled up.' : 'Add an expense to see who owes what.' ?></p><?php endif; ?>
+    <?php if (!$debts): ?><p class="k" style="padding:10px 0"><?= $expenses || $settlements ? 'Everyone is settled up. What you owe each other adds up to zero, so nothing is left to pay.' : 'Add an expense to see who owes what.' ?></p><?php endif; ?>
     <?php foreach ($debts as $p):
       $mineFrom = $p['from'] === $user_id; $mineTo = $p['to'] === $user_id;
       $url = ef_url('shared/settle.php?' . http_build_query(['group' => $gid, 'from' => $p['from'], 'to' => $p['to'], 'amount' => shared_from_minor($p['amount']), 'currency' => $p['currency']]));
@@ -67,9 +71,9 @@ foreach ($nets as $cur => $byUser) {
     <?php if (!$nets): ?><p class="k" style="padding:10px 0">No balances yet.</p><?php endif; ?>
     <?php foreach ($nets as $cur => $byUser): ksort($byUser); ?>
       <div class="k" style="margin-top:6px"><?= e($cur) ?></div>
-      <?php foreach ($byUser as $uid => $n): if ($n === 0) { continue; } ?>
-      <div class="row"><span><?= $uid === $user_id ? 'You' : e($nm($uid)) ?></span>
-        <b class="<?= $n > 0 ? 'in' : 'ex' ?>"><?= $n > 0 ? 'gets ' : 'owes ' ?><?= shared_money(abs($n), $cur) ?></b></div>
+      <?php foreach ($byUser as $uid => $n): $pt = $parts[$cur][$uid]; ?>
+      <div class="row"><span><?= $uid === $user_id ? 'You' : e($nm($uid)) ?><small>paid <?= shared_money($pt['paid'], $cur) ?> · share <?= shared_money($pt['share'], $cur) ?><?= ($pt['sent'] || $pt['recv']) ? ' · paid back ' . shared_money($pt['sent'], $cur) . ' · got back ' . shared_money($pt['recv'], $cur) : '' ?></small></span>
+        <b class="<?= $n > 0 ? 'in' : ($n < 0 ? 'ex' : '') ?>"><?= $n > 0 ? 'gets ' : ($n < 0 ? 'owes ' : 'settled ') ?><?= $n === 0 ? '' : shared_money(abs($n), $cur) ?></b></div>
       <?php endforeach; ?>
     <?php endforeach; ?>
   </div>
