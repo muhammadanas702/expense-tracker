@@ -102,6 +102,16 @@ switch ($do) {
         $_SESSION['success'] = 'You left the group.';
         shared_back('shared/groups.php');
 
+    case 'delete_expense':
+        $xid = filter_var($_POST['expense_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
+        $x = $xid ? shared_expense_get($conn, $xid, $gid) : null;
+        if (!$x) { $_SESSION['error'] = 'Expense not found.'; break; }
+        if (!shared_can_edit($x, $group, $user_id)) { $_SESSION['error'] = 'Only the person who added it, or the group owner, can delete this expense.'; break; }
+        shared_expense_delete($conn, $x);
+        logAction($conn, $user_id, 'shared_delete_expense', "Group ID: $gid, expense ID: $xid");
+        $_SESSION['success'] = 'Expense deleted.';
+        break;
+
     case 'delete':
         if (!$isOwner) { $_SESSION['error'] = 'Only the group owner can do that.'; break; }
         shared_delete_group($conn, $gid);

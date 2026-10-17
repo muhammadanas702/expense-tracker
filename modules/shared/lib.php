@@ -5,6 +5,8 @@
  * Later parts add expenses/settlements in their own tables and hook into
  * shared_delete_group() / shared_on_user_deleted() for cleanup.
  */
+require_once __DIR__ . '/split.php';
+require_once __DIR__ . '/../personal/lib.php';
 const SHARED_MAX_GROUPS_PER_USER = 30;
 const SHARED_MAX_MEMBERS = 50;
 
@@ -50,6 +52,36 @@ function shared_ensure_schema(PDO $conn): void
               PRIMARY KEY (`id`),
               UNIQUE KEY `uq_shared_members` (`group_id`, `user_id`),
               KEY `idx_shared_members_user` (`user_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+        );
+        $conn->exec(
+            "CREATE TABLE IF NOT EXISTS `shared_expenses` (
+              `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+              `group_id` INT UNSIGNED NOT NULL,
+              `title` VARCHAR(100) NOT NULL,
+              `amount_minor` BIGINT UNSIGNED NOT NULL,
+              `currency` VARCHAR(3) NOT NULL DEFAULT 'PKR',
+              `paid_by` INT UNSIGNED NOT NULL,
+              `created_by` INT UNSIGNED NOT NULL,
+              `split_type` VARCHAR(8) NOT NULL DEFAULT 'equal',
+              `expense_date` DATE NOT NULL,
+              `note` VARCHAR(255) NULL DEFAULT NULL,
+              `personal_expense_id` INT UNSIGNED NULL DEFAULT NULL,
+              `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY (`id`),
+              KEY `idx_shared_expenses_group` (`group_id`, `expense_date`, `id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+        );
+        $conn->exec(
+            "CREATE TABLE IF NOT EXISTS `shared_splits` (
+              `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+              `expense_id` INT UNSIGNED NOT NULL,
+              `user_id` INT UNSIGNED NOT NULL,
+              `share_minor` BIGINT UNSIGNED NOT NULL,
+              `weight` DECIMAL(12,2) NULL DEFAULT NULL,
+              PRIMARY KEY (`id`),
+              UNIQUE KEY `uq_shared_splits` (`expense_id`, `user_id`),
+              KEY `idx_shared_splits_user` (`user_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
         );
     } catch (Throwable $e) {
@@ -154,9 +186,11 @@ function shared_remove_member(PDO $conn, int $groupId, int $userId): void
     $conn->prepare('DELETE FROM shared_members WHERE group_id = ? AND user_id = ?')->execute([$groupId, $userId]);
 }
 
-/** Deletes a group completely. Later parts (expenses, settlements) add their cleanup here. */
+/** Deletes a group completely (expenses and splits included). Later parts add their cleanup here. */
 function shared_delete_group(PDO $conn, int $groupId): void
 {
+    $conn->prepare('DELETE FROM shared_splits WHERE expense_id IN (SELECT id FROM shared_expenses WHERE group_id = ?)')->execute([$groupId]);
+    $conn->prepare('DELETE FROM shared_expenses WHERE group_id = ?')->execute([$groupId]);
     $conn->prepare('DELETE FROM shared_members WHERE group_id = ?')->execute([$groupId]);
     $conn->prepare('DELETE FROM shared_groups WHERE id = ?')->execute([$groupId]);
 }
@@ -187,4 +221,150 @@ function shared_on_user_deleted(PDO $conn, int $userId): void
 function shared_invite_url(string $code): string
 {
     return ef_url('shared/join.php?code=' . $code);
+}
+
+
+// ---------------------------------------------------------------- expenses (Part 6)
+
+const SHARED_MAX_EXPENSES_PER_HOUR = 60;
+
+/** One expense of a group (null if it is not in that group). */
+function shared_expense_get(PDO $conn, int $expenseId, int $groupId): ?array
+{
+    $q = $conn->prepare('SELECT * FROM shared_expenses WHERE id = ? AND group_id = ?');
+    $q->execute([$expenseId, $groupId]);
+    $r = $q->fetch(PDO::FETCH_ASSOC);
+    return $r ?: null;
+}
+
+/** Splits of one expense: user_id => ['share_minor'=>int,'weight'=>?string]. */
+function shared_splits_of(PDO $conn, int $expenseId): array
+{
+    $q = $conn->prepare('SELECT user_id, share_minor, weight FROM shared_splits WHERE expense_id = ? ORDER BY user_id');
+    $q->execute([$expenseId]);
+    $out = [];
+    foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        $out[(int) $r['user_id']] = ['share_minor' => (int) $r['share_minor'], 'weight' => $r['weight']];
+    }
+    return $out;
+}
+
+/**
+ * Latest expenses of a group with the payer name and the signed-in user's share.
+ * A user who deleted their account shows as NULL name (page prints "Former member").
+ */
+function shared_expenses_of(PDO $conn, int $groupId, int $userId, int $limit = 100): array
+{
+    $q = $conn->prepare(
+        'SELECT e.*, u.name AS payer_name, s.share_minor AS my_share
+         FROM shared_expenses e
+         LEFT JOIN users u ON u.id = e.paid_by
+         LEFT JOIN shared_splits s ON s.expense_id = e.id AND s.user_id = ?
+         WHERE e.group_id = ? ORDER BY e.expense_date DESC, e.id DESC LIMIT ' . (int) $limit
+    );
+    $q->execute([$userId, $groupId]);
+    return $q->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/** Totals per currency for a group: [['currency'=>'PKR','total'=>12345], ...] (minor units). */
+function shared_group_totals(PDO $conn, int $groupId): array
+{
+    $q = $conn->prepare('SELECT currency, SUM(amount_minor) AS total FROM shared_expenses WHERE group_id = ? GROUP BY currency ORDER BY total DESC');
+    $q->execute([$groupId]);
+    return $q->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function shared_money(int $minor, string $currency): string
+{
+    return e($currency) . ' ' . number_format($minor / 100, 2);
+}
+
+/**
+ * Creates the Personal expense that mirrors one member's share. Returns the new expense id.
+ * Uses the same columns and the "monthly base currency" rule as the Personal add page.
+ */
+function shared_personal_copy(PDO $conn, int $userId, string $title, int $shareMinor, string $currency, string $category, string $date, string $groupName): int
+{
+    $amount = $shareMinor / 100;
+    $pkr = round(CurrencyConverter::convert($amount, $currency, 'PKR'), 2);
+    $when = $date === date('Y-m-d') ? date('Y-m-d H:i:s') : $date . ' 12:00:00';
+    $ym = substr($date, 0, 7);
+    $has = $conn->prepare('SELECT 1 FROM user_monthly_currency WHERE user_id = ? AND `year_month` = ?');
+    $has->execute([$userId, $ym]);
+    if (!$has->fetchColumn()) {
+        $conn->prepare('INSERT INTO user_monthly_currency (user_id, `year_month`, base_currency) VALUES (?,?,?)')->execute([$userId, $ym, $currency]);
+    }
+    $t = mb_substr($title, 0, 100);
+    $conn->prepare('INSERT INTO expenses (user_id,title,amount,currency,amount_pkr,category,transaction_date,payment_method,note) VALUES (?,?,?,?,?,?,?,NULL,?)')
+        ->execute([$userId, $t, $amount, $currency, $pkr, $category, $when, mb_substr('My share · ' . $groupName, 0, 255)]);
+    return (int) $conn->lastInsertId();
+}
+
+/** Removes the linked Personal copy, only if it still belongs to $userId. */
+function shared_personal_copy_delete(PDO $conn, ?int $personalId, int $userId): void
+{
+    if ($personalId) {
+        $conn->prepare('DELETE FROM expenses WHERE id = ? AND user_id = ?')->execute([$personalId, $userId]);
+    }
+}
+
+/**
+ * Saves a new expense (or replaces an existing one) with its splits, in one transaction.
+ * $d: title, amount_minor, currency, paid_by, split_type, expense_date, note, shares[uid=>minor], weights[uid=>?float]
+ * $personal: null (no change) | false (remove my copy) | string category (create/update my copy; only for the creator).
+ * Returns the expense id.
+ */
+function shared_expense_save(PDO $conn, array $group, int $userId, array $d, $personal, ?array $existing = null): int
+{
+    $conn->beginTransaction();
+    try {
+        if ($existing) {
+            $id = (int) $existing['id'];
+            $conn->prepare('UPDATE shared_expenses SET title=?, amount_minor=?, currency=?, paid_by=?, split_type=?, expense_date=?, note=? WHERE id=? AND group_id=?')
+                ->execute([$d['title'], $d['amount_minor'], $d['currency'], $d['paid_by'], $d['split_type'], $d['expense_date'], $d['note'], $id, $group['id']]);
+            $conn->prepare('DELETE FROM shared_splits WHERE expense_id = ?')->execute([$id]);
+            $personalId = $existing['personal_expense_id'] !== null ? (int) $existing['personal_expense_id'] : null;
+        } else {
+            $conn->prepare('INSERT INTO shared_expenses (group_id,title,amount_minor,currency,paid_by,created_by,split_type,expense_date,note) VALUES (?,?,?,?,?,?,?,?,?)')
+                ->execute([$group['id'], $d['title'], $d['amount_minor'], $d['currency'], $d['paid_by'], $userId, $d['split_type'], $d['expense_date'], $d['note']]);
+            $id = (int) $conn->lastInsertId();
+            $personalId = null;
+        }
+        $ins = $conn->prepare('INSERT INTO shared_splits (expense_id,user_id,share_minor,weight) VALUES (?,?,?,?)');
+        foreach ($d['shares'] as $uid => $minor) {
+            $ins->execute([$id, $uid, $minor, $d['weights'][$uid] ?? null]);
+        }
+        if ($personal !== null) {
+            $mine = $d['shares'][$userId] ?? 0;
+            if ($personal === false || $mine < 1) {
+                shared_personal_copy_delete($conn, $personalId, $userId);
+                $conn->prepare('UPDATE shared_expenses SET personal_expense_id = NULL WHERE id = ?')->execute([$id]);
+            } else {
+                shared_personal_copy_delete($conn, $personalId, $userId); // replace: keeps one copy only
+                $newId = shared_personal_copy($conn, $userId, $d['title'], $mine, $d['currency'], $personal, $d['expense_date'], $group['name']);
+                $conn->prepare('UPDATE shared_expenses SET personal_expense_id = ? WHERE id = ?')->execute([$newId, $id]);
+            }
+        }
+        $conn->commit();
+        return $id;
+    } catch (Throwable $e) {
+        if ($conn->inTransaction()) {
+            $conn->rollBack();
+        }
+        throw $e;
+    }
+}
+
+function shared_expense_delete(PDO $conn, array $expense): void
+{
+    $conn->prepare('DELETE FROM shared_splits WHERE expense_id = ?')->execute([$expense['id']]);
+    $conn->prepare('DELETE FROM shared_expenses WHERE id = ?')->execute([$expense['id']]);
+    // The creator's Personal copy was made for this expense, so it goes too.
+    shared_personal_copy_delete($conn, $expense['personal_expense_id'] !== null ? (int) $expense['personal_expense_id'] : null, (int) $expense['created_by']);
+}
+
+/** Who may change an expense: the person who added it, or the group owner. */
+function shared_can_edit(array $expense, array $group, int $userId): bool
+{
+    return (int) $expense['created_by'] === $userId || $group['my_role'] === 'owner';
 }

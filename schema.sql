@@ -150,3 +150,32 @@ CREATE TABLE IF NOT EXISTS `shared_members` (
   UNIQUE KEY `uq_shared_members` (`group_id`, `user_id`),
   KEY `idx_shared_members_user` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Part 6: shared expenses
+CREATE TABLE IF NOT EXISTS `shared_expenses` (
+  `id`                  INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `group_id`            INT UNSIGNED NOT NULL,
+  `title`               VARCHAR(100) NOT NULL,
+  `amount_minor`        BIGINT UNSIGNED NOT NULL,
+  `currency`            VARCHAR(3)   NOT NULL DEFAULT 'PKR',
+  `paid_by`             INT UNSIGNED NOT NULL,
+  `created_by`          INT UNSIGNED NOT NULL,
+  `split_type`          VARCHAR(8)   NOT NULL DEFAULT 'equal',
+  `expense_date`        DATE         NOT NULL,
+  `note`                VARCHAR(255) NULL DEFAULT NULL,
+  `personal_expense_id` INT UNSIGNED NULL DEFAULT NULL,
+  `created_at`          TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_shared_expenses_group` (`group_id`, `expense_date`, `id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `shared_splits` (
+  `id`          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `expense_id`  INT UNSIGNED NOT NULL,
+  `user_id`     INT UNSIGNED NOT NULL,
+  `share_minor` BIGINT UNSIGNED NOT NULL,
+  `weight`      DECIMAL(12,2) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_shared_splits` (`expense_id`, `user_id`),
+  KEY `idx_shared_splits_user` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
