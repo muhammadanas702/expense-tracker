@@ -144,6 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!$existing) {
                     rl_hit($conn, 'shared_expense', $key);
                 }
+                shared_emit($conn, $gid, $user_id, $existing ? 'expense_edit' : 'expense_add', ['title' => $title, 'amount_minor' => $totalMinor, 'currency' => $currency], array_merge(array_keys($res['shares']), [$payer]));
                 logAction($conn, $user_id, $existing ? 'shared_edit_expense' : 'shared_add_expense', "Group ID: $gid, expense ID: $id");
                 $_SESSION['success'] = $existing ? 'Expense updated.' : 'Expense added and split.';
                 shared_back('shared/group.php?id=' . $gid);

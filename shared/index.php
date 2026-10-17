@@ -37,6 +37,20 @@ ef_page_start(['title' => 'Shared Overview', 'sub' => 'Who owes whom, across all
 </div>
 <?php endif; ?>
 
+<?php $recent = function_exists('activity_feed') ? activity_feed($conn, $user_id, 0, 5) : []; ?>
+<?php if ($recent): ?>
+<div class="g card" style="margin-bottom:14px">
+  <div class="t">Recent activity <a href="<?= e(ef_url('activity/index.php')) ?>">View all →</a></div>
+  <?php foreach ($recent as $r): [$icon, $text, $amt] = activity_describe($r, $user_id); ?>
+  <div class="row">
+    <span class="gi" style="margin:0;width:36px;height:36px;flex:none"><?= ef_icon($icon, '#1d4ed8') ?></span>
+    <span><?= e($text) ?><small><?= e($r['group_name'] ?? 'Group') ?> · <?= e(activity_ago((int) $r['age_s'], $r['created_at'])) ?></small></span>
+    <?php if ($amt !== ''): ?><b><?= e($amt) ?></b><?php endif; ?>
+  </div>
+  <?php endforeach; ?>
+</div>
+<?php endif; ?>
+
 <div class="g card">
   <div class="t">Your groups <a href="<?= e(ef_url('shared/groups.php')) ?>"><?= $groups ? 'View all →' : 'Create one →' ?></a></div>
   <?php if ($groups): ?>
