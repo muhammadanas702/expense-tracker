@@ -285,4 +285,6 @@ Each feature is its own module under `modules/` so changing one does not affect 
 - The group page lists expenses with "you owe / you lent" and who owes what. The person who added an expense (or the group owner) can edit or delete it.
 - **Balances and settle up:** the group page shows each person's balance and **Who pays whom** (debts simplified to the fewest payments). Record a payment with **Settle**; it lowers the balance. Balances are kept per currency.
 - The Shared Overview shows your net balance, what you are owed and what you owe across all groups, plus a "To settle" list.
-- A member cannot leave (or be removed) while they still owe or are owed money.
+- A member cannot leave (or be removed) while they still owe or are owed money. If an account is deleted, debts with it are written off automatically.
+- Group page shows, for every member, what they paid, their share and what they paid back, so every balance can be checked by hand.
+- Add-expense and settle forms ignore a second submit of the same form (double tap or refresh), so nothing is saved twice.

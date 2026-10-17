@@ -220,6 +220,22 @@ function shared_delete_group(PDO $conn, int $groupId): void
 function shared_on_user_deleted(PDO $conn, int $userId): void
 {
     shared_ensure_schema($conn);
+    // Debts to or from the deleted account can never be settled, so they are written off
+    // as payments (the other person's balance with this account becomes zero).
+    $mine = $conn->prepare('SELECT group_id FROM shared_members WHERE user_id = ?');
+    $mine->execute([$userId]);
+    $gids = array_map('intval', $mine->fetchAll(PDO::FETCH_COLUMN));
+    foreach (shared_group_nets($conn, $gids) as $g => $byCur) {
+        foreach ($byCur as $cur => $byUser) {
+            foreach (shared_simplify($byUser) as $p) {
+                if ($p['from'] === $userId || $p['to'] === $userId) {
+                    $other = $p['from'] === $userId ? $p['to'] : $p['from'];
+                    $conn->prepare('INSERT INTO shared_settlements (group_id,from_user,to_user,amount_minor,currency,settled_on,note,created_by) VALUES (?,?,?,?,?,?,?,?)')
+                        ->execute([$g, $p['from'], $p['to'], $p['amount'], $cur, date('Y-m-d'), 'Written off: account deleted', $other]);
+                }
+            }
+        }
+    }
     $owned = $conn->prepare('SELECT id FROM shared_groups WHERE owner_id = ?');
     $owned->execute([$userId]);
     foreach ($owned->fetchAll(PDO::FETCH_COLUMN) as $gid) {
@@ -391,32 +407,78 @@ function shared_can_edit(array $expense, array $group, int $userId): bool
 // ---------------------------------------------------------------- balances and settle up (Part 7)
 
 /**
- * Net balance of every person, per group and currency:
- *   paid - own shares + payments sent - payments received.  Positive = is owed, negative = owes.
- * @return array<int,array<string,array<int,int>>>  [group_id][currency][user_id] => minor units
+ * Money parts of every person, per group and currency (minor units):
+ *   paid = what they paid, share = their own shares, sent / recv = settle-up payments.
+ * @return array<int,array<string,array<int,array{paid:int,share:int,sent:int,recv:int}>>>  [group_id][currency][user_id]
  */
-function shared_group_nets(PDO $conn, array $groupIds): array
+function shared_group_parts(PDO $conn, array $groupIds): array
 {
     $groupIds = array_values(array_unique(array_filter(array_map('intval', $groupIds))));
     if (!$groupIds) {
         return [];
     }
     $in = implode(',', $groupIds); // integers only
-    $net = [];
-    $add = function (int $g, string $cur, int $uid, int $v) use (&$net) {
-        $net[$g][$cur][$uid] = ($net[$g][$cur][$uid] ?? 0) + $v;
+    $parts = [];
+    $add = function (int $g, string $cur, int $uid, string $k, int $v) use (&$parts) {
+        $parts[$g][$cur][$uid] = $parts[$g][$cur][$uid] ?? ['paid' => 0, 'share' => 0, 'sent' => 0, 'recv' => 0];
+        $parts[$g][$cur][$uid][$k] += $v;
     };
-    foreach ($conn->query("SELECT group_id, currency, paid_by, SUM(amount_minor) t FROM shared_expenses WHERE group_id IN ($in) GROUP BY group_id, currency, paid_by") as $r) {
-        $add((int) $r['group_id'], $r['currency'], (int) $r['paid_by'], (int) $r['t']);
+    foreach ($conn->query("SELECT group_id, currency, paid_by, SUM(amount_minor) AS t FROM shared_expenses WHERE group_id IN ($in) GROUP BY group_id, currency, paid_by")->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        $add((int) $r['group_id'], $r['currency'], (int) $r['paid_by'], 'paid', (int) $r['t']);
     }
-    foreach ($conn->query("SELECT e.group_id, e.currency, s.user_id, SUM(s.share_minor) t FROM shared_splits s JOIN shared_expenses e ON e.id = s.expense_id WHERE e.group_id IN ($in) GROUP BY e.group_id, e.currency, s.user_id") as $r) {
-        $add((int) $r['group_id'], $r['currency'], (int) $r['user_id'], -(int) $r['t']);
+    foreach ($conn->query("SELECT e.group_id, e.currency, s.user_id, SUM(s.share_minor) AS t FROM shared_splits s JOIN shared_expenses e ON e.id = s.expense_id WHERE e.group_id IN ($in) GROUP BY e.group_id, e.currency, s.user_id")->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        $add((int) $r['group_id'], $r['currency'], (int) $r['user_id'], 'share', (int) $r['t']);
     }
-    foreach ($conn->query("SELECT group_id, currency, from_user, to_user, SUM(amount_minor) t FROM shared_settlements WHERE group_id IN ($in) GROUP BY group_id, currency, from_user, to_user") as $r) {
-        $add((int) $r['group_id'], $r['currency'], (int) $r['from_user'], (int) $r['t']);
-        $add((int) $r['group_id'], $r['currency'], (int) $r['to_user'], -(int) $r['t']);
+    foreach ($conn->query("SELECT group_id, currency, from_user, to_user, SUM(amount_minor) AS t FROM shared_settlements WHERE group_id IN ($in) GROUP BY group_id, currency, from_user, to_user")->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        $add((int) $r['group_id'], $r['currency'], (int) $r['from_user'], 'sent', (int) $r['t']);
+        $add((int) $r['group_id'], $r['currency'], (int) $r['to_user'], 'recv', (int) $r['t']);
+    }
+    return $parts;
+}
+
+/**
+ * Net balance of every person, per group and currency: paid - shares + payments sent - payments received.
+ * Positive = is owed, negative = owes. Every currency of a group sums to zero.
+ * @return array<int,array<string,array<int,int>>>  [group_id][currency][user_id] => minor units
+ */
+function shared_group_nets(PDO $conn, array $groupIds): array
+{
+    $net = [];
+    foreach (shared_group_parts($conn, $groupIds) as $g => $byCur) {
+        foreach ($byCur as $cur => $byUser) {
+            foreach ($byUser as $uid => $p) {
+                $net[$g][$cur][$uid] = $p['paid'] - $p['share'] + $p['sent'] - $p['recv'];
+            }
+        }
     }
     return $net;
+}
+
+/**
+ * What the user has to pay / will get, from the simplified payments of every group
+ * (the same list the group pages show).
+ * @return array{owed:array<string,int>,owe:array<string,int>,todo:array<int,array>}
+ */
+function shared_user_summary(PDO $conn, array $groupIds, int $userId): array
+{
+    $out = ['owed' => [], 'owe' => [], 'todo' => []];
+    foreach (shared_group_nets($conn, $groupIds) as $g => $byCur) {
+        foreach ($byCur as $cur => $byUser) {
+            foreach (shared_simplify($byUser) as $p) {
+                if ($p['to'] === $userId) {
+                    $out['owed'][$cur] = ($out['owed'][$cur] ?? 0) + $p['amount'];
+                } elseif ($p['from'] === $userId) {
+                    $out['owe'][$cur] = ($out['owe'][$cur] ?? 0) + $p['amount'];
+                } else {
+                    continue;
+                }
+                $p['group'] = $g;
+                $p['currency'] = $cur;
+                $out['todo'][] = $p;
+            }
+        }
+    }
+    return $out;
 }
 
 /** True when the user still owes or is owed something in this group. */
@@ -461,4 +523,28 @@ function shared_names(PDO $conn, array $ids): array
         }
     }
     return $out;
+}
+
+
+// ---------------------------------------------------------------- double-submit protection
+
+/** A one-time form token: a second submit of the same form (double tap, refresh) is ignored. */
+function shared_token_new(): string
+{
+    $t = bin2hex(random_bytes(12));
+    $list = $_SESSION['shared_tokens'] ?? [];
+    $list[$t] = time();
+    arsort($list);
+    $_SESSION['shared_tokens'] = array_slice($list, 0, 30, true);
+    return $t;
+}
+
+function shared_token_valid($t): bool
+{
+    return is_string($t) && isset($_SESSION['shared_tokens'][$t]);
+}
+
+function shared_token_use($t): void
+{
+    unset($_SESSION['shared_tokens'][$t]);
 }

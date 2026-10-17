@@ -1,18 +1,9 @@
 <?php
 require_once __DIR__ . '/../modules/shared/boot.php';
 $groups = shared_groups_of($conn, $user_id);
-// Totals across all groups, per currency, plus the payments the user still has to make or receive.
-$nets = shared_group_nets($conn, array_map(fn($g) => (int) $g['id'], $groups));
-$owed = []; $owe = []; $todo = [];
-foreach ($nets as $gidx => $byCur) {
-    foreach ($byCur as $cur => $byUser) {
-        $n = $byUser[$user_id] ?? 0;
-        if ($n > 0) { $owed[$cur] = ($owed[$cur] ?? 0) + $n; } elseif ($n < 0) { $owe[$cur] = ($owe[$cur] ?? 0) - $n; }
-        foreach (shared_simplify($byUser) as $p) {
-            if ($p['from'] === $user_id || $p['to'] === $user_id) { $p['group'] = $gidx; $p['currency'] = $cur; $todo[] = $p; }
-        }
-    }
-}
+// Totals across all groups, per currency, from the same simplified payments the group pages show.
+$sum = shared_user_summary($conn, array_map(fn($g) => (int) $g['id'], $groups), $user_id);
+$owed = $sum['owed']; $owe = $sum['owe']; $todo = $sum['todo'];
 $gnames = array_column($groups, 'name', 'id');
 $other = shared_names($conn, array_map(fn($p) => $p['from'] === $user_id ? $p['to'] : $p['from'], $todo));
 $fmt = function (array $byCur, string $sign = '') {
@@ -34,6 +25,7 @@ ef_page_start(['title' => 'Shared Overview', 'sub' => 'Who owes whom, across all
   <div class="g card"><div class="k">You owe</div><div class="v ex"><?= $fmt($owe) ?></div></div>
 </div>
 
+<p class="k" style="margin:-4px 4px 14px">Balances are netted per group: if two people owe each other, the amounts cancel out. Open a group to see every expense and who paid what.</p>
 <?php if ($todo): ?>
 <div class="g card" style="margin-bottom:14px">
   <div class="t">To settle</div>
