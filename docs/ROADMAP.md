@@ -30,7 +30,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 10 | Native apps: APK (Android), EXE (Windows), iOS (see below), GitHub Releases workflow | todo |
 | 11 | Role-based admin panel (design: docs/design/v8-admin-panel-v3.html), split into 11a-11f | in progress |
 | 11a | Roles (Super Admin, Admin, Support), permission table, admin shell and Overview | done (SQL: database/part-11a.sql) |
-| 11b | Users: search, filters, profile, add, block/unblock, role change, reset link, delete, CSV export | todo (SQL) |
+| 11b | Users: search, filters, sort, pages, profile, add, block/unblock, role change, temporary password, delete, CSV export | done (SQL: database/part-11b.sql) |
 | 11c | Roles and permissions page, Audit log | todo |
 | 11d | Support: help form for users and the staff inbox | todo (SQL) |
 | 11e | Announcements, Categories, Currencies, Groups | todo (SQL) |
@@ -83,3 +83,12 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - The side menu only shows pages that exist and that the role may use, so each later part just adds a page file.
 - Old pages `edit-user.php` (Super Admin only), `delete-user.php` (`del` permission), `view-user.php` (`view`), `logs.php` (`log`) now check permissions; they get the new look in 11b/11c.
 - Tests: `php tests/admin_roles_test.php`, `python3 tests/admin_http_test.py` (test database and local server only).
+
+## Notes for Part 11b
+
+- `users.blocked` (added by the site itself or by `database/part-11b.sql`): a blocked user cannot log in and a live session is signed out on its next request (check in `config/db.php`).
+- Who may manage whom (`admin_can_manage`): nobody on themselves; Super Admin on anybody; Admin and Support only on plain users. Roles and name/email edits are Super Admin only. The last Super Admin cannot be demoted or deleted.
+- Password "reset" sets a random temporary password shown once to the staff member (the e-mail code flow needs the user's own session). Shown once through the session; it is never stored in clear text.
+- The profile page no longer lists a user's income and expense rows (privacy). It shows counts, last login and recent activity only.
+- `admin/edit-user.php` now just redirects to the profile page. CSV export neutralises spreadsheet formulas and is written to the audit log.
+- Tests: `python3 tests/admin_users_http_test.py` (block, sign-out, temporary password, roles, add user, CSV, filters).

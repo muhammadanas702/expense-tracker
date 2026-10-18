@@ -72,7 +72,7 @@ It is built for people who earn or spend across several currencies, for example 
 
 ### Admin panel
 - Role based: **Super Admin** (everything), **Admin** and **Support** (only what a Super Admin allows), plus normal users. Every admin page checks the role on the server, and the menu only shows what your role may use. An overview page shows users, sign-ups and recent staff actions.
-- List all users, view any user's income and expenses, edit a user's name, email, role or password, and delete users.
+- **Users:** search, filter (active, blocked, staff), sort, open a profile, add a user, block or unblock (a blocked user is signed out and cannot log in), set a temporary password, change a role or name/email (Super Admin only), delete, and export the list as CSV. What each role may do is checked on the server; Admin and Support can only manage plain users.
 - **Activity log** with time, user, action, details and IP address, filterable by user, action and date and paginated. Logged actions include login, logout, adding, editing and deleting expenses and income, data resets and base currency changes.
 
 ### Progressive web app

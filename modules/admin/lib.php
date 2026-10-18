@@ -48,6 +48,10 @@ function admin_ensure_schema(PDO $conn): void
             schema_has($conn, 'users', 'role', true);
             $conn->exec("UPDATE `users` SET `role` = 'super' WHERE `is_admin` = 1");
         }
+        if (!schema_has($conn, 'users', 'blocked')) {
+            $conn->exec("ALTER TABLE `users` ADD COLUMN `blocked` TINYINT(1) NOT NULL DEFAULT 0");
+            schema_has($conn, 'users', 'blocked', true);
+        }
         $conn->exec(
             "CREATE TABLE IF NOT EXISTS `admin_perms` (
               `role` VARCHAR(10) NOT NULL,
@@ -135,4 +139,39 @@ function admin_set_role(PDO $conn, int $userId, string $role): bool
 function admin_audit(PDO $conn, int $actorId, string $kind, string $text): void
 {
     logAction($conn, $actorId, 'admin_' . preg_replace('/[^a-z_]/', '', $kind), $text);
+}
+
+/**
+ * May this staff member act on this account (block, reset, change, delete)?
+ * Never on yourself. A Super Admin may act on anybody; Admin and Support only on plain users.
+ */
+function admin_can_manage(array $actor, array $target): bool
+{
+    if ((int) $actor['id'] === (int) $target['id']) {
+        return false;
+    }
+    return $actor['role'] === 'super' || ($target['role'] ?? 'user') === 'user';
+}
+
+/** A random password that satisfies the password policy (shown once to the staff member). */
+function admin_temp_password(): string
+{
+    $pick = fn(string $set) => $set[random_int(0, strlen($set) - 1)];
+    $chars = [$pick('ABCDEFGHJKLMNPQRSTUVWXYZ'), $pick('abcdefghijkmnpqrstuvwxyz'), $pick('23456789'), $pick('!@#$%&*?')];
+    $all = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    while (count($chars) < 12) {
+        $chars[] = $pick($all);
+    }
+    for ($i = count($chars) - 1; $i > 0; $i--) {
+        $j = random_int(0, $i);
+        [$chars[$i], $chars[$j]] = [$chars[$j], $chars[$i]];
+    }
+    return implode('', $chars);
+}
+
+/** Spreadsheet programs run cells that start with = + - @ : neutralise them in CSV exports. */
+function admin_csv_cell($v): string
+{
+    $v = (string) $v;
+    return $v !== '' && strpos("=+-@\t\r", $v[0]) !== false ? "'" . $v : $v;
 }

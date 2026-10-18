@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `password`   VARCHAR(255) NOT NULL,
   `is_admin`   TINYINT(1)   NOT NULL DEFAULT 0,
   `role`       VARCHAR(10)  NOT NULL DEFAULT 'user',
+  `blocked`    TINYINT(1)   NOT NULL DEFAULT 0,
   `created_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_users_email` (`email`)
