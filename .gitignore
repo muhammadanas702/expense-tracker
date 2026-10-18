@@ -14,6 +14,7 @@
 *.zip
 /storage/*
 !/storage/.gitkeep
+!/storage/.htaccess
 /.ftp-deploy-sync-state.json
 
 # Local diagnostics and one-time admin maintenance scripts.

@@ -1,0 +1,2 @@
+# Uploaded files (receipts) are served only through receipts/view.php after a membership check.
+Require all denied

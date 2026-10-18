@@ -28,7 +28,7 @@ personal_ensure_schema($conn);
 require_once __DIR__ . '/../modules/profile/lib.php';
 profile_ensure_schema($conn); // makes sure the extra tables exist before they are cleaned
 require_once __DIR__ . '/../modules/shared/lib.php';
-shared_ensure_schema($conn);
+shared_ensure_all_schemas($conn);
 $conn->beginTransaction();
 try {
     foreach (['income', 'expenses', 'user_monthly_currency', 'user_logs', 'recurring_items', 'user_settings'] as $table) {
