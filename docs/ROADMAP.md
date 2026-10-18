@@ -24,7 +24,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 6 | Shared 2: shared expense, 4 split types, add my share to Personal | done (SQL: database/part-6.sql) |
 | 7 | Shared 3: balances, simplified debts, settle up | done (SQL: database/part-7.sql) |
 | 8a | Activity feed + notifications bell (module `activity`) | done (SQL: database/part-8a.sql) |
-| 8b | Comments on expenses + receipt upload | todo (SQL) |
+| 8b | Comments on expenses + receipt upload | done (SQL: database/part-8b.sql) |
 | 8c | Friends list (people you split with) | todo (SQL) |
 | 9 | Full review, security pass, tests, final README | todo |
 | 10 | Native apps: APK (Android), EXE (Windows), iOS (see below), GitHub Releases workflow | todo |

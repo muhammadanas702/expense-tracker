@@ -25,6 +25,8 @@ $nameIds = array_merge([], ...array_values(array_map('array_keys', $nets)));
 foreach ($pairs as $list) { foreach ($list as $p) { $nameIds[] = $p['from']; $nameIds[] = $p['to']; } }
 $nameMap = shared_names($conn, $nameIds);
 $nm = fn(int $id) => $nameMap[$id] ?? 'Former member';
+$cmts = function_exists('comments_for_expenses') ? comments_for_expenses($conn, array_map(fn($x) => (int) $x['id'], $expenses)) : [];
+$rcpts = function_exists('receipts_for_expenses') ? receipts_for_expenses($conn, array_map(fn($x) => (int) $x['id'], $expenses)) : [];
 $splitNames = [];
 if ($expenses) {
     $ids = array_map(fn($x) => (int) $x['id'], $expenses);
@@ -94,13 +96,26 @@ usort($debts, fn($x, $y) => (($y['from'] === $user_id || $y['to'] === $user_id) 
     else { $net = 0; $label = 'not involved'; $cls = 'tn'; }
     $can = shared_can_edit($x, $group, $user_id);
   ?>
-  <div class="row" style="align-items:flex-start;flex-wrap:wrap">
-    <span style="flex:1;min-width:0"><b><?= e($x['title']) ?></b>
+  <div class="row" id="x<?= (int) $x['id'] ?>" style="align-items:flex-start;flex-wrap:wrap">
+    <span style="flex:1;min-width:0"><b><?= e($x['title']) ?></b><?php if (!empty($rcpts[(int) $x['id']])): ?> <a href="<?= e(ef_url('receipts/view.php?id=' . (int) $rcpts[(int) $x['id']])) ?>" target="_blank" rel="noopener" title="View receipt" style="color:var(--a1)"><?= ef_icon('rcp') ?></a><?php endif; ?>
       <small><?= e($x['payer_name'] ?? 'Former member') ?> paid <?= shared_money($total, $cur) ?> · <?= e(date('d M Y', strtotime($x['expense_date']))) ?> · <?= e(SHARED_SPLIT_TYPES[$x['split_type']] ?? 'Split') ?></small>
       <details style="margin-top:4px"><summary class="k" style="cursor:pointer">Who owes what</summary>
         <?php foreach ($splitNames[(int) $x['id']] ?? [] as [$nm, $sh]): ?><small><?= e($nm) ?>: <?= shared_money($sh, $cur) ?></small><?php endforeach; ?>
         <?php if (!empty($x['note'])): ?><small>Note: <?= e($x['note']) ?></small><?php endif; ?>
-      </details></span>
+      </details>
+      <?php if (function_exists('comments_add')): $xc = $cmts[(int) $x['id']] ?? []; ?>
+      <details style="margin-top:4px"<?= $xc && isset($_GET['c']) && (int) $_GET['c'] === (int) $x['id'] ? ' open' : '' ?>><summary class="k" style="cursor:pointer"><?= ef_icon('msg') ?> Comments<?= $xc ? ' (' . count($xc) . ')' : '' ?></summary>
+        <?php foreach ($xc as $c): ?>
+        <small style="display:flex;gap:8px;align-items:flex-start;margin:6px 0"><span style="flex:1;overflow-wrap:anywhere"><b><?= (int) $c['user_id'] === $user_id ? 'You' : e($c['name'] ?? 'Former member') ?></b> · <?= function_exists('activity_ago') ? e(activity_ago((int) $c['age_s'], $c['created_at'])) : '' ?><br><?= nl2br(e($c['body'])) ?></span>
+          <?php if ((int) $c['user_id'] === $user_id || $isOwner): ?><a class="del" href="<?= e(ef_url('comments/action.php')) ?>" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"do":"delete","group_id":<?= $gid ?>,"expense_id":<?= (int) $x['id'] ?>,"comment_id":<?= (int) $c['id'] ?>}' onclick="return confirm('Delete this comment?')" aria-label="Delete comment"><?= ef_icon('tr') ?></a><?php endif; ?></small>
+        <?php endforeach; ?>
+        <form method="POST" action="<?= e(ef_url('comments/action.php')) ?>" autocomplete="off" style="display:flex;gap:8px;margin-top:6px">
+          <?= csrf_field() ?><input type="hidden" name="do" value="add"><input type="hidden" name="group_id" value="<?= $gid ?>"><input type="hidden" name="expense_id" value="<?= (int) $x['id'] ?>">
+          <input class="inp" style="padding:8px 10px" type="text" name="body" maxlength="500" placeholder="Write a comment…" aria-label="Comment" required>
+          <button class="btn sm" type="submit">Send</button>
+        </form>
+      </details>
+      <?php endif; ?></span>
     <span class="tag <?= $cls ?>" style="white-space:nowrap"><?= e($label) ?><?= $net > 0 ? ' ' . shared_money($net, $cur) : '' ?></span>
     <?php if ($can): ?>
     <span class="acts">

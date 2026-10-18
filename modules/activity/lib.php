@@ -6,7 +6,7 @@
  */
 const ACTIVITY_KINDS = [
     'expense_add', 'expense_edit', 'expense_delete', 'settle', 'settle_delete',
-    'member_join', 'member_leave', 'member_remove', 'group_create', 'group_rename',
+    'member_join', 'member_leave', 'member_remove', 'group_create', 'group_rename', 'comment',
 ];
 
 function activity_ensure_schema(PDO $conn): void
@@ -160,6 +160,7 @@ function activity_describe(array $r, int $viewerId): array
         case 'member_remove':  return ['users', "$who removed $target from the group", ''];
         case 'group_create':   return ['users', "$who created the group", ''];
         case 'group_rename':   return ['pen', "$who renamed the group", ''];
+        case 'comment':        return ['msg', "$who commented on $t", ''];
     }
     return ['act', "$who did something", ''];
 }

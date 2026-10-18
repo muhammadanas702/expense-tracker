@@ -295,3 +295,9 @@ Each feature is its own module under `modules/` so changing one does not affect 
 - **Notifications:** a bell in the top bar with a count. You are told when someone adds or changes an expense that involves you, records a payment to you, or adds/removes you. Opening the page marks them read. Turn them off in Profile & Settings.
 - The Shared Overview shows your latest activity.
 - It is a separate module (`modules/activity`). Other modules only call one guarded helper, so it can be switched off in `modules/activity/module.php` without breaking Shared.
+
+### Comments & receipts (new)
+
+- **Comments:** every shared expense has a comment box (up to 500 characters). Members are notified through the Activity module. You can delete your own comments; the group owner can delete any.
+- **Receipts:** attach one photo (JPG, PNG or WebP, up to 3 MB) when adding or editing an expense. The picture is re-drawn as a JPEG of at most 1600 px (this removes metadata and anything hidden in the file), stored in a private folder that web visitors cannot open directly, and shown only to members of that group. Remove or replace it by editing the expense.
+- Both are separate modules (`modules/comments`, `modules/receipts`). Shared only calls their helpers when they exist, so either can be switched off without breaking Shared. Deleting an expense or group removes its comments and receipt files.
