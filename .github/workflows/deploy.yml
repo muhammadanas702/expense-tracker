@@ -108,6 +108,7 @@ jobs:
             **/.github/**
             **/node_modules/**
             **/storage/**
+            tests/**
             **/exports/**
             **/*.sql
             **/*.sql.gz

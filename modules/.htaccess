@@ -1,0 +1,2 @@
+# Module code (helpers, manifests) is only ever included by PHP, never opened in a browser.
+Require all denied

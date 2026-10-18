@@ -122,22 +122,24 @@ It is built for people who earn or spend across several currencies, for example 
 
 ```
 .
+├── modules/                One folder per feature, each with a module.php manifest (personal, profile,
+│                           shared, friends, activity, comments, receipts). A module can be switched
+│                           off in its manifest without breaking the others.
+├── shared/, friends/, activity/, comments/, receipts/   Pages of the Shared mode
 ├── admin/                  Admin panel: users, view/edit/delete user, activity logs
 ├── assets/                 CSS, JavaScript and icons (including PWA icons)
 ├── auth/                   Register, login, logout, password reset, delete account
 ├── config/                 App base URL, database, mail and currency settings
-├── expense/                Add expense
-├── income/                 Add income
+├── expense/, income/       Add expense, add income
 ├── reports/                Full report with Excel export and print-to-PDF
-├── includes/               Security helpers, currencies, schema upgrade, CurrencyConverter, logging, PWA head tags
-├── storage/                Cached exchange rates
+├── includes/               Layout, security helpers, currencies, schema upgrade, CurrencyConverter, logging
+├── database/               One SQL file per part (part-N.sql) to run in phpMyAdmin on an existing install
+├── tests/                  PHP and HTTP checks (run against a TEST database only; never deployed)
+├── docs/                   Roadmap and design files (never deployed)
+├── storage/                Cached exchange rates and private receipt pictures (blocked from the web)
 ├── tcpdf/, vendor/         Bundled third-party libraries (not used at runtime)
 ├── .github/workflows/      GitHub Actions deployment workflow
-├── dashboard.php           Main dashboard
-├── profile.php             Profile and password settings
-├── edit-*.php, delete-*.php   Edit and delete income and expenses
-├── change-base-currency.php   Monthly base currency switch
-├── reset-data.php          Reset income, expenses or all data
+├── dashboard.php, profile.php, edit-*.php, delete-*.php, change-base-currency.php, reset-data.php   Personal pages
 ├── index.php               Landing page
 ├── sw.js, manifest.json, offline.html   PWA files
 ├── schema.sql              Database schema for a fresh install
@@ -231,7 +233,7 @@ When the connection drops, the service worker shows a custom offline page instea
 
 ## Security
 
-ExpenseFlow uses prepared statements, CSRF tokens on every form, POST-only delete and reset actions, escaped output, hardened session cookies, login and reset rate limiting, a strong password policy and one-time reset codes that are stored hashed. To report a vulnerability, please open a private security advisory on GitHub instead of a public issue.
+ExpenseFlow uses prepared statements, CSRF tokens on every form, POST-only delete and reset actions, escaped output, hardened session cookies, login and reset rate limiting, a strong password policy and one-time reset codes that are stored hashed. Shared groups re-check membership on the server for every request (groups, expenses, comments, receipts, friends), receipt pictures are re-encoded and served only to group members, and the `modules/`, `tests/`, `storage/`, `includes/` and `config/` folders are blocked from direct web access. `tests/` is also excluded from deployment. To report a vulnerability, please open a private security advisory on GitHub instead of a public issue.
 
 ## Project status and roadmap
 

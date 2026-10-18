@@ -231,6 +231,20 @@ function shared_delete_group(PDO $conn, int $groupId): void
 }
 
 /**
+ * Makes sure Shared and every optional module table exists. Call it BEFORE beginTransaction():
+ * CREATE TABLE commits an open transaction in MySQL.
+ */
+function shared_ensure_all_schemas(PDO $conn): void
+{
+    shared_ensure_schema($conn);
+    foreach (['activity_ensure_schema', 'comments_ensure_schema', 'receipts_ensure_schema'] as $fn) {
+        if (function_exists($fn)) {
+            $fn($conn);
+        }
+    }
+}
+
+/**
  * Called when an account is deleted. Leaves every group; a group the user owned goes to the
  * longest-standing member, or is deleted when nobody else is in it.
  */

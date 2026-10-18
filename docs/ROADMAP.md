@@ -26,7 +26,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 8a | Activity feed + notifications bell (module `activity`) | done (SQL: database/part-8a.sql) |
 | 8b | Comments on expenses + receipt upload | done (SQL: database/part-8b.sql) |
 | 8c | Friends list (people you split with) | done (no SQL needed) |
-| 9 | Full review, security pass, tests, final README | todo |
+| 9 | Full review, security pass, tests, final README | done (admin pages are restyled in Part 11) |
 | 10 | Native apps: APK (Android), EXE (Windows), iOS (see below), GitHub Releases workflow | todo |
 
 ## Native apps (plan)
@@ -56,3 +56,12 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Friends is derived data: a friend is anyone who shares at least one group with you. It has **no table and no SQL**. It only reads Shared helpers (`shared_groups_of`, `shared_user_summary`) so it can be switched off in `modules/friends/module.php` without touching anything else.
 - Pages: `friends/index.php` (list with search and balance per person), `friends/view.php?id=` (balance per currency, Settle buttons, shared groups, payments between you). Only people who share a group with you can be opened.
 - Run `php tests/friends_test.php` against a test database.
+
+## Notes for Part 9
+
+- Security pass over all PHP files: login check, CSRF on every POST, escaped output, prepared statements (the few `query()` calls only use integer ids). No new vulnerability in the application code.
+- Fixed: `tests/` was being deployed and its scripts create users, so it is now excluded from deployment and blocked by `tests/.htaccess`. Added `modules/.htaccess` and `storage/.htaccess` (deny all).
+- Fixed: account deletion created module tables inside a transaction (CREATE TABLE commits it). `shared_ensure_all_schemas()` now runs before the transaction in `auth/delete-account.php` and `admin/delete-user.php`.
+- New checks: `tests/security_http_test.py` (anonymous access, non-member access, CSRF; needs the local test server) and `tests/account_delete_test.php`.
+- The admin panel keeps its current look until Part 11 (design: docs/design/v8-admin-panel-v3.html), so it is not restyled twice.
+- On the live server: delete the old `tests` folder (the deploy does not remove files that were already uploaded).
