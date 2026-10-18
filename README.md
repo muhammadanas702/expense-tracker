@@ -296,6 +296,10 @@ Each feature is its own module under `modules/` so changing one does not affect 
 - The Shared Overview shows your latest activity.
 - It is a separate module (`modules/activity`). Other modules only call one guarded helper, so it can be switched off in `modules/activity/module.php` without breaking Shared.
 
+### Friends (new)
+
+- **Friends:** everyone who is in a group with you appears automatically, with what they owe you or you owe them (kept person by person, per currency). Open a friend to see the groups you share, settle up in one tap and view the payments between you. No extra setup or database table is needed.
+
 ### Comments & receipts (new)
 
 - **Comments:** every shared expense has a comment box (up to 500 characters). Members are notified through the Activity module. You can delete your own comments; the group owner can delete any.
