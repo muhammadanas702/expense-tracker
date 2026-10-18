@@ -25,7 +25,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 7 | Shared 3: balances, simplified debts, settle up | done (SQL: database/part-7.sql) |
 | 8a | Activity feed + notifications bell (module `activity`) | done (SQL: database/part-8a.sql) |
 | 8b | Comments on expenses + receipt upload | done (SQL: database/part-8b.sql) |
-| 8c | Friends list (people you split with) | todo (SQL) |
+| 8c | Friends list (people you split with) | done (no SQL needed) |
 | 9 | Full review, security pass, tests, final README | todo |
 | 10 | Native apps: APK (Android), EXE (Windows), iOS (see below), GitHub Releases workflow | todo |
 
@@ -50,3 +50,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Done in Part 7: leaving or removal is blocked while a balance is open. A deleted account still shows as "Former member" in old expenses.
 - Expenses are stored per currency (minor units). Balances are calculated per currency.
 - Run `php tests/shared_split_test.php` and `php tests/shared_balance_test.php` to check the split and balance maths. `php tests/shared_ledger_test.php` checks balances against a test database (never run it on the live database).
+
+## Notes for Part 8c
+
+- Friends is derived data: a friend is anyone who shares at least one group with you. It has **no table and no SQL**. It only reads Shared helpers (`shared_groups_of`, `shared_user_summary`) so it can be switched off in `modules/friends/module.php` without touching anything else.
+- Pages: `friends/index.php` (list with search and balance per person), `friends/view.php?id=` (balance per currency, Settle buttons, shared groups, payments between you). Only people who share a group with you can be opened.
+- Run `php tests/friends_test.php` against a test database.
