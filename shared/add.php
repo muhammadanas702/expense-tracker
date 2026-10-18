@@ -94,9 +94,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $parts = array_values(array_filter(array_map('intval', array_keys($old['part'])), fn($i) => in_array($i, $memberIds, true)));
     $key = rl_key((string) $user_id);
     $ft = (string) ($_POST['ft'] ?? '');
+    $recFile = $_FILES['receipt'] ?? null;
+    $rc = function_exists('receipts_check_upload') ? receipts_check_upload($recFile) : null; // null = none, true = ok, string = error
 
     if (!$group) {
         $error = 'Choose a group first.';
+    } elseif (!$_POST && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+        $error = 'The receipt is too big (3 MB at most).';
     } elseif (!csrf_valid()) {
         $error = 'Your session expired. Please try again.';
     } elseif (!shared_token_valid($ft)) {
@@ -118,6 +122,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Please choose how to split.';
     } elseif (trim($old['note']) !== '' && $note === null) {
         $error = 'The note is too long (255 characters at most).';
+    } elseif (is_string($rc)) {
+        $error = $rc;
     } elseif ($old['personal'] === '1' && !in_array($old['category'], $cats, true)) {
         $error = 'Please choose a category for your Personal expense.';
     } else {
@@ -144,8 +150,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!$existing) {
                     rl_hit($conn, 'shared_expense', $key);
                 }
+                $warn = '';
+                if (function_exists('receipts_save')) {
+                    if ($rc === true && !receipts_save($conn, $gid, $id, $user_id, $recFile)) {
+                        $warn = ' The receipt could not be saved, you can add it again by editing the expense.';
+                    } elseif ($rc === null && $existing && ($_POST['remove_receipt'] ?? '') === '1') {
+                        receipts_remove($conn, $id);
+                    }
+                }
+                shared_emit($conn, $gid, $user_id, $existing ? 'expense_edit' : 'expense_add', ['title' => $title, 'amount_minor' => $totalMinor, 'currency' => $currency], array_merge(array_keys($res['shares']), [$payer]));
                 logAction($conn, $user_id, $existing ? 'shared_edit_expense' : 'shared_add_expense', "Group ID: $gid, expense ID: $id");
-                $_SESSION['success'] = $existing ? 'Expense updated.' : 'Expense added and split.';
+                $_SESSION['success'] = ($existing ? 'Expense updated.' : 'Expense added and split.') . $warn;
                 shared_back('shared/group.php?id=' . $gid);
             } catch (Throwable $e) {
                 error_log('ExpenseFlow shared expense save failed: ' . $e->getMessage());
@@ -155,6 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$curReceipt = ($existing && function_exists('receipts_for_expenses')) ? (receipts_for_expenses($conn, [$editId])[$editId] ?? 0) : 0;
 $csrf = csrf_token();
 $ftoken = ($_SERVER['REQUEST_METHOD'] === 'POST' && shared_token_valid($_POST['ft'] ?? null)) ? (string) $_POST['ft'] : shared_token_new();
 ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expense', 'sub' => $group ? $group['name'] : 'Split a bill with your group', 'mode' => 's', 'active' => 'sadd', 'user' => $user]);
@@ -179,7 +195,7 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
       <?php endforeach; ?>
     </div></div>
   <?php endif; ?>
-  <form method="POST" autocomplete="off" id="sx" data-type="<?= e($old['split_type']) ?>">
+  <form method="POST" enctype="multipart/form-data" autocomplete="off" id="sx" data-type="<?= e($old['split_type']) ?>">
     <?= csrf_field() ?>
     <input type="hidden" name="group_id" value="<?= $gid ?>"><input type="hidden" name="ft" value="<?= e($ftoken) ?>">
     <div class="fl"><label for="title">Description</label>
@@ -223,6 +239,17 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
 
     <div class="fl"><label for="note">Note (optional)</label>
       <input class="inp" id="note" type="text" name="note" maxlength="255" value="<?= e($old['note']) ?>"></div>
+
+    <?php if (function_exists('receipts_check_upload')): ?>
+    <div class="fl"><label for="receipt">Receipt photo (optional)</label>
+      <input class="inp" id="receipt" type="file" name="receipt" accept="image/jpeg,image/png,image/webp" capture="environment">
+      <small class="k">JPG, PNG or WebP, up to 3 MB. Only group members can see it.</small>
+      <?php if ($curReceipt): ?>
+      <div class="row" style="border:0;padding:6px 0"><a href="<?= e(ef_url('receipts/view.php?id=' . (int) $curReceipt)) ?>" target="_blank" rel="noopener" style="color:var(--a1);font-weight:700">View current receipt</a>
+        <label style="margin-left:auto;display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;font-size:.8rem;color:var(--tx)"><input type="checkbox" name="remove_receipt" value="1"> Remove it</label></div>
+      <?php endif; ?>
+    </div>
+    <?php endif; ?>
 
     <?php if ($isCreator): ?>
     <div class="fl">

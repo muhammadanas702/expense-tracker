@@ -7,6 +7,15 @@
  */
 require_once __DIR__ . '/split.php';
 require_once __DIR__ . '/balance.php';
+if (is_file(__DIR__ . '/../activity/lib.php')) {
+    require_once __DIR__ . '/../activity/lib.php'; // optional: feed + notifications
+}
+foreach (['comments', 'receipts'] as $ef_opt) {
+    if (is_file(__DIR__ . '/../' . $ef_opt . '/lib.php')) {
+        require_once __DIR__ . '/../' . $ef_opt . '/lib.php'; // optional modules, each with its own tables
+    }
+}
+unset($ef_opt);
 require_once __DIR__ . '/../personal/lib.php';
 const SHARED_MAX_GROUPS_PER_USER = 30;
 const SHARED_MAX_MEMBERS = 50;
@@ -206,9 +215,17 @@ function shared_remove_member(PDO $conn, int $groupId, int $userId): void
 /** Deletes a group completely (expenses and splits included). Later parts add their cleanup here. */
 function shared_delete_group(PDO $conn, int $groupId): void
 {
+    foreach (['receipts_on_group_deleted', 'comments_on_group_deleted'] as $hook) {
+        if (function_exists($hook)) {
+            $hook($conn, $groupId);
+        }
+    }
     $conn->prepare('DELETE FROM shared_splits WHERE expense_id IN (SELECT id FROM shared_expenses WHERE group_id = ?)')->execute([$groupId]);
     $conn->prepare('DELETE FROM shared_expenses WHERE group_id = ?')->execute([$groupId]);
     $conn->prepare('DELETE FROM shared_settlements WHERE group_id = ?')->execute([$groupId]);
+    if (function_exists('activity_on_group_deleted')) {
+        activity_on_group_deleted($conn, $groupId);
+    }
     $conn->prepare('DELETE FROM shared_members WHERE group_id = ?')->execute([$groupId]);
     $conn->prepare('DELETE FROM shared_groups WHERE id = ?')->execute([$groupId]);
 }
@@ -250,6 +267,12 @@ function shared_on_user_deleted(PDO $conn, int $userId): void
         }
     }
     $conn->prepare('DELETE FROM shared_members WHERE user_id = ?')->execute([$userId]);
+    if (function_exists('activity_on_user_deleted')) {
+        activity_on_user_deleted($conn, $userId);
+    }
+    if (function_exists('comments_on_user_deleted')) {
+        comments_on_user_deleted($conn, $userId);
+    }
 }
 
 function shared_invite_url(string $code): string
@@ -391,6 +414,11 @@ function shared_expense_save(PDO $conn, array $group, int $userId, array $d, $pe
 
 function shared_expense_delete(PDO $conn, array $expense): void
 {
+    foreach (['receipts_on_expense_deleted', 'comments_on_expense_deleted'] as $hook) {
+        if (function_exists($hook)) {
+            $hook($conn, (int) $expense['id']);
+        }
+    }
     $conn->prepare('DELETE FROM shared_splits WHERE expense_id = ?')->execute([$expense['id']]);
     $conn->prepare('DELETE FROM shared_expenses WHERE id = ?')->execute([$expense['id']]);
     // The creator's Personal copy was made for this expense, so it goes too.
@@ -581,4 +609,15 @@ function shared_token_valid($t): bool
 function shared_token_use($t): void
 {
     unset($_SESSION['shared_tokens'][$t]);
+}
+
+
+// ---------------------------------------------------------------- activity hook (Part 8a)
+
+/** Records an activity event when the Activity module is installed. Never throws. */
+function shared_emit(PDO $conn, int $groupId, int $actorId, string $kind, array $d = [], array $notify = []): void
+{
+    if (function_exists('activity_record')) {
+        activity_record($conn, $groupId, $actorId, $kind, $d, $notify);
+    }
 }

@@ -36,6 +36,14 @@ function ef_page_start(array $o): void
     $home = ef_nav('p')[0][0] ?? 'dashboard.php';
     $sharedHome = ef_nav('s')[0][0] ?? null;
 
+    // Notification bell: only when the optional Activity module is installed and enabled.
+    $unread = null;
+    if (isset(ef_modules()['activity']) && isset($_SESSION['user_id'])) {
+        global $conn;
+        require_once __DIR__ . '/../modules/activity/lib.php';
+        $unread = $conn instanceof PDO ? activity_unread_count($conn, (int) $_SESSION['user_id']) : null;
+    }
+
     send_security_headers();
     ?><!DOCTYPE html>
 <html lang="en">
@@ -71,6 +79,9 @@ function ef_page_start(array $o): void
         <a class="<?= $mode === 'p' ? 'on' : '' ?>" href="<?= e(ef_url($home)) ?>"><?= ef_icon('wal') ?> Personal</a>
         <a class="<?= $mode === 's' ? 'on' : '' ?>" href="<?= e(ef_url($sharedHome)) ?>"><?= ef_icon('users') ?> Shared</a>
       </div>
+      <?php endif; ?>
+      <?php if ($unread !== null): ?>
+      <a class="ic bl" href="<?= e(ef_url('activity/notifications.php')) ?>" aria-label="Notifications<?= $unread ? ' (' . $unread . ' new)' : '' ?>"><?= ef_icon('bell') ?><?php if ($unread > 0): ?><i class="dt"><?= $unread > 99 ? '99+' : $unread ?></i><?php endif; ?></a>
       <?php endif; ?>
       <a class="me" href="<?= e(ef_url('profile.php')) ?>"><i class="av"><?= e(ef_initials($name)) ?></i><span><?= e($name) ?></span></a>
     </div>
