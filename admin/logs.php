@@ -1,6 +1,7 @@
 <?php
 require_once "auth.php";
 require_once "../config/db.php";
+admin_need('log');
 
 $user_filter = filter_var($_GET['user_id'] ?? '', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 $user_filter = $user_filter === false ? '' : $user_filter;
@@ -76,7 +77,7 @@ $users = $conn->query("SELECT id, name, email FROM users ORDER BY name")->fetchA
 
 <div class="sidebar" id="sidebar">
     <div class="logo">ExpenseFlow Admin</div>
-    <a href="index.php">👥 All Users</a>
+    <a href="users.php">👥 All Users</a>
     <a href="logs.php">📜 User Logs</a>
     <a href="../dashboard.php">← Back to App</a>
     <a href="../auth/logout.php" data-post data-csrf="<?= e(csrf_token()) ?>">🚪 Logout</a>

@@ -2,6 +2,7 @@
 require_once "auth.php";
 require_once __DIR__ . '/../config/db.php';
 
+admin_need('del');
 // Deleting a user must be a POST with a valid CSRF token (never a plain link).
 require_post_csrf();
 
@@ -20,6 +21,16 @@ $stmt = $conn->prepare("SELECT id FROM users WHERE id = ?");
 $stmt->execute([$id]);
 if (!$stmt->fetch()) {
     exit("User not found.");
+}
+
+$tr = $conn->prepare("SELECT role FROM users WHERE id = ?");
+$tr->execute([$id]);
+$targetRole = (string) $tr->fetchColumn();
+if ($targetRole === 'super' && $admin['role'] !== 'super') {
+    exit("Only a Super Admin can delete a Super Admin.");
+}
+if ($targetRole === 'super' && admin_super_count($conn) <= 1) {
+    exit("This is the only Super Admin and cannot be deleted.");
 }
 
 // Delete everything that belongs to the user, then the user (all or nothing)
@@ -44,7 +55,7 @@ try {
     exit("Could not delete the user. Nothing was changed.");
 }
 
-logAction($conn, $_SESSION['user_id'], 'admin_delete_user', "Deleted user ID: $id");
+admin_audit($conn, $admin['id'], 'delete_user', "Deleted user ID: $id");
 
-header("Location: index.php");
+header("Location: users.php");
 exit();
