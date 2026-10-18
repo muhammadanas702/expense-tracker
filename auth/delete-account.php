@@ -39,12 +39,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     } else {
         $isLastAdmin = false;
         if ((int) $user['is_admin'] === 1) {
-            $adminCount = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_admin = 1")->fetchColumn();
-            $isLastAdmin = $adminCount <= 1;
+            require_once __DIR__ . '/../modules/admin/lib.php';
+            admin_ensure_schema($conn);
+            $own = $conn->prepare("SELECT role FROM users WHERE id = ?");
+            $own->execute([$user_id]);
+            $isLastAdmin = $own->fetchColumn() === 'super' && admin_super_count($conn) <= 1;
         }
 
         if ($isLastAdmin) {
-            $error = "You are the only administrator. Make another user an admin before deleting this account.";
+            $error = "You are the only Super Admin. Make another user a Super Admin before deleting this account.";
         } else {
             /* DELETE ALL USER DATA (all or nothing) */
             require_once __DIR__ . '/../modules/personal/lib.php';

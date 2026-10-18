@@ -1,6 +1,7 @@
 <?php
 require_once "auth.php";
 require_once "../config/db.php";
+admin_need('view');
 
 $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 if (!$id) {
@@ -62,7 +63,7 @@ $expenses->execute([$id]);
         <?php endwhile; ?>
         </tbody>
     </table>
-    <a href="index.php" class="back">← Back to Admin Dashboard</a>
+    <a href="users.php" class="back">← Back to users</a>
 </div>
 </body>
 </html>

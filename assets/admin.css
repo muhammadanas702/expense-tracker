@@ -1,0 +1,20 @@
+/* Admin panel extras (tables, role tags, bars). Loaded after app.css. */
+.tag.rs{background:rgba(245,158,11,.18);color:#b45309}.tag.tb2{background:rgba(29,78,216,.12);color:#1d4ed8}.tag.tu{background:rgba(91,107,128,.14);color:var(--mu)}
+.tbl-wrap{overflow-x:auto;border-radius:14px}
+table.tbl{width:100%;border-collapse:collapse;font-size:.84rem}
+table.tbl th{text-align:left;font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mu);padding:10px 12px;white-space:nowrap}
+table.tbl td{padding:11px 12px;border-top:1px solid rgba(91,107,128,.14);vertical-align:middle}
+table.tbl tr:hover td{background:rgba(255,255,255,.45)}
+table.tbl td small{display:block;color:var(--mu);font-size:.72rem}
+.who{display:flex;align-items:center;gap:10px;min-width:0}.who b{display:block}
+.acts-r{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.G4a{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.stat .k{font-size:.74rem;color:var(--mu);font-weight:600}.stat .big2{font-size:1.9rem;font-weight:800;letter-spacing:-.5px;margin-top:2px}
+.stat .ibx{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.7);color:var(--a1)}
+.stat{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:16px}
+.barchart{width:100%;max-height:260px}
+.barchart text{fill:var(--tx);font-size:9px;font-weight:700}.barchart text.m{fill:var(--mu);font-weight:500}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.barchart rect{transform-box:fill-box;transform-origin:bottom;animation:grow .6s ease both}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.toolbar .inp{flex:1;min-width:160px;width:auto}
+@media(max-width:700px){table.tbl .hm{display:none}}

@@ -28,6 +28,14 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 8c | Friends list (people you split with) | done (no SQL needed) |
 | 9 | Full review, security pass, tests, final README | done (admin pages are restyled in Part 11) |
 | 10 | Native apps: APK (Android), EXE (Windows), iOS (see below), GitHub Releases workflow | todo |
+| 11 | Role-based admin panel (design: docs/design/v8-admin-panel-v3.html), split into 11a-11f | in progress |
+| 11a | Roles (Super Admin, Admin, Support), permission table, admin shell and Overview | done (SQL: database/part-11a.sql) |
+| 11b | Users: search, filters, profile, add, block/unblock, role change, reset link, delete, CSV export | todo (SQL) |
+| 11c | Roles and permissions page, Audit log | todo |
+| 11d | Support: help form for users and the staff inbox | todo (SQL) |
+| 11e | Announcements, Categories, Currencies, Groups | todo (SQL) |
+| 11f | Security (failed logins, blocked IPs), Backups, System settings | todo (SQL) |
+| 12 | Website polish: animations and small details (design: docs/design/v8-complete-website.html) | todo |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -65,3 +73,13 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - New checks: `tests/security_http_test.py` (anonymous access, non-member access, CSRF; needs the local test server) and `tests/account_delete_test.php`.
 - The admin panel keeps its current look until Part 11 (design: docs/design/v8-admin-panel-v3.html), so it is not restyled twice.
 - On the live server: delete the old `tests` folder (the deploy does not remove files that were already uploaded).
+
+## Notes for Part 11a
+
+- Roles live in `users.role`: `super` (Super Admin, can do everything), `admin`, `support`, `user`. `users.is_admin` stays 1 for all staff, so older code keeps working. Everybody who was an admin becomes Super Admin when the column is added.
+- `admin_perms(role, perm, allowed)` holds what Admin and Support may do; defaults are in `modules/admin/lib.php` (`ADMIN_DEFAULTS`). `SA` means Super Admin only.
+- Every admin page starts with `admin/auth.php` (role looked up in the database on every request) and calls `admin_need('perm')`.
+- The audit trail is `user_logs` rows whose action starts with `admin_` (use `admin_audit()`). No extra table.
+- The side menu only shows pages that exist and that the role may use, so each later part just adds a page file.
+- Old pages `edit-user.php` (Super Admin only), `delete-user.php` (`del` permission), `view-user.php` (`view`), `logs.php` (`log`) now check permissions; they get the new look in 11b/11c.
+- Tests: `php tests/admin_roles_test.php`, `python3 tests/admin_http_test.py` (test database and local server only).

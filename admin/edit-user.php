@@ -1,6 +1,7 @@
 <?php
 require_once "auth.php";
 require_once __DIR__ . '/../config/db.php';
+admin_need('SA'); // changing accounts and roles: Super Admin only (a fuller screen comes in Part 11b)
 
 $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
 if (!$id) {
@@ -8,7 +9,7 @@ if (!$id) {
     exit("Invalid user.");
 }
 
-$stmt = $conn->prepare("SELECT id, name, email, is_admin FROM users WHERE id = ?");
+$stmt = $conn->prepare("SELECT id, name, email, is_admin, role FROM users WHERE id = ?");
 $stmt->execute([$id]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$user) {
@@ -40,18 +41,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $dup = $conn->prepare("SELECT id FROM users WHERE email = ? AND id <> ?");
         $dup->execute([$email, $id]);
 
-        $wasAdmin = (int) $conn->query("SELECT is_admin FROM users WHERE id = " . (int) $id)->fetchColumn() === 1;
-        $adminCount = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_admin = 1")->fetchColumn();
+        $oldRole = (string) $user['role'];
+        $wasAdmin = admin_is_staff($oldRole);
+        // the box means "staff access": ticking it makes a plain user an Admin, unticking makes staff a User
+        $newRole = $is_admin ? ($wasAdmin ? $oldRole : 'admin') : 'user';
+        $superCount = admin_super_count($conn);
 
         if ($dup->fetch()) {
             $error = "Another account already uses that email address.";
-        } elseif ($wasAdmin && !$is_admin && $adminCount <= 1) {
-            $error = "This is the only administrator. Make another user an admin first.";
+        } elseif ($oldRole === 'super' && $newRole !== 'super' && $superCount <= 1) {
+            $error = "This is the only Super Admin. Make another user a Super Admin first.";
         } else {
             $conn->beginTransaction();
             try {
-                $conn->prepare("UPDATE users SET name = ?, email = ?, is_admin = ? WHERE id = ?")
-                    ->execute([$name, $email, $is_admin, $id]);
+                $conn->prepare("UPDATE users SET name = ?, email = ? WHERE id = ?")->execute([$name, $email, $id]);
+                admin_set_role($conn, (int) $id, $newRole);
 
                 if ($password !== '') {
                     $conn->prepare("UPDATE users SET password = ? WHERE id = ?")
@@ -65,10 +69,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit("Could not update the user. Nothing was changed.");
             }
 
-            $changes = 'name/email' . ($password !== '' ? ', password' : '') . ($wasAdmin !== (bool) $is_admin ? ', admin role' : '');
-            logAction($conn, $_SESSION['user_id'], 'admin_edit_user', "Edited user ID: $id ($changes)");
+            $changes = 'name/email' . ($password !== '' ? ', password' : '') . ($oldRole !== $newRole ? ', role ' . $oldRole . ' to ' . $newRole : '');
+            admin_audit($conn, $admin['id'], 'edit_user', "Edited user ID: $id ($changes)");
 
-            header("Location: index.php");
+            header("Location: users.php");
             exit();
         }
     }
@@ -114,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="password" name="password" placeholder="Enter new password if changing" autocomplete="new-password">
         <button type="submit">Update User</button>
     </form>
-    <a class="back" href="index.php">← Back to users</a>
+    <a class="back" href="users.php">← Back to users</a>
 </div>
 </body>
 </html>

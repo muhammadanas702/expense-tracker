@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `email`      VARCHAR(190) NOT NULL,
   `password`   VARCHAR(255) NOT NULL,
   `is_admin`   TINYINT(1)   NOT NULL DEFAULT 0,
+  `role`       VARCHAR(10)  NOT NULL DEFAULT 'user',
   `created_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_users_email` (`email`)
@@ -248,3 +249,15 @@ CREATE TABLE IF NOT EXISTS `receipts_files` (
   UNIQUE KEY `uq_receipts_expense` (`expense_id`),
   KEY `idx_receipts_group` (`group_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------------
+-- Part 11a: what the Admin and Support roles may do (Super Admin can do everything).
+-- Roles: user, support, admin, super. Make yourself Super Admin with:
+--   UPDATE users SET role = 'super', is_admin = 1 WHERE email = 'you@example.com';
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `admin_perms` (
+  `role`    VARCHAR(10) NOT NULL,
+  `perm`    VARCHAR(12) NOT NULL,
+  `allowed` TINYINT(1)  NOT NULL DEFAULT 0,
+  PRIMARY KEY (`role`, `perm`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
