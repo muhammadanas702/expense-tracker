@@ -33,7 +33,7 @@ function ensure_schema(PDO $conn): void
     }
     $done = true;
 
-    if (session_status() === PHP_SESSION_ACTIVE && !empty($_SESSION['schema_checked_v2'])) {
+    if (session_status() === PHP_SESSION_ACTIVE && !empty($_SESSION['schema_checked_v3'])) {
         return;
     }
 
@@ -59,8 +59,14 @@ function ensure_schema(PDO $conn): void
             schema_has($conn, 'expenses', 'amount_pkr', true);
         }
 
+        // Part 11b: blocked accounts cannot log in.
+        if (!schema_has($conn, 'users', 'blocked')) {
+            $conn->exec('ALTER TABLE `users` ADD COLUMN `blocked` TINYINT(1) NOT NULL DEFAULT 0');
+            schema_has($conn, 'users', 'blocked', true);
+        }
+
         if (session_status() === PHP_SESSION_ACTIVE) {
-            $_SESSION['schema_checked_v2'] = true;
+            $_SESSION['schema_checked_v3'] = true;
         }
     } catch (Throwable $e) {
         error_log('ExpenseFlow schema check failed: ' . $e->getMessage());

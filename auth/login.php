@@ -37,13 +37,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         ) {
             $error = "Too many failed attempts. Please wait 15 minutes and try again.";
         } else {
-            $stmt = $conn->prepare("SELECT id, name, password FROM users WHERE email=?");
+            $stmt = $conn->prepare("SELECT id, name, password, blocked FROM users WHERE email=?");
             $stmt->execute([$email]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
             $passwordOk = password_verify($password, $user ? $user["password"] : LOGIN_DUMMY_HASH);
 
-            if ($user && $passwordOk) {
+            if ($user && $passwordOk && (int) $user['blocked'] === 1) {
+                // Only someone who knows the password learns that the account is blocked.
+                $error = "This account has been blocked. Please contact support.";
+            } elseif ($user && $passwordOk) {
 
                 rl_clear($conn, 'login_email_ip', $keyEmailIp);
                 rl_clear($conn, 'login_email', $keyEmail);

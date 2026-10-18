@@ -29,16 +29,18 @@ def csrf(n): return re.search(r'data-csrf="([^"]+)"', S[n].get(B + '/admin/users
 anon = requests.Session()
 for p in ('/admin/index.php', '/admin/users.php'):
     r = anon.get(B + p, allow_redirects=False); ok(r.status_code in (301, 302, 303), f'anon redirected {p}')
-for p in ('/admin/index.php', '/admin/users.php', '/admin/edit-user.php?id=1', '/admin/view-user.php?id=1', '/admin/logs.php'):
+for p in ('/admin/index.php', '/admin/users.php', '/admin/view-user.php?id=1', '/admin/logs.php'):
     ok(code('ru', p) == 403, f'plain user blocked from {p}')
 
 ok(code('rs', '/admin/index.php') == 200, 'support sees overview')
 ok(code('rs', '/admin/users.php') == 200, 'support can list users (view)')
 ok(code('rs', '/admin/logs.php') in (302, 303, 403), 'support has no log permission')
-ok(code('rs', f'/admin/edit-user.php?id={uid["ru"]}') in (302, 303, 403), 'support cannot edit users')
+t0 = csrf('rs'); S['rs'].post(B + '/admin/user-action.php', data={'do': 'edit', 'id': uid['ru'], 'name': 'X', 'email': 'x@adm.local', 'csrf_token': t0}, allow_redirects=False)
+ok(sql(f"SELECT name FROM users WHERE id={uid['ru']}") == 'ru', 'support cannot edit users')
 ok(code('ra', '/admin/logs.php') == 200, 'admin can view logs (log)')
-ok(code('ra', f'/admin/edit-user.php?id={uid["ru"]}') in (302, 303, 403), 'admin cannot edit users (SA only)')
-ok(code('rz', f'/admin/edit-user.php?id={uid["ru"]}') == 200, 'super can edit users')
+t0 = csrf('ra'); S['ra'].post(B + '/admin/user-action.php', data={'do': 'edit', 'id': uid['ru'], 'name': 'X', 'email': 'x@adm.local', 'csrf_token': t0}, allow_redirects=False)
+ok(sql(f"SELECT name FROM users WHERE id={uid['ru']}") == 'ru', 'admin cannot edit users (SA only)')
+ok(code('rz', f'/admin/view-user.php?id={uid["ru"]}') == 200, 'super can open a user profile')
 
 # delete: needs the "del" permission
 t = csrf('ra')

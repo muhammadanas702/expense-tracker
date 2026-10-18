@@ -14,7 +14,7 @@ if (!$id) {
 
 // Prevent admin from deleting themselves
 if ($id === (int) $_SESSION['user_id']) {
-    exit("You cannot delete your own admin account.");
+    exit("You cannot delete your own account here. Use Profile instead.");
 }
 
 $stmt = $conn->prepare("SELECT id FROM users WHERE id = ?");
@@ -23,13 +23,13 @@ if (!$stmt->fetch()) {
     exit("User not found.");
 }
 
-$tr = $conn->prepare("SELECT role FROM users WHERE id = ?");
+$tr = $conn->prepare("SELECT id, role FROM users WHERE id = ?");
 $tr->execute([$id]);
-$targetRole = (string) $tr->fetchColumn();
-if ($targetRole === 'super' && $admin['role'] !== 'super') {
-    exit("Only a Super Admin can delete a Super Admin.");
+$target = $tr->fetch(PDO::FETCH_ASSOC);
+if (!admin_can_manage($admin, $target)) {
+    exit("Your role cannot delete this account.");
 }
-if ($targetRole === 'super' && admin_super_count($conn) <= 1) {
+if ($target['role'] === 'super' && admin_super_count($conn) <= 1) {
     exit("This is the only Super Admin and cannot be deleted.");
 }
 
