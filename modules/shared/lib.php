@@ -10,7 +10,7 @@ require_once __DIR__ . '/balance.php';
 if (is_file(__DIR__ . '/../activity/lib.php')) {
     require_once __DIR__ . '/../activity/lib.php'; // optional: feed + notifications
 }
-foreach (['comments', 'receipts'] as $ef_opt) {
+foreach (['comments', 'receipts', 'support'] as $ef_opt) {
     if (is_file(__DIR__ . '/../' . $ef_opt . '/lib.php')) {
         require_once __DIR__ . '/../' . $ef_opt . '/lib.php'; // optional modules, each with its own tables
     }
@@ -237,7 +237,7 @@ function shared_delete_group(PDO $conn, int $groupId): void
 function shared_ensure_all_schemas(PDO $conn): void
 {
     shared_ensure_schema($conn);
-    foreach (['activity_ensure_schema', 'comments_ensure_schema', 'receipts_ensure_schema'] as $fn) {
+    foreach (['activity_ensure_schema', 'comments_ensure_schema', 'receipts_ensure_schema', 'support_ensure_schema'] as $fn) {
         if (function_exists($fn)) {
             $fn($conn);
         }
@@ -283,6 +283,9 @@ function shared_on_user_deleted(PDO $conn, int $userId): void
     $conn->prepare('DELETE FROM shared_members WHERE user_id = ?')->execute([$userId]);
     if (function_exists('activity_on_user_deleted')) {
         activity_on_user_deleted($conn, $userId);
+    }
+    if (function_exists('support_on_user_deleted')) {
+        support_on_user_deleted($conn, $userId);
     }
     if (function_exists('comments_on_user_deleted')) {
         comments_on_user_deleted($conn, $userId);
