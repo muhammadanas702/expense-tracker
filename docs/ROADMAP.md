@@ -32,7 +32,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 11a | Roles (Super Admin, Admin, Support), permission table, admin shell and Overview | done (SQL: database/part-11a.sql) |
 | 11b | Users: search, filters, sort, pages, profile, add, block/unblock, role change, temporary password, delete, CSV export | done (SQL: database/part-11b.sql) |
 | 11c | Roles and permissions page, Audit log, User logs in the new look | done (no SQL) |
-| 11d | Support: help form for users and the staff inbox | todo (SQL) |
+| 11d | Support: help form for users and the staff inbox | done (SQL: database/part-11d.sql) |
 | 11e | Announcements, Categories, Currencies, Groups | todo (SQL) |
 | 11f | Security (failed logins, blocked IPs), Backups, System settings | todo (SQL) |
 | 12 | Website polish: animations and small details (design: docs/design/v8-complete-website.html) | todo |
@@ -92,6 +92,12 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - The profile page no longer lists a user's income and expense rows (privacy). It shows counts, last login and recent activity only.
 - `admin/edit-user.php` now just redirects to the profile page. CSV export neutralises spreadsheet formulas and is written to the audit log.
 - Tests: `python3 tests/admin_users_http_test.py` (block, sign-out, temporary password, roles, add user, CSV, filters).
+
+## Notes for Part 11d
+
+- Module `modules/support/` (own tables `support_tickets`, `support_messages`, self-created by `support_ensure_schema()`; no foreign keys). Users: `support/index.php` (new request + own list), `support/ticket.php`, `support/action.php` (create, reply, mark solved). Staff: `admin/support.php` (inbox, search, status chips), `admin/ticket.php`, `admin/ticket-action.php` (reply, close, reopen), permission `support`.
+- Users only ever see their own requests; staff replies show as "ExpenseFlow support" (staff name hidden from the user). Limits: 5 open requests per user, 100 messages per request, rate limited. Staff actions are in the Audit log (group Support). Requests are deleted with the account.
+- Tests: `python3 tests/support_http_test.py`.
 
 ## Notes for Part 11c
 

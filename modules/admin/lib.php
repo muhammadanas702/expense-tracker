@@ -183,6 +183,7 @@ function admin_audit_kinds(): array
         'add_user' => ['users', 'Added user'], 'edit_user' => ['users', 'Edited user'], 'block_user' => ['users', 'Blocked user'],
         'unblock_user' => ['users', 'Unblocked user'], 'delete_user' => ['users', 'Deleted user'], 'reset_password' => ['users', 'Temporary password'],
         'export_users' => ['users', 'Exported users'], 'set_role' => ['roles', 'Changed role'], 'set_perms' => ['roles', 'Changed permissions'],
+        'ticket_reply' => ['support', 'Support reply'], 'ticket_close' => ['support', 'Closed request'], 'ticket_reopen' => ['support', 'Reopened request'],
     ];
 }
 
@@ -195,7 +196,7 @@ function admin_audit_label(string $action): string
 /** Audit groups for the filter chips. */
 function admin_audit_groups(): array
 {
-    return ['all' => 'All', 'users' => 'Users', 'roles' => 'Roles', 'other' => 'Other'];
+    return ['all' => 'All', 'users' => 'Users', 'roles' => 'Roles', 'support' => 'Support', 'other' => 'Other'];
 }
 
 /** SQL fragment + params that select the audit rows of one group (or all). */

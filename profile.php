@@ -145,6 +145,7 @@ ef_page_start(['title' => 'Profile & Settings', 'sub' => 'Account, goals and dat
       <?php if (!empty($user['is_admin'])): ?>
       <div class="row"><span><?= ef_icon('shield') ?> Admin panel<small>Manage users and data</small></span><b><a class="lnk" href="<?= e($base_url) ?>/admin/index.php">Open</a></b></div>
       <?php endif; ?>
+      <div class="row"><span><?= ef_icon('lifebuoy') ?> Help &amp; support<small>Ask us a question or report a problem</small></span><b><a class="lnk" href="<?= e($base_url) ?>/support/index.php">Open</a></b></div>
       <div class="row" id="install-row" hidden><span><?= ef_icon('phone') ?> Install app<small>Works offline on your phone or PC</small></span><b><a class="lnk" href="#" id="install-btn">Install</a></b></div>
       <div class="row"><span><?= ef_icon('doc') ?> Full report<small>Export CSV, Excel or PDF</small></span><b><a class="lnk" href="<?= e($base_url) ?>/reports/view-report.php">Open</a></b></div>
       <a class="btn" style="width:100%;margin-top:12px" href="<?= e($base_url) ?>/auth/logout.php" data-post data-csrf="<?= e($csrf) ?>"><?= ef_icon('out') ?> Logout</a>
