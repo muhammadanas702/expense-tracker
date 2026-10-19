@@ -184,6 +184,9 @@ function admin_audit_kinds(): array
         'unblock_user' => ['users', 'Unblocked user'], 'delete_user' => ['users', 'Deleted user'], 'reset_password' => ['users', 'Temporary password'],
         'export_users' => ['users', 'Exported users'], 'set_role' => ['roles', 'Changed role'], 'set_perms' => ['roles', 'Changed permissions'],
         'ticket_reply' => ['support', 'Support reply'], 'ticket_close' => ['support', 'Closed request'], 'ticket_reopen' => ['support', 'Reopened request'],
+        'announce_add' => ['content', 'Added announcement'], 'announce_edit' => ['content', 'Edited announcement'], 'announce_toggle' => ['content', 'Announcement on/off'], 'announce_delete' => ['content', 'Deleted announcement'],
+        'cat_add' => ['content', 'Added category'], 'cat_change' => ['content', 'Changed category'], 'cat_delete' => ['content', 'Deleted category'],
+        'cur_change' => ['content', 'Changed currencies'], 'group_delete' => ['content', 'Deleted group'],
     ];
 }
 
@@ -196,7 +199,7 @@ function admin_audit_label(string $action): string
 /** Audit groups for the filter chips. */
 function admin_audit_groups(): array
 {
-    return ['all' => 'All', 'users' => 'Users', 'roles' => 'Roles', 'support' => 'Support', 'other' => 'Other'];
+    return ['all' => 'All', 'users' => 'Users', 'roles' => 'Roles', 'support' => 'Support', 'content' => 'Content', 'other' => 'Other'];
 }
 
 /** SQL fragment + params that select the audit rows of one group (or all). */

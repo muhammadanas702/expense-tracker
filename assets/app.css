@@ -149,3 +149,4 @@ details{padding:16px 18px;margin-bottom:10px}summary{list-style:none;display:fle
 @supports not (overflow:clip){.fr{overflow:visible}body{overflow-x:hidden}}
 @media(min-width:769px){.tb{position:sticky;top:16px;z-index:25}}
 button.chip{font-family:inherit}
+.ann{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:12px 14px;border-radius:14px;font-size:.85rem;margin-bottom:2px;background:#e0f2fe;color:#075985}.ann.good{background:#d1fae5;color:#065f46}.ann.warn{background:#fef3c7;color:#92400e}.ann b{display:block}.ann span{display:block;font-weight:500;margin-top:2px}.ann form{margin:0}.ann button{border:0;background:transparent;color:inherit;font-size:1.3rem;line-height:1;cursor:pointer;padding:0 4px}

@@ -89,20 +89,6 @@ function support_create(PDO $conn, int $userId, string $subject, string $categor
     }
 }
 
-/** A message may have line breaks (unlike clean_text); control characters are removed. */
-function clean_multiline($value, int $max): ?string
-{
-    if (!is_string($value)) {
-        return null;
-    }
-    $t = preg_replace('/[^\P{C}\n]/u', '', str_replace(["\r\n", "\r"], "\n", $value));
-    $t = trim(preg_replace("/\n{3,}/", "\n\n", (string) $t));
-    if ($t === '' || mb_strlen($t, 'UTF-8') > $max) {
-        return null;
-    }
-    return $t;
-}
-
 /** One ticket, only if it belongs to this user. */
 function support_ticket_for_user(PDO $conn, int $id, int $userId): ?array
 {

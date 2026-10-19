@@ -79,7 +79,15 @@ function normalize_currency($value): ?string
 function currency_select_options(?string $selected = null): string
 {
     $groups = [];
+    $hidden = [];
+    if (is_file(__DIR__ . '/../modules/currencies/lib.php')) { // optional module: staff can hide currencies
+        require_once __DIR__ . '/../modules/currencies/lib.php';
+        $hidden = currencies_hidden_codes();
+    }
     foreach (app_currencies() as $code => [$flag, $name, $group]) {
+        if (isset($hidden[$code]) && ($selected === null || strtoupper($selected) !== $code)) {
+            continue;
+        }
         $isSelected = ($selected !== null && strtoupper($selected) === $code) ? ' selected' : '';
         $groups[$group][] = sprintf(
             '<option value="%s"%s>%s %s (%s)</option>',

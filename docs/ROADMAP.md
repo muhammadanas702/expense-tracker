@@ -33,7 +33,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 11b | Users: search, filters, sort, pages, profile, add, block/unblock, role change, temporary password, delete, CSV export | done (SQL: database/part-11b.sql) |
 | 11c | Roles and permissions page, Audit log, User logs in the new look | done (no SQL) |
 | 11d | Support: help form for users and the staff inbox | done (SQL: database/part-11d.sql) |
-| 11e | Announcements, Categories, Currencies, Groups | todo (SQL) |
+| 11e | Announcements, Categories, Currencies, Groups | done (SQL: database/part-11e.sql) |
 | 11f | Security (failed logins, blocked IPs), Backups, System settings | todo (SQL) |
 | 12 | Website polish: animations and small details (design: docs/design/v8-complete-website.html) | todo |
 
@@ -92,6 +92,17 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - The profile page no longer lists a user's income and expense rows (privacy). It shows counts, last login and recent activity only.
 - `admin/edit-user.php` now just redirects to the profile page. CSV export neutralises spreadsheet formulas and is written to the audit log.
 - Tests: `python3 tests/admin_users_http_test.py` (block, sign-out, temporary password, roles, add user, CSV, filters).
+
+## Notes for Part 11e
+
+- Four small modules, each with its own tables and its own admin page + action file (all POST + CSRF, audited, group "Content" in the Audit log):
+  - `modules/announce/` + `admin/announcements.php` (perm `bc`): banner for signed-in users with style, optional start/end time, Active switch; users close it for themselves (`announce/dismiss.php`). Tables `announcements`, `announcement_dismissed`.
+  - `modules/categories/` + `admin/categories.php` (perm `cat`): add, order, turn on/off, delete. Expenses store the category name, so old expenses never change; "Other" always stays. Add-expense pages use `categories_active()` and fall back to the built-in list on any problem. Table `app_categories` (seeded with the 8 defaults).
+  - `modules/currencies/` + `admin/currencies.php` (perm `cur`): hide currencies from the pick lists (PKR and USD always stay) and see the rates and how many entries use each. This only hides them for new entries; validation still accepts every supported currency so old entries stay editable. Table `app_currency_hidden`.
+  - `modules/groupsadmin/` + `admin/groups.php` (perm `grp`): search, sort and delete shared groups. Staff see counts only (never expenses or balances). Delete uses `shared_delete_group()` so every module cleans up.
+- Account delete also removes a person's closed-announcement marks (`announce_on_user_deleted`).
+- Phones: tables with the `wide` class turn each row into a small card (`assets/admin.css`).
+- Tests: `python3 tests/admin_content_http_test.py`.
 
 ## Notes for Part 11d
 

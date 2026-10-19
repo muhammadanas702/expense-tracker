@@ -33,8 +33,12 @@ function personal_tx_page(string $kind, ?int $editId = null): void
     personal_ensure_schema($conn);
 
     $categories = ['Food' => 'food', 'Transport' => 'car', 'Shopping' => 'bag', 'Entertainment' => 'tag', 'Bills' => 'zap', 'Healthcare' => 'heart', 'Education' => 'book', 'Other' => 'more'];
+    if (is_file(__DIR__ . '/../categories/lib.php')) { // optional module: staff can change the list
+        require_once __DIR__ . '/../categories/lib.php';
+        $categories = categories_active($conn);
+    }
     $error = '';
-    $old = ['title' => '', 'amount' => '', 'currency' => null, 'category' => 'Food', 'other_category' => '', 'payment_method' => 'Cash', 'note' => '', 'repeat' => ''];
+    $old = ['title' => '', 'amount' => '', 'currency' => null, 'category' => isset($categories['Food']) ? 'Food' : (string) array_key_first($categories), 'other_category' => '', 'payment_method' => 'Cash', 'note' => '', 'repeat' => ''];
 
     $row = null;
     if ($isEdit) {
