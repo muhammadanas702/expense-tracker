@@ -29,9 +29,13 @@ $memberIds = array_map(fn($m) => (int) $m['id'], $members);
 $isCreator = !$existing || (int) $existing['created_by'] === $user_id;
 
 $cats = ['Food', 'Transport', 'Shopping', 'Entertainment', 'Bills', 'Healthcare', 'Education', 'Other'];
+if (is_file(__DIR__ . '/../modules/categories/lib.php')) {
+    require_once __DIR__ . '/../modules/categories/lib.php';
+    $cats = array_keys(categories_active($conn));
+}
 $old = [
     'title' => '', 'amount' => '', 'currency' => null, 'paid_by' => (string) $user_id, 'split_type' => 'equal',
-    'expense_date' => date('Y-m-d'), 'note' => '', 'personal' => '', 'category' => 'Food',
+    'expense_date' => date('Y-m-d'), 'note' => '', 'personal' => '', 'category' => in_array('Food', $cats, true) ? 'Food' : $cats[0],
     'part' => array_fill_keys(array_map('strval', $memberIds), '1'), 'val' => [],
 ];
 if ($existing) {

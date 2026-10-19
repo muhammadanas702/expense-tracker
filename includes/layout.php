@@ -93,6 +93,14 @@ function ef_page_start(array $o): void
         }
         unset($_SESSION[$key]);
     }
+    // Staff announcements (optional module, best-effort).
+    if (isset($_SESSION['user_id']) && is_file(__DIR__ . '/../modules/announce/lib.php')) {
+        global $conn;
+        if ($conn instanceof PDO) {
+            require_once __DIR__ . '/../modules/announce/lib.php';
+            echo announce_banner_html($conn, (int) $_SESSION['user_id'], csrf_token(), ef_url('announce/dismiss.php'));
+        }
+    }
 }
 
 function ef_page_end(array $o = []): void

@@ -270,3 +270,17 @@ function rl_clear(PDO $conn, string $bucket, string $key): void
         error_log('ExpenseFlow rate limit clear failed: ' . $e->getMessage());
     }
 }
+
+/** A message may have line breaks (unlike clean_text); control characters are removed. */
+function clean_multiline($value, int $max): ?string
+{
+    if (!is_string($value)) {
+        return null;
+    }
+    $t = preg_replace('/[^\P{C}\n]/u', '', str_replace(["\r\n", "\r"], "\n", $value));
+    $t = trim(preg_replace("/\n{3,}/", "\n\n", (string) $t));
+    if ($t === '' || mb_strlen($t, 'UTF-8') > $max) {
+        return null;
+    }
+    return $t;
+}
