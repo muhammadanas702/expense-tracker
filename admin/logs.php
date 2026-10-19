@@ -47,141 +47,46 @@ $stmt = $conn->prepare($sql);
 $stmt->execute($params);
 $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$users = $conn->query("SELECT id, name, email FROM users ORDER BY name")->fetchAll();
+$users = $conn->query("SELECT id, name, email FROM users ORDER BY name LIMIT 500")->fetchAll(PDO::FETCH_ASSOC);
+$actions = $conn->query("SELECT DISTINCT action FROM user_logs ORDER BY action")->fetchAll(PDO::FETCH_COLUMN);
+$link = fn(array $o = []) => 'logs.php?' . http_build_query(array_filter(array_merge($_GET, $o), fn($v) => $v !== '' && $v !== null));
+
+admin_page_start(['title' => 'User logs', 'sub' => 'Everything users did · ' . (int) $total . ' entries', 'active' => 'ulog']);
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-   <?php require_once __DIR__ . '/../includes/pwa-head.php'; ?>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>User Logs - Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/responsive.css">
-    <style>
-        .filter-group { margin-bottom: 0.5rem; }
-        @media (min-width: 768px) {
-            .filters { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; }
-            .filter-group { margin-bottom: 0; }
-        }
-        .badge { background: #e2e8f0; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; }
-        .pagination { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem; }
-        .pagination a, .pagination span { padding: 0.3rem 0.8rem; background: white; border: 1px solid #cbd5e1; border-radius: 20px; text-decoration: none; color: #0f766e; }
-        .pagination .current { background: #0f766e; color: white; border: none; }
-    </style>
-</head>
-<body>
-
-<button class="menu-toggle" id="menuToggle">☰</button>
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-<div class="sidebar" id="sidebar">
-    <div class="logo">ExpenseFlow Admin</div>
-    <a href="users.php">👥 All Users</a>
-    <a href="logs.php">📜 User Logs</a>
-    <a href="../dashboard.php">← Back to App</a>
-    <a href="../auth/logout.php" data-post data-csrf="<?= e(csrf_token()) ?>">🚪 Logout</a>
+<div class="g card">
+  <form method="get" class="toolbar">
+    <select class="inp" name="user_id" aria-label="User" style="flex:1 1 180px">
+      <option value="">All users</option>
+      <?php foreach ($users as $u): ?><option value="<?= (int) $u['id'] ?>"<?= (int) $user_filter === (int) $u['id'] ? ' selected' : '' ?>><?= e($u['name']) ?> (<?= e($u['email']) ?>)</option><?php endforeach; ?>
+    </select>
+    <select class="inp" name="action" aria-label="Action" style="flex:1 1 160px">
+      <option value="">All actions</option>
+      <?php foreach ($actions as $a): ?><option value="<?= e($a) ?>"<?= $action_filter === $a ? ' selected' : '' ?>><?= e(ucfirst(str_replace('_', ' ', preg_replace('/^admin_/', 'admin: ', $a)))) ?></option><?php endforeach; ?>
+    </select>
+    <input class="inp" type="date" name="from_date" value="<?= e($from_date) ?>" aria-label="From date" style="flex:0 0 150px">
+    <input class="inp" type="date" name="to_date" value="<?= e($to_date) ?>" aria-label="To date" style="flex:0 0 150px">
+    <button class="btn sm" type="submit">Filter</button>
+    <a class="btn sm o" href="logs.php">Clear</a>
+  </form>
+  <div class="tbl-wrap"><table class="tbl fixm">
+    <tr><th>Time</th><th>User</th><th>Action</th><th class="hm">Details</th><th class="hm">IP</th></tr>
+    <?php foreach ($logs as $log): ?>
+    <tr>
+      <td class="nw"><?= e(date('d M Y, H:i', strtotime((string) $log['created_at']))) ?></td>
+      <td><?= e($log['user_name']) ?></td>
+      <td><span class="tag tu"><?= e(str_replace('_', ' ', $log['action'])) ?></span><small class="dt-m"><?= e((string) ($log['details'] ?? '')) ?></small></td>
+      <td class="hm"><?= e((string) ($log['details'] ?? '')) ?></td>
+      <td class="hm"><?= e((string) $log['ip_address']) ?></td>
+    </tr>
+    <?php endforeach; ?>
+    <?php if (!$logs): ?><tr><td colspan="5" class="k" style="padding:18px 12px">No logs found.</td></tr><?php endif; ?>
+  </table></div>
+  <?php if ($total_pages > 1): ?>
+  <div class="chips" style="margin-top:12px;justify-content:center">
+    <?php if ($page > 1): ?><a class="chip" href="<?= e($link(['page' => $page - 1])) ?>">← Newer</a><?php endif; ?>
+    <span class="chip">Page <?= $page ?> of <?= $total_pages ?></span>
+    <?php if ($page < $total_pages): ?><a class="chip" href="<?= e($link(['page' => $page + 1])) ?>">Older →</a><?php endif; ?>
+  </div>
+  <?php endif; ?>
 </div>
-
-<div class="main">
-    <div class="top-bar">
-        <div class="welcome">
-            <h1>📜 User Activity Logs</h1>
-        </div>
-    </div>
-
-    <!-- Filters -->
-    <form method="GET" class="filters" style="margin-bottom: 1.5rem;">
-        <div class="filter-group">
-            <label>User</label>
-            <select name="user_id">
-                <option value="">All users</option>
-                <?php foreach ($users as $u): ?>
-                    <option value="<?= (int) $u['id'] ?>" <?= $user_filter == $u['id'] ? 'selected' : '' ?>><?= e($u['name']) ?> (<?= e($u['email']) ?>)</option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label>Action</label>
-            <select name="action">
-                <option value="">All actions</option>
-                <option value="login" <?= $action_filter=='login'?'selected':'' ?>>Login</option>
-                <option value="logout" <?= $action_filter=='logout'?'selected':'' ?>>Logout</option>
-                <option value="add_income" <?= $action_filter=='add_income'?'selected':'' ?>>Add Income</option>
-                <option value="add_expense" <?= $action_filter=='add_expense'?'selected':'' ?>>Add Expense</option>
-                <option value="edit_income" <?= $action_filter=='edit_income'?'selected':'' ?>>Edit Income</option>
-                <option value="edit_expense" <?= $action_filter=='edit_expense'?'selected':'' ?>>Edit Expense</option>
-                <option value="delete_income" <?= $action_filter=='delete_income'?'selected':'' ?>>Delete Income</option>
-                <option value="delete_expense" <?= $action_filter=='delete_expense'?'selected':'' ?>>Delete Expense</option>
-                <option value="reset_data" <?= $action_filter=='reset_data'?'selected':'' ?>>Reset Data</option>
-                <option value="update_profile" <?= $action_filter=='update_profile'?'selected':'' ?>>Update Profile</option>
-                <option value="password_reset" <?= $action_filter=='password_reset'?'selected':'' ?>>Password Reset</option>
-                <option value="change_base_currency" <?= $action_filter=='change_base_currency'?'selected':'' ?>>Change Base Currency</option>
-                <option value="admin_edit_user" <?= $action_filter=='admin_edit_user'?'selected':'' ?>>Admin: Edit User</option>
-                <option value="admin_delete_user" <?= $action_filter=='admin_delete_user'?'selected':'' ?>>Admin: Delete User</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label>From Date</label>
-            <input type="date" name="from_date" value="<?= e($from_date) ?>">
-        </div>
-        <div class="filter-group">
-            <label>To Date</label>
-            <input type="date" name="to_date" value="<?= e($to_date) ?>">
-        </div>
-        <div class="filter-group" style="display: flex; gap: 0.5rem;">
-            <button type="submit" style="background: #0f766e; color: white; border: none; padding: 0.5rem 1rem; border-radius: 40px;">Filter</button>
-            <a href="logs.php" style="background: #e2e8f0; padding: 0.5rem 1rem; border-radius: 40px; text-decoration: none; color: #334155;">Clear filters</a>
-        </div>
-    </form>
-
-    <!-- Logs table (responsive wrapper) -->
-    <div class="table-responsive">
-        <table style="width:100%; border-collapse:collapse;">
-            <thead>
-                <tr><th>Time</th><th>User</th><th>Action</th><th>Details</th><th>IP Address</th></tr>
-            </thead>
-            <tbody>
-                <?php if (empty($logs)): ?>
-                    <tr><td colspan="5">No logs found.</td></tr>
-                <?php else: foreach ($logs as $log): ?>
-                <tr>
-                    <td><?= e($log['created_at']) ?></td>
-                    <td><?= e($log['user_name']) ?> (ID: <?= (int) $log['user_id'] ?>)</td>
-                    <td><span class="badge"><?= e(str_replace('_', ' ', $log['action'])) ?></span></td>
-                    <td><?= e($log['details'] ?? '') ?></td>
-                    <td><?= e($log['ip_address']) ?></td>
-                </tr>
-                <?php endforeach; endif; ?>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Pagination -->
-    <?php if ($total_pages > 1): ?>
-        <div class="pagination">
-            <?php for ($i = max(1, $page - 5); $i <= min($total_pages, $page + 5); $i++): ?>
-                <?php if ($i == $page): ?>
-                    <span class="current"><?= $i ?></span>
-                <?php else: ?>
-                    <a href="?<?= e(http_build_query(array_merge($_GET, ['page' => $i]))) ?>"><?= $i ?></a>
-                <?php endif; ?>
-            <?php endfor; ?>
-        </div>
-    <?php endif; ?>
-</div>
-
-<script src="../assets/client-time.js"></script>
-<script>
-    // Mobile sidebar toggle (same as dashboard)
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('active'); }
-    function openSidebar() { sidebar.classList.add('open'); overlay.classList.add('active'); }
-    if (menuToggle) menuToggle.addEventListener('click', openSidebar);
-    if (overlay) overlay.addEventListener('click', closeSidebar);
-    if (window.innerWidth >= 768) closeSidebar();
-</script>
-</body>
-</html>
+<?php admin_page_end();
