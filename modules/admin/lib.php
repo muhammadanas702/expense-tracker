@@ -175,3 +175,40 @@ function admin_csv_cell($v): string
     $v = (string) $v;
     return $v !== '' && strpos("=+-@\t\r", $v[0]) !== false ? "'" . $v : $v;
 }
+
+/** Audit actions: action (without the admin_ prefix) => [group, label]. */
+function admin_audit_kinds(): array
+{
+    return [
+        'add_user' => ['users', 'Added user'], 'edit_user' => ['users', 'Edited user'], 'block_user' => ['users', 'Blocked user'],
+        'unblock_user' => ['users', 'Unblocked user'], 'delete_user' => ['users', 'Deleted user'], 'reset_password' => ['users', 'Temporary password'],
+        'export_users' => ['users', 'Exported users'], 'set_role' => ['roles', 'Changed role'], 'set_perms' => ['roles', 'Changed permissions'],
+    ];
+}
+
+function admin_audit_label(string $action): string
+{
+    $k = preg_replace('/^admin_/', '', $action);
+    return admin_audit_kinds()[$k][1] ?? ucfirst(str_replace('_', ' ', $k));
+}
+
+/** Audit groups for the filter chips. */
+function admin_audit_groups(): array
+{
+    return ['all' => 'All', 'users' => 'Users', 'roles' => 'Roles', 'other' => 'Other'];
+}
+
+/** SQL fragment + params that select the audit rows of one group (or all). */
+function admin_audit_where(string $group): array
+{
+    $known = admin_audit_kinds();
+    $in = fn(array $keys) => ["l.action IN (" . implode(',', array_fill(0, count($keys), '?')) . ")", array_map(fn($k) => 'admin_' . $k, $keys)];
+    if (isset(admin_audit_groups()[$group]) && $group !== 'all' && $group !== 'other') {
+        return $in(array_keys(array_filter($known, fn($v) => $v[0] === $group)));
+    }
+    if ($group === 'other') {
+        [$sql, $p] = $in(array_keys($known));
+        return ["l.action LIKE 'admin\\_%' AND NOT ($sql)", $p];
+    }
+    return ["l.action LIKE 'admin\\_%'", []];
+}

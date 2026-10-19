@@ -18,3 +18,7 @@ table.tbl td small{display:block;color:var(--mu);font-size:.72rem}
 .barchart rect{transform-box:fill-box;transform-origin:bottom;animation:grow .6s ease both}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.toolbar .inp{flex:1;min-width:160px;width:auto}
 @media(max-width:700px){table.tbl .hm{display:none}}
+.dt-m{display:none;margin-top:4px}@media(max-width:700px){.dt-m{display:block}}
+@media(max-width:700px){table.tbl td,table.tbl th{padding:10px 8px}.tag{white-space:nowrap}table.tbl td .tag+small{white-space:normal;min-width:130px}}
+.nw{white-space:nowrap}@media(max-width:700px){.nw{white-space:normal}table.tbl td .tag+small{min-width:0}}
+@media(max-width:700px){table.tbl.fixm{table-layout:fixed}table.tbl.fixm th:first-child{width:104px}table.tbl.fixm td{overflow-wrap:anywhere}}

@@ -31,7 +31,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 11 | Role-based admin panel (design: docs/design/v8-admin-panel-v3.html), split into 11a-11f | in progress |
 | 11a | Roles (Super Admin, Admin, Support), permission table, admin shell and Overview | done (SQL: database/part-11a.sql) |
 | 11b | Users: search, filters, sort, pages, profile, add, block/unblock, role change, temporary password, delete, CSV export | done (SQL: database/part-11b.sql) |
-| 11c | Roles and permissions page, Audit log | todo |
+| 11c | Roles and permissions page, Audit log, User logs in the new look | done (no SQL) |
 | 11d | Support: help form for users and the staff inbox | todo (SQL) |
 | 11e | Announcements, Categories, Currencies, Groups | todo (SQL) |
 | 11f | Security (failed logins, blocked IPs), Backups, System settings | todo (SQL) |
@@ -92,3 +92,10 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - The profile page no longer lists a user's income and expense rows (privacy). It shows counts, last login and recent activity only.
 - `admin/edit-user.php` now just redirects to the profile page. CSV export neutralises spreadsheet formulas and is written to the audit log.
 - Tests: `python3 tests/admin_users_http_test.py` (block, sign-out, temporary password, roles, add user, CSV, filters).
+
+## Notes for Part 11c
+
+- `admin/roles.php` (Super Admin only): one form with a tick box per permission for Admin and Support. Only changed switches are saved, and each change is written to the audit log ("Admin: Delete users on"). Saving without a change writes nothing.
+- `admin/audit.php` (permission `log`): the staff audit trail = `user_logs` rows whose action starts with `admin_`, with search, date range and groups (Users, Roles, Other). New admin features only need `admin_audit($conn, $actorId, 'kind', 'text')`; add a label in `admin_audit_kinds()` to get a nice name and group.
+- `admin/logs.php` (permission `log`) is the old "User logs" page in the new look; it shows what normal users did (login, entries...), the audit log shows what staff did.
+- Tests: `python3 tests/admin_audit_http_test.py`.
