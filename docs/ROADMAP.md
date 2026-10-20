@@ -28,13 +28,13 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 8c | Friends list (people you split with) | done (no SQL needed) |
 | 9 | Full review, security pass, tests, final README | done (admin pages are restyled in Part 11) |
 | 10 | Native apps: APK (Android), EXE (Windows), iOS (see below), GitHub Releases workflow | todo |
-| 11 | Role-based admin panel (design: docs/design/v8-admin-panel-v3.html), split into 11a-11f | in progress |
+| 11 | Role-based admin panel (design: docs/design/v8-admin-panel-v3.html), split into 11a-11f | done |
 | 11a | Roles (Super Admin, Admin, Support), permission table, admin shell and Overview | done (SQL: database/part-11a.sql) |
 | 11b | Users: search, filters, sort, pages, profile, add, block/unblock, role change, temporary password, delete, CSV export | done (SQL: database/part-11b.sql) |
 | 11c | Roles and permissions page, Audit log, User logs in the new look | done (no SQL) |
 | 11d | Support: help form for users and the staff inbox | done (SQL: database/part-11d.sql) |
 | 11e | Announcements, Categories, Currencies, Groups | done (SQL: database/part-11e.sql) |
-| 11f | Security (failed logins, blocked IPs), Backups, System settings | todo (SQL) |
+| 11f | Security (failed logins, blocked IPs), Backups, System settings, scrollable admin menu | done (SQL: database/part-11f.sql) |
 | 12 | Website polish: animations and small details (design: docs/design/v8-complete-website.html) | todo |
 
 ## Native apps (plan)
@@ -92,6 +92,15 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - The profile page no longer lists a user's income and expense rows (privacy). It shows counts, last login and recent activity only.
 - `admin/edit-user.php` now just redirects to the profile page. CSV export neutralises spreadsheet formulas and is written to the audit log.
 - Tests: `python3 tests/admin_users_http_test.py` (block, sign-out, temporary password, roles, add user, CSV, filters).
+
+## Notes for Part 11f
+
+- Admin sidebar: the logo and "Back to app / Logout" stay fixed, only the menu in between scrolls (the current page is scrolled into view). On phones the bottom bar shows three pages plus **More** (`admin/menu.php`, lists every page the role may use), so adding pages never overflows the bar.
+- `modules/security/` + `admin/security.php` (view: permission `log`, block/unblock: permission `block`): failed sign-ins, lock-outs, refused addresses (kept 30 days, e-mails masked like s***@example.com), top addresses and IP blocks (1 hour to until removed, max 200, you cannot block your own address). A block only refuses sign-in, sign-up and reset e-mails from that address (`security_ip_blocked()` in `auth/login.php`, `register.php`, `send-otp.php`); everything fails open. Tables `security_events`, `ip_blocks`.
+- `modules/backup/` + `admin/backups.php` (permission `backup`, default off for Admin and Support): plain SQL export written in PHP (no mysqldump needed), gzip when available, saved in `storage/backups` (closed to the web), newest 10 kept, one per 30 seconds, download only through a POST with CSRF and a strict file-name check, all audited. Contains every account and password hash, so give the permission only to people you trust. Receipt pictures are not included. Restore = import the file in phpMyAdmin (tested: the dump imports cleanly and the data matches).
+- `modules/settings/` + `admin/settings.php` (permission `set`): **sign-ups open/closed** (checked in `auth/register.php`) and **maintenance mode** (checked in `config/db.php`: everyone except signed-in staff gets a 503 "be right back" page with your message; sign-in and password-reset pages stay open). Table `app_settings`.
+- Audit log has a **System** group (blocks, backups, settings).
+- Tests: `python3 tests/admin_system_http_test.py`.
 
 ## Notes for Part 11e
 

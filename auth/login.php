@@ -5,6 +5,7 @@ secure_session_start();
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/logging.php';
+require_once __DIR__ . '/../modules/security/lib.php';
 
 // Used to spend the same time on unknown emails as on real ones (stops user enumeration by timing).
 const LOGIN_DUMMY_HASH = '$2y$10$upDqZzLSCX4uV4KiKU.A2udyaMdt1.F45WteM6RgWu.XNBqNEFfiu';
@@ -30,11 +31,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $keyEmail = rl_key($email);
         $keyIp = rl_key($ip);
 
-        if (
+        if (security_ip_blocked($conn)) {
+            $error = "Signing in is not available from this connection right now. Please contact support.";
+        } elseif (
             rl_blocked($conn, 'login_email_ip', $keyEmailIp, 5, 900)
             || rl_blocked($conn, 'login_email', $keyEmail, 20, 900)
             || rl_blocked($conn, 'login_ip', $keyIp, 100, 900)
         ) {
+            security_event($conn, 'login_locked', $email);
             $error = "Too many failed attempts. Please wait 15 minutes and try again.";
         } else {
             $stmt = $conn->prepare("SELECT id, name, password, blocked FROM users WHERE email=?");
@@ -75,6 +79,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 rl_hit($conn, 'login_email_ip', $keyEmailIp);
                 rl_hit($conn, 'login_email', $keyEmail);
                 rl_hit($conn, 'login_ip', $keyIp);
+                security_event($conn, 'login_fail', $email);
                 $error = "Invalid email or password.";
             }
         }
