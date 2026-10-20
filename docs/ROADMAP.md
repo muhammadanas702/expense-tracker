@@ -35,7 +35,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 11d | Support: help form for users and the staff inbox | done (SQL: database/part-11d.sql) |
 | 11e | Announcements, Categories, Currencies, Groups | done (SQL: database/part-11e.sql) |
 | 11f | Security (failed logins, blocked IPs), Backups, System settings, scrollable admin menu | done (SQL: database/part-11f.sql) |
-| 12 | Website polish: animations and small details (design: docs/design/v8-complete-website.html) | todo |
+| 12 | Email confirmation at sign-up + website polish and animations (design: docs/design/v8-complete-website.html) | done (no SQL) |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -92,6 +92,12 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - The profile page no longer lists a user's income and expense rows (privacy). It shows counts, last login and recent activity only.
 - `admin/edit-user.php` now just redirects to the profile page. CSV export neutralises spreadsheet formulas and is written to the audit log.
 - Tests: `python3 tests/admin_users_http_test.py` (block, sign-out, temporary password, roles, add user, CSV, filters).
+
+## Notes for Part 12
+
+- **Email confirmation** (`modules/signup/`, `auth/register.php`, `auth/verify-email.php`): sign-up no longer creates the account straight away. The form is checked (plausible address, not a throw-away service like mailinator, common typos such as gmial.com get a "Did you mean...?", the domain must be able to receive mail), then a 6-digit code is emailed. The account is created only after the code is typed (valid 10 minutes, 5 wrong tries, resend after 60 seconds, 4 emails per sign-up, 5 emails per address and 15 per connection per hour). The pending sign-up lives only in the visitor's session; nothing is stored in the database until the code is right. If the email cannot be sent, nothing is created and the person is told. `config/mail.php` now has `ef_send_mail()` used by both the reset code and the confirmation code. Needs working SMTP settings (the same ones as password reset).
+- **Polish** (`assets/app.css` Part 12 block, `assets/fx.js`): drifting background, hero entrance, floating cards, drawn sparkline, count-up on headline numbers (`data-countup`), scroll reveal (`.rv`, becomes `.seen`; hidden only when JavaScript runs), sticky blurred navigation with shadow, nav underline, smooth anchors, button and card hover/press, smooth FAQ, auth card entrance and shake on errors, "saved" messages fade away, visible keyboard focus. Everything switches off with "reduce motion". The landing page now describes Shared (it used to say "coming soon").
+- Tests: `python3 tests/signup_verify_http_test.py` (needs `pip install aiosmtpd`; it starts a local mail catcher and temporarily writes `config/mail.local.php`).
 
 ## Notes for Part 11f
 

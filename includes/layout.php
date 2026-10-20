@@ -122,6 +122,7 @@ function ef_page_end(array $o = []): void
 </nav>
 </div>
 <script src="<?= e(ef_asset('assets/client-time.js')) ?>" defer></script>
+<script src="<?= e(ef_asset('assets/fx.js')) ?>" defer></script>
 <?= $o['scripts'] ?? '' ?>
 </body>
 </html>
