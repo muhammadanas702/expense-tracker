@@ -90,7 +90,7 @@ function ef_page_start(array $o): void
       </div>
       <?php endif; ?>
       <?php if ($unread !== null): ?>
-      <a class="ic bl<?= $active === 'notif' ? ' on' : '' ?>" href="<?= e(ef_url('activity/notifications.php')) ?>" aria-label="Notifications<?= $unread ? ' (' . $unread . ' new)' : '' ?>"><?= ef_icon('bell') ?><?php if ($unread > 0): ?><i class="dt"><?= $unread > 99 ? '99+' : $unread ?></i><?php endif; ?></a>
+      <a class="ic bl<?= $active === 'notif' ? ' on' : '' ?>" href="<?= e(ef_url('activity/notifications.php')) ?>" data-pop="<?= e(ef_url('activity/notifications.php?popup=1')) ?>" aria-haspopup="true" aria-expanded="false" aria-label="Notifications<?= $unread ? ' (' . $unread . ' new)' : '' ?>"><?= ef_icon('bell') ?><?php if ($unread > 0): ?><i class="dt"><?= $unread > 99 ? '99+' : $unread ?></i><?php endif; ?></a>
       <?php endif; ?>
       <a class="me" href="<?= e(ef_url('profile.php')) ?>"><i class="av"><?= e(ef_initials($name)) ?></i><span><?= e($name) ?></span></a>
     </div>
@@ -133,6 +133,7 @@ function ef_page_end(array $o = []): void
 </div>
 <script src="<?= e(ef_asset('assets/client-time.js')) ?>" defer></script>
 <script src="<?= e(ef_asset('assets/fx.js')) ?>" defer></script>
+<script src="<?= e(ef_asset('assets/notif-pop.js')) ?>" defer></script>
 <?= $o['scripts'] ?? '' ?>
 </body>
 </html>
