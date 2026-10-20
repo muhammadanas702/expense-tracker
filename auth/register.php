@@ -6,6 +6,8 @@ secure_session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../modules/security/lib.php';
 require_once __DIR__ . '/../modules/settings/lib.php';
+require_once __DIR__ . '/../modules/signup/lib.php';
+require_once __DIR__ . '/../config/mail.php';
 
 $msg = "";
 
@@ -16,6 +18,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
     $name = trim((string) ($_POST["name"] ?? ''));
     $email = trim((string) ($_POST["email"] ?? ''));
+    $emailRaw = $email;
 
     $pass = (string) ($_POST["password"] ?? '');
     $cpass = (string) ($_POST["confirm_password"] ?? '');
@@ -50,11 +53,17 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         $msg = "Please enter your name (up to 100 characters).";
     }
 
-    /* EMAIL VALIDATION */
+    /* EMAIL VALIDATION: plausible address, not a throw-away service, domain can receive mail */
 
-    elseif(strlen($email) > 190 || !filter_var($email, FILTER_VALIDATE_EMAIL)){
+    elseif(($email = signup_normalize_email($emailRaw)) === ''){
 
+        $email = $emailRaw;
         $msg = "Invalid email format!";
+    }
+
+    elseif(($emailProblem = signup_email_problem($email)) !== null){
+
+        $msg = $emailProblem;
     }
 
     /* PASSWORD VALIDATION */
@@ -89,34 +98,29 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
             $msg = "User already exists!";
 
+        }elseif(
+            rl_blocked($conn, 'signup_mail_email', rl_key($email), 5, 3600)
+            || rl_blocked($conn, 'signup_mail_ip', $ipKey, 15, 3600)
+        ){
+
+            $msg = "Too many confirmation emails were requested. Please try again in an hour.";
+
         }else{
 
-            $hash = password_hash($pass, PASSWORD_DEFAULT);
+            // The account is only created after the person types the code we email to this address.
+            $code = signup_code_new();
+            rl_hit($conn, 'signup_mail_email', rl_key($email));
+            rl_hit($conn, 'signup_mail_ip', $ipKey);
 
-            try {
+            if(sendVerifyMail($email, $name, $code)){
 
-                $stmt = $conn->prepare("
-                    INSERT INTO users(name,email,password)
-                    VALUES(?,?,?)
-                ");
-
-                $stmt->execute([$name,$email,$hash]);
-
-                $_SESSION['reset_message'] = "Account created. Please log in.";
-                $_SESSION['reset_type'] = "success";
-
-                header("Location: login.php");
+                signup_pending_set($name, $email, password_hash($pass, PASSWORD_DEFAULT), $code);
+                header("Location: verify-email.php");
                 exit();
 
-            } catch (PDOException $e) {
+            }else{
 
-                // Two sign-ups with the same email at the same moment hit the UNIQUE index.
-                if ($e->getCode() === '23000') {
-                    $msg = "User already exists!";
-                } else {
-                    error_log('ExpenseFlow registration failed: ' . $e->getMessage());
-                    $msg = "Could not create the account. Please try again.";
-                }
+                $msg = "We could not send the confirmation email. Please check the address and try again in a moment.";
             }
         }
     }
@@ -132,11 +136,12 @@ require_once __DIR__ . '/../includes/auth-layout.php';
     <?= csrf_field() ?>
     <?= ef_field('FULL NAME', 'name', 'usr', 'text', $name, ['placeholder' => 'Your name', 'required' => true, 'maxlength' => 100, 'autocomplete' => 'name']) ?>
     <?= ef_field('EMAIL', 'email', 'mail', 'email', $email, ['placeholder' => 'you@example.com', 'required' => true, 'maxlength' => 190, 'autocomplete' => 'email']) ?>
+    <p class="s3" style="margin:-6px 0 12px;font-size:.78rem">We will email you a 6-digit code to confirm it is yours.</p>
     <?= ef_field('PASSWORD', 'password', 'lock', 'password', '', ['placeholder' => 'Min. 8 characters', 'required' => true, 'autocomplete' => 'new-password', 'data-strength' => true]) ?>
     <div class="mt"><i></i><i></i><i></i><i></i></div>
     <p class="s3" style="margin:8px 0 14px;font-size:.78rem">Use 8+ characters with upper and lower case letters, a number and a symbol.</p>
     <?= ef_field('CONFIRM PASSWORD', 'confirm_password', 'lock', 'password', '', ['placeholder' => 'Repeat password', 'required' => true, 'autocomplete' => 'new-password']) ?>
-    <button class="btn lg" style="width:100%" type="submit">Create account</button>
+    <button class="btn lg" style="width:100%" type="submit">Send confirmation code</button>
 </form>
 <div class="ft2">Already have an account? <a class="lnk" href="login.php">Log in</a></div>
 <?php ef_auth_end(); ?>
