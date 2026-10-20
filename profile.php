@@ -85,7 +85,7 @@ $settings = profile_settings($conn, $user_id);
 $csrf = csrf_token();
 if ($success !== '') { $_SESSION['success'] = $success; }
 if ($error !== '') { $_SESSION['error'] = $error; }
-ef_page_start(['title' => 'Profile & Settings', 'sub' => 'Account, goals and data', 'active' => '', 'user' => $user]);
+ef_page_start(['title' => 'Profile & Settings', 'sub' => 'Account, goals and data', 'neutral' => true, 'active' => 'profile', 'user' => $user]);
 ?>
 <div class="GE">
   <div style="display:flex;flex-direction:column;gap:14px">

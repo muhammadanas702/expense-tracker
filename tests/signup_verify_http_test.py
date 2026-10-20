@@ -33,7 +33,7 @@ class H:
         m = message_from_bytes(envelope.content)
         body = m.get_payload(decode=True).decode('utf8', 'ignore') if not m.is_multipart() else ''.join(
             p.get_payload(decode=True).decode('utf8', 'ignore') for p in m.walk() if p.get_content_type() in ('text/plain', 'text/html'))
-        inbox.append({'to': envelope.rcpt_tos[0], 'subject': m['Subject'], 'body': body})
+        inbox.append({'to': envelope.rcpt_tos[0], 'subject': m['Subject'], 'body': body, 'auto': m['Auto-Submitted'], 'from': m['From'], 'parts': [p.get_content_type() for p in m.walk()]})
         return '250 OK'
 def auth(server, session, envelope, mechanism, auth_data): return AuthResult(success=True)
 ctl = Controller(H(), hostname='127.0.0.1', port=1025, authenticator=auth, auth_required=False, auth_require_tls=False)
@@ -76,7 +76,12 @@ try:
     s = requests.Session()
     r = register(s)
     ok(r.status_code == 302 and r.headers['Location'].endswith('verify-email.php'), 'valid sign-up goes to the code page')
-    ok(len(inbox) == 1 and inbox[0]['to'] == 'vera@vf.test' and 'Confirm your email' in inbox[0]['subject'], 'one confirmation email sent to that address')
+    ok(len(inbox) == 1 and inbox[0]['to'] == 'vera@vf.test' and 'confirmation code' in inbox[0]['subject'], 'one confirmation email sent to that address')
+    code0 = re.search(r'\b(\d{6})\b', re.sub(r'<[^>]+>', ' ', inbox[0]['body'])).group(1)
+    ok(inbox[0]['subject'].startswith(code0), 'subject starts with the code (visible in the notification)')
+    ok(inbox[0]['auto'] == 'auto-generated' and 'ExpenseFlow' in inbox[0]['from'], 'automatic-message header and sender name set')
+    ok('text/html' in inbox[0]['parts'] and 'text/plain' in inbox[0]['parts'] and 'image/png' in inbox[0]['parts'], 'email has a designed HTML part, a plain-text part and the logo')
+    ok('do not reply' in inbox[0]['body'] and 'Never share this code' in inbox[0]['body'], 'email says it is automatic and warns not to share the code')
     ok(sql("SELECT COUNT(*) FROM users WHERE email='vera@vf.test'") == '0', 'NO account exists before the code is entered')
     page = s.get(B + '/auth/verify-email.php').text
     ok('ve•••@vf.test' in page and 'vera@vf.test' not in page, 'code page shows a masked address only')

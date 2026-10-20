@@ -131,3 +131,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - `admin/audit.php` (permission `log`): the staff audit trail = `user_logs` rows whose action starts with `admin_`, with search, date range and groups (Users, Roles, Other). New admin features only need `admin_audit($conn, $actorId, 'kind', 'text')`; add a label in `admin_audit_kinds()` to get a nice name and group.
 - `admin/logs.php` (permission `log`) is the old "User logs" page in the new look; it shows what normal users did (login, entries...), the audit log shows what staff did.
 - Tests: `python3 tests/admin_audit_http_test.py`.
+
+### Notes for Part 12c (fixes before the final step)
+- OTP / confirmation emails redesigned (branded HTML, logo, 6 digit boxes, code in subject, auto-generated headers).
+- Sender address: with Gmail SMTP the From is always the logged-in Gmail. Use a dedicated Gmail account for ExpenseFlow. Optional secrets: `EXPENSEFLOW_MAIL_FROM_NAME` (display name) and `EXPENSEFLOW_MAIL_REPLY_TO`. A real noreply@ address needs a custom domain + mail provider.
+- Notifications, Profile and Help pages are "neutral": no Personal/Shared switch; the bell opens Notifications (highlighted) and each row links to its group.
+- Mobile fix: grid children `min-width:0` (admin roles page overflow).

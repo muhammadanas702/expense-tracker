@@ -29,6 +29,8 @@ jobs:
           EXPENSEFLOW_SMTP_USERNAME: ${{ secrets.EXPENSEFLOW_SMTP_USERNAME }}
           EXPENSEFLOW_SMTP_PASSWORD: ${{ secrets.EXPENSEFLOW_SMTP_PASSWORD }}
           EXPENSEFLOW_MAIL_FROM: ${{ secrets.EXPENSEFLOW_MAIL_FROM }}
+          EXPENSEFLOW_MAIL_FROM_NAME: ${{ secrets.EXPENSEFLOW_MAIL_FROM_NAME }}
+          EXPENSEFLOW_MAIL_REPLY_TO: ${{ secrets.EXPENSEFLOW_MAIL_REPLY_TO }}
         run: |
           python3 - <<'PY'
           import os
@@ -67,6 +69,8 @@ jobs:
               "from_email": os.environ.get("EXPENSEFLOW_MAIL_FROM") or os.environ["EXPENSEFLOW_SMTP_USERNAME"],
               "from_name": os.environ.get("EXPENSEFLOW_MAIL_FROM_NAME") or "ExpenseFlow",
           }
+          if os.environ.get("EXPENSEFLOW_MAIL_REPLY_TO"):
+              mail["reply_to"] = os.environ["EXPENSEFLOW_MAIL_REPLY_TO"]
 
           def php_quote(value):
               return "'" + str(value).replace("\\", "\\\\").replace("'", "\\'") + "'"
