@@ -25,8 +25,17 @@ function ef_initials(string $name): string
 
 function ef_page_start(array $o): void
 {
-    $mode = ($o['mode'] ?? 'p') === 's' && ef_mode_enabled('s') ? 's' : 'p';
+    // Neutral pages (Profile, Notifications, Help) belong to neither Personal nor Shared: no mode switch, and the menu
+    // keeps showing whichever side the person was last on.
+    $neutral = !empty($o['neutral']);
+    if ($neutral) {
+        $mode = (($_SESSION['ef_mode'] ?? 'p') === 's' && ef_mode_enabled('s')) ? 's' : 'p';
+    } else {
+        $mode = ($o['mode'] ?? 'p') === 's' && ef_mode_enabled('s') ? 's' : 'p';
+        $_SESSION['ef_mode'] = $mode;
+    }
     $active = (string) ($o['active'] ?? '');
+    $GLOBALS['__ef_page'] = ['mode' => $mode, 'active' => $active, 'neutral' => $neutral]; // ef_page_end() uses the same values
     $title = (string) ($o['title'] ?? 'ExpenseFlow');
     $sub = (string) ($o['sub'] ?? '');
     $user = $o['user'] ?? [];
@@ -68,20 +77,20 @@ function ef_page_start(array $o): void
     <?php endforeach; ?>
     <div class="sp"></div>
     <?php if (!empty($user['is_admin'])): ?><a class="nv" href="<?= e(ef_url('admin/index.php')) ?>"><?= ef_icon('shield') ?>Admin</a><?php endif; ?>
-    <a class="nv" href="<?= e(ef_url('profile.php')) ?>"><?= ef_icon('usr') ?>Profile</a>
+    <a class="nv<?= $active === 'profile' ? ' on' : '' ?>" href="<?= e(ef_url('profile.php')) ?>"><?= ef_icon('usr') ?>Profile</a>
     <a class="nv" href="<?= e(ef_url('auth/logout.php')) ?>" data-post data-csrf="<?= e(csrf_token()) ?>"><?= ef_icon('out') ?>Logout</a>
   </aside>
   <div class="mn">
     <div class="g tb">
       <div class="tt"><h2><?= e($title) ?></h2><?php if ($sub !== ''): ?><small><?= e($sub) ?></small><?php endif; ?></div>
-      <?php if ($sharedHome): ?>
+      <?php if ($sharedHome && !$neutral): ?>
       <div class="seg">
         <a class="<?= $mode === 'p' ? 'on' : '' ?>" href="<?= e(ef_url($home)) ?>"><?= ef_icon('wal') ?> Personal</a>
         <a class="<?= $mode === 's' ? 'on' : '' ?>" href="<?= e(ef_url($sharedHome)) ?>"><?= ef_icon('users') ?> Shared</a>
       </div>
       <?php endif; ?>
       <?php if ($unread !== null): ?>
-      <a class="ic bl" href="<?= e(ef_url('activity/notifications.php')) ?>" aria-label="Notifications<?= $unread ? ' (' . $unread . ' new)' : '' ?>"><?= ef_icon('bell') ?><?php if ($unread > 0): ?><i class="dt"><?= $unread > 99 ? '99+' : $unread ?></i><?php endif; ?></a>
+      <a class="ic bl<?= $active === 'notif' ? ' on' : '' ?>" href="<?= e(ef_url('activity/notifications.php')) ?>" aria-label="Notifications<?= $unread ? ' (' . $unread . ' new)' : '' ?>"><?= ef_icon('bell') ?><?php if ($unread > 0): ?><i class="dt"><?= $unread > 99 ? '99+' : $unread ?></i><?php endif; ?></a>
       <?php endif; ?>
       <a class="me" href="<?= e(ef_url('profile.php')) ?>"><i class="av"><?= e(ef_initials($name)) ?></i><span><?= e($name) ?></span></a>
     </div>
@@ -105,14 +114,15 @@ function ef_page_start(array $o): void
 
 function ef_page_end(array $o = []): void
 {
-    $mode = ($o['mode'] ?? 'p') === 's' && ef_mode_enabled('s') ? 's' : 'p';
-    $active = (string) ($o['active'] ?? '');
+    $pg = $GLOBALS['__ef_page'] ?? ['mode' => ($o['mode'] ?? 'p') === 's' && ef_mode_enabled('s') ? 's' : 'p', 'active' => (string) ($o['active'] ?? ''), 'neutral' => false];
+    $mode = $pg['mode'];
+    $active = $pg['active'];
     $bottom = array_values(array_filter(ef_nav($mode), fn($n) => $n[3] !== 'sadd'));
     ?>
     </div>
   </div>
 </div>
-<?php if ($mode === 's' && ef_nav('s')): ?>
+<?php if ($mode === 's' && !$pg['neutral'] && ef_nav('s')): ?>
 <a class="fabf" href="<?= e(ef_url('shared/add.php')) ?>" aria-label="Add shared expense"><?= ef_icon('pl') ?></a>
 <?php endif; ?>
 <nav class="g bn">

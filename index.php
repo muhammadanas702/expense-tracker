@@ -59,7 +59,7 @@ $logo = '<span class="logo"><img src="' . e($base) . '/assets/icons/icon-192.png
 <div class="fr" data-mode="p">
 <header class="g nb">
   <a class="logo" href="<?= e($base) ?>/" style="padding:0"><?= $logo ?></a>
-  <nav class="lk" aria-label="Sections"><a href="#features">Features</a><a href="#modes">Personal</a><a href="#how">How it works</a><a href="#faq">FAQ</a></nav>
+  <nav class="lk" aria-label="Sections"><a href="#features">Features</a><a href="#modes">Personal &amp; Shared</a><a href="#how">How it works</a><a href="#faq">FAQ</a></nav>
   <a class="lnk" href="<?= e($base) ?>/auth/login.php">Log in</a>
   <a class="btn" href="<?= e($base) ?>/auth/register.php">Get started</a>
 </header>

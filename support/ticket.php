@@ -8,7 +8,7 @@ if (!$ticket) {
 }
 $msgs = support_messages($conn, $id);
 
-ef_page_start(['title' => $ticket['subject'], 'sub' => (SUPPORT_CATEGORIES[$ticket['category']] ?? 'Other') . ' · opened ' . support_ago((string) $ticket['created_at']), 'mode' => 'p', 'active' => 'pf', 'user' => $user]);
+ef_page_start(['title' => $ticket['subject'], 'sub' => (SUPPORT_CATEGORIES[$ticket['category']] ?? 'Other') . ' · opened ' . support_ago((string) $ticket['created_at']), 'neutral' => true, 'active' => 'profile', 'user' => $user]);
 ?>
 <div class="g card" style="margin-bottom:14px">
   <div class="row" style="border-top:0"><span>Status</span><b><?= support_pill($ticket['status']) ?></b></div>

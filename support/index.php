@@ -4,7 +4,7 @@ $tickets = support_user_list($conn, $user_id);
 $old = $_SESSION['support_old'] ?? ['subject' => '', 'category' => 'other', 'body' => ''];
 unset($_SESSION['support_old']);
 
-ef_page_start(['title' => 'Help & support', 'sub' => 'Ask the ExpenseFlow team', 'mode' => 'p', 'active' => 'pf', 'user' => $user]);
+ef_page_start(['title' => 'Help & support', 'sub' => 'Ask the ExpenseFlow team', 'neutral' => true, 'active' => 'profile', 'user' => $user]);
 ?>
 <div class="g card" style="margin-bottom:14px">
   <div class="t"><?= ef_icon('lifebuoy') ?> New request</div>
