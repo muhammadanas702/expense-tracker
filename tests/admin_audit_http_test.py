@@ -68,7 +68,8 @@ ok('plain login' not in S['sp'].get(B + '/admin/audit.php').text, 'normal user a
 ok('plain login' in S['sp'].get(B + '/admin/logs.php').text, 'but they are in the user logs')
 ok('Deleted user' in S['sp'].get(B + '/admin/audit.php?q=Deleted').text or 'Deleted user' in S['sp'].get(B + '/admin/audit.php?q=ID').text, 'search works')
 ok(S['sp'].get(B + '/admin/audit.php?from=2020-01-01&to=bad&p=99&g=zzz').status_code == 200, 'bad filter values are safe')
-ok('<script>' not in S['sp'].get(B + '/admin/audit.php?q=%3Cscript%3E').text.replace('<script src', ''), 'search text is escaped')
+_t = S['sp'].get(B + '/admin/audit.php?q=%3Cscript%3E').text
+ok('value="&lt;script&gt;"' in _t and 'value="<script>"' not in _t, 'search text is escaped')
 
 sql("DELETE FROM admin_perms"); sql("DELETE FROM user_logs WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@au.local')"); sql("DELETE FROM users WHERE email LIKE '%@au.local'")
 print('admin_audit_http_test: ' + ('all passed' if not fails else f'{fails} FAILED'))

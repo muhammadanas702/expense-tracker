@@ -25,7 +25,7 @@ const ADMIN_PERMS = [
     'cur' => 'Manage currencies and rates',
     'grp' => 'Manage shared groups',
     'log' => 'View audit log',
-    'backup' => 'Create and restore backups',
+    'backup' => 'Create and download backups',
     'set' => 'Change system settings',
 ];
 
@@ -187,6 +187,8 @@ function admin_audit_kinds(): array
         'announce_add' => ['content', 'Added announcement'], 'announce_edit' => ['content', 'Edited announcement'], 'announce_toggle' => ['content', 'Announcement on/off'], 'announce_delete' => ['content', 'Deleted announcement'],
         'cat_add' => ['content', 'Added category'], 'cat_change' => ['content', 'Changed category'], 'cat_delete' => ['content', 'Deleted category'],
         'cur_change' => ['content', 'Changed currencies'], 'group_delete' => ['content', 'Deleted group'],
+        'ip_block' => ['system', 'Blocked address'], 'ip_unblock' => ['system', 'Unblocked address'], 'backup_create' => ['system', 'Created backup'],
+        'backup_download' => ['system', 'Downloaded backup'], 'backup_delete' => ['system', 'Deleted backup'], 'settings_change' => ['system', 'Changed settings'],
     ];
 }
 
@@ -199,7 +201,7 @@ function admin_audit_label(string $action): string
 /** Audit groups for the filter chips. */
 function admin_audit_groups(): array
 {
-    return ['all' => 'All', 'users' => 'Users', 'roles' => 'Roles', 'support' => 'Support', 'content' => 'Content', 'other' => 'Other'];
+    return ['all' => 'All', 'users' => 'Users', 'roles' => 'Roles', 'support' => 'Support', 'content' => 'Content', 'system' => 'System', 'other' => 'Other'];
 }
 
 /** SQL fragment + params that select the audit rows of one group (or all). */

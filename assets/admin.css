@@ -23,4 +23,10 @@ table.tbl td small{display:block;color:var(--mu);font-size:.72rem}
 .nw{white-space:nowrap}@media(max-width:700px){.nw{white-space:normal}table.tbl td .tag+small{min-width:0}}
 @media(max-width:700px){table.tbl.fixm{table-layout:fixed}table.tbl.fixm th:first-child{width:104px}table.tbl.fixm td{overflow-wrap:anywhere}}
 /* Tables with action buttons (11e): on phones every row becomes a small card, so nothing is cut off */
-@media(max-width:700px){table.tbl.wide,table.tbl.wide tbody{display:block}table.tbl.wide tr{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:11px 12px;border-top:1px solid rgba(91,107,128,.14)}table.tbl.wide tr:first-child{display:none}table.tbl.wide td{display:block;padding:0;border:0;background:none!important}table.tbl.wide td:first-child{flex:1 1 100%}table.tbl.wide td[colspan]{flex:1 1 100%}table.tbl.wide td.nw form{display:flex;flex-wrap:wrap;gap:6px}table.tbl.wide td.nw .btn{margin:0}table.tbl.wide td.hm{display:none}}
+@media(max-width:700px){table.tbl.wide,table.tbl.wide tbody{display:block}table.tbl.wide tr{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:11px 12px;border-top:1px solid rgba(91,107,128,.14)}table.tbl.wide tr:first-child{display:none}table.tbl.wide td{display:block;padding:0;border:0;background:none!important}table.tbl.wide td:first-child{flex:1 1 100%}table.tbl.wide td[colspan]{flex:1 1 100%}table.tbl.wide td.nw form{display:flex;flex-wrap:wrap;gap:6px}table.tbl.wide td.nw .btn{margin:0}table.tbl.wide td.hm{display:none}table.tbl.wide{width:100%;max-width:100%}table.tbl.wide td[colspan]{box-sizing:border-box;width:100%;text-align:left}}
+/* Admin sidebar: logo on top and Back/Logout at the bottom stay put; only the menu in between scrolls */
+.sb .sbs{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:4px;margin:0 -6px;padding:0 6px;scrollbar-width:thin;scrollbar-color:rgba(91,107,128,.35) transparent}
+.sb .sbs::-webkit-scrollbar{width:6px}.sb .sbs::-webkit-scrollbar-thumb{background:rgba(91,107,128,.3);border-radius:6px}
+.sb .sbf{flex:none;display:flex;flex-direction:column;gap:4px;padding-top:8px;margin-top:6px;border-top:1px solid rgba(91,107,128,.14)}
+.sb .logo{flex:none;padding-bottom:12px}
+.sb .sbs .nv,.sb .sbs .sl{flex:none}

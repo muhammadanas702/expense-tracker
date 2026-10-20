@@ -65,3 +65,9 @@ if (!empty($_SESSION['user_id']) && schema_has($conn, 'users', 'blocked')) {
         error_log('ExpenseFlow block check failed: ' . $e->getMessage());
     }
 }
+
+// Maintenance mode (optional module): while it is on, only signed-in staff and the login page work.
+if (is_file(__DIR__ . '/../modules/settings/lib.php')) {
+    require_once __DIR__ . '/../modules/settings/lib.php';
+    settings_enforce_maintenance($conn);
+}

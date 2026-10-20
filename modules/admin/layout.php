@@ -55,7 +55,9 @@ function admin_page_start(array $o): void
     $sub = (string) ($o['sub'] ?? '');
     $menu = admin_visible_menu($conn, $admin['role']);
     $flat = array_merge(...array_values($menu ?: [[]]));
-    $bottom = array_slice(array_values(array_filter($flat, fn($i) => $i[0] !== 'roles')), 0, 4);
+    $usable = array_values(array_filter($flat, fn($i) => $i[0] !== 'roles'));
+    // Phone bottom bar: the first three pages and "More" (a page that lists every page).
+    $bottom = count($usable) > 4 ? array_merge(array_slice($usable, 0, 3), [['more', 'admin/menu.php', 'more', 'More', null]]) : $usable;
     send_security_headers();
     ?><!DOCTYPE html>
 <html lang="en">
@@ -75,15 +77,18 @@ function admin_page_start(array $o): void
 <div class="ap">
   <aside class="g sb">
     <div class="logo"><img src="<?= e(ef_url('favicon.png')) ?>" alt=""><span class="wm">Admin</span></div>
+    <nav class="sbs" aria-label="Admin menu">
     <?php foreach ($menu as $section => $items): ?>
       <div class="sl"><?= e($section) ?></div>
       <?php foreach ($items as $i): ?>
         <a class="nv<?= $i[0] === $active ? ' on' : '' ?>" href="<?= e(ef_url($i[1])) ?>"><?= ef_icon($i[2]) ?><?= e($i[3]) ?></a>
       <?php endforeach; ?>
     <?php endforeach; ?>
-    <div class="sp"></div>
+    </nav>
+    <div class="sbf">
     <a class="nv" href="<?= e(ef_url('dashboard.php')) ?>"><?= ef_icon('home') ?>Back to app</a>
     <a class="nv" href="<?= e(ef_url('auth/logout.php')) ?>" data-post data-csrf="<?= e(csrf_token()) ?>"><?= ef_icon('out') ?>Logout</a>
+    </div>
   </aside>
   <div class="mn">
     <div class="g tb">
@@ -115,6 +120,7 @@ function admin_page_end(array $o = []): void
 <?php endforeach; ?>
 </nav>
 </div>
+<script>(function(){var a=document.querySelector('.sbs .nv.on');if(a&&a.scrollIntoView){var n=a.closest('.sbs');if(n&&a.offsetTop+a.offsetHeight>n.clientHeight){n.scrollTop=a.offsetTop-n.clientHeight/2}}})()</script>
 <script src="<?= e(ef_asset('assets/client-time.js')) ?>" defer></script>
 <?= $o['scripts'] ?? '' ?>
 </body>

@@ -4,6 +4,8 @@ require_once __DIR__ . '/../includes/security.php';
 secure_session_start();
 
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../modules/security/lib.php';
+require_once __DIR__ . '/../modules/settings/lib.php';
 
 $msg = "";
 
@@ -25,8 +27,19 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         $msg = "Your session expired. Please try again.";
     }
 
+    elseif(!settings_signups_open($conn)){
+
+        $msg = "New sign-ups are closed for now. Please try again later.";
+    }
+
+    elseif(security_ip_blocked($conn)){
+
+        $msg = "Sign-up is not available from this connection right now.";
+    }
+
     elseif(rl_blocked($conn, 'register_ip', $ipKey, 10, 3600)){
 
+        security_event($conn, 'signup_limit');
         $msg = "Too many sign-ups from this connection. Please try again later.";
     }
 

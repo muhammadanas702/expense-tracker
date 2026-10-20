@@ -28,6 +28,11 @@ if ($email === '' || strlen($email) > 190 || !filter_var($email, FILTER_VALIDATE
     otp_redirect_back("Please enter a valid email address.");
 }
 
+require_once __DIR__ . '/../modules/security/lib.php';
+if (security_ip_blocked($conn)) {
+    otp_redirect_back("Password reset is not available from this connection right now.");
+}
+
 // Limit how many codes can be requested (stops email flooding and code guessing).
 $emailKey = rl_key($email);
 $ipKey = rl_key(client_ip());
