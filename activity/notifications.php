@@ -8,6 +8,25 @@ if ($unread) {
     activity_mark_read($conn, $user_id);
 }
 
+$popup = isset($_GET['popup']);
+if ($popup) {
+    header('Content-Type: text/html; charset=UTF-8');
+    header('Cache-Control: no-store');
+    echo '<div class="np-h"><b>Notifications</b><a href="' . e(ef_url('activity/notifications.php')) . '">See all</a></div>';
+    if (!$rows) {
+        echo '<p class="k np-e">No notifications yet. You are told when someone adds or changes an expense that involves you.</p>';
+    }
+    foreach (array_slice($rows, 0, 8) as $r) {
+        [$icon, $text, $amt] = activity_describe($r, $user_id);
+        $isNew = in_array((int) $r['nid'], $firstView, true);
+        $href = !empty($r['group_id']) ? ef_url('shared/group.php?id=' . (int) $r['group_id']) : ef_url('activity/notifications.php');
+        echo '<a class="np-r' . ($isNew ? ' new' : '') . '" href="' . e($href) . '"><span class="gi">' . ef_icon($icon, '#1d4ed8') . '</span><span>'
+            . ($isNew ? '<b>' . e($text) . '</b>' : e($text)) . '<small>' . e($r['group_name'] ?? 'Group') . ' · ' . e(activity_ago((int) $r['age_s'], $r['created_at'])) . '</small></span>'
+            . ($amt !== '' ? '<b class="am">' . e($amt) . '</b>' : '') . '</a>';
+    }
+    exit();
+}
+
 ef_page_start(['title' => 'Notifications', 'sub' => $unread ? count($unread) . ' new' : 'You are all caught up', 'neutral' => true, 'active' => 'notif', 'user' => $user]);
 ?>
 <div class="g card">

@@ -137,3 +137,6 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Sender address: with Gmail SMTP the From is always the logged-in Gmail. Use a dedicated Gmail account for ExpenseFlow. Optional secrets: `EXPENSEFLOW_MAIL_FROM_NAME` (display name) and `EXPENSEFLOW_MAIL_REPLY_TO`. A real noreply@ address needs a custom domain + mail provider.
 - Notifications, Profile and Help pages are "neutral": no Personal/Shared switch; the bell opens Notifications (highlighted) and each row links to its group.
 - Mobile fix: grid children `min-width:0` (admin roles page overflow).
+
+### Notes for Part 12d
+- The bell now opens a pop-up panel (latest 8, "See all" link) instead of a page; fetches `activity/notifications.php?popup=1` (marks read, removes badge). Closes on outside click or Esc. Without JS the bell still links to the full page. Script: `assets/notif-pop.js`, CSS class `.npop`.
