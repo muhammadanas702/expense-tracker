@@ -38,8 +38,8 @@ function mail_settings(): ?array
     return $settings;
 }
 
-/** Emails a 6-digit password reset code. Returns true when the mail was accepted by the SMTP server. */
-function sendOtpMail(string $email, string $name, string $otp): bool
+/** Sends one HTML email through the configured SMTP server. Returns true when the server accepted it. */
+function ef_send_mail(string $email, string $name, string $subject, string $html, string $alt): bool
 {
     $settings = mail_settings();
     if ($settings === null) {
@@ -71,20 +71,48 @@ function sendOtpMail(string $email, string $name, string $otp): bool
         $mail->setFrom($settings['from_email'] ?: $settings['username'], $settings['from_name'] ?? 'ExpenseFlow');
         $mail->addAddress($email, $name);
         $mail->isHTML(true);
-        $mail->Subject = 'Your ExpenseFlow password reset code';
-
-        $safeName = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
-        $safeOtp = htmlspecialchars($otp, ENT_QUOTES, 'UTF-8');
-        $mail->Body = "Hello {$safeName},<br><br>"
-            . "Your code to reset your ExpenseFlow password is: <b style=\"font-size:20px;letter-spacing:3px\">{$safeOtp}</b><br><br>"
-            . 'This code is valid for 10 minutes. If you did not ask for it, you can ignore this email.<br><br>'
-            . '– ExpenseFlow Team';
-        $mail->AltBody = "Your ExpenseFlow password reset code is: {$otp}\nIt is valid for 10 minutes. If you did not ask for it, ignore this email.";
+        $mail->Subject = $subject;
+        $mail->Body = $html;
+        $mail->AltBody = $alt;
 
         $mail->send();
         return true;
     } catch (Exception $e) {
-        error_log('ExpenseFlow reset email could not be sent: ' . $mail->ErrorInfo);
+        error_log('ExpenseFlow email could not be sent: ' . $mail->ErrorInfo);
         return false;
     }
+}
+
+/** Emails a 6-digit password reset code. Returns true when the mail was accepted by the SMTP server. */
+function sendOtpMail(string $email, string $name, string $otp): bool
+{
+    $safeName = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+    $safeOtp = htmlspecialchars($otp, ENT_QUOTES, 'UTF-8');
+    return ef_send_mail(
+        $email,
+        $name,
+        'Your ExpenseFlow password reset code',
+        "Hello {$safeName},<br><br>"
+        . "Your code to reset your ExpenseFlow password is: <b style=\"font-size:20px;letter-spacing:3px\">{$safeOtp}</b><br><br>"
+        . 'This code is valid for 10 minutes. If you did not ask for it, you can ignore this email.<br><br>'
+        . '– ExpenseFlow Team',
+        "Your ExpenseFlow password reset code is: {$otp}\nIt is valid for 10 minutes. If you did not ask for it, ignore this email."
+    );
+}
+
+/** Emails the 6-digit code that proves a new sign-up owns the address. */
+function sendVerifyMail(string $email, string $name, string $code): bool
+{
+    $safeName = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+    $safeCode = htmlspecialchars($code, ENT_QUOTES, 'UTF-8');
+    return ef_send_mail(
+        $email,
+        $name,
+        'Confirm your email for ExpenseFlow',
+        "Hello {$safeName},<br><br>"
+        . "Your ExpenseFlow confirmation code is: <b style=\"font-size:20px;letter-spacing:3px\">{$safeCode}</b><br><br>"
+        . 'Enter it on the sign-up page to finish creating your account. It is valid for 10 minutes. If you did not sign up, you can ignore this email and nothing will be created.<br><br>'
+        . '– ExpenseFlow Team',
+        "Your ExpenseFlow confirmation code is: {$code}\nIt is valid for 10 minutes. If you did not sign up, ignore this email."
+    );
 }

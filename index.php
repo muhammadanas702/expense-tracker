@@ -17,6 +17,9 @@ $features = [
     ['globe', 'Multi-currency', 'Choose your base currency; exchange rates update automatically.'],
     ['phone', 'Works offline', 'Install it on your phone like an app and keep going without internet.'],
     ['shield', 'You stay in control', 'Reset your data or delete your account whenever you want.'],
+    ['users', 'Shared groups', 'Split trips, rent and dinners with friends. Equal, exact, percent or share splits.'],
+    ['act', 'Clear balances', 'See exactly who owes whom, person by person, and settle up in a tap.'],
+    ['rcp', 'Receipts and comments', 'Attach a photo of the bill and talk about an expense right where it happened.'],
 ];
 $steps = [
     ['Create your account', 'Sign up and choose your base currency.'],
@@ -50,6 +53,7 @@ $logo = '<span class="logo"><img src="' . e($base) . '/assets/icons/icon-192.png
 <meta name="twitter:title" content="<?= e($title) ?>">
 <meta name="twitter:description" content="<?= e($desc) ?>">
 <link rel="stylesheet" href="<?= e($base) ?>/assets/app.css?v=<?= (int) @filemtime(__DIR__ . '/assets/app.css') ?>">
+<script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
 <div class="fr" data-mode="p">
@@ -73,8 +77,8 @@ $logo = '<span class="logo"><img src="' . e($base) . '/assets/icons/icon-192.png
   <div class="hv" aria-hidden="true">
     <div class="g chp"><?= ef_icon('inc') ?>Salary received</div>
     <div class="g card hero" style="padding:22px 22px 44px">
-      <div class="k">Net Balance</div><div class="v">Rs 42,500</div><span class="badge">▲ 12% vs last month</span>
-      <svg viewBox="0 0 300 40" width="100%" height="40" preserveAspectRatio="none" style="margin-top:12px"><polyline fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.5" stroke-linecap="round" points="0,30 40,26 80,28 120,16 170,20 220,8 300,4"/></svg>
+      <div class="k">Net Balance</div><div class="v" data-countup>Rs 42,500</div><span class="badge">▲ 12% vs last month</span>
+      <svg viewBox="0 0 300 40" width="100%" height="40" preserveAspectRatio="none" style="margin-top:12px"><polyline pathLength="1" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.5" stroke-linecap="round" points="0,30 40,26 80,28 120,16 170,20 220,8 300,4"/></svg>
     </div>
     <div class="g card m2">
       <div class="row"><span class="cat"><?= ef_icon('food', '#0f766e') ?></span><span>Food<small>Today</small></span><b class="ex">− 850</b></div>
@@ -84,49 +88,49 @@ $logo = '<span class="logo"><img src="' . e($base) . '/assets/icons/icon-192.png
 </section>
 
 <section class="sec" id="features">
-  <h2>Everything you need to stay on top</h2>
+  <h2 class="rv">Everything you need to stay on top</h2>
   <p class="sub2">Simple tools that make tracking money a habit instead of a chore.</p>
   <div class="F3">
-<?php foreach ($features as $f): ?>
-    <div class="g ft"><div class="ib"><?= ef_icon($f[0]) ?></div><div><b><?= e($f[1]) ?></b><p><?= e($f[2]) ?></p></div></div>
+<?php foreach ($features as $i => $f): ?>
+    <div class="g ft rv" style="--d:<?= ($i % 3) * .08 ?>s"><div class="ib"><?= ef_icon($f[0]) ?></div><div><b><?= e($f[1]) ?></b><p><?= e($f[2]) ?></p></div></div>
 <?php endforeach; ?>
   </div>
 </section>
 
 <section class="sec" id="modes">
-  <h2>Your money, clearly organised</h2>
-  <p class="sub2">Personal tracking today. Shared expenses with friends are on the way.</p>
+  <h2 class="rv">Your money, clearly organised</h2>
+  <p class="sub2">Track your own money, or share expenses with friends. Switch between the two in one tap.</p>
   <div class="GE">
-    <div class="g md"><div class="ib"><?= ef_icon('wal') ?></div><h3>Personal</h3>
+    <div class="g md rv"><div class="ib"><?= ef_icon('wal') ?></div><h3>Personal</h3>
       <?php foreach (['Track income and expenses', 'Category insights', 'Monthly reports with PDF export'] as $t) { echo '<div class="ck">' . ef_icon('ck') . '<span>' . e($t) . '</span></div>'; } ?>
     </div>
-    <div class="g md"><div class="ib"><?= ef_icon('users') ?></div><h3>Shared <small class="k">(coming soon)</small></h3>
-      <?php foreach (['Groups and friends in one place', 'Equal, exact, percent and share splits', 'Simplified debts and easy settle up'] as $t) { echo '<div class="ck">' . ef_icon('ck') . '<span>' . e($t) . '</span></div>'; } ?>
+    <div class="g md rv" style="--d:.1s"><div class="ib"><?= ef_icon('users') ?></div><h3>Shared</h3>
+      <?php foreach (['Groups and friends in one place', 'Equal, exact, percent and share splits', 'Person-by-person balances and easy settle up', 'Receipts, comments and an activity feed'] as $t) { echo '<div class="ck">' . ef_icon('ck') . '<span>' . e($t) . '</span></div>'; } ?>
     </div>
   </div>
 </section>
 
 <section class="sec" id="how">
-  <h2>How it works</h2>
+  <h2 class="rv">How it works</h2>
   <p class="sub2">Up and running in three steps.</p>
   <div class="F3">
 <?php foreach ($steps as $i => $s): ?>
-    <div class="g ft"><div class="sn"><?= $i + 1 ?></div><b><?= e($s[0]) ?></b><p><?= e($s[1]) ?></p></div>
+    <div class="g ft rv" style="--d:<?= $i * .1 ?>s"><div class="sn"><?= $i + 1 ?></div><b><?= e($s[0]) ?></b><p><?= e($s[1]) ?></p></div>
 <?php endforeach; ?>
   </div>
 </section>
 
 <section class="sec" id="faq">
-  <h2>Questions, answered</h2>
+  <h2 class="rv">Questions, answered</h2>
   <p class="sub2"></p>
   <div style="max-width:680px;margin:0 auto">
 <?php foreach ($faq as $i => $f): ?>
-    <details class="g"<?= $i === 0 ? ' open' : '' ?>><summary><?= e($f[0]) ?><?= ef_icon('chev') ?></summary><p><?= e($f[1]) ?></p></details>
+    <details class="g rv" style="--d:<?= $i * .06 ?>s"<?= $i === 0 ? ' open' : '' ?>><summary><?= e($f[0]) ?><?= ef_icon('chev') ?></summary><p><?= e($f[1]) ?></p></details>
 <?php endforeach; ?>
   </div>
 </section>
 
-<section class="band">
+<section class="band rv">
   <h2>Ready to take control?</h2>
   <p>Create your account in under a minute.</p>
   <a class="btn lg" href="<?= e($base) ?>/auth/register.php">Get started <?= ef_icon('arr') ?></a>
@@ -135,5 +139,6 @@ $logo = '<span class="logo"><img src="' . e($base) . '/assets/icons/icon-192.png
 <footer class="fo"><?= $logo ?><span>© <?= date('Y') ?> ExpenseFlow</span>
   <span class="lk2"><a href="<?= e($base) ?>/auth/login.php">Log in</a><a href="<?= e($base) ?>/auth/register.php">Register</a></span></footer>
 </div>
+<script src="<?= e($base) ?>/assets/fx.js?v=<?= (int) @filemtime(__DIR__ . '/assets/fx.js') ?>" defer></script>
 </body>
 </html>

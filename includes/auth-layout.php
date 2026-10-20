@@ -91,6 +91,7 @@ function ef_auth_end(array $o = []): void
 </div>
 </div>
 <script src="<?= e(ef_asset('assets/auth-ui.js')) ?>" defer></script>
+<script src="<?= e(ef_asset('assets/fx.js')) ?>" defer></script>
 </body>
 </html>
 <?php

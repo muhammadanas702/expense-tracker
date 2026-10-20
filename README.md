@@ -67,6 +67,7 @@ It is built for people who earn or spend across several currencies, for example 
 
 ### Accounts
 - Register, log in and log out.
+- **Email confirmation at sign-up:** a 6-digit code is emailed and the account is created only after it is entered, so only real, readable addresses get an account (throw-away email services are refused).
 - Password reset with a one-time code (OTP) sent by email.
 - Update your profile name, change your password, or delete your account.
 
@@ -197,7 +198,7 @@ The full definition is in [`schema.sql`](schema.sql). An older database is upgra
    ];
    ```
 
-4. Set up an SMTP account for password-reset emails. For Gmail, use an **app password**, never your normal password.
+4. Set up an SMTP account for sign-up confirmation and password-reset emails (sign-up needs it to work). For Gmail, use an **app password**, never your normal password.
 
 5. Open `http://localhost/expense-tracker/`, register your first account and log in.
 

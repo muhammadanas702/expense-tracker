@@ -203,7 +203,7 @@ ef_page_start([
 </div>
 
 <div class="G3">
-    <div class="g card hero"><div class="k">Net balance</div><div class="v"><?= $balance < 0 ? '−' : '' ?> <?= $fmt(abs($balance)) ?> <?= e($display_currency) ?></div><span class="badge"><?= $balance > 0 ? 'Surplus this period' : ($balance < 0 ? 'Deficit this period' : 'Break-even') ?></span></div>
+    <div class="g card hero"><div class="k">Net balance</div><div class="v" data-countup><?= $balance < 0 ? '−' : '' ?> <?= $fmt(abs($balance)) ?> <?= e($display_currency) ?></div><span class="badge"><?= $balance > 0 ? 'Surplus this period' : ($balance < 0 ? 'Deficit this period' : 'Break-even') ?></span></div>
     <div class="g card"><div class="k">Total income</div><div class="v in"><?= $fmt($total_income) ?> <?= e($display_currency) ?></div></div>
     <div class="g card"><div class="k">Total expense</div><div class="v ex"><?= $fmt($total_expense) ?> <?= e($display_currency) ?></div></div>
 </div>

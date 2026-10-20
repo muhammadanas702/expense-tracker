@@ -150,3 +150,58 @@ details{padding:16px 18px;margin-bottom:10px}summary{list-style:none;display:fle
 @media(min-width:769px){.tb{position:sticky;top:16px;z-index:25}}
 button.chip{font-family:inherit}
 .ann{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:12px 14px;border-radius:14px;font-size:.85rem;margin-bottom:2px;background:#e0f2fe;color:#075985}.ann.good{background:#d1fae5;color:#065f46}.ann.warn{background:#fef3c7;color:#92400e}.ann b{display:block}.ann span{display:block;font-weight:500;margin-top:2px}.ann form{margin:0}.ann button{border:0;background:transparent;color:inherit;font-size:1.3rem;line-height:1;cursor:pointer;padding:0 4px}
+/* ===== Part 12: polish. Every motion below is switched off by the reduced-motion rule at the very end. ===== */
+html{scroll-behavior:smooth}
+section[id]{scroll-margin-top:84px}
+:focus-visible{outline:2px solid var(--a1);outline-offset:2px}
+.inp:focus-visible{outline:none}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}}
+@keyframes pop{from{opacity:0;transform:scale(.94)}}
+@keyframes bob{50%{transform:translateY(-7px)}}
+@keyframes drift{to{transform:translate(36px,28px) scale(1.1)}}
+@keyframes dr{from{stroke-dashoffset:1}}
+@keyframes shake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+@keyframes shine{to{background-position:200% 0}}
+.fr:before{animation:drift 16s ease-in-out infinite alternate}
+.fr:after{animation:drift 21s ease-in-out -7s infinite alternate-reverse}
+/* buttons and cards respond to the pointer */
+.btn{transition:transform .2s,box-shadow .2s,filter .2s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(15,118,110,.28)}
+.btn:active{transform:scale(.97);box-shadow:none}
+.btn.o:hover{box-shadow:0 8px 18px rgba(11,37,69,.12)}
+.ft,.md{transition:transform .3s,box-shadow .3s}
+.ft:hover,.md:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(11,37,69,.14)}
+.chp,.m2{will-change:transform}
+/* landing: sticky blurred nav, hero entrance, floating cards, drawn sparkline */
+.nb{position:sticky;top:0;z-index:30;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:box-shadow .3s,background .3s}
+.nb.sc{box-shadow:0 8px 24px rgba(11,37,69,.1)}
+.nb .lk a{position:relative;transition:color .2s}
+.nb .lk a:after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:2px;border-radius:2px;background:var(--a1);transform:scaleX(0);transition:transform .25s}
+.nb .lk a:hover{color:var(--a1)}.nb .lk a:hover:after{transform:scaleX(1)}
+.h2s h1,.h2s .lead,.h2s .cta,.h2s .trust{animation:rise .8s cubic-bezier(.2,.8,.2,1) both}
+.h2s .lead{animation-delay:.08s}.h2s .cta{animation-delay:.16s}.h2s .trust{animation-delay:.24s}
+.hv .card.hero{animation:pop .9s .15s cubic-bezier(.2,.8,.2,1) both}
+.hv .chp{animation:bob 4.5s ease-in-out infinite}
+.hv .m2{animation:bob 5.5s ease-in-out -2s infinite reverse}
+.hv svg polyline{stroke-dasharray:1;animation:dr 1.6s .5s ease-out both}
+.grad{background-size:200% 100%;animation:shine 6s linear infinite alternate}
+/* scroll reveal: only hidden when the script runs (class js), so nothing is lost without JavaScript */
+html.js .rv{opacity:0}
+html.js .rv.seen{opacity:1;animation:rise .75s cubic-bezier(.2,.8,.2,1) var(--d,0s) backwards}
+/* FAQ opens smoothly */
+details p{overflow:hidden}
+details[open] p{animation:rise .35s ease both}
+summary svg{transition:transform .25s}
+/* auth pages */
+.fc{animation:pop .55s cubic-bezier(.2,.8,.2,1) both}
+.br h2,.br .ck{animation:rise .7s cubic-bezier(.2,.8,.2,1) both}
+.br .ck:nth-of-type(1){animation-delay:.1s}.br .ck:nth-of-type(2){animation-delay:.2s}.br .ck:nth-of-type(3){animation-delay:.3s}
+.msg.err{animation:shake .45s}
+.msg{transition:opacity .4s,transform .4s}
+.msg.gone{opacity:0;transform:translateY(-6px)}
+.fw .inp{transition:border-color .2s,box-shadow .2s}
+.mt i{transition:background .25s}
+/* signed-in pages */
+.row{transition:background .2s}
+.bn a{transition:color .2s,transform .2s}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}html.js .rv{opacity:1}*,*:before,*:after{animation:none!important;transition:none!important}}
