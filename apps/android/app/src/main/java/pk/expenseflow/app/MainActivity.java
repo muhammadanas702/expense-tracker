@@ -12,6 +12,7 @@ import android.net.NetworkCapabilities;
 import android.os.Environment;
 import android.view.View;
 import android.webkit.CookieManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.URLUtil;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -59,13 +60,21 @@ public class MainActivity extends Activity {
         for (int i = 0; i < 3; i++) { if (a[i] != b[i]) return a[i] > b[i]; }
         return false;
     }
-    private void checkForUpdate() {
+    /** Small bridge so the Profile page can show the version and run "Check for updates". */
+    private class Bridge {
+        @JavascriptInterface public String version() { return myVersion(); }
+        @JavascriptInterface public void checkUpdate() { runOnUiThread(() -> checkForUpdate(true)); }
+    }
+    private void note(String m) { runOnUiThread(() -> Toast.makeText(this, m, Toast.LENGTH_LONG).show()); }
+    private void checkForUpdate() { checkForUpdate(false); }
+    private void checkForUpdate(boolean manual) {
+        if (manual) Toast.makeText(this, "Checking for updates…", Toast.LENGTH_SHORT).show();
         new Thread(() -> {
             try {
                 HttpURLConnection c = (HttpURLConnection) new URL(RELEASE_API).openConnection();
                 c.setConnectTimeout(6000); c.setReadTimeout(6000);
                 c.setRequestProperty("Accept", "application/vnd.github+json");
-                if (c.getResponseCode() != 200) return;
+                if (c.getResponseCode() != 200) { if (manual) note("Could not check right now. Try again later."); return; }
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 try (InputStream in = c.getInputStream()) { byte[] buf = new byte[4096]; int n; while ((n = in.read(buf)) > 0) out.write(buf, 0, n); }
                 JSONObject j = new JSONObject(out.toString("UTF-8"));
@@ -76,9 +85,9 @@ public class MainActivity extends Activity {
                     JSONObject a = assets.getJSONObject(i);
                     if (a.getString("name").endsWith(".apk")) { apk = a.getString("browser_download_url"); break; }
                 }
-                if (apk == null || !newer(tag, myVersion())) return;
+                if (apk == null || !newer(tag, myVersion())) { if (manual) note("You have the latest version (" + myVersion() + ")."); return; }
                 SharedPreferences sp = getSharedPreferences("update", MODE_PRIVATE);
-                if (tag.equals(sp.getString("later_tag", "")) && System.currentTimeMillis() - sp.getLong("later_at", 0) < 24L * 3600 * 1000) return;
+                if (!manual && tag.equals(sp.getString("later_tag", "")) && System.currentTimeMillis() - sp.getLong("later_at", 0) < 24L * 3600 * 1000) return;
                 final String url = apk, ver = tag;
                 runOnUiThread(() -> {
                     if (isFinishing()) return;
@@ -89,7 +98,7 @@ public class MainActivity extends Activity {
                         .setNegativeButton("Later", (d, w) -> sp.edit().putString("later_tag", ver).putLong("later_at", System.currentTimeMillis()).apply())
                         .show();
                 });
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) { if (manual) note("No internet connection."); }
         }).start();
     }
 
@@ -161,6 +170,7 @@ public class MainActivity extends Activity {
         s.setAllowFileAccess(false);
         s.setMediaPlaybackRequiresUserGesture(true);
         s.setUserAgentString(s.getUserAgentString() + " ExpenseFlowApp/" + myVersion());
+        web.addJavascriptInterface(new Bridge(), "EFApp");
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, true);
 
