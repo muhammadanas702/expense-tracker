@@ -174,3 +174,6 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Support replies: `support_tickets.answered_unseen`; counted in the bell badge, listed first in the notification pop-up/page, cleared when the conversation is opened.
 - Android app: on start it asks GitHub for the latest release; if the tag is newer than the installed versionName it shows "Update available" with Download / Later (Later = asks again after 24 h). Needs a release with a higher tag (e.g. v1.0.3).
 - Tests that logged in by opening the dashboard now use profile.php (a fresh account is redirected to setup first).
+
+### Notes for Part 15 (app options in Profile)
+- Profile → More: "Android app" (link to the latest release, hidden inside the app) and "App updates" (only inside the Android app: shows the installed version and a Check button that asks GitHub for the newest release; the app talks to the page through the `EFApp` bridge).
