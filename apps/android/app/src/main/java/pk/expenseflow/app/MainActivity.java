@@ -3,6 +3,12 @@ package pk.expenseflow.app;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.IntentFilter;
+import android.os.Build;
+import android.provider.Settings;
+import androidx.core.content.FileProvider;
 import android.content.SharedPreferences;
 import android.content.Intent;
 import android.net.Uri;
@@ -60,6 +66,67 @@ public class MainActivity extends Activity {
         for (int i = 0; i < 3; i++) { if (a[i] != b[i]) return a[i] > b[i]; }
         return false;
     }
+    // ---- Update inside the app: download the APK, then hand it to Android's installer (one tap to confirm) ----
+    private File updateFile;
+    private boolean waitingForPermission = false;
+    private BroadcastReceiver doneReceiver;
+
+    private void downloadUpdate(String url) {
+        try {
+            updateFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "ExpenseFlow-update.apk");
+            if (updateFile.exists()) updateFile.delete();
+            DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+            DownloadManager.Request q = new DownloadManager.Request(Uri.parse(url));
+            q.setTitle("ExpenseFlow update");
+            q.setMimeType("application/vnd.android.package-archive");
+            q.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            q.setDestinationUri(Uri.fromFile(updateFile));
+            final long id = dm.enqueue(q);
+            doneReceiver = new BroadcastReceiver() {
+                @Override public void onReceive(Context c, Intent i) {
+                    if (i.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1) != id) return;
+                    try { unregisterReceiver(this); } catch (Exception ignored) { }
+                    doneReceiver = null;
+                    installUpdate();
+                }
+            };
+            IntentFilter f = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+            if (Build.VERSION.SDK_INT >= 33) registerReceiver(doneReceiver, f, Context.RECEIVER_EXPORTED); else registerReceiver(doneReceiver, f);
+            Toast.makeText(this, "Downloading the update… you will be asked to install it when it finishes.", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Could not start the download.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void installUpdate() {
+        if (updateFile == null || !updateFile.exists()) { Toast.makeText(this, "The update file is missing. Try again.", Toast.LENGTH_LONG).show(); return; }
+        if (Build.VERSION.SDK_INT >= 26 && !getPackageManager().canRequestPackageInstalls()) {
+            // First time only: Android asks the user to allow ExpenseFlow to install updates.
+            waitingForPermission = true;
+            Toast.makeText(this, "Allow ExpenseFlow to install updates, then press Back.", Toast.LENGTH_LONG).show();
+            startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getPackageName())));
+            return;
+        }
+        try {
+            Uri apk = FileProvider.getUriForFile(this, "pk.expenseflow.app.files", updateFile);
+            Intent i = new Intent(Intent.ACTION_VIEW);
+            i.setDataAndType(apk, "application/vnd.android.package-archive");
+            i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(i);
+        } catch (Exception e) {
+            Toast.makeText(this, "Could not open the installer.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (waitingForPermission && Build.VERSION.SDK_INT >= 26 && getPackageManager().canRequestPackageInstalls()) {
+            waitingForPermission = false;
+            installUpdate();
+        }
+    }
+
     /** Small bridge so the Profile page can show the version and run "Check for updates". */
     private class Bridge {
         @JavascriptInterface public String version() { return myVersion(); }
@@ -93,8 +160,8 @@ public class MainActivity extends Activity {
                     if (isFinishing()) return;
                     new AlertDialog.Builder(this)
                         .setTitle("Update available")
-                        .setMessage("A new version of ExpenseFlow (" + ver + ") is ready. You have " + myVersion() + ".\n\nDownload it, then open the file to install it over the old app. Your data stays.")
-                        .setPositiveButton("Download", (d, w) -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))))
+                        .setMessage("A new version of ExpenseFlow (" + ver + ") is ready. You have " + myVersion() + ".\n\nThe update downloads here and Android then asks you to confirm the install. Your data stays.")
+                        .setPositiveButton("Update now", (d, w) -> downloadUpdate(url))
                         .setNegativeButton("Later", (d, w) -> sp.edit().putString("later_tag", ver).putLong("later_at", System.currentTimeMillis()).apply())
                         .show();
                 });

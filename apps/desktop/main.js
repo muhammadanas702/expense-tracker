@@ -1,5 +1,8 @@
 const { app, BrowserWindow, Menu, shell, dialog, ipcMain, net } = require('electron');
 const path = require('path');
+const fs = require('fs');
+const os = require('os');
+const { spawn } = require('child_process');
 
 const HOST = 'expenseflow.rf.gd';
 const HOME = 'https://' + HOST + '/auth/login.php';
@@ -30,11 +33,30 @@ async function checkForUpdate(manual) {
       type: 'info', title: 'Update available',
       message: 'A new version of ExpenseFlow (' + rel.tag_name + ') is ready.',
       detail: 'You have ' + app.getVersion() + '. Download the installer and run it; your data stays.',
-      buttons: ['Download', 'Later'], defaultId: 0, cancelId: 1,
+      buttons: ['Update now', 'Later'], defaultId: 0, cancelId: 1,
     });
-    if (r.response === 0) shell.openExternal(asset.browser_download_url);
+    if (r.response === 0) await installUpdate(asset.browser_download_url);
   } catch (e) {
     if (manual) dialog.showMessageBox(win, { type: 'warning', message: 'Could not check for updates right now.' });
+  }
+}
+
+// Downloads the new installer, closes the app, runs the installer silently and starts the new version.
+async function installUpdate(url) {
+  try {
+    win.setTitle('ExpenseFlow - downloading update...');
+    win.setProgressBar(2); // indeterminate
+    const res = await net.fetch(url);
+    if (!res.ok) throw new Error('http ' + res.status);
+    const file = path.join(os.tmpdir(), 'ExpenseFlow-Setup-update.exe');
+    await fs.promises.writeFile(file, Buffer.from(await res.arrayBuffer()));
+    spawn(file, ['/S', '--force-run'], { detached: true, stdio: 'ignore' }).unref();
+    app.quit();
+  } catch (e) {
+    win.setProgressBar(-1);
+    win.setTitle('ExpenseFlow');
+    dialog.showMessageBox(win, { type: 'warning', message: 'The update could not be downloaded.', detail: 'You can download it from the Releases page instead.' });
+    shell.openExternal('https://github.com/muhammadanas702/expense-tracker/releases/latest');
   }
 }
 

@@ -55,7 +55,7 @@ def code_for(addr):
             return re.search(r'\b(\d{6})\b', re.sub(r'<[^>]+>', ' ', m['body'])).group(1)
 def vpost(s, **d):
     d.setdefault('csrf_token', csrf(s, '/auth/verify-email.php')); return s.post(B + '/auth/verify-email.php', data=d, allow_redirects=False)
-def sess_file(s): return '/var/lib/php/sessions/sess_' + s.cookies.get('PHPSESSID')
+def sess_file(s): return 'storage/sessions/sess_' + s.cookies.get('PHPSESSID')
 def tamper(s, key, value):
     f = sess_file(s); t = open(f).read()
     t2 = re.sub(rf'("{key}";i:)\d+', rf'\g<1>{value}', t); open(f, 'w').write(t2); return t != t2

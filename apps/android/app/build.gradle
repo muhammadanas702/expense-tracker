@@ -1,5 +1,9 @@
 plugins { id 'com.android.application' }
 
+dependencies {
+    implementation 'androidx.core:core:1.13.1'
+}
+
 android {
     namespace 'pk.expenseflow.app'
     compileSdk 34
