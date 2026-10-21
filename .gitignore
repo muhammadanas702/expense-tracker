@@ -27,3 +27,7 @@
 apps/**/build/
 apps/**/.gradle/
 apps/**/local.properties
+
+# Desktop build output
+apps/desktop/node_modules/
+apps/desktop/dist/
