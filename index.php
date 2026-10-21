@@ -59,7 +59,7 @@ $logo = '<span class="logo"><img src="' . e($base) . '/assets/icons/icon-192.png
 <div class="fr" data-mode="p">
 <header class="g nb">
   <a class="logo" href="<?= e($base) ?>/" style="padding:0"><?= $logo ?></a>
-  <nav class="lk" aria-label="Sections"><a href="#features">Features</a><a href="#modes">Personal &amp; Shared</a><a href="#how">How it works</a><a href="#faq">FAQ</a></nav>
+  <nav class="lk" aria-label="Sections"><a href="#features">Features</a><a href="#modes">Personal &amp; Shared</a><a href="#how">How it works</a><a href="#apps">Get the app</a><a href="#faq">FAQ</a></nav>
   <a class="lnk" href="<?= e($base) ?>/auth/login.php">Log in</a>
   <a class="btn" href="<?= e($base) ?>/auth/register.php">Get started</a>
 </header>
@@ -120,6 +120,19 @@ $logo = '<span class="logo"><img src="' . e($base) . '/assets/icons/icon-192.png
   </div>
 </section>
 
+<section class="sec" id="apps">
+  <h2 class="rv">Get the app</h2>
+  <p class="sub2">Use ExpenseFlow on your phone or computer. Your account works everywhere.</p>
+  <div class="F3">
+    <div class="g ft rv"><div class="sn"><?= ef_icon('phone') ?></div><b>Android</b><p>Download the APK, open it and allow installing from this source when Android asks. Updates come inside the app.</p>
+      <a class="btn" style="margin-top:12px" href="https://github.com/muhammadanas702/expense-tracker/releases/latest/download/ExpenseFlow.apk" rel="noopener"><?= ef_icon('dl') ?> Download APK</a></div>
+    <div class="g ft rv" style="--d:.1s"><div class="sn"><?= ef_icon('lap') ?></div><b>Windows</b><p>Download the installer and run it. If Windows shows "protected your PC", choose More info, then Run anyway.</p>
+      <a class="btn" style="margin-top:12px" href="https://github.com/muhammadanas702/expense-tracker/releases/latest/download/ExpenseFlow-Setup.exe" rel="noopener"><?= ef_icon('dl') ?> Download for Windows</a></div>
+    <div class="g ft rv" style="--d:.2s"><div class="sn"><?= ef_icon('globe') ?></div><b>iPhone &amp; any browser</b><p>On iPhone open this site in Safari, tap Share, then "Add to Home Screen". Chrome and Edge also offer "Install app".</p>
+      <a class="btn o" style="margin-top:12px" href="<?= e($base) ?>/auth/login.php">Open in browser</a></div>
+  </div>
+</section>
+
 <section class="sec" id="faq">
   <h2 class="rv">Questions, answered</h2>
   <p class="sub2"></p>
@@ -137,7 +150,7 @@ $logo = '<span class="logo"><img src="' . e($base) . '/assets/icons/icon-192.png
 </section>
 
 <footer class="fo"><?= $logo ?><span>© <?= date('Y') ?> ExpenseFlow</span>
-  <span class="lk2"><a href="<?= e($base) ?>/auth/login.php">Log in</a><a href="<?= e($base) ?>/auth/register.php">Register</a><a href="https://github.com/muhammadanas702/expense-tracker/releases/latest" rel="noopener">Get the app</a></span></footer>
+  <span class="lk2"><a href="<?= e($base) ?>/auth/login.php">Log in</a><a href="<?= e($base) ?>/auth/register.php">Register</a><a href="#apps">Get the app</a></span></footer>
 </div>
 <script src="<?= e($base) ?>/assets/fx.js?v=<?= (int) @filemtime(__DIR__ . '/assets/fx.js') ?>" defer></script>
 </body>

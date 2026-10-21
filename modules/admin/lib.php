@@ -221,3 +221,10 @@ function admin_audit_where(string $group): array
     }
     return ["l.action LIKE 'admin\\_%'", []];
 }
+
+
+/** Only a Super Admin may see what Super Admins did. SQL fragment for queries that join the actor as `u` (empty for Super Admins). */
+function admin_hide_super_sql(array $admin): string
+{
+    return ($admin['role'] ?? '') === 'super' ? '' : " AND (u.role IS NULL OR u.role <> 'super')";
+}

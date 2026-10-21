@@ -70,9 +70,9 @@ admin_page_start(['title' => 'Security', 'sub' => $stats['fail24'] . ' failed si
     <tr><th>Address</th><th>Until</th><th class="hm">Reason</th><th></th></tr>
     <?php foreach ($blocks as $b): ?>
     <tr>
-      <td><b><?= e($b['ip']) ?></b><small class="dt-m"><?= e($b['reason'] ?: 'No reason') ?> · by <?= e($b['by_name'] ?? 'staff') ?></small></td>
+      <td><b><?= e($b['ip']) ?></b><small class="dt-m"><?= e($b['reason'] ?: 'No reason') ?> · by <?= e(($b['by_role'] ?? '') === 'super' && $admin['role'] !== 'super' ? 'Super Admin' : ($b['by_name'] ?? 'staff')) ?></small></td>
       <td class="nw"><?= $b['expires_at'] ? e($when($b['expires_at'])) : 'Until removed' ?></td>
-      <td class="hm"><?= e($b['reason'] ?: '–') ?> <small>by <?= e($b['by_name'] ?? 'staff') ?></small></td>
+      <td class="hm"><?= e($b['reason'] ?: '–') ?> <small>by <?= e(($b['by_role'] ?? '') === 'super' && $admin['role'] !== 'super' ? 'Super Admin' : ($b['by_name'] ?? 'staff')) ?></small></td>
       <td class="nw"><?php if ($canBlock): ?><form method="post" action="security-action.php" style="display:inline"><?= csrf_field() ?><input type="hidden" name="ip" value="<?= e($b['ip']) ?>">
         <button class="btn sm o" name="do" value="unblock" type="submit">Unblock</button></form><?php endif; ?></td>
     </tr>

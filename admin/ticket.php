@@ -21,7 +21,7 @@ admin_page_start(['title' => $ticket['subject'], 'sub' => (SUPPORT_CATEGORIES[$t
   <div class="row"><span>Status</span><b><?= support_pill($ticket['status']) ?></b></div>
   <?php foreach ($msgs as $m): ?>
   <div class="row" style="align-items:flex-start;white-space:normal">
-    <span><strong><?= $m['is_staff'] ? e(($m['name'] ?? 'Former staff') . ' (staff)') : e($ticket['user_name'] ?? 'User') ?></strong><small><?= e(date('d M Y, H:i', strtotime((string) $m['created_at']))) ?></small>
+    <span><strong><?= $m['is_staff'] ? e((($m['role'] ?? '') === 'super' && $admin['role'] !== 'super' ? 'Super Admin' : ($m['name'] ?? 'Former staff')) . ' (staff)') : e($ticket['user_name'] ?? 'User') ?></strong><small><?= e(date('d M Y, H:i', strtotime((string) $m['created_at']))) ?></small>
       <div style="margin-top:6px;white-space:pre-wrap;overflow-wrap:anywhere"><?= e($m['body']) ?></div></span>
   </div>
   <?php endforeach; ?>

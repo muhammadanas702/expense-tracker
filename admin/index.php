@@ -22,7 +22,7 @@ $mx = max(1, ...array_column($months, 'n'));
 $recent = $conn->query("SELECT id, name, email, role, created_at FROM users ORDER BY id DESC LIMIT 6")->fetchAll(PDO::FETCH_ASSOC);
 $canView = admin_can($conn, $admin['role'], 'view');
 $audit = admin_can($conn, $admin['role'], 'log')
-    ? $conn->query("SELECT l.action, l.details, l.created_at, u.name FROM user_logs l LEFT JOIN users u ON u.id = l.user_id WHERE l.action LIKE 'admin\\_%' ORDER BY l.id DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC)
+    ? $conn->query("SELECT l.action, l.details, l.created_at, u.name FROM user_logs l LEFT JOIN users u ON u.id = l.user_id WHERE l.action LIKE 'admin\\_%'" . admin_hide_super_sql($admin) . " ORDER BY l.id DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC)
     : [];
 
 admin_page_start(['title' => 'Admin overview', 'sub' => 'How ExpenseFlow is doing', 'active' => 'ov']);

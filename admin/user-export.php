@@ -14,6 +14,6 @@ $out = fopen('php://output', 'w');
 fwrite($out, "\xEF\xBB\xBF"); // so Excel reads UTF-8
 fputcsv($out, ['ID', 'Name', 'Email', 'Role', 'Status', 'Joined', 'Last login']);
 foreach ($rows as $r) {
-    fputcsv($out, [$r['id'], admin_csv_cell($r['name']), admin_csv_cell($r['email']), admin_role_label($r['role']), $r['blocked'] ? 'Blocked' : 'Active', $r['created_at'], $r['last_login'] ?? '']);
+    fputcsv($out, [$r['id'], admin_csv_cell($r['name']), admin_csv_cell($r['email']), admin_role_label($r['role']), $r['blocked'] ? 'Blocked' : 'Active', $r['created_at'], ($r['role'] === 'super' && $admin['role'] !== 'super') ? '' : ($r['last_login'] ?? '')]);
 }
 fclose($out);

@@ -30,9 +30,10 @@ if ($to_date) {
     $where[] = "DATE(l.created_at) <= ?";
     $params[] = $to_date;
 }
-$where_sql = $where ? "WHERE " . implode(" AND ", $where) : "";
+$where_sql = $where ? "WHERE " . implode(" AND ", $where) : "WHERE 1=1";
+$hide = admin_hide_super_sql($admin);
 
-$count_stmt = $conn->prepare("SELECT COUNT(*) FROM user_logs l $where_sql");
+$count_stmt = $conn->prepare("SELECT COUNT(*) FROM user_logs l JOIN users u ON l.user_id = u.id $where_sql$hide");
 $count_stmt->execute($params);
 $total = $count_stmt->fetchColumn();
 $total_pages = (int) ceil($total / $limit);
@@ -40,14 +41,14 @@ $total_pages = (int) ceil($total / $limit);
 $sql = "SELECT l.*, u.name as user_name 
         FROM user_logs l 
         JOIN users u ON l.user_id = u.id 
-        $where_sql 
+        $where_sql$hide 
         ORDER BY l.created_at DESC 
         LIMIT " . (int) $offset . ", " . (int) $limit;
 $stmt = $conn->prepare($sql);
 $stmt->execute($params);
 $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$users = $conn->query("SELECT id, name, email FROM users ORDER BY name LIMIT 500")->fetchAll(PDO::FETCH_ASSOC);
+$users = $conn->query("SELECT id, name, email FROM users" . (($admin['role'] ?? '') === 'super' ? '' : " WHERE role <> 'super'") . " ORDER BY name LIMIT 500")->fetchAll(PDO::FETCH_ASSOC);
 $actions = $conn->query("SELECT DISTINCT action FROM user_logs ORDER BY action")->fetchAll(PDO::FETCH_COLUMN);
 $link = fn(array $o = []) => 'logs.php?' . http_build_query(array_filter(array_merge($_GET, $o), fn($v) => $v !== '' && $v !== null));
 
