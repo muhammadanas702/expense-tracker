@@ -27,7 +27,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 8b | Comments on expenses + receipt upload | done (SQL: database/part-8b.sql) |
 | 8c | Friends list (people you split with) | done (no SQL needed) |
 | 9 | Full review, security pass, tests, final README | done (admin pages are restyled in Part 11) |
-| 10 | Native apps: APK (Android), EXE (Windows), iOS (see below), GitHub Releases workflow | todo |
+| 10 | Native apps: APK (Android), EXE (Windows), GitHub Releases workflow | done (iOS: PWA only, native .ipa needs a Mac + Apple developer account, postponed) |
 | 11 | Role-based admin panel (design: docs/design/v8-admin-panel-v3.html), split into 11a-11f | done |
 | 11a | Roles (Super Admin, Admin, Support), permission table, admin shell and Overview | done (SQL: database/part-11a.sql) |
 | 11b | Users: search, filters, sort, pages, profile, add, block/unblock, role change, temporary password, delete, CSV export | done (SQL: database/part-11b.sql) |
@@ -186,3 +186,10 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 ### Notes for Part 16 (in-app updates, 3-day login)
 - Android: "Update now" downloads the APK inside the app (DownloadManager, app-private folder) and opens Android's installer (FileProvider); the very first time Android asks to allow ExpenseFlow to install apps. Windows: "Update now" downloads the installer, closes the app, runs it silently (`/S --force-run`) and the new version starts. A completely silent install is not possible on Android without special device rights.
 - Login: stays valid while used; after 3 days without any visit the user is signed out and the login page says why. Every visit restarts the 3 days. The cookie lasts 30 days (sliding) so an expired login can be explained; the server enforces the 3 days. Sessions are stored in `storage/sessions` (shared hosts clean the default folder after minutes). Test: `tests/session_http_test.py`.
+
+
+### Notes for Part 17 (final review)
+- Super Admin activity is hidden from other staff everywhere: audit log, user logs, overview, user profile, and now also "blocked by" in Security and the author of support replies (shown as "Super Admin").
+- Landing page: "Get the app" section (Android APK, Windows installer, iPhone/browser instructions) using the latest-release download links.
+- Review: all PHP files lint clean, every test suite passes, all user and admin pages crawled on desktop and phone without warnings or overflow.
+- Open items (optional): iOS .ipa; Google Play / Microsoft Store listings (need paid developer accounts + own signing key); a domain with SPF/DKIM so emails stop landing in spam; saving expenses while offline (needs a sync queue).

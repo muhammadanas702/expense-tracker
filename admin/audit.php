@@ -18,7 +18,7 @@ if ($q !== '') {
 }
 if ($from !== '') { $where[] = 'DATE(l.created_at) >= ?'; $params[] = $from; }
 if ($to !== '') { $where[] = 'DATE(l.created_at) <= ?'; $params[] = $to; }
-$w = 'WHERE ' . implode(' AND ', $where);
+$w = 'WHERE ' . implode(' AND ', $where) . admin_hide_super_sql($admin);
 
 $cnt = $conn->prepare("SELECT COUNT(*) FROM user_logs l LEFT JOIN users u ON u.id = l.user_id $w");
 $cnt->execute($params);

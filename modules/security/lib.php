@@ -146,7 +146,7 @@ function security_active_blocks(PDO $conn): array
 {
     security_ensure_schema($conn);
     $conn->exec('DELETE FROM ip_blocks WHERE expires_at IS NOT NULL AND expires_at <= NOW()');
-    return $conn->query('SELECT b.ip, b.reason, b.created_at, b.expires_at, u.name AS by_name FROM ip_blocks b LEFT JOIN users u ON u.id = b.created_by ORDER BY b.created_at DESC')->fetchAll(PDO::FETCH_ASSOC);
+    return $conn->query('SELECT b.ip, b.reason, b.created_at, b.expires_at, u.name AS by_name, u.role AS by_role FROM ip_blocks b LEFT JOIN users u ON u.id = b.created_by ORDER BY b.created_at DESC')->fetchAll(PDO::FETCH_ASSOC);
 }
 
 /** Counts for the tiles: failed/locked in the last 24h and 7d, active blocks, blocked accounts. */

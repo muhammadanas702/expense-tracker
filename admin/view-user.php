@@ -24,6 +24,10 @@ $lastLogin = $last->fetchColumn();
 $logs = $conn->prepare('SELECT action, details, created_at FROM user_logs WHERE user_id = ? ORDER BY id DESC LIMIT 10');
 $logs->execute([$id]);
 $logs = $logs->fetchAll(PDO::FETCH_ASSOC);
+if (($u['role'] ?? '') === 'super' && $admin['role'] !== 'super') {
+    $logs = [];          // a Super Admin's activity is for Super Admins only
+    $lastLogin = null;
+}
 
 $manage = admin_can_manage($admin, $u);
 $can = fn($p) => $manage && admin_can($conn, $admin['role'], $p);

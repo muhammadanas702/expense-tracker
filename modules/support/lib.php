@@ -117,7 +117,7 @@ function support_ticket_get(PDO $conn, int $id): ?array
 function support_messages(PDO $conn, int $ticketId): array
 {
     support_ensure_schema($conn);
-    $s = $conn->prepare('SELECT m.id, m.user_id, m.is_staff, m.body, m.created_at, u.name FROM support_messages m LEFT JOIN users u ON u.id = m.user_id WHERE m.ticket_id = ? ORDER BY m.id ASC');
+    $s = $conn->prepare('SELECT m.id, m.user_id, m.is_staff, m.body, m.created_at, u.name, u.role AS role FROM support_messages m LEFT JOIN users u ON u.id = m.user_id WHERE m.ticket_id = ? ORDER BY m.id ASC');
     $s->execute([$ticketId]);
     return $s->fetchAll(PDO::FETCH_ASSOC);
 }

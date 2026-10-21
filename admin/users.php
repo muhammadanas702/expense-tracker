@@ -71,7 +71,7 @@ admin_page_start(['title' => 'Users', 'sub' => $total . ' account' . ($total ===
     <tr>
       <td><a class="who" href="view-user.php?id=<?= (int) $u['id'] ?>"><i class="av" style="background:#1d4ed8"><?= e(ef_initials($u['name'])) ?></i><span><b><?= e($u['name']) ?></b><small><?= e($u['email']) ?></small></span></a></td>
       <td class="hm"><?= e(date('d M Y', strtotime((string) $u['created_at']))) ?></td>
-      <td class="hm"><?= e($ago($u['last_login'])) ?></td>
+      <td class="hm"><?= e($u['role'] === 'super' && $admin['role'] !== 'super' ? '—' : $ago($u['last_login'])) ?></td>
       <td><span class="tag <?= $u['role'] === 'super' ? 'rs' : ($u['role'] === 'user' ? 'tu' : 'tb2') ?>"><?= e(admin_role_label($u['role'])) ?></span></td>
       <td><span class="tag <?= $u['blocked'] ? 'tx' : 'tg' ?>"><?= $u['blocked'] ? 'Blocked' : 'Active' ?></span></td>
       <td><div class="acts-r">
