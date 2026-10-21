@@ -27,12 +27,12 @@ admin_page_start(['title' => $ticket['subject'], 'sub' => (SUPPORT_CATEGORIES[$t
   <?php endforeach; ?>
 </div>
 
-<div class="g card">
+<div class="g card" id="reply">
   <form method="post" action="ticket-action.php">
     <?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= (int) $id ?>">
-    <div class="fl"><label for="body">Reply to the user</label><textarea class="inp" id="body" name="body" rows="4" maxlength="<?= SUPPORT_BODY_MAX ?>"></textarea>
-      <small class="k">The user sees this as "ExpenseFlow support", not your name. Never ask for a password.</small></div>
+    <div class="fl"><label for="body">Your reply to the user</label><textarea class="inp" id="body" name="body" rows="4" maxlength="<?= SUPPORT_BODY_MAX ?>"></textarea>
+      <small class="k">The user sees this as "ExpenseFlow support" and also gets it by email. Never ask for a password.</small></div>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <button class="btn" type="submit" name="do" value="reply">Send reply</button>
       <?php if ($ticket['status'] !== 'closed'): ?><button class="btn o" type="submit" name="do" value="close" formnovalidate>Close request</button>

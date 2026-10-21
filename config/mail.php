@@ -98,14 +98,27 @@ function ef_send_mail(string $email, string $name, string $subject, string $html
  * The shared look of ExpenseFlow emails (table layout and inline styles, because mail programs ignore normal CSS).
  * $lead is plain text, $code the 6-digit code (shown big), $note small print under the code.
  */
-function ef_mail_html(string $heading, string $name, string $lead, string $code, string $note): string
+function ef_mail_html(string $heading, string $name, string $lead, string $code, string $note, string $mode = 'digits', ?array $button = null, ?string $foot = null): string
 {
     $h = fn(string $v) => htmlspecialchars($v, ENT_QUOTES, 'UTF-8');
     $digits = implode('</td><td style="width:6px"></td><td style="width:42px;height:54px;text-align:center;background:#ffffff;border:1.5px solid #cfe3e0;border-radius:12px;font-size:28px;font-weight:800;color:#0B2545;font-family:Segoe UI,Arial,sans-serif">', array_map($h, str_split($code)));
     $year = date('Y');
+    if ($mode === 'text') {
+        $box = '<table role="presentation" align="center" cellspacing="0" cellpadding="0" style="margin:0 auto 20px"><tr><td style="padding:14px;background:#f2f9f8;border-radius:16px"><div style="padding:14px 18px;background:#ffffff;border:1.5px solid #cfe3e0;border-radius:12px;font-size:22px;font-weight:800;letter-spacing:1px;color:#0B2545;font-family:Consolas,Menlo,monospace">' . $h($code) . '</div></td></tr></table>';
+    } elseif ($mode === 'none') {
+        $box = '';
+    } else {
+        $box = '<table role="presentation" align="center" cellspacing="0" cellpadding="0" style="margin:0 auto 20px"><tr><td style="padding:14px;background:#f2f9f8;border-radius:16px"><table role="presentation" cellspacing="0" cellpadding="0"><tr>'
+            . '<td style="width:42px;height:54px;text-align:center;background:#ffffff;border:1.5px solid #cfe3e0;border-radius:12px;font-size:28px;font-weight:800;color:#0B2545;font-family:Segoe UI,Arial,sans-serif">' . $digits . '</td>'
+            . '</tr></table></td></tr></table>';
+    }
+    if ($button) {
+        $box .= '<p style="text-align:center;margin:0 0 18px"><a href="' . $h($button[1]) . '" style="display:inline-block;background:#1d4ed8;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;padding:13px 26px;border-radius:12px">' . $h($button[0]) . '</a></p>';
+    }
+    $foot = $foot ?? 'Never share this code. ExpenseFlow will never ask you for your password or this code by phone, chat or email.<br>If you did not ask for it, you can safely ignore this email.';
     return '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"></head>'
         . '<body style="margin:0;padding:0;background:#eaf3f4;font-family:Segoe UI,Helvetica,Arial,sans-serif;color:#0B2545">'
-        . '<div style="display:none;max-height:0;overflow:hidden;opacity:0">' . $h($lead) . ' Your code: ' . $h($code) . '</div>'
+        . '<div style="display:none;max-height:0;overflow:hidden;opacity:0">' . $h($lead) . ($mode === 'none' ? '' : ' ' . $h($mode === 'text' ? '' : 'Your code: ') . $h($mode === 'text' ? '' : $code)) . '</div>'
         . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#eaf3f4;padding:28px 12px"><tr><td align="center">'
         . '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:480px;background:#ffffff;border-radius:22px;overflow:hidden;box-shadow:0 12px 34px rgba(11,37,69,.12)">'
         . '<tr><td style="background:#0B2545;background-image:linear-gradient(135deg,#0B2545,#137A7F);padding:26px 28px">'
@@ -114,14 +127,12 @@ function ef_mail_html(string $heading, string $name, string $lead, string $code,
         . '<tr><td style="padding:30px 28px 8px">'
         . '<h1 style="margin:0 0 12px;font-size:22px;line-height:1.25;color:#0B2545">' . $h($heading) . '</h1>'
         . '<p style="margin:0 0 6px;font-size:15px;line-height:1.6;color:#33465f">Hi ' . $h($name) . ',</p>'
-        . '<p style="margin:0 0 22px;font-size:15px;line-height:1.6;color:#33465f">' . $h($lead) . '</p>'
-        . '<table role="presentation" align="center" cellspacing="0" cellpadding="0" style="margin:0 auto 20px"><tr><td style="padding:14px;background:#f2f9f8;border-radius:16px"><table role="presentation" cellspacing="0" cellpadding="0"><tr>'
-        . '<td style="width:42px;height:54px;text-align:center;background:#ffffff;border:1.5px solid #cfe3e0;border-radius:12px;font-size:28px;font-weight:800;color:#0B2545;font-family:Segoe UI,Arial,sans-serif">' . $digits . '</td>'
-        . '</tr></table></td></tr></table>'
+        . '<p style="margin:0 0 22px;font-size:15px;line-height:1.6;color:#33465f;white-space:pre-line">' . $h($lead) . '</p>'
+        . $box
         . '<p style="margin:0 0 6px;text-align:center;font-size:13px;color:#5b6b80">' . $h($note) . '</p>'
         . '</td></tr>'
         . '<tr><td style="padding:18px 28px 26px"><div style="border-top:1px solid #e3ecef;padding-top:16px;font-size:12.5px;line-height:1.6;color:#6b7b90">'
-        . 'Never share this code. ExpenseFlow will never ask you for your password or this code by phone, chat or email.<br>If you did not ask for it, you can safely ignore this email.'
+        . $foot
         . '</div></td></tr></table>'
         . '<p style="max-width:480px;margin:16px auto 0;font-size:12px;line-height:1.6;color:#7a8a9e;text-align:center">This is an automatic message. Please do not reply to it.<br>&copy; ' . $year . ' ExpenseFlow</p>'
         . '</td></tr></table></body></html>';
@@ -151,4 +162,39 @@ function sendVerifyMail(string $email, string $name, string $code): bool
         "Hi {$name},\n\nYour ExpenseFlow confirmation code is: {$code}\nIt is valid for 10 minutes. Enter it on the sign-up page to finish creating your account.\n\nIf you did not sign up, ignore this email and nothing will be created.\n\nThis is an automatic message, please do not reply.",
         true
     );
+}
+
+
+/** Emails a temporary password that staff set for the user. */
+function sendTempPasswordMail(string $email, string $name, string $pw): bool
+{
+    return ef_send_mail(
+        $email,
+        $name,
+        'Your temporary ExpenseFlow password',
+        ef_mail_html('Your password was reset', $name, 'ExpenseFlow support set a temporary password for your account. Sign in with it, then choose your own password in Profile & Settings.', $pw, 'Please change this password right after you sign in.', 'text', ['Sign in', ef_mail_login_url()],
+            'If you did not ask for a password reset, please contact support from your account or reply through the Help page.<br>Delete this email after changing your password. ExpenseFlow staff will never ask you for your password.'),
+        "Hi {$name},\n\nExpenseFlow support set a temporary password for your account: {$pw}\nSign in and change it in Profile & Settings.\n\nIf you did not ask for this, contact support. Delete this email after changing your password.\n\nThis is an automatic message, please do not reply.",
+        true
+    );
+}
+
+/** Tells the user that support answered their request. */
+function sendSupportReplyMail(string $email, string $name, string $subject, string $reply, string $url): bool
+{
+    $short = mb_strlen($reply) > 600 ? mb_substr($reply, 0, 600) . '...' : $reply;
+    return ef_send_mail(
+        $email,
+        $name,
+        'ExpenseFlow support replied: ' . mb_substr($subject, 0, 80),
+        ef_mail_html('We replied to your request', $name, 'Re: ' . $subject . "\n\n" . $short, '', '', 'none', ['Open the conversation', $url], 'You can answer from the Help page of your ExpenseFlow account.'),
+        "Hi {$name},\n\nSupport replied to \"{$subject}\":\n\n{$short}\n\nOpen the conversation: {$url}\n\nThis is an automatic message, please do not reply.",
+        true
+    );
+}
+
+function ef_mail_login_url(): string
+{
+    global $base_url;
+    return rtrim((string) ($base_url ?? ''), '/') . '/auth/login.php';
 }
