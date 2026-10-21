@@ -1,0 +1,48 @@
+name: Build apps & publish release
+
+# Run by pushing a tag like v1.0.0, or by hand from the Actions tab ("Run workflow").
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish, e.g. 1.0.0'
+        required: true
+        default: '1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Work out the version
+        id: v
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then V="${GITHUB_REF_NAME#v}"; else V="${{ github.event.inputs.version }}"; fi
+          echo "name=$V" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: '8.7' }
+      - name: Build signed APK
+        working-directory: apps/android
+        run: gradle --no-daemon assembleRelease -PvName=${{ steps.v.outputs.name }} -PvCode=${{ github.run_number }}
+      - name: Name the file
+        run: cp apps/android/app/build/outputs/apk/release/app-release.apk ExpenseFlow.apk
+      - uses: actions/upload-artifact@v4
+        with: { name: ExpenseFlow-apk, path: ExpenseFlow.apk }
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v${{ steps.v.outputs.name }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" ExpenseFlow.apk --clobber
+          else
+            gh release create "$TAG" ExpenseFlow.apk --title "ExpenseFlow $TAG" --notes "Android app (APK). Download ExpenseFlow.apk on your phone, open it and allow 'Install unknown apps' when asked. The app opens https://expenseflow.rf.gd/."
+          fi

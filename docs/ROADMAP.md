@@ -147,3 +147,10 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Phones: no backdrop blur / endless animations; shorter page fade.
 - Notification list is prefetched quietly (`peek=1`, does not mark read) so the bell pop-up opens instantly.
 - Chart.js loads deferred; charts draw on window load.
+
+### Notes for Part 10a (Android app + GitHub Releases)
+- `apps/android`: small WebView shell for https://expenseflow.rf.gd/ (keeps login, file upload, PDF downloads, Back button, offline screen, external links open in the browser). Not deployed to the website (`apps/**` excluded in deploy.yml).
+- `.github/workflows/release.yml`: push a tag like `v1.0.0` (or Actions → "Build apps & publish release" → Run workflow) → builds `ExpenseFlow.apk` and publishes it on the Releases page. Landing footer links to "Get the app".
+- The APK is signed with `apps/android/sideload.jks` (committed on purpose, password in build.gradle) so every release installs as an update. Fine for sideloading; for Google Play use your own private key instead.
+- Not built locally (no Android SDK offline); the first CI run is the real test.
+- Still to do: 10b Windows EXE, 10c iOS (needs Mac + Apple account; otherwise PWA "Add to Home Screen").

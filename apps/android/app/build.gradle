@@ -1,0 +1,32 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'pk.expenseflow.app'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'pk.expenseflow.app'
+        minSdk 24
+        targetSdk 34
+        versionCode (project.findProperty('vCode') ?: '1').toInteger()
+        versionName (project.findProperty('vName') ?: '1.0.0')
+    }
+    signingConfigs {
+        release {
+            // Sideload key kept in the repo so every release is signed the same way and installs as an update.
+            storeFile file('../sideload.jks')
+            storePassword 'expenseflow'
+            keyAlias 'expenseflow'
+            keyPassword 'expenseflow'
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

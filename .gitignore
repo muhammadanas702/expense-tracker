@@ -22,3 +22,8 @@
 
 # SQL files for manual import are meant to be kept
 !database/*.sql
+
+# Android build output
+apps/**/build/
+apps/**/.gradle/
+apps/**/local.properties
