@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../includes/schema.php';
 /**
  * Receipts module helpers: validates, re-encodes and stores one photo per shared expense.
  * Files live in storage/receipts/ (blocked from direct web access) and are served by receipts/view.php
@@ -15,6 +16,9 @@ function receipts_dir(): string
 
 function receipts_ensure_schema(PDO $conn): void
 {
+    if (ef_schema_ok(__FUNCTION__, __FILE__)) {
+        return;
+    }
     static $done = false;
     if ($done) {
         return;

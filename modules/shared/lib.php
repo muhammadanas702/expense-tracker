@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../includes/schema.php';
 /**
  * Shared module helpers: groups, members, invite links.
  * This module only touches the shared_* tables (and reads user names from users).
@@ -33,6 +34,9 @@ function shared_icon_key($value): string
 
 function shared_ensure_schema(PDO $conn): void
 {
+    if (ef_schema_ok(__FUNCTION__, __FILE__)) {
+        return;
+    }
     static $done = false;
     if ($done) {
         return;

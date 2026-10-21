@@ -37,6 +37,9 @@ const ADMIN_DEFAULTS = [
 
 function admin_ensure_schema(PDO $conn): void
 {
+    if (ef_schema_ok(__FUNCTION__, __FILE__)) {
+        return;
+    }
     static $done = false;
     if ($done) {
         return;

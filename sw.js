@@ -1,4 +1,4 @@
-const CACHE_NAME = "expenseflow-static-v2";
+const CACHE_NAME = "expenseflow-static-v3";
 const APP_SCOPE = self.registration.scope;
 const OFFLINE_URL = new URL("offline.html", APP_SCOPE).href;
 const STATIC_URLS = [
@@ -39,6 +39,19 @@ self.addEventListener("fetch", (event) => {
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request).catch(() => caches.match(OFFLINE_URL).then((response) => response || Response.error()))
+    );
+    return;
+  }
+
+  // CSS/JS carry ?v=<timestamp>, so a cached copy is always the right one: serve it instantly.
+  if (/\.(css|js)$/.test(url.pathname) && url.searchParams.has("v")) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then((cache) =>
+        cache.match(request).then((hit) => hit || fetch(request).then((res) => {
+          if (res.ok) cache.put(request, res.clone());
+          return res;
+        }))
+      )
     );
     return;
   }

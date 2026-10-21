@@ -140,3 +140,10 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 
 ### Notes for Part 12d
 - The bell now opens a pop-up panel (latest 8, "See all" link) instead of a page; fetches `activity/notifications.php?popup=1` (marks read, removes badge). Closes on outside click or Esc. Without JS the bell still links to the full page. Script: `assets/notif-pop.js`, CSS class `.npop`.
+
+### Notes for Part 12e (speed)
+- Schema self-checks run once per deploy (marker files in `storage/schema`, `ef_schema_ok`) instead of on every request.
+- `.htaccess`: gzip + long browser cache for CSS/JS/images (URLs carry `?v=`); service worker serves versioned CSS/JS from cache (cache v3).
+- Phones: no backdrop blur / endless animations; shorter page fade.
+- Notification list is prefetched quietly (`peek=1`, does not mark read) so the bell pop-up opens instantly.
+- Chart.js loads deferred; charts draw on window load.

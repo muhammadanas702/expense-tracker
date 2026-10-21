@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../includes/schema.php';
 /**
  * Announcements module. Touches only announcements and announcement_dismissed.
  * Everything that runs on normal pages is best-effort: a failure never breaks the page.
@@ -10,6 +11,9 @@ const ANNOUNCE_SHOW_MAX = 2;
 
 function announce_ensure_schema(PDO $conn): void
 {
+    if (ef_schema_ok(__FUNCTION__, __FILE__)) {
+        return;
+    }
     static $done = false;
     if ($done) {
         return;

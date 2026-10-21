@@ -4,7 +4,7 @@ $rows = activity_notifications($conn, $user_id);
 $unread = array_filter($rows, fn($r) => $r['read_at'] === null);
 $firstView = array_map(fn($r) => (int) $r['nid'], $unread);
 // Opening the page counts as reading; the rows below still show which ones were new.
-if ($unread) {
+if ($unread && !isset($_GET['peek'])) {
     activity_mark_read($conn, $user_id);
 }
 

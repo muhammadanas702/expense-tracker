@@ -177,7 +177,7 @@ ef_page_start([
     'sub' => $use_date_range ? "$from_date to $to_date · $display_currency" : $period_start->format('F Y') . " · base $display_currency",
     'active' => 'dash',
     'user' => $user,
-    'head' => '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>',
+    'head' => '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>',
 ]);
 ?>
 <?php if ($needs_setup): ?>
@@ -280,7 +280,7 @@ ef_page_start([
 <?php
 $js = '<script>
 (function(){var t=document.getElementById("custom-toggle"),f=document.getElementById("custom-range");if(t&&f)t.addEventListener("click",function(){f.hidden=!f.hidden;t.setAttribute("aria-expanded",f.hidden?"false":"true");if(!f.hidden)document.getElementById("cr-from").focus()})})();
-(function(){
+window.addEventListener("load",function(){
   if (typeof Chart === "undefined") return;
   var cats = ' . json_encode($categories, $json_flags) . ', vals = ' . json_encode($categoryTotals, $json_flags) . ';
   var inc = ' . json_encode($total_income, $json_flags) . ', exp = ' . json_encode($total_expense, $json_flags) . ';
@@ -291,7 +291,7 @@ $js = '<script>
   var c2 = document.getElementById("flowChart");
   if (c2) new Chart(c2, {type:"bar", data:{labels:["Income","Expense"], datasets:[{data:[inc,exp], backgroundColor:["#10b981","#f97316"], borderRadius:8}]},
     options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}});
-})();
+});
 setTimeout(function(){document.querySelectorAll("[data-flash]").forEach(function(m){m.style.transition="opacity .5s";m.style.opacity="0";setTimeout(function(){m.remove()},500)})},4000);
 </script>';
 ef_page_end(['active' => 'dash', 'scripts' => $js]);

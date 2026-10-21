@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../includes/schema.php';
 /**
  * Currencies module. Touches only app_currency_hidden.
  * Hiding a currency only removes it from the pick lists for NEW entries. Old entries keep it, and the
@@ -9,6 +10,9 @@ const CURRENCY_LOCKED = ['PKR', 'USD'];
 
 function currencies_ensure_schema(PDO $conn): void
 {
+    if (ef_schema_ok(__FUNCTION__, __FILE__)) {
+        return;
+    }
     static $done = false;
     if ($done) {
         return;
