@@ -154,3 +154,8 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - The APK is signed with `apps/android/sideload.jks` (committed on purpose, password in build.gradle) so every release installs as an update. Fine for sideloading; for Google Play use your own private key instead.
 - Not built locally (no Android SDK offline); the first CI run is the real test.
 - Still to do: 10b Windows EXE, 10c iOS (needs Mac + Apple account; otherwise PWA "Add to Home Screen").
+
+### Notes for Part 10a-2 (offline + login start)
+- The Android app opens on `auth/login.php`; a signed-in visitor is redirected straight to the dashboard (login form only shows when signed out; `?stay=1` forces it).
+- Offline: the service worker keeps every signed-in page you open (cache `expenseflow-pages-v1`) and shows the saved copy when there is no connection; opening the login page offline shows the saved dashboard. A banner says changes can't be saved offline. Saved pages are wiped on logout and whenever the login form is served. Admin and auth pages are never saved.
+- After restoring a database from a backup, delete `storage/schema` on the server (the schema self-checks are remembered per deploy).

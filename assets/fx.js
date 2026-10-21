@@ -55,3 +55,21 @@
     setTimeout(function () { el.classList.add('gone'); setTimeout(function () { el.remove(); }, 450); }, 5000);
   });
 })();
+
+
+/* Offline notice: pages shown from the saved copy cannot save changes until the connection is back */
+(function () {
+  var bar;
+  function show(off) {
+    if (off && !bar) {
+      bar = document.createElement('div');
+      bar.setAttribute('role', 'status');
+      bar.textContent = 'You are offline - showing saved data. Changes cannot be saved until you are back online.';
+      bar.style.cssText = 'position:fixed;left:12px;right:12px;bottom:84px;z-index:80;background:#0b2545;color:#fff;padding:10px 14px;border-radius:12px;font:600 13px/1.3 system-ui,sans-serif;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.25)';
+      document.body.appendChild(bar);
+    } else if (!off && bar) { bar.remove(); bar = null; }
+  }
+  window.addEventListener('offline', function () { show(true); });
+  window.addEventListener('online', function () { show(false); });
+  if (!navigator.onLine) document.addEventListener('DOMContentLoaded', function () { show(true); });
+})();

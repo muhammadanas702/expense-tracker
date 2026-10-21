@@ -21,7 +21,7 @@ import android.widget.Toast;
 /** Thin shell: shows https://expenseflow.rf.gd/ full screen, keeps the login, handles uploads, downloads and Back. */
 public class MainActivity extends Activity {
     private static final String HOST = "expenseflow.rf.gd";
-    private static final String HOME = "https://" + HOST + "/";
+    private static final String HOME = "https://" + HOST + "/auth/login.php";
     private static final int PICK = 1;
     private WebView web;
     private ValueCallback<Uri[]> pending;

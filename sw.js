@@ -1,4 +1,5 @@
-const CACHE_NAME = "expenseflow-static-v3";
+const CACHE_NAME = "expenseflow-static-v4";
+const PAGES = "expenseflow-pages-v1"; // signed-in pages kept for offline viewing; wiped on logout / when the login form is served
 const APP_SCOPE = self.registration.scope;
 const OFFLINE_URL = new URL("offline.html", APP_SCOPE).href;
 const STATIC_URLS = [
@@ -29,17 +30,41 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+const dash = () => new URL("dashboard.php", APP_SCOPE).href;
+const isLogin = (u) => /\/auth\/login\.php$/.test(u.pathname);
+const skipCache = (u) => /\/(auth\/|admin\/|api\/)/.test(u.pathname) || u.searchParams.has("popup");
+
+async function pageRequest(request, url) {
+  try {
+    const res = await fetch(request);
+    if (isLogin(url) && res.ok) {
+      await caches.delete(PAGES); // login form served = not signed in: drop saved private pages
+    } else if (res.ok && !res.redirected && !skipCache(url) && (res.headers.get("content-type") || "").includes("text/html")) {
+      const cache = await caches.open(PAGES);
+      await cache.put(request.url, res.clone());
+    }
+    return res;
+  } catch (e) {
+    const cache = await caches.open(PAGES);
+    let hit = await cache.match(request.url);
+    if (!hit && isLogin(url)) hit = await cache.match(dash()); // already signed in: open on saved dashboard
+    return hit || (await caches.match(OFFLINE_URL)) || Response.error();
+  }
+}
+
 self.addEventListener("fetch", (event) => {
   const request = event.request;
+  if (request.method === "POST" && new URL(request.url).pathname.endsWith("/auth/logout.php")) {
+    event.waitUntil(caches.delete(PAGES)); // logging out removes the saved pages (fetch continues normally)
+    return;
+  }
   if (request.method !== "GET") return;
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request).catch(() => caches.match(OFFLINE_URL).then((response) => response || Response.error()))
-    );
+    event.respondWith(pageRequest(request, url));
     return;
   }
 
