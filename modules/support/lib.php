@@ -48,6 +48,9 @@ function support_ensure_schema(PDO $conn): void
               KEY `idx_support_msg_ticket` (`ticket_id`, `id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
         );
+        if (!schema_has($conn, 'support_tickets', 'answered_unseen', true)) {
+            $conn->exec('ALTER TABLE `support_tickets` ADD COLUMN `answered_unseen` TINYINT(1) NOT NULL DEFAULT 0');
+        }
     } catch (Throwable $e) {
         error_log('ExpenseFlow support schema check failed: ' . $e->getMessage());
     }
@@ -125,6 +128,7 @@ function support_messages(PDO $conn, int $ticketId): array
  */
 function support_reply(PDO $conn, array $ticket, int $userId, bool $isStaff, string $body, ?string &$error = null): bool
 {
+    support_ensure_schema($conn);
     $text = clean_multiline($body, SUPPORT_BODY_MAX);
     if ($text === null) {
         $error = 'Write a message (up to ' . SUPPORT_BODY_MAX . ' characters).';
@@ -138,8 +142,8 @@ function support_reply(PDO $conn, array $ticket, int $userId, bool $isStaff, str
     }
     $conn->prepare('INSERT INTO support_messages (ticket_id, user_id, is_staff, body) VALUES (?,?,?,?)')
         ->execute([(int) $ticket['id'], $userId, $isStaff ? 1 : 0, $text]);
-    $conn->prepare('UPDATE support_tickets SET status = ?, updated_at = NOW() WHERE id = ?')
-        ->execute([$isStaff ? 'pending' : 'open', (int) $ticket['id']]);
+    $conn->prepare('UPDATE support_tickets SET status = ?, updated_at = NOW(), answered_unseen = ? WHERE id = ?')
+        ->execute([$isStaff ? 'pending' : 'open', $isStaff ? 1 : 0, (int) $ticket['id']]);
     return true;
 }
 
@@ -227,4 +231,40 @@ function support_pill(string $status): string
 {
     $cls = ['open' => 'rs', 'pending' => 'tb2', 'closed' => 'tu'][$status] ?? 'tu';
     return '<span class="tag ' . $cls . '">' . e(SUPPORT_STATUSES[$status] ?? $status) . '</span>';
+}
+
+
+/** Replies from support the user has not opened yet (shown in the bell). Never throws: this runs on every page. */
+function support_unseen_count(PDO $conn, int $userId): int
+{
+    try {
+        $q = $conn->prepare('SELECT COUNT(*) FROM support_tickets WHERE user_id = ? AND answered_unseen = 1');
+        $q->execute([$userId]);
+        return (int) $q->fetchColumn();
+    } catch (Throwable $e) {
+        return 0;
+    }
+}
+
+function support_unseen_list(PDO $conn, int $userId): array
+{
+    try {
+        $q = $conn->prepare('SELECT id, subject, updated_at FROM support_tickets WHERE user_id = ? AND answered_unseen = 1 ORDER BY updated_at DESC LIMIT 10');
+        $q->execute([$userId]);
+        return $q->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {
+        return [];
+    }
+}
+
+function support_mark_seen(PDO $conn, int $userId, ?int $ticketId = null): void
+{
+    try {
+        if ($ticketId) {
+            $conn->prepare('UPDATE support_tickets SET answered_unseen = 0 WHERE user_id = ? AND id = ?')->execute([$userId, $ticketId]);
+        } else {
+            $conn->prepare('UPDATE support_tickets SET answered_unseen = 0 WHERE user_id = ?')->execute([$userId]);
+        }
+    } catch (Throwable $e) {
+    }
 }

@@ -168,3 +168,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - "Set temporary password" (and "Add user") now also emails the user the temporary password with a Sign-in button; the admin still sees it once. If SMTP fails the admin is told to hand it over.
 - Support: the list has a Reply/View button per request (opens the reply box); a staff reply is emailed to the user with a link, and still shows in the user's Help page.
 - Test: `tests/staff_mail_http_test.py` (needs aiosmtpd).
+
+### Notes for Part 14 (setup page fix, app update prompt, support replies in the bell)
+- Bug: "Finish your quick setup" linked to `modules/profile/setup.php`, which the server blocks (modules/ is deny-all). Now `setup.php` and `stop-recurring.php` live in the root (thin wrappers). A new account is sent to Quick setup once, before the dashboard (Skip works).
+- Support replies: `support_tickets.answered_unseen`; counted in the bell badge, listed first in the notification pop-up/page, cleared when the conversation is opened.
+- Android app: on start it asks GitHub for the latest release; if the tag is newer than the installed versionName it shows "Update available" with Download / Later (Later = asks again after 24 h). Needs a release with a higher tag (e.g. v1.0.3).
+- Tests that logged in by opening the dashboard now use profile.php (a fresh account is redirected to setup first).

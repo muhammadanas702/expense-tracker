@@ -7,6 +7,7 @@ if (!$ticket) {
     support_back('support/index.php');
 }
 $msgs = support_messages($conn, $id);
+support_mark_seen($conn, $user_id, $id);
 
 ef_page_start(['title' => $ticket['subject'], 'sub' => (SUPPORT_CATEGORIES[$ticket['category']] ?? 'Other') . ' · opened ' . support_ago((string) $ticket['created_at']), 'neutral' => true, 'active' => 'profile', 'user' => $user]);
 ?>

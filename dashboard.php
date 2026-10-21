@@ -142,6 +142,12 @@ $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $settings = profile_settings($conn, $user_id);
 $needs_setup = profile_needs_setup($conn, $user_id);
+// A brand-new account sees the quick setup once, before the dashboard (it can be skipped).
+if ($needs_setup && empty($_SESSION['setup_prompted']) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $_SESSION['setup_prompted'] = true;
+    header('Location: ' . $base_url . '/setup.php');
+    exit();
+}
 $goal = (int) $settings['savings_goal'];
 $csrf = csrf_token();
 $json_flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
@@ -181,7 +187,7 @@ ef_page_start([
 ]);
 ?>
 <?php if ($needs_setup): ?>
-<div class="g card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><span><b>Welcome! Finish your quick setup</b><div class="k">Pick your main currency and savings goal (20 seconds).</div></span><a class="btn" style="margin-left:auto" href="<?= e($base_url) ?>/modules/profile/setup.php">Start</a></div>
+<div class="g card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><span><b>Welcome! Finish your quick setup</b><div class="k">Pick your main currency and savings goal (20 seconds).</div></span><a class="btn" style="margin-left:auto" href="<?= e($base_url) ?>/setup.php">Start</a></div>
 <?php endif; ?>
 <div class="chips" style="margin-bottom:2px">
 <?php foreach ($presets as $label => $q): ?>
@@ -259,7 +265,7 @@ ef_page_start([
                 <i class="cat"><?= ef_icon('rpt') ?></i>
                 <span><?= e($r['title']) ?><small>Next: <?= e(date('d M Y', strtotime($r['next_run']))) ?> · <?= e($r['kind']) ?></small></span>
                 <b><?= $fmt((float) $r['amount']) ?> <?= e($r['currency']) ?></b>
-                <span class="acts"><a class="del" href="<?= e($base_url) ?>/modules/personal/stop-recurring.php" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"id":<?= (int) $r['id'] ?>}' onclick="return confirm('Stop repeating this item?')" aria-label="Stop repeating"><?= ef_icon('tr') ?></a></span>
+                <span class="acts"><a class="del" href="<?= e($base_url) ?>/stop-recurring.php" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"id":<?= (int) $r['id'] ?>}' onclick="return confirm('Stop repeating this item?')" aria-label="Stop repeating"><?= ef_icon('tr') ?></a></span>
             </div>
             <?php endforeach; if (!$repeating): ?><p class="k">None. Turn on “Repeat every month” when adding an entry.</p><?php endif; ?>
         </div>

@@ -20,7 +20,7 @@ def login(n):
     s = requests.Session()
     r = s.get(B + '/auth/login.php'); t = re.search(r'name="csrf_token" value="([^"]+)"', r.text).group(1)
     s.post(B + '/auth/login.php', data={'email': f'{n}@sec.local', 'password': 'Test#12345', 'csrf_token': t}, allow_redirects=False)
-    r = s.get(B + '/dashboard.php', allow_redirects=False); ok(r.status_code == 200, f'{n} logged in')
+    r = s.get(B + '/profile.php', allow_redirects=False); ok(r.status_code == 200, f'{n} logged in')
     return s
 def token(s, url):
     return re.search(r'name="csrf_token" value="([^"]+)"', s.get(B + url).text).group(1)
