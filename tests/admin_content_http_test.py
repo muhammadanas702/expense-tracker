@@ -15,6 +15,7 @@ sql("DELETE FROM users WHERE email LIKE '%@ct.local'"); sql("DELETE FROM admin_p
 for t in ('announcements', 'announcement_dismissed', 'app_currency_hidden', 'shared_groups', 'shared_members', 'shared_expenses', 'shared_splits'):
     sql(f"DELETE FROM {t}")
 sql("DELETE FROM app_categories")
+subprocess.run("rm -f storage/schema/categories_ensure_schema-*.ok", shell=True)  # the test empties the table on purpose; make the self-check run (and re-seed) again
 for n, r in {'sup': 'super', 'adm': 'admin', 'stf': 'support', 'u1': 'user', 'u2': 'user'}.items():
     sql(f"INSERT INTO users(name,email,password,role,is_admin) VALUES ('{n}name','{n}@ct.local','{h}','{r}',{0 if r=='user' else 1})")
 uid = {n: int(sql(f"SELECT id FROM users WHERE email='{n}@ct.local'")) for n in ('sup', 'adm', 'stf', 'u1', 'u2')}

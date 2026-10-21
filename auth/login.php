@@ -10,6 +10,11 @@ require_once __DIR__ . '/../modules/security/lib.php';
 // Used to spend the same time on unknown emails as on real ones (stops user enumeration by timing).
 const LOGIN_DUMMY_HASH = '$2y$10$upDqZzLSCX4uV4KiKU.A2udyaMdt1.F45WteM6RgWu.XNBqNEFfiu';
 
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_SESSION['user_id']) && empty($_GET['stay'])) {
+    header('Location: ' . $base_url . '/dashboard.php');
+    exit();
+}
+
 $error = "";
 $email = "";
 
