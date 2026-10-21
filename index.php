@@ -7,8 +7,8 @@ send_security_headers();
 
 $base = rtrim($base_url, '/');
 $canonical = $base . '/';
-$title = 'ExpenseFlow – Expense Tracker & Budget Planner';
-$desc = 'Track expenses and income, manage your budget, and view financial reports with ExpenseFlow, an online expense tracker and budget planner.';
+$title = 'ExpenseFlow – Free Expense Tracker, Budget Planner & Bill Splitter';
+$desc = 'Free expense tracker and bill splitter: record income and expenses, plan your budget, split costs with friends, export PDF reports. Works on web, Android and Windows, even offline.';
 
 $features = [
     ['inc', 'Income & expenses', 'Record every transaction with categories, notes and dates. Edit or delete anytime.'],
@@ -31,6 +31,10 @@ $faq = [
     ['Which currencies are supported?', 'Pick any supported base currency; exchange rates are refreshed automatically.'],
     ['Can I download my reports?', 'Yes, filter by date and export a PDF report from the Full Report page.'],
     ['Can I delete my account?', 'Yes. You can reset your data or permanently delete your account from Profile.'],
+    ['Is ExpenseFlow free?', 'Yes. ExpenseFlow is free to use and has no advertisements.'],
+    ['How do I split a bill with friends?', 'Create a shared group, invite friends with a link, add an expense and choose equal, exact, percentage or share split. ExpenseFlow then shows who owes whom so you can settle up.'],
+    ['Is my financial data safe?', 'ExpenseFlow never asks for bank or card details. You only type in your own records, passwords are stored as one-way hashes, and you can export or delete your data at any time.'],
+    ['Is there an Android or Windows app?', 'Yes. Download the Android APK or the Windows installer from the Get the app section. On iPhone, add the site to your home screen from Safari.'],
 ];
 $logo = '<span class="logo"><img src="' . e($base) . '/assets/icons/icon-192.png" alt=""><span class="wm">ExpenseFlow</span></span>';
 ?>
@@ -49,17 +53,32 @@ $logo = '<span class="logo"><img src="' . e($base) . '/assets/icons/icon-192.png
 <meta property="og:title" content="<?= e($title) ?>">
 <meta property="og:description" content="<?= e($desc) ?>">
 <meta property="og:url" content="<?= e($canonical) ?>">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="<?= e($base) ?>/assets/og-image.png">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="<?= e($base) ?>/assets/og-image.png">
 <meta name="twitter:title" content="<?= e($title) ?>">
 <meta name="twitter:description" content="<?= e($desc) ?>">
 <link rel="stylesheet" href="<?= e($base) ?>/assets/app.css?v=<?= (int) @filemtime(__DIR__ . '/assets/app.css') ?>">
+<?php
+$ld = [
+  ['@context' => 'https://schema.org', '@type' => 'WebSite', 'name' => 'ExpenseFlow', 'url' => $canonical, 'description' => $desc, 'inLanguage' => 'en'],
+  ['@context' => 'https://schema.org', '@type' => 'Organization', 'name' => 'ExpenseFlow', 'url' => $canonical, 'logo' => $base . '/assets/icons/icon-512.png'],
+  ['@context' => 'https://schema.org', '@type' => 'SoftwareApplication', 'name' => 'ExpenseFlow', 'url' => $canonical,
+   'applicationCategory' => 'FinanceApplication', 'operatingSystem' => 'Web, Android, Windows', 'description' => $desc,
+   'image' => $base . '/assets/og-image.png', 'offers' => ['@type' => 'Offer', 'price' => '0', 'priceCurrency' => 'USD']],
+  ['@context' => 'https://schema.org', '@type' => 'FAQPage', 'mainEntity' => array_map(fn($f) => ['@type' => 'Question', 'name' => $f[0], 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $f[1]]], $faq)],
+];
+foreach ($ld as $block): ?>
+<script type="application/ld+json"><?= json_encode($block, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?></script>
+<?php endforeach; ?>
 <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
 <div class="fr" data-mode="p">
 <header class="g nb">
   <a class="logo" href="<?= e($base) ?>/" style="padding:0"><?= $logo ?></a>
-  <nav class="lk" aria-label="Sections"><a href="#features">Features</a><a href="#modes">Personal &amp; Shared</a><a href="#how">How it works</a><a href="#apps">Get the app</a><a href="#faq">FAQ</a></nav>
+  <nav class="lk" aria-label="Sections"><a href="#features">Features</a><a href="#modes">Personal &amp; Shared</a><a href="#how">How it works</a><a href="#apps">Get the app</a><a href="<?= e($base) ?>/guides/">Guides</a><a href="#faq">FAQ</a></nav>
   <a class="lnk" href="<?= e($base) ?>/auth/login.php">Log in</a>
   <a class="btn" href="<?= e($base) ?>/auth/register.php">Get started</a>
 </header>
@@ -149,8 +168,8 @@ $logo = '<span class="logo"><img src="' . e($base) . '/assets/icons/icon-192.png
   <a class="btn lg" href="<?= e($base) ?>/auth/register.php">Get started <?= ef_icon('arr') ?></a>
 </section>
 
-<footer class="fo"><?= $logo ?><span>© <?= date('Y') ?> ExpenseFlow</span>
-  <span class="lk2"><a href="<?= e($base) ?>/auth/login.php">Log in</a><a href="<?= e($base) ?>/auth/register.php">Register</a><a href="#apps">Get the app</a></span></footer>
+<footer class="fo"><?= $logo ?><span>© <?= date('Y') ?> ExpenseFlow · ExpenseFlow never asks for your bank or card details.</span>
+  <span class="lk2"><a href="<?= e($base) ?>/about.php">About</a><a href="<?= e($base) ?>/guides/">Guides</a><a href="<?= e($base) ?>/privacy.php">Privacy</a><a href="<?= e($base) ?>/terms.php">Terms</a><a href="<?= e($base) ?>/contact.php">Contact</a><a href="<?= e($base) ?>/auth/login.php">Log in</a><a href="<?= e($base) ?>/auth/register.php">Register</a></span></footer>
 </div>
 <script src="<?= e($base) ?>/assets/fx.js?v=<?= (int) @filemtime(__DIR__ . '/assets/fx.js') ?>" defer></script>
 </body>
