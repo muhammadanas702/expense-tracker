@@ -24,6 +24,42 @@ function schema_has(PDO $conn, string $table, string $column, bool $refresh = fa
     return $cache[$key];
 }
 
+/**
+ * Fast path for the self-healing schema checks. Each check runs CREATE/ALTER statements, which cost several
+ * database round trips on every request. After one clean run the check is remembered in storage/schema
+ * (keyed by function + the file's last-change time), so a deploy of new code re-runs it exactly once.
+ * Delete the storage/schema folder to force every check to run again.
+ */
+function ef_schema_ok(string $name, string $file): bool
+{
+    if (getenv('EXPENSEFLOW_NO_SCHEMA_CACHE')) {
+        return false;
+    }
+    $dir = __DIR__ . '/../storage/schema';
+    $mark = $dir . '/' . $name . '-' . (int) @filemtime($file) . '.ok';
+    if (is_file($mark)) {
+        return true;
+    }
+    static $queued = [];
+    if (isset($queued[$mark])) {
+        return false;
+    }
+    $queued[$mark] = true;
+    register_shutdown_function(static function () use ($dir, $mark, $name) {
+        if (error_get_last() !== null && in_array(error_get_last()['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
+            return;
+        }
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0775, true);
+        }
+        foreach (glob($dir . '/' . $name . '-*.ok') ?: [] as $old) {
+            @unlink($old);
+        }
+        @file_put_contents($mark, date('c'));
+    });
+    return false;
+}
+
 /** Adds missing tables/columns that the current code relies on. Runs once per session. */
 function ensure_schema(PDO $conn): void
 {
@@ -32,6 +68,10 @@ function ensure_schema(PDO $conn): void
         return;
     }
     $done = true;
+
+    if (ef_schema_ok(__FUNCTION__, __FILE__)) {
+        return;
+    }
 
     if (session_status() === PHP_SESSION_ACTIVE && !empty($_SESSION['schema_checked_v3'])) {
         return;

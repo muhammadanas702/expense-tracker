@@ -20,6 +20,9 @@ function personal_payment_method($value): ?string
 /** Creates the Part 3 columns/table when the SQL file has not been run yet. */
 function personal_ensure_schema(PDO $conn): void
 {
+    if (ef_schema_ok(__FUNCTION__, __FILE__)) {
+        return;
+    }
     static $done = false;
     if ($done) {
         return;

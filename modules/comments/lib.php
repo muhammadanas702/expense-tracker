@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../includes/schema.php';
 /**
  * Comments module helpers. Touches only comments_items (and reads shared_* / users).
  * Never throws into the caller: reading returns empty on failure.
@@ -8,6 +9,9 @@ const COMMENTS_PER_EXPENSE = 200;
 
 function comments_ensure_schema(PDO $conn): void
 {
+    if (ef_schema_ok(__FUNCTION__, __FILE__)) {
+        return;
+    }
     static $done = false;
     if ($done) {
         return;
