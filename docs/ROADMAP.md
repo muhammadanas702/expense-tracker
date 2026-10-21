@@ -177,3 +177,8 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 
 ### Notes for Part 15 (app options in Profile)
 - Profile → More: "Android app" (link to the latest release, hidden inside the app) and "App updates" (only inside the Android app: shows the installed version and a Check button that asks GitHub for the newest release; the app talks to the page through the `EFApp` bridge).
+
+### Notes for Part 10b (Windows app)
+- `apps/desktop`: Electron shell for https://expenseflow.rf.gd/ (opens on login; other links go to the browser; offline screen; Check for updates in the App menu + a prompt 4 s after start; Profile shows the installed version through the same `EFApp` bridge).
+- `release.yml` has a second job (`windows`, after `android`): builds `ExpenseFlow-Setup.exe` (NSIS one-click installer) and adds it to the same release. Not tested on a real Windows PC yet; the installer is unsigned, so Windows SmartScreen shows "Windows protected your PC" -> More info -> Run anyway.
+- Still to do: 10c iOS (needs Mac + Apple developer account; otherwise PWA "Add to Home Screen").

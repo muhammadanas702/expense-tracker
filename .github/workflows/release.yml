@@ -56,3 +56,30 @@ jobs:
           else
             gh release create "$TAG" ExpenseFlow.apk --title "ExpenseFlow $TAG" --notes "Android app (APK). Download ExpenseFlow.apk on your phone, open it and allow 'Install unknown apps' when asked. The app opens https://expenseflow.rf.gd/."
           fi
+
+  windows:
+    needs: android
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Work out the version
+        id: v
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then V="${GITHUB_REF_NAME#v}"; else V="${{ github.event.inputs.version }}"; fi
+          echo "name=$V" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Build Windows installer
+        working-directory: apps/desktop
+        shell: bash
+        run: |
+          npm install --no-audit --no-fund
+          npx electron-builder --win nsis --publish never -c.extraMetadata.version=${{ steps.v.outputs.name }}
+      - uses: actions/upload-artifact@v4
+        with: { name: ExpenseFlow-exe, path: apps/desktop/dist/ExpenseFlow-Setup.exe }
+      - name: Add the installer to the GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "v${{ steps.v.outputs.name }}" apps/desktop/dist/ExpenseFlow-Setup.exe --clobber

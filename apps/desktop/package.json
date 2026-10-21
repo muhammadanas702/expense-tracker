@@ -1,0 +1,22 @@
+{
+  "name": "expenseflow-desktop",
+  "productName": "ExpenseFlow",
+  "version": "1.0.0",
+  "description": "ExpenseFlow for Windows",
+  "main": "main.js",
+  "author": "ExpenseFlow",
+  "license": "UNLICENSED",
+  "private": true,
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "pk.expenseflow.desktop",
+    "productName": "ExpenseFlow",
+    "directories": { "output": "dist" },
+    "files": ["main.js", "preload.js", "offline.html", "package.json", "build/icon.ico"],
+    "win": { "target": "nsis", "icon": "build/icon.ico", "artifactName": "ExpenseFlow-Setup.exe" },
+    "nsis": { "oneClick": true, "perMachine": false, "deleteAppDataOnUninstall": false, "createDesktopShortcut": true, "createStartMenuShortcut": true }
+  }
+}
