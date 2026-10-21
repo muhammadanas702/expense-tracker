@@ -11,6 +11,13 @@ Disallow: /reports/
 Disallow: /storage/
 Disallow: /exports/
 Disallow: /dashboard.php
+Disallow: /shared/
+Disallow: /support/
+Disallow: /activity/
+Disallow: /friends/
+Disallow: /receipts/
+Disallow: /comments/
+Disallow: /setup.php
 Disallow: /profile.php
 Disallow: /auth/logout.php
 Disallow: /auth/delete-account.php
