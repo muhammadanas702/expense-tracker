@@ -224,13 +224,9 @@ a.row{color:inherit;text-decoration:none;border-radius:12px;transition:backgroun
 .np-r .gi{margin:0;width:34px;height:34px;flex:none}
 .np-r .am{font-size:13px;white-space:nowrap}
 @media(max-width:700px){.npop{top:64px;right:12px;left:12px;width:auto}}
-/* Speed on phones: no live blur / endless animation (they make scrolling and first paint slow) */
+/* Speed on phones: only the live blur behind cards is dropped (it is what makes scrolling slow); colours and animations stay as designed */
 @media(max-width:900px),(pointer:coarse){
-  .g{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(255,255,255,.86)}
-  .fr:before,.fr:after{animation:none;filter:none;opacity:.35}
-  .view{animation:none}
-  .hv .chp,.hv .m2,.grad{animation:none}
-  .nb{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(255,255,255,.94)}
+  .g{backdrop-filter:none;-webkit-backdrop-filter:none;background-color:rgba(255,255,255,.82)}
+  .nb{backdrop-filter:none;-webkit-backdrop-filter:none;background-color:rgba(255,255,255,.94)}
 }
-.view{animation-duration:.18s}
 .npop{backdrop-filter:none;-webkit-backdrop-filter:none}

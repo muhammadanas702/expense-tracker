@@ -5,6 +5,8 @@ import android.app.DownloadManager;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.net.ConnectivityManager;
+import android.net.NetworkCapabilities;
 import android.os.Environment;
 import android.view.View;
 import android.webkit.CookieManager;
@@ -18,6 +20,13 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import org.json.JSONTokener;
+
 /** Thin shell: shows https://expenseflow.rf.gd/ full screen, keeps the login, handles uploads, downloads and Back. */
 public class MainActivity extends Activity {
     private static final String HOST = "expenseflow.rf.gd";
@@ -25,6 +34,64 @@ public class MainActivity extends Activity {
     private static final int PICK = 1;
     private WebView web;
     private ValueCallback<Uri[]> pending;
+    private boolean showingSnapshot = false;
+
+    // ---- Saved pages: a copy of each page you open is kept on the phone and shown when there is no internet ----
+    private File snapFile(String url) {
+        try {
+            String key = url.replaceAll("#.*$", "");
+            byte[] d = MessageDigest.getInstance("SHA-1").digest(key.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            for (byte x : d) sb.append(String.format("%02x", x));
+            File dir = new File(getFilesDir(), "snap");
+            if (!dir.exists()) dir.mkdirs();
+            return new File(dir, sb + ".html");
+        } catch (Exception e) { return null; }
+    }
+    private void clearSnapshots() {
+        File[] f = new File(getFilesDir(), "snap").listFiles();
+        if (f != null) for (File x : f) x.delete();
+    }
+    private void saveSnapshot(String url) {
+        web.evaluateJavascript("(function(){return document.documentElement.outerHTML})()", v -> {
+            try {
+                if (v == null || v.length() < 200) return;
+                String html = (String) new JSONTokener(v).nextValue();
+                File f = snapFile(url);
+                if (f == null) return;
+                try (FileOutputStream o = new FileOutputStream(f)) { o.write(("<!DOCTYPE html>" + html).getBytes(StandardCharsets.UTF_8)); }
+            } catch (Exception ignored) { }
+        });
+    }
+    private String readSnapshot(String url) {
+        try {
+            File f = snapFile(url);
+            if (f == null || !f.exists()) return null;
+            byte[] b = new byte[(int) f.length()];
+            try (FileInputStream i = new FileInputStream(f)) { i.read(b); }
+            return new String(b, StandardCharsets.UTF_8);
+        } catch (Exception e) { return null; }
+    }
+    private boolean online() {
+        try {
+            ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+            NetworkCapabilities c = cm.getNetworkCapabilities(cm.getActiveNetwork());
+            return c != null && c.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+        } catch (Exception e) { return true; }
+    }
+    /** Show the saved copy of this page (or of the dashboard when the login page is asked for). */
+    private boolean showSaved(String url) {
+        String html = readSnapshot(url);
+        String base = url;
+        if (html == null && url.contains("/auth/login.php")) {
+            base = HOME.replace("auth/login.php", "dashboard.php");
+            html = readSnapshot(base);
+        }
+        if (html == null) return false;
+        showingSnapshot = true;
+        web.loadDataWithBaseURL(base, html, "text/html", "UTF-8", base);
+        return true;
+    }
 
     @Override
     protected void onCreate(Bundle b) {
@@ -44,13 +111,21 @@ public class MainActivity extends Activity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
                 Uri u = r.getUrl();
+                if (u.getPath() != null && u.getPath().endsWith("/auth/logout.php")) clearSnapshots();
                 if (HOST.equals(u.getHost()) || "file".equals(u.getScheme())) return false;
                 try { startActivity(new Intent(Intent.ACTION_VIEW, u)); } catch (Exception ignored) { }
                 return true;
             }
             @Override
+            public void onPageFinished(WebView v, String url) {
+                if (showingSnapshot || url == null || !url.contains(HOST)) { showingSnapshot = false; return; }
+                if (url.contains("/auth/login.php") || url.contains("/auth/register.php")) { clearSnapshots(); return; }
+                if (!url.contains("/auth/") && !url.contains("/admin/") && online()) saveSnapshot(url);
+            }
+            @Override
             public void onReceivedError(WebView v, WebResourceRequest r, WebResourceError e) {
-                if (r.isForMainFrame()) v.loadUrl("file:///android_asset/offline.html");
+                if (!r.isForMainFrame()) return;
+                if (!showSaved(r.getUrl().toString())) v.loadUrl("file:///android_asset/offline.html");
             }
         });
         web.setWebChromeClient(new WebChromeClient() {
