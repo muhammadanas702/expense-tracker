@@ -137,7 +137,7 @@ $logo = '<span class="logo"><img src="' . e($base) . '/assets/icons/icon-192.png
 </section>
 
 <footer class="fo"><?= $logo ?><span>© <?= date('Y') ?> ExpenseFlow</span>
-  <span class="lk2"><a href="<?= e($base) ?>/auth/login.php">Log in</a><a href="<?= e($base) ?>/auth/register.php">Register</a></span></footer>
+  <span class="lk2"><a href="<?= e($base) ?>/auth/login.php">Log in</a><a href="<?= e($base) ?>/auth/register.php">Register</a><a href="https://github.com/muhammadanas702/expense-tracker/releases/latest" rel="noopener">Get the app</a></span></footer>
 </div>
 <script src="<?= e($base) ?>/assets/fx.js?v=<?= (int) @filemtime(__DIR__ . '/assets/fx.js') ?>" defer></script>
 </body>
