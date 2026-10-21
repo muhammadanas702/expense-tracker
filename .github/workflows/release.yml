@@ -32,7 +32,16 @@ jobs:
         with: { gradle-version: '8.7' }
       - name: Build signed APK
         working-directory: apps/android
-        run: gradle --no-daemon assembleRelease -PvName=${{ steps.v.outputs.name }} -PvCode=${{ github.run_number }}
+        run: |
+          set +e
+          gradle --no-daemon --console=plain --stacktrace assembleRelease -PvName=${{ steps.v.outputs.name }} -PvCode=${{ github.run_number }} > build.log 2>&1
+          code=$?
+          if [ $code -ne 0 ]; then
+            # Put the reason in the run's annotations so it can be read without opening the log.
+            MSG=$(grep -n -m1 -A25 -E "What went wrong|FAILURE|error:" build.log | head -c 3500 | sed ':a;N;$!ba;s/\n/%0A/g')
+            echo "::error title=Gradle build failed::$MSG"
+          fi
+          exit $code
       - name: Name the file
         run: cp apps/android/app/build/outputs/apk/release/app-release.apk ExpenseFlow.apk
       - uses: actions/upload-artifact@v4
