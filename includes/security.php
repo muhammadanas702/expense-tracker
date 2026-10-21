@@ -17,7 +17,8 @@ require_once __DIR__ . '/currencies.php';
 /** Largest amount accepted for a single income/expense entry. */
 const APP_MAX_AMOUNT = 99999999.99;
 /** Idle time (seconds) after which a session is dropped. */
-const APP_SESSION_IDLE = 14400; // 4 hours
+const APP_SESSION_IDLE = 259200;   // signed out after 3 days without use (every visit starts the 3 days again)
+const APP_SESSION_KEEP = 2592000;  // the browser/app keeps the login cookie and the server keeps the session file for 30 days, so an expired login can be told apart from a new visitor
 
 /* ------------------------------------------------------------------ */
 /* Output and request helpers                                          */
@@ -80,9 +81,17 @@ function secure_session_start(): void
 
     ini_set('session.use_strict_mode', '1');
     ini_set('session.use_only_cookies', '1');
-    ini_set('session.gc_maxlifetime', (string) APP_SESSION_IDLE);
+    ini_set('session.gc_maxlifetime', (string) APP_SESSION_KEEP);
+    // Own session folder: on shared hosting other sites' clean-up would otherwise delete our session files after minutes.
+    $dir = __DIR__ . '/../storage/sessions';
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0700, true);
+    }
+    if (is_dir($dir) && is_writable($dir)) {
+        ini_set('session.save_path', $dir);
+    }
     session_set_cookie_params([
-        'lifetime' => 0,
+        'lifetime' => APP_SESSION_KEEP,
         'path'     => '/',
         'secure'   => app_is_https(),
         'httponly' => true,
@@ -92,11 +101,26 @@ function secure_session_start(): void
 
     $now = time();
     if (isset($_SESSION['last_activity']) && ($now - (int) $_SESSION['last_activity']) > APP_SESSION_IDLE) {
+        $wasSignedIn = !empty($_SESSION['user_id']);
         session_unset();
         session_destroy();
         session_start();
+        if ($wasSignedIn) {
+            $_SESSION['reset_message'] = 'You were signed out because the account was not used for 3 days. Please log in again.';
+            $_SESSION['reset_type'] = 'error';
+        }
     }
     $_SESSION['last_activity'] = $now;
+    // Sliding window: every visit pushes the cookie's end date forward again.
+    if (!headers_sent()) {
+        setcookie(session_name(), session_id(), [
+            'expires'  => $now + APP_SESSION_KEEP,
+            'path'     => '/',
+            'secure'   => app_is_https(),
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+    }
 }
 
 /** Call right after a successful login to prevent session fixation. */
