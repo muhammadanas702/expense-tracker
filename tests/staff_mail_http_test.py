@@ -34,6 +34,9 @@ try:
     def login(n):
         s = requests.Session(); t = re.search(r'name="csrf_token" value="([^"]+)"', s.get(B + '/auth/login.php').text).group(1)
         s.post(B + '/auth/login.php', data={'email': f'{n}@sm.local', 'password': 'Test#12345', 'csrf_token': t}, allow_redirects=False); return s
+    def login_as(email):
+        s = requests.Session(); t = re.search(r'name="csrf_token" value="([^"]+)"', s.get(B + '/auth/login.php').text).group(1)
+        s.post(B + '/auth/login.php', data={'email': email, 'password': 'Test#12345', 'csrf_token': t}, allow_redirects=False); return s
     S = {n: login(n) for n in ('sup', 'u1')}
     def tok(s, path):
         m = re.search(r'name="csrf_token" value="([^"]+)"|data-csrf="([^"]+)"', s.get(B + path).text); return m.group(1) or m.group(2)
@@ -64,6 +67,21 @@ try:
     ok(inbox and 'Please update the app' in inbox[0]['body'] and f'support/ticket.php?id={tid}' in inbox[0]['body'], 'reply text and link inside')
     ok(inbox and 'Cannot add expense' in (inbox[0]['subject'] or ''), 'subject mentions the request')
     ok('Please update the app' in S['u1'].get(B + f'/support/ticket.php?id={tid}').text, 'user also sees it in Help')
+    # bell: a reply shows up in notifications until the user opens it
+    post('sup', '/admin/ticket-action.php', {'do': 'reply', 'id': tid, 'body': 'Second answer.'}, f'/admin/ticket.php?id={tid}')
+    ok('class="dt"' in S['u1'].get(B + '/profile.php').text, 'bell badge counts the support reply')
+    peek = S['u1'].get(B + '/activity/notifications.php?popup=1&peek=1').text
+    ok('Support replied' in peek and f'support/ticket.php?id={tid}' in peek, 'popup lists the reply (peek keeps it unread)')
+    ok('class="dt"' in S['u1'].get(B + '/profile.php').text, 'peek did not clear the badge')
+    S['u1'].get(B + f'/support/ticket.php?id={tid}')
+    ok('class="dt"' not in S['u1'].get(B + '/profile.php').text, 'opening the conversation clears the badge')
+    # first-run setup: new account is sent to setup once, and the page works
+    sql(f"INSERT INTO users(name,email,password) VALUES ('newbie','new@sm.local','{h}')")
+    N = login_as('new@sm.local')
+    r = N.get(B + '/dashboard.php', allow_redirects=False)
+    ok(r.status_code == 302 and r.headers.get('Location', '').endswith('/setup.php'), 'new account is sent to setup first')
+    ok(N.get(B + '/setup.php').status_code == 200 and 'Quick setup' in N.get(B + '/setup.php').text, 'setup page opens')
+    ok(N.get(B + '/dashboard.php', allow_redirects=False).status_code == 200, 'dashboard opens after (only asked once)')
 finally:
     ctl.stop()
     if had is None: os.remove(cfg)

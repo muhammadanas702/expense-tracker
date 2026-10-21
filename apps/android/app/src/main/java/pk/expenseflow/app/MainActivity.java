@@ -1,7 +1,9 @@
 package pk.expenseflow.app;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DownloadManager;
+import android.content.SharedPreferences;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -25,7 +27,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import org.json.JSONObject;
 import org.json.JSONTokener;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 
 /** Thin shell: shows https://expenseflow.rf.gd/ full screen, keeps the login, handles uploads, downloads and Back. */
 public class MainActivity extends Activity {
@@ -35,6 +42,56 @@ public class MainActivity extends Activity {
     private WebView web;
     private ValueCallback<Uri[]> pending;
     private boolean showingSnapshot = false;
+    private static final String RELEASE_API = "https://api.github.com/repos/muhammadanas702/expense-tracker/releases/latest";
+
+    // ---- Update check: asks GitHub for the newest release and offers the download when it is newer ----
+    private String myVersion() {
+        try { return getPackageManager().getPackageInfo(getPackageName(), 0).versionName; } catch (Exception e) { return "1.0.0"; }
+    }
+    private static int[] parts(String v) {
+        String[] p = v.replaceAll("[^0-9.]", "").split("\\.");
+        int[] r = new int[3];
+        for (int i = 0; i < 3 && i < p.length; i++) { try { r[i] = Integer.parseInt(p[i]); } catch (Exception ignored) { } }
+        return r;
+    }
+    private static boolean newer(String latest, String mine) {
+        int[] a = parts(latest), b = parts(mine);
+        for (int i = 0; i < 3; i++) { if (a[i] != b[i]) return a[i] > b[i]; }
+        return false;
+    }
+    private void checkForUpdate() {
+        new Thread(() -> {
+            try {
+                HttpURLConnection c = (HttpURLConnection) new URL(RELEASE_API).openConnection();
+                c.setConnectTimeout(6000); c.setReadTimeout(6000);
+                c.setRequestProperty("Accept", "application/vnd.github+json");
+                if (c.getResponseCode() != 200) return;
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                try (InputStream in = c.getInputStream()) { byte[] buf = new byte[4096]; int n; while ((n = in.read(buf)) > 0) out.write(buf, 0, n); }
+                JSONObject j = new JSONObject(out.toString("UTF-8"));
+                String tag = j.getString("tag_name");
+                String apk = null;
+                org.json.JSONArray assets = j.getJSONArray("assets");
+                for (int i = 0; i < assets.length(); i++) {
+                    JSONObject a = assets.getJSONObject(i);
+                    if (a.getString("name").endsWith(".apk")) { apk = a.getString("browser_download_url"); break; }
+                }
+                if (apk == null || !newer(tag, myVersion())) return;
+                SharedPreferences sp = getSharedPreferences("update", MODE_PRIVATE);
+                if (tag.equals(sp.getString("later_tag", "")) && System.currentTimeMillis() - sp.getLong("later_at", 0) < 24L * 3600 * 1000) return;
+                final String url = apk, ver = tag;
+                runOnUiThread(() -> {
+                    if (isFinishing()) return;
+                    new AlertDialog.Builder(this)
+                        .setTitle("Update available")
+                        .setMessage("A new version of ExpenseFlow (" + ver + ") is ready. You have " + myVersion() + ".\n\nDownload it, then open the file to install it over the old app. Your data stays.")
+                        .setPositiveButton("Download", (d, w) -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))))
+                        .setNegativeButton("Later", (d, w) -> sp.edit().putString("later_tag", ver).putLong("later_at", System.currentTimeMillis()).apply())
+                        .show();
+                });
+            } catch (Exception ignored) { }
+        }).start();
+    }
 
     // ---- Saved pages: a copy of each page you open is kept on the phone and shown when there is no internet ----
     private File snapFile(String url) {
@@ -103,7 +160,7 @@ public class MainActivity extends Activity {
         s.setDomStorageEnabled(true);
         s.setAllowFileAccess(false);
         s.setMediaPlaybackRequiresUserGesture(true);
-        s.setUserAgentString(s.getUserAgentString() + " ExpenseFlowApp/1.0");
+        s.setUserAgentString(s.getUserAgentString() + " ExpenseFlowApp/" + myVersion());
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, true);
 
@@ -156,6 +213,7 @@ public class MainActivity extends Activity {
             }
         });
         if (b != null) web.restoreState(b); else web.loadUrl(HOME);
+        checkForUpdate();
         web.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
     }
 

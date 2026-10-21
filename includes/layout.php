@@ -51,6 +51,11 @@ function ef_page_start(array $o): void
         global $conn;
         require_once __DIR__ . '/../modules/activity/lib.php';
         $unread = $conn instanceof PDO ? activity_unread_count($conn, (int) $_SESSION['user_id']) : null;
+        // Replies from support count too.
+        if ($unread !== null && is_file(__DIR__ . '/../modules/support/lib.php')) {
+            require_once __DIR__ . '/../modules/support/lib.php';
+            $unread += support_unseen_count($conn, (int) $_SESSION['user_id']);
+        }
     }
 
     send_security_headers();

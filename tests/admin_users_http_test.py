@@ -28,7 +28,7 @@ def csrf(s):
 def act(s, **d): return s.post(B + '/admin/user-action.php', data={**d, 'csrf_token': csrf(s)}, allow_redirects=False)
 sp, _ = login('sp'); ad, _ = login('ad'); st, _ = login('st')
 u1, _ = login('u1')
-ok(u1.get(B + '/dashboard.php', allow_redirects=False).status_code == 200, 'user is logged in')
+ok(u1.get(B + '/profile.php', allow_redirects=False).status_code == 200, 'user is logged in')
 
 # block: Admin (block perm by default) may block a plain user
 act(ad, do='block', id=uid['u1'])

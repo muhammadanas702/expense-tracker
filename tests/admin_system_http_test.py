@@ -128,11 +128,11 @@ ok(sql("SELECT v FROM app_settings WHERE k='maintenance'") == '1', 'maintenance 
 r = S['u1'].get(B + '/dashboard.php', allow_redirects=False)
 ok(r.status_code == 503 and '&lt;b&gt;Back soon&lt;/b&gt;' in r.text and 'Retry-After' in r.headers, 'normal user gets the 503 page (message escaped)')
 ok(requests.get(B + '/auth/login.php').status_code == 200, 'login page still works in maintenance')
-ok(code('sup', '/admin/index.php') == 200 and code('sup', '/dashboard.php') == 200, 'signed-in staff still work')
-ok(code('stf', '/dashboard.php') == 200, 'support staff also work')
+ok(code('sup', '/admin/index.php') == 200 and code('sup', '/profile.php') == 200, 'signed-in staff still work')
+ok(code('stf', '/profile.php') == 200, 'support staff also work')
 ok(S['u1'].get(B + '/auth/logout.php', allow_redirects=False).status_code != 503, 'logout reachable')
 post('sup', STA, {'signups': '1', 'maintenance_msg': ''}, STG)
-ok(code('u1', '/dashboard.php') == 200, 'maintenance off: normal user is back')
+ok(code('u1', '/profile.php') == 200, 'maintenance off: normal user is back')
 ok(int(sql("SELECT COUNT(*) FROM user_logs WHERE action='admin_settings_change'")) >= 3, 'settings changes audited')
 
 # ---------- backups ----------
