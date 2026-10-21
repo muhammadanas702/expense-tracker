@@ -159,3 +159,7 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - The Android app opens on `auth/login.php`; a signed-in visitor is redirected straight to the dashboard (login form only shows when signed out; `?stay=1` forces it).
 - Offline: the service worker keeps every signed-in page you open (cache `expenseflow-pages-v1`) and shows the saved copy when there is no connection; opening the login page offline shows the saved dashboard. A banner says changes can't be saved offline. Saved pages are wiped on logout and whenever the login form is served. Admin and auth pages are never saved.
 - After restoring a database from a backup, delete `storage/schema` on the server (the schema self-checks are remembered per deploy).
+
+### Notes for Part 10a-3 (app look + real offline start)
+- Fixed: the phone speed CSS had overridden the dark Net-balance (hero) card background, making its text unreadable, and had switched off animations. Now only the live blur is dropped on phones; colours and animations are as designed.
+- Android app keeps its own copy of every page you open (private app storage, wiped on logout / login page) and shows it when there is no internet, also when the app is started offline. Charts need internet (Chart.js CDN).
