@@ -18,7 +18,9 @@ if ($do === 'reply') {
     $err = null;
     if (support_reply($conn, $ticket, $admin['id'], true, (string) ($_POST['body'] ?? ''), $err)) {
         admin_audit($conn, $admin['id'], 'ticket_reply', 'Replied to support request ID ' . $id);
-        $_SESSION['success'] = 'Reply sent.';
+        require_once __DIR__ . '/../config/mail.php';
+        $mailed = !empty($ticket['user_email']) && sendSupportReplyMail((string) $ticket['user_email'], (string) ($ticket['user_name'] ?? ''), (string) $ticket['subject'], trim((string) $_POST['body']), ef_url('support/ticket.php?id=' . $id));
+        $_SESSION['success'] = 'Reply sent' . ($mailed ? ' and emailed to the user.' : '. (The email notification could not be sent; the user will see it in Help.)');
     } else {
         $_SESSION['error'] = $err ?? 'Could not send the reply.';
     }

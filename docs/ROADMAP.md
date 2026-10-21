@@ -163,3 +163,8 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 ### Notes for Part 10a-3 (app look + real offline start)
 - Fixed: the phone speed CSS had overridden the dark Net-balance (hero) card background, making its text unreadable, and had switched off animations. Now only the live blur is dropped on phones; colours and animations are as designed.
 - Android app keeps its own copy of every page you open (private app storage, wiped on logout / login page) and shows it when there is no internet, also when the app is started offline. Charts need internet (Chart.js CDN).
+
+### Notes for Part 13 (staff emails, support reply button)
+- "Set temporary password" (and "Add user") now also emails the user the temporary password with a Sign-in button; the admin still sees it once. If SMTP fails the admin is told to hand it over.
+- Support: the list has a Reply/View button per request (opens the reply box); a staff reply is emailed to the user with a link, and still shows in the user's Help page.
+- Test: `tests/staff_mail_http_test.py` (needs aiosmtpd).

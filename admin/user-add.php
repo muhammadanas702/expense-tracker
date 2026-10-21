@@ -30,7 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 admin_set_role($conn, $newId, $role);
             }
             admin_audit($conn, $admin['id'], 'add_user', 'Added ' . $clean . ' (ID ' . $newId . ') as ' . admin_role_label($role));
-            $created = ['id' => $newId, 'email' => $email, 'pw' => $pw];
+            require_once __DIR__ . '/../config/mail.php';
+            $created = ['id' => $newId, 'email' => $email, 'pw' => $pw, 'mailed' => sendTempPasswordMail($email, $clean, $pw)];
         }
     }
 }
@@ -40,7 +41,7 @@ admin_page_start(['title' => 'Add user', 'sub' => 'Create an account by hand', '
 <?php if ($created): ?>
 <div class="g card" style="border-color:rgba(245,158,11,.5)">
   <div class="t">Account created</div>
-  <p class="k" style="margin-bottom:8px">Give these details to the user privately. The password is shown only once; they should change it in Profile.</p>
+  <p class="k" style="margin-bottom:8px"><?= !empty($created['mailed']) ? 'The details were also emailed to the user. ' : 'The email could not be sent, so give these details to the user privately. ' ?>The password is shown only once; they should change it in Profile.</p>
   <div class="row"><span class="k">Email</span><b><?= e($created['email']) ?></b></div>
   <div class="row"><span class="k">Temporary password</span><b><code style="font-size:1.1rem;user-select:all"><?= e($created['pw']) ?></code></b></div>
   <p style="margin-top:12px;display:flex;gap:8px"><a class="btn sm" href="view-user.php?id=<?= (int) $created['id'] ?>">Open profile</a><a class="btn sm o" href="user-add.php">Add another</a></p>

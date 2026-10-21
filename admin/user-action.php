@@ -36,7 +36,9 @@ if ($do === 'block' || $do === 'unblock') {
     $conn->prepare('UPDATE users SET password = ? WHERE id = ?')->execute([password_hash($pw, PASSWORD_DEFAULT), $id]);
     admin_audit($conn, $admin['id'], 'reset_password', 'Set a temporary password for ' . $who);
     $_SESSION['admin_secret'] = ['uid' => $id, 'pw' => $pw];
-    $_SESSION['success'] = 'A temporary password was set. Copy it now: it is shown only once.';
+    require_once __DIR__ . '/../config/mail.php';
+    $sent = !empty($target['email']) && sendTempPasswordMail((string) $target['email'], (string) $target['name'], $pw);
+    $_SESSION['success'] = 'A temporary password was set. ' . ($sent ? 'It was also emailed to ' . $target['email'] . '. ' : 'The email could not be sent, so give it to the user yourself. ') . 'Copy it now: it is shown only once.';
 } elseif ($do === 'role') {
     admin_need('SA');
     $role = (string) ($_POST['role'] ?? '');

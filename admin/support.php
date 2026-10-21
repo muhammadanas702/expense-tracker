@@ -25,7 +25,7 @@ admin_page_start(['title' => 'Support', 'sub' => $counts['open'] . ' waiting for
     <?php foreach (SUPPORT_STATUSES as $k => $l): ?><a class="chip<?= $status === $k ? ' on' : '' ?>" href="<?= e($url(['s' => $k, 'p' => ''])) ?>"><?= e($l) ?> (<?= $counts[$k] ?>)</a><?php endforeach; ?>
   </div>
   <div class="tbl-wrap"><table class="tbl fixm">
-    <tr><th>Request</th><th class="hm">From</th><th class="hm">Topic</th><th>Status</th><th class="hm">Updated</th></tr>
+    <tr><th>Request</th><th class="hm">From</th><th class="hm">Topic</th><th>Status</th><th class="hm">Updated</th><th class="nw"></th></tr>
     <?php foreach ($rows as $r): ?>
     <tr>
       <td><a class="lnk" href="ticket.php?id=<?= (int) $r['id'] ?>"><?= e($r['subject']) ?></a><small class="dt-m"><?= e($r['user_name'] ?? 'Deleted user') ?> · <?= e(support_ago((string) $r['updated_at'])) ?></small></td>
@@ -33,9 +33,10 @@ admin_page_start(['title' => 'Support', 'sub' => $counts['open'] . ' waiting for
       <td class="hm"><?= e(SUPPORT_CATEGORIES[$r['category']] ?? 'Other') ?></td>
       <td><?= support_pill($r['status']) ?></td>
       <td class="hm nw"><?= e(support_ago((string) $r['updated_at'])) ?></td>
+      <td class="nw"><a class="btn sm" href="ticket.php?id=<?= (int) $r['id'] ?>#reply"><?= $r['status'] === 'closed' ? 'View' : 'Reply' ?></a></td>
     </tr>
     <?php endforeach; ?>
-    <?php if (!$rows): ?><tr><td colspan="5" class="k" style="padding:18px 12px">No requests here.</td></tr><?php endif; ?>
+    <?php if (!$rows): ?><tr><td colspan="6" class="k" style="padding:18px 12px">No requests here.</td></tr><?php endif; ?>
   </table></div>
   <?php if ($pages > 1): ?>
   <div class="chips" style="margin-top:12px;justify-content:center">
