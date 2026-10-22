@@ -245,3 +245,31 @@ a.row{color:inherit;text-decoration:none;border-radius:12px;transition:backgroun
 .pub .gc span{color:var(--mu);font-size:.92rem;line-height:1.55}
 .pub .meta{color:var(--mu);font-size:.85rem;margin-bottom:14px}
 @media(max-width:768px){.pub{padding:22px 16px}.pub h1{font-size:1.6rem}}
+
+/* Terms checkbox on the sign-up form */
+.agree{display:flex;gap:10px;align-items:flex-start;margin:4px 0 16px;font-size:.84rem;line-height:1.5;color:var(--mu);cursor:pointer}
+.agree input{margin-top:3px;width:18px;height:18px;flex:none;accent-color:var(--a1)}
+.agree a{color:var(--a1);font-weight:600}
+
+/* Landing: resources cards + professional footer */
+.rsg{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:1080px;margin:0 auto}
+.rsc{display:flex;flex-direction:column;gap:8px;padding:22px;text-decoration:none;color:inherit;transition:transform .2s,box-shadow .2s}
+.rsc:hover{transform:translateY(-3px)}
+.rsc b{font-size:1.02rem;letter-spacing:-.01em}
+.rsc p{font-size:.88rem;line-height:1.55;color:var(--mu);margin:0;flex:1}
+.rsi{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(79,140,255,.14);color:var(--a1)}
+.rsi svg{width:20px;height:20px}
+.rsm{display:inline-flex;gap:6px;align-items:center;font-size:.85rem;font-weight:700;color:var(--a1);margin-top:4px}
+.rsm svg{width:15px;height:15px}
+.ft2{position:relative;z-index:1;border-top:1px solid rgba(91,107,128,.2);padding:44px 40px 22px;font-size:.86rem;color:var(--mu)}
+.ft2g{display:grid;grid-template-columns:1.6fr repeat(4,1fr);gap:28px;max-width:1080px;margin:0 auto}
+.ft2b p{margin:12px 0 0;line-height:1.6;max-width:300px}
+.ft2 h3{font-size:.74rem;text-transform:uppercase;letter-spacing:.09em;margin:0 0 12px;color:var(--tx)}
+.ft2 nav{display:flex;flex-direction:column;gap:9px}
+.ft2 nav a{color:var(--mu);text-decoration:none}
+.ft2 nav a:hover,.ft2s a:hover{color:var(--a1)}
+.ft2s{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;max-width:1080px;margin:32px auto 0;padding-top:18px;border-top:1px solid rgba(91,107,128,.16);font-size:.8rem}
+.ft2s a{color:var(--mu);text-decoration:none}
+@media(max-width:900px){.rsg{grid-template-columns:repeat(2,1fr)}.ft2g{grid-template-columns:repeat(2,1fr)}.ft2b{grid-column:1/-1}}
+@media(max-width:520px){.rsg{grid-template-columns:1fr}.ft2{padding:32px 18px 20px}.ft2s{flex-direction:column}}
+.ft2{text-align:left}.ft2 nav{align-items:flex-start}.ft2b .wm,.ft2b>*:first-child{justify-content:flex-start}

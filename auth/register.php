@@ -30,6 +30,11 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         $msg = "Your session expired. Please try again.";
     }
 
+    elseif(empty($_POST['agree'])){
+
+        $msg = "Please accept the Terms of Use and the Privacy Policy to create an account.";
+    }
+
     elseif(!settings_signups_open($conn)){
 
         $msg = "New sign-ups are closed for now. Please try again later.";
@@ -115,6 +120,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             if(sendVerifyMail($email, $name, $code)){
 
                 signup_pending_set($name, $email, password_hash($pass, PASSWORD_DEFAULT), $code);
+                $_SESSION['signup_pending']['terms_at'] = time();
                 header("Location: verify-email.php");
                 exit();
 
@@ -141,6 +147,7 @@ require_once __DIR__ . '/../includes/auth-layout.php';
     <div class="mt"><i></i><i></i><i></i><i></i></div>
     <p class="s3" style="margin:8px 0 14px;font-size:.78rem">Use 8+ characters with upper and lower case letters, a number and a symbol.</p>
     <?= ef_field('CONFIRM PASSWORD', 'confirm_password', 'lock', 'password', '', ['placeholder' => 'Repeat password', 'required' => true, 'autocomplete' => 'new-password']) ?>
+    <label class="agree"><input type="checkbox" name="agree" value="1" required<?= !empty($_POST['agree']) ? ' checked' : '' ?>> <span>I agree to the <a href="../terms.php" target="_blank" rel="noopener">Terms of Use</a> and the <a href="../privacy.php" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
     <button class="btn lg" style="width:100%" type="submit">Send confirmation code</button>
 </form>
 <div class="ft2">Already have an account? <a class="lnk" href="login.php">Log in</a></div>

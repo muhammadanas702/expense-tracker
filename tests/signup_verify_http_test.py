@@ -48,7 +48,7 @@ clean()
 PW = 'Strong#Pass123'
 def csrf(s, path): return re.search(r'name="csrf_token" value="([^"]+)"', s.get(B + path).text).group(1)
 def register(s, name='Vera', email='vera@vf.test', pw=PW, cpw=None):
-    return s.post(B + '/auth/register.php', data={'name': name, 'email': email, 'password': pw, 'confirm_password': cpw or pw, 'csrf_token': csrf(s, '/auth/register.php')}, allow_redirects=False)
+    return s.post(B + '/auth/register.php', data={'name': name, 'email': email, 'password': pw, 'confirm_password': cpw or pw, 'agree': '1', 'csrf_token': csrf(s, '/auth/register.php')}, allow_redirects=False)
 def code_for(addr):
     for m in reversed(inbox):
         if m['to'] == addr:
