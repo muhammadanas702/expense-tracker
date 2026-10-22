@@ -197,3 +197,6 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 ### Notes for Part 18 (Safe Browsing warning + SEO)
 - Google flagged login/dashboard as "Deceptive pages" (typical for a login form on a free subdomain). Added trust signals: About, Privacy, Terms, Contact pages linked from the landing page and footer, a "we never ask for bank or card details" line, honest ownership info. Then request a review in Search Console -> Security issues. A custom domain is the lasting fix.
 - SEO: richer title/description, Open Graph + Twitter large image (`assets/og-image.png`), JSON-LD (WebSite, Organization, SoftwareApplication, FAQPage, Article, BreadcrumbList), longer FAQ, three money guides under `/guides/`, full sitemap, robots blocks private areas. Shared layout: `includes/public-layout.php`. Test: `tests/seo_http_test.py`.
+
+### Notes for Part 19 (more search-targeted guides)
+- Five new guides aimed at searches people in Pakistan really type (English and Roman Urdu): expense tracker app for Pakistan, kharcha ka hisab, monthly budget, trip expense sharing, saving from salary. All listed in `guides/index.php` and `sitemap.xml`. Keep adding about one guide a week.

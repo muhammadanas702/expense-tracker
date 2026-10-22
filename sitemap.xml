@@ -14,7 +14,7 @@
   </url>
   <url>
     <loc>https://expenseflow.rf.gd/guides/</loc>
-    <lastmod>2026-10-21</lastmod>
+    <lastmod>2026-10-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -53,5 +53,35 @@
     <lastmod>2026-10-21</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://expenseflow.rf.gd/guides/expense-tracker-app-pakistan.php</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://expenseflow.rf.gd/guides/kharcha-ka-hisab-kaise-rakhein.php</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://expenseflow.rf.gd/guides/monthly-budget-kaise-banayein.php</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://expenseflow.rf.gd/guides/trip-expense-sharing-app.php</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://expenseflow.rf.gd/guides/save-money-from-salary.php</loc>
+    <lastmod>2026-10-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
 </urlset>
