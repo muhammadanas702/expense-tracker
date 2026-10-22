@@ -78,7 +78,7 @@ foreach ($ld as $block): ?>
 <div class="fr" data-mode="p">
 <header class="g nb">
   <a class="logo" href="<?= e($base) ?>/" style="padding:0"><?= $logo ?></a>
-  <nav class="lk" aria-label="Sections"><a href="#features">Features</a><a href="#modes">Personal &amp; Shared</a><a href="#how">How it works</a><a href="#apps">Get the app</a><a href="<?= e($base) ?>/guides/">Guides</a><a href="#faq">FAQ</a></nav>
+  <nav class="lk" aria-label="Sections"><a href="#features">Features</a><a href="#modes">Personal &amp; Shared</a><a href="#how">How it works</a><a href="#apps">Get the app</a><a href="#resources">Resources</a><a href="#faq">FAQ</a></nav>
   <a class="lnk" href="<?= e($base) ?>/auth/login.php">Log in</a>
   <a class="btn" href="<?= e($base) ?>/auth/register.php">Get started</a>
 </header>
@@ -162,14 +162,33 @@ foreach ($ld as $block): ?>
   </div>
 </section>
 
+<section class="sec" id="resources">
+  <h2 class="rv">Guides, privacy &amp; help</h2>
+  <p class="sub2">Everything you need to use ExpenseFlow with confidence.</p>
+  <div class="rsg">
+    <a class="g rsc rv" href="<?= e($base) ?>/guides/"><span class="rsi"><?= ef_icon('globe') ?></span><b>Money guides</b><p>Practical articles on budgeting, saving and splitting expenses.</p><span class="rsm">Read guides <?= ef_icon('arr') ?></span></a>
+    <a class="g rsc rv" style="--d:.06s" href="<?= e($base) ?>/privacy.php"><span class="rsi"><?= ef_icon('lock') ?></span><b>Privacy Policy</b><p>What we store, how we protect it and how you can delete it.</p><span class="rsm">Read policy <?= ef_icon('arr') ?></span></a>
+    <a class="g rsc rv" style="--d:.12s" href="<?= e($base) ?>/terms.php"><span class="rsi"><?= ef_icon('doc') ?></span><b>Terms of Use</b><p>The simple rules for using ExpenseFlow fairly and safely.</p><span class="rsm">Read terms <?= ef_icon('arr') ?></span></a>
+    <a class="g rsc rv" style="--d:.18s" href="<?= e($base) ?>/contact.php"><span class="rsi"><?= ef_icon('phone') ?></span><b>Contact &amp; support</b><p>Questions or feedback? Send us a message and we will reply.</p><span class="rsm">Get in touch <?= ef_icon('arr') ?></span></a>
+  </div>
+</section>
+
 <section class="band rv">
   <h2>Ready to take control?</h2>
   <p>Create your account in under a minute.</p>
   <a class="btn lg" href="<?= e($base) ?>/auth/register.php">Get started <?= ef_icon('arr') ?></a>
 </section>
 
-<footer class="fo"><?= $logo ?><span>© <?= date('Y') ?> ExpenseFlow · ExpenseFlow never asks for your bank or card details.</span>
-  <span class="lk2"><a href="<?= e($base) ?>/about.php">About</a><a href="<?= e($base) ?>/guides/">Guides</a><a href="<?= e($base) ?>/privacy.php">Privacy</a><a href="<?= e($base) ?>/terms.php">Terms</a><a href="<?= e($base) ?>/contact.php">Contact</a><a href="<?= e($base) ?>/auth/login.php">Log in</a><a href="<?= e($base) ?>/auth/register.php">Register</a></span></footer>
+<footer class="ft2">
+  <div class="ft2g">
+    <div class="ft2b"><?= $logo ?><p>A simple, private way to track spending, set budgets and share expenses with friends. ExpenseFlow never asks for your bank or card details.</p></div>
+    <nav aria-label="Product"><h3>Product</h3><a href="#features">Features</a><a href="#modes">Personal &amp; Shared</a><a href="#how">How it works</a><a href="#apps">Get the app</a><a href="#faq">FAQ</a></nav>
+    <nav aria-label="Learn"><h3>Learn</h3><a href="<?= e($base) ?>/guides/">All guides</a><a href="<?= e($base) ?>/guides/track-monthly-expenses.php">Track monthly expenses</a><a href="<?= e($base) ?>/guides/budget-50-30-20-rule.php">50/30/20 budget rule</a><a href="<?= e($base) ?>/guides/split-expenses-with-friends.php">Split expenses with friends</a></nav>
+    <nav aria-label="Company"><h3>Company</h3><a href="<?= e($base) ?>/about.php">About</a><a href="<?= e($base) ?>/contact.php">Contact &amp; support</a><a href="<?= e($base) ?>/privacy.php">Privacy Policy</a><a href="<?= e($base) ?>/terms.php">Terms of Use</a></nav>
+    <nav aria-label="Account"><h3>Account</h3><a href="<?= e($base) ?>/auth/login.php">Log in</a><a href="<?= e($base) ?>/auth/register.php">Create account</a></nav>
+  </div>
+  <div class="ft2s"><span>© <?= date('Y') ?> ExpenseFlow. All rights reserved.</span><span><a href="<?= e($base) ?>/privacy.php">Privacy</a> · <a href="<?= e($base) ?>/terms.php">Terms</a> · <a href="<?= e($base) ?>/contact.php">Contact</a></span></div>
+</footer>
 </div>
 <script src="<?= e($base) ?>/assets/fx.js?v=<?= (int) @filemtime(__DIR__ . '/assets/fx.js') ?>" defer></script>
 </body>

@@ -63,6 +63,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             try {
                 $conn->prepare('INSERT INTO users(name,email,password) VALUES(?,?,?)')->execute([$pending['name'], $pending['email'], $pending['hash']]);
+                $newId = (int) $conn->lastInsertId();
+                if ($newId > 0) {
+                    require_once __DIR__ . '/../includes/logging.php';
+                    $at = (int) ($_SESSION['signup_pending']['terms_at'] ?? time());
+                    logAction($conn, $newId, 'terms_accepted', 'Accepted Terms of Use and Privacy Policy on ' . date('Y-m-d H:i', $at));
+                }
                 signup_pending_clear();
                 $_SESSION['reset_message'] = 'Email confirmed and account created. Please log in.';
                 $_SESSION['reset_type'] = 'success';

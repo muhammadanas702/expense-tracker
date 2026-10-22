@@ -25,6 +25,8 @@
 
 # Android build output
 apps/**/build/
+!apps/desktop/build/
+!apps/desktop/build/icon.ico
 apps/**/.gradle/
 apps/**/local.properties
 

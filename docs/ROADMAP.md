@@ -200,3 +200,8 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 
 ### Notes for Part 19 (more search-targeted guides)
 - Five new guides aimed at searches people in Pakistan really type (English and Roman Urdu): expense tracker app for Pakistan, kharcha ka hisab, monthly budget, trip expense sharing, saving from salary. All listed in `guides/index.php` and `sitemap.xml`. Keep adding about one guide a week.
+
+## Part 20 — Windows icon, sign-up consent, landing refine
+- Windows installer/exe/shortcut icon: classic multi-size `build/icon.ico` (BMP + 256 PNG), nsis installer/uninstaller icons, shortcutName.
+- Sign-up requires accepting Terms + Privacy (server-checked; `terms_accepted` logged at account creation).
+- Landing: new "Guides, privacy & help" cards section and a 5-column professional footer.
