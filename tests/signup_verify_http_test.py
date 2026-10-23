@@ -100,8 +100,10 @@ try:
     r = s2.post(B + '/auth/login.php', data={'email': 'vera@vf.test', 'password': PW, 'csrf_token': t}, allow_redirects=False)
     ok(r.status_code == 302 and 'dashboard' in r.headers['Location'], 'the new user can log in')
     n = len(inbox)
-    r = register(requests.Session()); ok('already exists' in r.text and len(inbox) == n, 'existing address: no new email')
-    r = register(requests.Session(), email='VERA@VF.TEST'); ok('already exists' in r.text and len(inbox) == n, 'same address in other letter case also caught')
+    s3 = requests.Session(); r = register(s3)
+    ok(r.status_code == 302 and 'verify-email' in r.headers.get('Location', ''), 'existing address: same screen as a new sign-up (no enumeration)')
+    ok(len(inbox) == n + 1 and 'already have' in inbox[-1]['body'].lower() and not re.search(r'\b\d{6}\b', re.sub(r'<[^>]+>', ' ', inbox[-1]['body'])), 'owner gets an "already have an account" email without a code')
+    r = vpost(s3, code='123456'); ok('login.php' not in r.headers.get('Location', ''), 'a guessed code does not create anything')
 
     # ---------- wrong attempts, expiry, resend ----------
     clean(); s = requests.Session(); register(s, email='kim@vf.test'); code = code_for('kim@vf.test')

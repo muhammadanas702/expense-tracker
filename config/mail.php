@@ -206,6 +206,19 @@ function sendFriendRequestMail(string $email, string $name, string $from): bool
     );
 }
 
+function sendAccountExistsMail(string $email, string $name): bool
+{
+    $url = ef_mail_login_url();
+    return ef_send_mail(
+        $email,
+        $name,
+        'You already have an ExpenseFlow account',
+        ef_mail_html('You already have an account', $name, 'Someone (hopefully you) tried to sign up with this email address, but an ExpenseFlow account already exists for it. Just log in. If you forgot your password, use "Forgot password" on the login page.', '', '', 'none', ['Log in', $url], 'If this was not you, you can ignore this message. Your account is safe.'),
+        "Hi {$name},\n\nSomeone tried to sign up with this email, but you already have an ExpenseFlow account.\nLog in: {$url}\nForgot your password? Use 'Forgot password' on the login page.\n\nIf this was not you, ignore this message.",
+        true
+    );
+}
+
 function ef_mail_login_url(): string
 {
     global $base_url;

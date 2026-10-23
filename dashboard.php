@@ -183,7 +183,7 @@ ef_page_start([
     'sub' => $use_date_range ? "$from_date to $to_date · $display_currency" : $period_start->format('F Y') . " · base $display_currency",
     'active' => 'dash',
     'user' => $user,
-    'head' => '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>',
+    'head' => '<script src="' . e(ef_url('assets/lib/chart.umd.min.js')) . '" defer></script>',
 ]);
 ?>
 <?php if ($needs_setup): ?>
@@ -217,7 +217,7 @@ ef_page_start([
 <div class="G2">
     <div class="g card">
         <div class="t">Where your money goes</div>
-        <?php if ($categories): ?><div style="max-width:340px;margin:0 auto"><canvas id="categoryChart" aria-label="Expenses by category"></canvas></div>
+        <?php if ($categories): ?><div style="max-width:300px;margin:0 auto"><canvas id="categoryChart" aria-label="Expenses by category"></canvas></div>
         <?php else: ?><p class="k" style="padding:20px 0;text-align:center">No expenses in this period.</p><?php endif; ?>
     </div>
     <div class="g card">
@@ -293,7 +293,7 @@ window.addEventListener("load",function(){
   var palette = ["#0f766e","#1d4ed8","#F59E0B","#f97316","#4DA8DA","#a855f7","#ef4444","#64748b"];
   var c1 = document.getElementById("categoryChart");
   if (c1) new Chart(c1, {type:"doughnut", data:{labels:cats, datasets:[{data:vals, backgroundColor:palette, borderWidth:0}]},
-    options:{cutout:"62%", plugins:{legend:{position:"bottom"}, tooltip:{callbacks:{label:function(c){return " "+c.label+": "+Number(c.raw).toFixed(2)}}}}}});
+    options:{cutout:"62%", maintainAspectRatio:true, aspectRatio:1.15, plugins:{legend:{position:"bottom"}, tooltip:{callbacks:{label:function(c){return " "+c.label+": "+Number(c.raw).toFixed(2)}}}}}});
   var c2 = document.getElementById("flowChart");
   if (c2) new Chart(c2, {type:"bar", data:{labels:["Income","Expense"], datasets:[{data:[inc,exp], backgroundColor:["#10b981","#f97316"], borderRadius:8}]},
     options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}});

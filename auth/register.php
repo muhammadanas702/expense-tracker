@@ -101,7 +101,15 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
         if($check->fetch()){
 
-            $msg = "User already exists!";
+            // Same screen as a new sign-up, so nobody can use this form to find out who has an account.
+            // The real owner gets an email that says so; the code typed here can never match.
+            if(!rl_blocked($conn, 'signup_mail_email', rl_key($email), 5, 3600)){
+                rl_hit($conn, 'signup_mail_email', rl_key($email));
+                @sendAccountExistsMail($email, $name);
+            }
+            signup_pending_set($name, $email, password_hash($pass, PASSWORD_DEFAULT), signup_code_new());
+            header("Location: verify-email.php");
+            exit();
 
         }elseif(
             rl_blocked($conn, 'signup_mail_email', rl_key($email), 5, 3600)
