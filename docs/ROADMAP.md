@@ -214,3 +214,8 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 ## Part 22 — Professional exports
 - New `includes/export.php`: one report model → branded Excel (.xlsx via PhpSpreadsheet: logo, summary sheet, styled tables, filters, frozen headers, print setup) and PDF (TCPDF: logo header, KPI cards, tables, page footer). Used by the personal Full Report (CSV/Excel/PDF) and the admin user list (CSV/Excel/PDF). Formula-injection safe. File names `ExpenseFlow-<name>-<date>.<ext>`.
 - Backups stay raw .sql (restore file) and receipts stay original images.
+
+## Part 23 — Full review (security, logic, UI)
+- Checked: exposed paths, deploy excludes, CSRF on every POST handler, SQL/XSS/redirect scans, IDOR (edit/delete across users, receipts), amount validation, login/forgot enumeration, 3-page-size UI crawl (desktop+mobile, user+admin), console errors.
+- Fixed: sign-up no longer reveals whether an email has an account (same screen; owner gets an "already have an account" mail); Chart.js is now self-hosted (works offline, no third-party script); dashboard chart size on phones; PWA manifest has proper separate "any" and padded "maskable" icons.
+- Known/accepted: Android signing key (sideload.jks) is in the repo by design; HTTPS redirect still off in .htaccess (site works on https; HSTS header is sent).
