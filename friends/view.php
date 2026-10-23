@@ -28,12 +28,19 @@ ef_page_start(['title' => $f['name'], 'sub' => 'Your balance with this friend', 
 </div>
 <?php endif; ?>
 
+<?php if ($f['direct']): ?>
+<div class="g card" style="margin:14px 0"><form method="post" action="<?= e(ef_url('friends/action.php')) ?>" onsubmit="return confirm('Remove this friend?')">
+  <?= csrf_field() ?><input type="hidden" name="do" value="remove"><input type="hidden" name="id" value="<?= (int) $f['link_id'] ?>">
+  <button class="btn sm o" type="submit">Remove friend</button></form></div>
+<?php endif; ?>
+<?php if ($f['groups']): ?>
 <div class="g card" style="margin:14px 0">
   <div class="t">Shared groups</div>
   <?php foreach ($f['groups'] as $gid => $gname): ?>
   <a class="row" href="<?= e(ef_url('shared/group.php?id=' . (int) $gid)) ?>" style="text-decoration:none;color:inherit"><span><?= e($gname) ?></span><?= ef_icon('chev') ?></a>
   <?php endforeach; ?>
 </div>
+<?php endif; ?>
 
 <div class="g card">
   <div class="t">Payments between you</div>

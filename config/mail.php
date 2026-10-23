@@ -193,6 +193,19 @@ function sendSupportReplyMail(string $email, string $name, string $subject, stri
     );
 }
 
+function sendFriendRequestMail(string $email, string $name, string $from): bool
+{
+    $url = rtrim((string) ($GLOBALS['base_url'] ?? ''), '/') . '/friends/index.php';
+    return ef_send_mail(
+        $email,
+        $name,
+        $from . ' sent you a friend request on ExpenseFlow',
+        ef_mail_html('New friend request', $name, $from . ' wants to add you as a friend so you can split bills together.', '', '', 'none', ['Review request', $url], 'If you do not know this person, just ignore this message.'),
+        "Hi {$name},\n\n{$from} sent you a friend request on ExpenseFlow.\nReview it: {$url}\n\nIf you do not know this person, ignore this message.",
+        true
+    );
+}
+
 function ef_mail_login_url(): string
 {
     global $base_url;

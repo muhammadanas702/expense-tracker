@@ -285,6 +285,9 @@ function shared_on_user_deleted(PDO $conn, int $userId): void
         }
     }
     $conn->prepare('DELETE FROM shared_members WHERE user_id = ?')->execute([$userId]);
+    if (function_exists('friends_on_user_deleted')) {
+        friends_on_user_deleted($conn, $userId);
+    }
     if (function_exists('activity_on_user_deleted')) {
         activity_on_user_deleted($conn, $userId);
     }

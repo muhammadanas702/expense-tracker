@@ -205,3 +205,8 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Windows installer/exe/shortcut icon: classic multi-size `build/icon.ico` (BMP + 256 PNG), nsis installer/uninstaller icons, shortcutName.
 - Sign-up requires accepting Terms + Privacy (server-checked; `terms_accepted` logged at account creation).
 - Landing: new "Guides, privacy & help" cards section and a 5-column professional footer.
+
+## Part 21 — Friends by email, search bar, one transparent favicon
+- Friends: add by email (request → accept/decline/cancel/remove), table `friend_links`, request e-mail; direct friends show even without a shared group. Search bar redesigned (instant filter).
+- Favicon: transparent logo in favicon.ico/png, one shared `includes/favicons.php` for app, admin, public, auth, offline and maintenance pages (sw cache v5).
+- Next: Part 22 = professional exports (Excel/PDF/CSV, all places), Part 23 = full security/logic/UI review.
