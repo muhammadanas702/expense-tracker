@@ -133,7 +133,7 @@ function settings_enforce_maintenance(PDO $conn): void
         http_response_code(503);
         header('Retry-After: 600');
         header('Cache-Control: no-store');
-        echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Be right back · ExpenseFlow</title>'
+        echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><link rel="icon" href="/favicon.ico"><title>Be right back · ExpenseFlow</title>'
             . '<style>body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:linear-gradient(135deg,#d9f7ef,#e6eefc 55%,#fde6cf);color:#0b2545;padding:20px}'
             . 'main{max-width:420px;background:rgba(255,255,255,.75);border-radius:22px;padding:30px 26px;box-shadow:0 20px 50px rgba(11,37,69,.12);text-align:center}h1{margin:0 0 10px;font-size:1.4rem}p{margin:0 0 18px;color:#4a5b73;line-height:1.5}a{color:#1d4ed8;font-weight:600}</style></head>'
             . '<body><main><h1>We will be right back</h1><p>' . htmlspecialchars($msg, ENT_QUOTES, 'UTF-8') . '</p><a href="auth/login.php">Staff sign-in</a></main></body></html>';

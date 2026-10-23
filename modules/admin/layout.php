@@ -67,7 +67,7 @@ function admin_page_start(array $o): void
 <meta name="robots" content="noindex,nofollow">
 <title><?= e($title) ?> · Admin · ExpenseFlow</title>
 <meta name="theme-color" content="#0B2545">
-<link rel="icon" href="<?= e(ef_url('favicon.png')) ?>">
+<?php require_once __DIR__ . '/../../includes/favicons.php'; ?>
 <link rel="stylesheet" href="<?= e(ef_asset('assets/app.css')) ?>">
 <link rel="stylesheet" href="<?= e(ef_asset('assets/admin.css')) ?>">
 <?= $o['head'] ?? '' ?>

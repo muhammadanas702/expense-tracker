@@ -67,7 +67,7 @@ function ef_page_start(array $o): void
 <title><?= e($title) ?> · ExpenseFlow</title>
 <meta name="theme-color" content="#0B2545">
 <link rel="manifest" href="<?= e(ef_url('manifest.json')) ?>">
-<link rel="icon" href="<?= e(ef_url('favicon.png')) ?>">
+<?php require_once __DIR__ . '/favicons.php'; ?>
 <link rel="stylesheet" href="<?= e(ef_asset('assets/app.css')) ?>">
 <?= $o['head'] ?? '' ?>
 </head>
