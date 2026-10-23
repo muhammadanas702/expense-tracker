@@ -54,7 +54,7 @@ admin_page_start(['title' => 'Users', 'sub' => $total . ' account' . ($total ===
       <button class="btn sm" type="submit">Search</button>
     </form>
     <?php if ($canAdd): ?><a class="btn sm" href="user-add.php"><?= ef_icon('pl') ?> Add user</a><?php endif; ?>
-    <?php if ($canExport): ?><a class="btn sm o" href="user-export.php"><?= ef_icon('dl') ?> Export CSV</a><?php endif; ?>
+    <?php if ($canExport): ?><a class="btn sm o" href="user-export.php"><?= ef_icon('dl') ?> CSV</a> <a class="btn sm o" href="user-export.php?format=xlsx"><?= ef_icon('dl') ?> Excel</a> <a class="btn sm o" href="user-export.php?format=pdf"><?= ef_icon('dl') ?> PDF</a><?php endif; ?>
   </div>
   <div class="chips" style="margin-bottom:12px">
     <?php foreach (['all' => 'All', 'active' => 'Active', 'blocked' => 'Blocked', 'staff' => 'Staff'] as $k => $l): ?>
