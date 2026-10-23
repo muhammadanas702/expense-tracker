@@ -219,3 +219,6 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Checked: exposed paths, deploy excludes, CSRF on every POST handler, SQL/XSS/redirect scans, IDOR (edit/delete across users, receipts), amount validation, login/forgot enumeration, 3-page-size UI crawl (desktop+mobile, user+admin), console errors.
 - Fixed: sign-up no longer reveals whether an email has an account (same screen; owner gets an "already have an account" mail); Chart.js is now self-hosted (works offline, no third-party script); dashboard chart size on phones; PWA manifest has proper separate "any" and padded "maskable" icons.
 - Known/accepted: Android signing key (sideload.jks) is in the repo by design; HTTPS redirect still off in .htaccess (site works on https; HSTS header is sent).
+
+## Part 24 — Microsoft Store package
+- Release workflow also builds `ExpenseFlow-Store.msix` (artifact `ExpenseFlow-store-msix`); identity comes from secrets STORE_IDENTITY_NAME / STORE_PUBLISHER / STORE_PUBLISHER_DISPLAY_NAME. Tile assets in `apps/desktop/build/appx`. Store build skips the in-app updater. Steps: docs/MICROSOFT_STORE.md.

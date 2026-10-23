@@ -20,6 +20,11 @@ function isNewer(latest, mine) {
 }
 
 async function checkForUpdate(manual) {
+  // The Microsoft Store version is updated by the Store itself.
+  if (process.windowsStore) {
+    if (manual) dialog.showMessageBox(win, { type: 'info', message: 'ExpenseFlow updates automatically through the Microsoft Store.' });
+    return;
+  }
   try {
     const res = await net.fetch(RELEASE_API, { headers: { Accept: 'application/vnd.github+json' } });
     if (!res.ok) throw new Error('http ' + res.status);

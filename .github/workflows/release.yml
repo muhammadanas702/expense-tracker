@@ -78,6 +78,24 @@ jobs:
           npx electron-builder --win nsis --publish never -c.extraMetadata.version=${{ steps.v.outputs.name }}
       - uses: actions/upload-artifact@v4
         with: { name: ExpenseFlow-exe, path: apps/desktop/dist/ExpenseFlow-Setup.exe }
+      - name: Build Microsoft Store package (.msix)
+        continue-on-error: true   # never block the normal installer if the Store package has a problem
+        working-directory: apps/desktop
+        shell: bash
+        env:
+          STORE_IDENTITY_NAME: ${{ secrets.STORE_IDENTITY_NAME }}
+          STORE_PUBLISHER: ${{ secrets.STORE_PUBLISHER }}
+          STORE_PUBLISHER_DISPLAY_NAME: ${{ secrets.STORE_PUBLISHER_DISPLAY_NAME }}
+        run: |
+          # Identity values come from Partner Center (see docs/MICROSOFT_STORE.md). Without them a test package is built.
+          ARGS=""
+          if [ -n "$STORE_IDENTITY_NAME" ] && [ -n "$STORE_PUBLISHER" ]; then
+            ARGS="-c.appx.identityName=$STORE_IDENTITY_NAME -c.appx.publisher=$STORE_PUBLISHER -c.appx.publisherDisplayName=${STORE_PUBLISHER_DISPLAY_NAME:-ExpenseFlow}"
+          fi
+          npx electron-builder --win appx --publish never -c.extraMetadata.version=${{ steps.v.outputs.name }} $ARGS
+          ls -la dist
+      - uses: actions/upload-artifact@v4
+        with: { name: ExpenseFlow-store-msix, path: apps/desktop/dist/ExpenseFlow-Store.msix, if-no-files-found: ignore }
       - name: Add the installer to the GitHub Release
         shell: bash
         env:

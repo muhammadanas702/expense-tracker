@@ -39,6 +39,18 @@
       "uninstallerIcon": "build/icon.ico",
       "installerHeaderIcon": "build/icon.ico",
       "shortcutName": "ExpenseFlow"
+    },
+    "appx": {
+      "applicationId": "ExpenseFlow",
+      "identityName": "ExpenseFlow.Placeholder",
+      "publisher": "CN=ExpenseFlowPlaceholder",
+      "publisherDisplayName": "ExpenseFlow",
+      "displayName": "ExpenseFlow",
+      "backgroundColor": "transparent",
+      "languages": [
+        "en-US"
+      ],
+      "artifactName": "ExpenseFlow-Store.msix"
     }
   }
 }
