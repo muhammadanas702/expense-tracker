@@ -94,7 +94,7 @@ if ($savings_percent >= 30) {
 /* ---------- CSV export (plain UTF-8 file; opens in Excel, Sheets, Numbers) ---------- */
 if (($_GET['export'] ?? '') === 'csv') {
     header('Content-Type: text/csv; charset=UTF-8');
-    header('Content-Disposition: attachment; filename="expense_report_' . date('Y-m-d') . '.csv"');
+    header('Content-Disposition: attachment; filename="ExpenseFlow-Report-' . $from_date . '-to-' . $to_date . '.csv"');
     header('Pragma: no-cache');
     header('Expires: 0');
     $out = fopen('php://output', 'w');
@@ -115,59 +115,59 @@ if (($_GET['export'] ?? '') === 'csv') {
     exit();
 }
 
-/* ---------- Excel export (an HTML table that Excel opens) ---------- */
-if (($_GET['export'] ?? '') === 'excel') {
-    header("Content-Type: application/vnd.ms-excel; charset=UTF-8");
-    header("Content-Disposition: attachment; filename=\"expense_report_" . date('Y-m-d') . ".xls\"");
-    header("Pragma: no-cache");
-    header("Expires: 0");
-
-    $n = static fn($v) => number_format((float) $v, 2);
-
-    echo '<html><head><meta charset="UTF-8"><title>ExpenseFlow Report</title><style>' . '
-            body { font-family: "Segoe UI", Arial, sans-serif; margin: 20px; }
-            h2 { color: #0B2545; border-bottom: 2px solid #137A7F; padding-bottom: 8px; }
-            .header { margin-bottom: 30px; }
-            .header h1 { color: #137A7F; }
-            .user-info { background: #f0f7f8; padding: 10px; border-radius: 8px; margin-bottom: 20px; }
-            table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-            th { background: #137A7F; color: white; padding: 10px; text-align: left; }
-            td { padding: 8px 10px; border-bottom: 1px solid #ddd; }
-            .summary-table th { background: #0B2545; }
-            .income-row { background-color: #e6f7e6; }
-            .expense-row { background-color: #ffe6e6; }
-            .total-row { font-weight: bold; background: #f0f0f0; }
-            .ai-box { background: #fef9e3; padding: 12px; border-left: 4px solid #137A7F; margin: 20px 0; }
-        ' . '</style></head><body>';
-    echo '<div class="header"><h1>📊 ExpenseFlow Financial Report</h1>';
-    echo '<div class="user-info"><strong>' . e($user['name']) . '</strong> | ' . e($user['email']) . '</div>';
-    echo '<p>Period: ' . e($from_date) . ' to ' . e($to_date) . '</p></div>';
-
-    echo '<h2>💰 Summary</h2><table class="summary-table"><tr><th>Metric</th><th>Amount (PKR)</th></tr>';
-    echo '<tr><td>Total Income</td><td>' . $n($total_income) . '</td></tr>';
-    echo '<tr><td>Total Expense</td><td>' . $n($total_expense) . '</td></tr>';
-    echo '<tr class="total-row"><td>Net Savings</td><td>' . $n($total_savings) . '</td></tr></table>';
-
-    echo '<h2>📅 Monthly Breakdown</h2><table><tr><th>Month</th><th>Income (PKR)</th><th>Expense (PKR)</th><th>Savings (PKR)</th></tr>';
+/* ---------- Excel (.xlsx) and PDF exports: branded, built by includes/export.php ---------- */
+$exp = $_GET['export'] ?? '';
+if ($exp === 'excel' || $exp === 'pdf') {
+    require_once __DIR__ . '/../includes/export.php';
+    $isPdf = $exp === 'pdf';
+    if (($isPdf && !ef_export_can_pdf()) || (!$isPdf && !ef_export_can_xlsx())) {
+        $_SESSION['error'] = 'This export is not available on the server right now. Please use CSV.';
+        header('Location: ' . $base_url . '/reports/view-report.php?' . http_build_query(['from_date' => $from_date, 'to_date' => $to_date, 'type' => $type]));
+        exit();
+    }
+    $typeLabel = ['all' => 'Income and expenses', 'income' => 'Income only', 'expense' => 'Expenses only'][$type];
+    $monthRows = [];
     foreach ($allMonths as $m) {
-        $i = $monthlyInc[$m] ?? 0;
-        $x = $monthlyExp[$m] ?? 0;
-        echo '<tr><td>' . e($m) . '</td><td>' . $n($i) . '</td><td>' . $n($x) . '</td><td>' . $n($i - $x) . '</td></tr>';
+        $i = (float) ($monthlyInc[$m] ?? 0);
+        $x = (float) ($monthlyExp[$m] ?? 0);
+        $monthRows[] = [date('M Y', strtotime($m . '-01')), $i, $x, $i - $x];
     }
-    echo '</table>';
-
-    echo '<h2>📋 Detailed Transactions</h2><table><tr><th>Type</th><th>Title</th><th>Category</th><th>Amount</th><th>Currency</th><th>Amount (PKR)</th><th>Date</th></tr>';
-    foreach ($incomes as $r) {
-        echo '<tr class="income-row"><td>Income</td><td>' . e(spreadsheet_safe($r['title'])) . '</td><td>-</td><td>' . $n($r['amount']) . '</td><td>' . e($r['currency'] ?? 'PKR') . '</td><td>' . $n($r['pkr']) . '</td><td>' . e(date('d M Y', strtotime($r['transaction_date']))) . '</td></tr>';
+    arsort($catTotals);
+    $catRows = [];
+    foreach ($catTotals as $name => $val) {
+        $catRows[] = [$name, (float) $val, $total_expense > 0 ? round($val / $total_expense * 100, 1) : 0];
     }
-    foreach ($expenses as $r) {
-        echo '<tr class="expense-row"><td>Expense</td><td>' . e(spreadsheet_safe($r['title'])) . '</td><td>' . e(spreadsheet_safe($r['category'])) . '</td><td>' . $n($r['amount']) . '</td><td>' . e($r['currency']) . '</td><td>' . $n($r['pkr']) . '</td><td>' . e(date('d M Y', strtotime($r['transaction_date']))) . '</td></tr>';
+    $txRows = [];
+    foreach ($incomes as $r) { $txRows[] = [$r['transaction_date'], 'Income', $r['title'], '-', (string) ($r['payment_method'] ?? ''), (float) $r['amount'], (string) ($r['currency'] ?? 'PKR'), (float) $r['pkr'], (string) ($r['note'] ?? '')]; }
+    foreach ($expenses as $r) { $txRows[] = [$r['transaction_date'], 'Expense', $r['title'], (string) $r['category'], (string) ($r['payment_method'] ?? ''), (float) $r['amount'], (string) $r['currency'], (float) $r['pkr'], (string) ($r['note'] ?? '')]; }
+    usort($txRows, static fn($a, $b) => strcmp($b[0], $a[0]));
+    foreach ($txRows as &$tr) { $tr[0] = date('d M Y', strtotime($tr[0])); }
+    unset($tr);
+    $txCols = [['Date', 'text', 1.1], ['Type', 'text', 0.9], ['Title', 'text', 2.4], ['Category', 'text', 1.4], ['Method', 'text', 1.1], ['Amount', 'money', 1.2], ['Cur.', 'text', 0.7], ['Amount (PKR)', 'money', 1.4]];
+    if ($isPdf) {
+        $txRows = array_map(static fn($r) => array_slice($r, 0, 8), $txRows);
+    } else {
+        $txCols[] = ['Note', 'text', 2.4];
     }
-    echo '</table>';
-
-    echo '<div class="ai-box"><strong>🧠 Smart Insight:</strong> ' . e($ai_insight) . '</div>';
-    echo '<p style="margin-top: 30px; font-size: 12px; color: gray;">Generated by ExpenseFlow on ' . e(date('Y-m-d H:i:s')) . '</p>';
-    echo '</body></html>';
+    $report = [
+        'title' => 'Financial Report',
+        'subtitle' => 'Period: ' . date('d M Y', strtotime($from_date)) . ' to ' . date('d M Y', strtotime($to_date)) . '  ·  ' . $typeLabel . '  ·  All amounts in PKR',
+        'meta' => [['Prepared for', $user['name'] . ' (' . $user['email'] . ')'], ['Entries', (string) (count($incomes) + count($expenses))], ['Generated', date('d M Y, H:i')]],
+        'summary' => [
+            ['Total income', $total_income, 'in', 'PKR'],
+            ['Total expense', $total_expense, 'ex', 'PKR'],
+            ['Net savings', $total_savings, $total_savings >= 0 ? 'in' : 'ex', 'PKR'],
+            ['Savings rate', $savings_percent, '', '', '0.0"%"'],
+        ],
+        'note' => 'Insight: ' . trim(preg_replace('/[^\x20-\x7E]+/u', '', $ai_insight)),
+        'sections' => [
+            ['name' => 'Monthly breakdown', 'columns' => [['Month', 'text', 1.4], ['Income (PKR)', 'money'], ['Expense (PKR)', 'money'], ['Savings (PKR)', 'money']], 'rows' => $monthRows, 'footer' => ['Total', $total_income, $total_expense, $total_savings]],
+            ['name' => 'Category breakdown', 'columns' => [['Category', 'text', 2], ['Spent (PKR)', 'money'], ['Share %', 'money', 0.8]], 'rows' => $catRows, 'footer' => ['Total', $total_expense, $total_expense > 0 ? 100 : 0]],
+            ['name' => 'Transactions', 'columns' => $txCols, 'rows' => $txRows, 'tone' => static fn($r) => $r[1] === 'Income' ? 'in' : 'ex'],
+        ],
+    ];
+    $file = ef_export_filename('Report-' . $from_date . '-to-' . $to_date, $isPdf ? 'pdf' : 'xlsx');
+    $isPdf ? ef_export_pdf($report, $file) : ef_export_xlsx($report, $file);
     exit();
 }
 
@@ -206,7 +206,7 @@ ef_page_start(['title' => 'Full Report', 'sub' => 'Filter, analyse and export', 
     <span style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
         <a class="btn o" href="?<?= e($qs(['export' => 'csv'])) ?>"><?= ef_icon('dl') ?> CSV</a>
         <a class="btn o" href="?<?= e($qs(['export' => 'excel'])) ?>"><?= ef_icon('dl') ?> Excel</a>
-        <button class="btn o" type="button" onclick="window.print()"><?= ef_icon('dl') ?> PDF</button>
+        <a class="btn o" href="?<?= e($qs(['export' => 'pdf'])) ?>"><?= ef_icon('dl') ?> PDF</a>
     </span>
 </form>
 

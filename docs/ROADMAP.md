@@ -210,3 +210,7 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Friends: add by email (request → accept/decline/cancel/remove), table `friend_links`, request e-mail; direct friends show even without a shared group. Search bar redesigned (instant filter).
 - Favicon: transparent logo in favicon.ico/png, one shared `includes/favicons.php` for app, admin, public, auth, offline and maintenance pages (sw cache v5).
 - Next: Part 22 = professional exports (Excel/PDF/CSV, all places), Part 23 = full security/logic/UI review.
+
+## Part 22 — Professional exports
+- New `includes/export.php`: one report model → branded Excel (.xlsx via PhpSpreadsheet: logo, summary sheet, styled tables, filters, frozen headers, print setup) and PDF (TCPDF: logo header, KPI cards, tables, page footer). Used by the personal Full Report (CSV/Excel/PDF) and the admin user list (CSV/Excel/PDF). Formula-injection safe. File names `ExpenseFlow-<name>-<date>.<ext>`.
+- Backups stay raw .sql (restore file) and receipts stay original images.
