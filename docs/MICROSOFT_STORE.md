@@ -3,6 +3,9 @@
 Registration is free for individuals. The release workflow already builds the Store package
 (`ExpenseFlow-store-msix` artifact, file `ExpenseFlow-Store.msix`) every time you run **Release**.
 
+## Identity (already filled in)
+Store name `ExpenseFlow - Money Manager`; the identity values from Partner Center are stored in `apps/desktop/package.json` (`build.appx`). The GitHub secrets below are optional overrides.
+
 ## One-time setup
 1. Go to https://partner.microsoft.com/dashboard , sign in with a Microsoft account, choose **Windows & Xbox**, register as an **Individual** developer (free) and verify your identity.
 2. **Apps and games → New product → MSIX or PWA app**, reserve the name **ExpenseFlow** (pick another if taken).
