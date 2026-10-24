@@ -93,11 +93,9 @@ if ($savings_percent >= 30) {
 
 /* ---------- CSV export (plain UTF-8 file; opens in Excel, Sheets, Numbers) ---------- */
 if (($_GET['export'] ?? '') === 'csv') {
-    header('Content-Type: text/csv; charset=UTF-8');
-    header('Content-Disposition: attachment; filename="ExpenseFlow-Report-' . $from_date . '-to-' . $to_date . '.csv"');
-    header('Pragma: no-cache');
-    header('Expires: 0');
-    $out = fopen('php://output', 'w');
+    require_once __DIR__ . '/../includes/export.php';
+    ef_export_begin();
+    $out = fopen('php://temp', 'w+');
     fwrite($out, "\xEF\xBB\xBF"); // so Excel reads it as UTF-8
     fputcsv($out, ['Type', 'Date', 'Title', 'Category', 'Payment method', 'Note', 'Amount', 'Currency', 'Amount (PKR)']);
     $rows = [];
@@ -111,7 +109,10 @@ if (($_GET['export'] ?? '') === 'csv') {
             number_format((float) $r['amount'], 2, '.', ''), (string) ($r['currency'] ?? 'PKR'), number_format((float) $r['pkr'], 2, '.', ''),
         ]);
     }
+    rewind($out);
+    $csvBytes = (string) stream_get_contents($out);
     fclose($out);
+    ef_export_send($csvBytes, 'text/csv; charset=UTF-8', 'ExpenseFlow-Report-' . $from_date . '-to-' . $to_date . '.csv');
     exit();
 }
 
@@ -167,7 +168,14 @@ if ($exp === 'excel' || $exp === 'pdf') {
         ],
     ];
     $file = ef_export_filename('Report-' . $from_date . '-to-' . $to_date, $isPdf ? 'pdf' : 'xlsx');
-    $isPdf ? ef_export_pdf($report, $file) : ef_export_xlsx($report, $file);
+    $bytes = ef_export_try(static fn() => $isPdf ? ef_export_pdf($report) : ef_export_xlsx($report));
+    if ($bytes === null) {
+        if (ob_get_level() > 0) { ob_end_clean(); }
+        $_SESSION['error'] = 'The export could not be created right now. Please try CSV or try again in a moment.';
+        header('Location: ' . $base_url . '/reports/view-report.php?' . http_build_query(['from_date' => $from_date, 'to_date' => $to_date, 'type' => $type]));
+        exit();
+    }
+    ef_export_send($bytes, $isPdf ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', $file);
     exit();
 }
 

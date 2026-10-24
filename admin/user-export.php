@@ -24,10 +24,19 @@ if ($fmt === 'xlsx' || $fmt === 'pdf') {
             'sections' => [['name' => 'Users', 'columns' => [['ID', 'int', 0.5], ['Name', 'text', 1.6], ['Email', 'text', 2.4], ['Role', 'text', 1], ['Status', 'text', 0.9], ['Joined', 'text', 1.1], ['Last login', 'text', 1.4]], 'rows' => $list, 'tone' => fn($r) => $r[4] === 'Blocked' ? 'ex' : '']],
         ];
         $file = ef_export_filename('Users', $fmt);
-        $fmt === 'pdf' ? ef_export_pdf($report, $file) : ef_export_xlsx($report, $file);
+        $bytes = ef_export_try(static fn() => $fmt === 'pdf' ? ef_export_pdf($report) : ef_export_xlsx($report));
+        if ($bytes === null) {
+            if (ob_get_level() > 0) { ob_end_clean(); }
+            $_SESSION['error'] = 'The export could not be created right now. Please try CSV.';
+            header('Location: users.php');
+            exit();
+        }
+        ef_export_send($bytes, $fmt === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', $file);
         exit();
     }
 }
+@ini_set('display_errors', '0');
+while (ob_get_level() > 0) { ob_end_clean(); }
 header('Content-Type: text/csv; charset=UTF-8');
 header('Content-Disposition: attachment; filename="ExpenseFlow-Users-' . date('Y-m-d') . '.csv"');
 header('Cache-Control: no-store');

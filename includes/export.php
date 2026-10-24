@@ -60,9 +60,52 @@ function ef_export_safe($value): string
     return ($value !== '' && strpbrk($value[0], "=+-@\t\r") !== false) ? "'" . $value : $value;
 }
 
+/**
+ * Sends a finished file. Everything is built in memory first, so a PHP warning or error can never
+ * end up inside the download (that would save an HTML error page as the file).
+ */
+function ef_export_send(string $bytes, string $mime, string $filename): void
+{
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    header('Content-Type: ' . $mime);
+    header('Content-Disposition: attachment; filename="' . $filename . '"; filename*=UTF-8\'\'' . rawurlencode($filename));
+    header('Content-Length: ' . strlen($bytes));
+    header('Cache-Control: private, no-store');
+    header('X-Content-Type-Options: nosniff');
+    echo $bytes;
+}
+
+/** Prepares a clean export: no on-screen PHP errors, enough memory/time for big reports. */
+function ef_export_begin(): void
+{
+    @ini_set('display_errors', '0');
+    @ini_set('html_errors', '0');
+    @ini_set('memory_limit', '256M');
+    @set_time_limit(60);
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    ob_start(); // swallow any stray output (notices, BOM, whitespace) until ef_export_send()
+}
+
+/** Runs an export builder; on failure logs it and returns null so the caller can show a friendly message. */
+function ef_export_try(callable $build): ?string
+{
+    ef_export_begin();
+    try {
+        $out = $build();
+        return is_string($out) && $out !== '' ? $out : null;
+    } catch (Throwable $e) {
+        error_log('ExpenseFlow export failed: ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());
+        return null;
+    }
+}
+
 /* ============================== EXCEL ============================== */
 
-function ef_export_xlsx(array $report, string $filename): void
+function ef_export_xlsx(array $report): string
 {
     require_once __DIR__ . '/../vendor/autoload.php';
     $ss = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
@@ -203,20 +246,17 @@ function ef_export_xlsx(array $report, string $filename): void
     }
     $ss->setActiveSheetIndex(0);
 
-    while (ob_get_level() > 0) {
-        ob_end_clean();
-    }
-    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment; filename="' . $filename . '"');
-    header('Cache-Control: no-store');
-    header('X-Content-Type-Options: nosniff');
-    (new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($ss))->save('php://output');
+    $tmp = tempnam(sys_get_temp_dir(), 'efx');
+    (new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($ss))->save($tmp);
     $ss->disconnectWorksheets();
+    $bytes = (string) file_get_contents($tmp);
+    @unlink($tmp);
+    return $bytes;
 }
 
 /* ============================== PDF ============================== */
 
-function ef_export_pdf(array $report, string $filename): void
+function ef_export_pdf(array $report): string
 {
     require_once __DIR__ . '/../tcpdf/tcpdf.php';
 
@@ -383,10 +423,5 @@ function ef_export_pdf(array $report, string $filename): void
         $pdf->Ln(5);
     }
 
-    while (ob_get_level() > 0) {
-        ob_end_clean();
-    }
-    header('Cache-Control: no-store');
-    header('X-Content-Type-Options: nosniff');
-    $pdf->Output($filename, 'D');
+    return $pdf->Output('report.pdf', 'S');
 }
