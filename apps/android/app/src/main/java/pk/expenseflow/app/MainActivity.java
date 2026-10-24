@@ -279,7 +279,13 @@ public class MainActivity extends Activity {
         web.setDownloadListener((url, ua, cd, mime, len) -> {
             try {
                 DownloadManager.Request q = new DownloadManager.Request(Uri.parse(url));
-                q.addRequestHeader("Cookie", CookieManager.getInstance().getCookie(url));
+                CookieManager.getInstance().flush();
+                String ck = CookieManager.getInstance().getCookie(url);
+                if (ck != null) q.addRequestHeader("Cookie", ck);
+                // Same browser identity as the page, so the host serves the file and not a "checking your browser" page.
+                if (ua != null) q.addRequestHeader("User-Agent", ua);
+                q.addRequestHeader("Referer", HOME);
+                q.addRequestHeader("Accept", "*/*");
                 q.setMimeType(mime);
                 q.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                 q.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, URLUtil.guessFileName(url, cd, mime));

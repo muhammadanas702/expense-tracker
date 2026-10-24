@@ -222,3 +222,6 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 
 ## Part 24 — Microsoft Store package
 - Release workflow also builds `ExpenseFlow-Store.msix` (artifact `ExpenseFlow-store-msix`); identity comes from secrets STORE_IDENTITY_NAME / STORE_PUBLISHER / STORE_PUBLISHER_DISPLAY_NAME. Tile assets in `apps/desktop/build/appx`. Store build skips the in-app updater. Steps: docs/MICROSOFT_STORE.md.
+
+## Part 29 — Export hardening
+- Exports are built fully in memory and sent only when complete (`ef_export_try/send/begin`): PHP warnings or errors can no longer end up inside a downloaded file; on failure the user sees a message and CSV still works. Android download manager now sends the page's User-Agent/Referer/cookies.
