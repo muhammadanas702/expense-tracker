@@ -40,6 +40,16 @@ function personal_tx_page(string $kind, ?int $editId = null): void
     $error = '';
     $old = ['title' => '', 'amount' => '', 'currency' => null, 'category' => isset($categories['Food']) ? 'Food' : (string) array_key_first($categories), 'other_category' => '', 'payment_method' => 'Cash', 'note' => '', 'repeat' => ''];
 
+    // New entries start in the currency the person already uses: this month's base currency, else the last one used.
+    try {
+        $dc = $conn->prepare('SELECT `base_currency` FROM `user_monthly_currency` WHERE `user_id` = ? ORDER BY `year_month` DESC LIMIT 1');
+        $dc->execute([$user_id]);
+        $old['currency'] = strtoupper((string) ($dc->fetchColumn() ?: '')) ?: null;
+    } catch (Throwable $e) {
+        $old['currency'] = null;
+    }
+    $old['currency'] = $old['currency'] ?? 'PKR';
+
     $row = null;
     if ($isEdit) {
         $q = $conn->prepare('SELECT * FROM `' . ($isExpense ? 'expenses' : 'income') . '` WHERE id = ? AND user_id = ?');
