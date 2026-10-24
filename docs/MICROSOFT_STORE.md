@@ -25,3 +25,7 @@ Store name `ExpenseFlow - Money Manager`; the identity values from Partner Cente
 6. Submit. Review usually takes a few days. The Store signs the package itself; no certificate to buy.
 
 Notes: the Store build does not use the in-app updater (the Store updates it). The `.exe` from GitHub Releases keeps working for people who prefer it. Version numbers in the Store must always increase; the last number is kept `.0` automatically.
+
+## Notes
+- The Store rejects packages whose MinVersion is 10.0.17134.0 or lower; `build.appx.minVersion` is 10.0.17763.0 (Windows 10 1809).
+- `runFullTrust` is required by every Electron/desktop app. In Partner Center → Submission options → "Notes for certification" explain: "ExpenseFlow is an Electron desktop app that displays the ExpenseFlow web app; it needs runFullTrust to run as a desktop process."
