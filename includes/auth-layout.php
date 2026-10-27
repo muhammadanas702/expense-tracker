@@ -73,6 +73,7 @@ function ef_auth_start(array $o = []): void
       <?= ef_check('Track personal income and expenses') ?>
       <?= ef_check('Reports, insights and PDF export') ?>
       <?= ef_check('Works offline as an installed app') ?>
+      <p class="aboutln">ExpenseFlow is a free personal expense tracker and bill splitter, made by <b>Muhammad Anas</b> in Pakistan. It never asks for your bank or card details.</p>
     </div>
     <div></div>
   </div>
@@ -87,6 +88,10 @@ function ef_auth_end(array $o = []): void
 {
     $split = $o['split'] ?? true;
     ?>
+    <div class="atrust">
+      <p>ExpenseFlow is a free expense tracker. We will never ask for your bank or card details, and we never email you asking for your password.</p>
+      <p><a href="<?= e(ef_url('index.php')) ?>">Home</a> · <a href="<?= e(ef_url('about.php')) ?>">About</a> · <a href="<?= e(ef_url('privacy.php')) ?>">Privacy</a> · <a href="<?= e(ef_url('terms.php')) ?>">Terms</a> · <a href="<?= e(ef_url('contact.php')) ?>">Contact</a></p>
+    </div>
   </div><?= $split ? '</div>' : '' ?>
 </div>
 </div>
