@@ -225,3 +225,5 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 
 ## Part 29 — Export hardening
 - Exports are built fully in memory and sent only when complete (`ef_export_try/send/begin`): PHP warnings or errors can no longer end up inside a downloaded file; on failure the user sees a message and CSV still works. Android download manager now sends the page's User-Agent/Referer/cookies.
+
+- Part 30: Safe Browsing "Deceptive pages" response — login/register pages now carry a plain "what is ExpenseFlow / who made it / never asks for bank or card details" block with links to Home/About/Privacy/Terms/Contact; added `/.well-known/security.txt`. Permanent fix = own domain.

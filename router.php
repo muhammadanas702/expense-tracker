@@ -5,7 +5,7 @@
  */
 $path = rawurldecode((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH));
 
-$blocked = '#(^|/)(\.|vendor/|tcpdf/|includes/|config/|storage/|auth/src/)|\.(log|sql|md|lock|yml|yaml|bak|ini|sh)$|(^|/)(composer\.json|Dockerfile|Procfile|router\.php)$#i';
+$blocked = '#(^|/)(\.(?!well-known/)|vendor/|tcpdf/|includes/|config/|storage/|auth/src/)|\.(log|sql|md|lock|yml|yaml|bak|ini|sh)$|(^|/)(composer\.json|Dockerfile|Procfile|router\.php)$#i';
 
 if (strpos($path, '..') !== false || preg_match($blocked, $path)) {
     http_response_code(403);

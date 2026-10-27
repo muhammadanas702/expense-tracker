@@ -1,0 +1,5 @@
+Contact: https://expenseflow.rf.gd/contact.php
+Expires: 2027-12-31T00:00:00.000Z
+Preferred-Languages: en, ur
+Canonical: https://expenseflow.rf.gd/.well-known/security.txt
+Policy: https://expenseflow.rf.gd/privacy.php
