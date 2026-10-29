@@ -2,7 +2,7 @@
 
 # ExpenseFlow
 
-**A multi-currency income and expense tracker, built as an installable web app.**
+**A multi-currency income and expense tracker and bill splitter, for the web, Android and Windows.**
 
 Record what you earn and spend in the currency you actually used, see everything converted into the one you choose, and understand your money through a live dashboard, charts and a printable report.
 
@@ -20,6 +20,7 @@ Record what you earn and spend in the currency you actually used, see everything
 
 ## Table of contents
 
+- [Documentation](#documentation)
 - [Overview](#overview)
 - [Features](#features)
 - [Tech stack](#tech-stack)
@@ -33,6 +34,25 @@ Record what you earn and spend in the currency you actually used, see everything
 - [Project status and roadmap](#project-status-and-roadmap)
 - [Contributing](#contributing)
 - [Author](#author)
+
+## Documentation
+
+Everything a new developer (or you in a year) needs is in [`docs/`](docs/):
+
+| File | Read it to learn |
+| --- | --- |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the app is built, request flow, modules, schema strategy, exports, native shells |
+| [docs/MODULES.md](docs/MODULES.md) | Every module and page, what it owns, how to add a new one |
+| [docs/DATABASE.md](docs/DATABASE.md) | All tables, relationships and how upgrades work |
+| [docs/THEME.md](docs/THEME.md) | Colours, typography, spacing, components, layout and UI rules |
+| [docs/SECURITY.md](docs/SECURITY.md) | Security model, helpers to use, review checklist |
+| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Local setup, tests, coding rules, Git workflow, how to ship a change |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Website deploy, Android/Windows/Store releases, secrets, hosting quirks |
+| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Known problems and their fixes |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | History of every part and what is planned |
+| [docs/MICROSOFT_STORE.md](docs/MICROSOFT_STORE.md) | Microsoft Store submission notes |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How to propose and review changes |
+| [CHANGELOG.md](CHANGELOG.md) | What changed, release by release |
 
 ## Overview
 
@@ -62,7 +82,7 @@ It is built for people who earn or spend across several currencies, for example 
 
 ### Reports
 - Full report for any date range with summary, monthly breakdown and detailed transactions.
-- **Export to Excel** (styled, Excel-compatible file) or **Save as PDF** through the browser's print dialog.
+- Branded **Excel (.xlsx)**, **PDF** and **CSV** exports with the ExpenseFlow logo, summary cards and tables, from the report page and the admin panel.
 - Totals use the exchange rate saved with each entry, so past numbers do not change when rates move.
 
 ### Accounts
@@ -80,6 +100,16 @@ It is built for people who earn or spend across several currencies, for example 
 - **Security and system:** a Security page shows failed sign-ins and lock-outs (e-mails masked) and lets staff block an IP address; **Backups** makes a downloadable copy of the database (Super Admin decides who may); **Settings** can close new sign-ups or switch on maintenance mode (only signed-in staff get through). The admin menu scrolls on its own and shows a **More** page on phones.
 - **Activity log** with time, user, action, details and IP address, filterable by user, action and date and paginated. Logged actions include login, logout, adding, editing and deleting expenses and income, data resets and base currency changes.
 
+### Shared mode (split bills)
+- Create **groups** (trip, home, party, family ...), invite people with a link, and add shared expenses split equally, by exact amounts, percentages or shares.
+- Live **balances** ("who owes whom"), suggested **settlements**, and a settlement history.
+- **Friends:** everyone you share a group with, with the balance per person; add friends directly by e-mail.
+- **Activity feed and notifications**, **comments** and **receipt pictures** on expenses.
+- Branded **Excel / PDF** exports of a group.
+
+### Apps
+- **Android** (`.apk`) and **Windows** (`.exe`, plus a Microsoft Store package) built automatically into GitHub Releases. They open the live site in a native shell.
+
 ### Progressive web app
 - Web app manifest, service worker and a custom offline page.
 - Installable on Android, iPhone and iPad, and responsive from phone to desktop.
@@ -90,10 +120,12 @@ It is built for people who earn or spend across several currencies, for example 
 | --- | --- |
 | Language | PHP 8.1+ |
 | Database | MySQL through PDO with prepared statements |
-| Frontend | HTML, CSS and vanilla JavaScript, Chart.js 4.4, Font Awesome, Inter font |
+| Frontend | HTML, one CSS file, vanilla JavaScript, self-hosted Chart.js, inline SVG icons, Inter font |
 | Email | PHPMailer over SMTP |
 | Exchange rates | exchangerate-api.com (free endpoint) |
-| Hosting and CI/CD | InfinityFree, deployed from GitHub Actions over FTPS |
+| Exports | PhpSpreadsheet (Excel), TCPDF (PDF) |
+| Apps | Android WebView shell (Gradle), Electron + electron-builder (Windows, MSIX) |
+| Hosting and CI/CD | InfinityFree, deployed from GitHub Actions over FTPS; apps built by a release workflow |
 
 ## How it works
 
@@ -140,9 +172,10 @@ It is built for people who earn or spend across several currencies, for example 
 ├── includes/               Layout, security helpers, currencies, schema upgrade, CurrencyConverter, logging
 ├── database/               One SQL file per part (part-N.sql) to run in phpMyAdmin on an existing install
 ├── tests/                  PHP and HTTP checks (run against a TEST database only; never deployed)
-├── docs/                   Roadmap and design files (never deployed)
+├── docs/                   Full project documentation (never deployed)
+├── apps/                   android/ (WebView shell) and desktop/ (Electron shell)
 ├── storage/                Cached exchange rates and private receipt pictures (blocked from the web)
-├── tcpdf/, vendor/         Bundled third-party libraries (not used at runtime)
+├── tcpdf/, vendor/         Third-party libraries (TCPDF, PhpSpreadsheet, ...)
 ├── .github/workflows/      GitHub Actions deployment workflow
 ├── dashboard.php, profile.php, edit-*.php, delete-*.php, change-base-currency.php, reset-data.php   Personal pages
 ├── index.php               Landing page
@@ -153,7 +186,7 @@ It is built for people who earn or spend across several currencies, for example 
 
 ## Database
 
-ExpenseFlow uses MySQL. These are the main tables and the columns the application relies on.
+ExpenseFlow uses MySQL. The complete list (about 30 tables across all modules) is in [docs/DATABASE.md](docs/DATABASE.md). These are the core tables and the columns the application relies on.
 
 | Table | Purpose | Main columns |
 | --- | --- | --- |
