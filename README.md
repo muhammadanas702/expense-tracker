@@ -275,18 +275,17 @@ ExpenseFlow uses prepared statements, CSRF tokens on every form, POST-only delet
 
 ## Project status and roadmap
 
-ExpenseFlow is an actively developed personal project. Planned next:
+ExpenseFlow is an actively developed personal project. Web, Android and Windows (installer and Microsoft Store package) are done. See [docs/ROADMAP.md](docs/ROADMAP.md) for the full history. Ideas for later:
 
-- Split-bill groups (shared expenses between friends or hostel mates)
-- Email verification at sign-up
+- iOS app, a custom domain, offline entry sync, scheduled backups, report/block user buttons, an ARM64 Windows build
 
 ## Contributing
 
 Suggestions and contributions are welcome.
 
 1. Fork the repository and create a branch: `git checkout -b feature/your-feature`
-2. Make your changes and test them locally.
-3. Open a pull request that explains what changed and why.
+2. Make your changes and test them locally (see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)).
+3. Open a pull request that explains what changed and why (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 For bugs and feature ideas, please open an issue.
 
@@ -296,7 +295,9 @@ Developed by **Muhammad Anas** ([@muhammadanas702](https://github.com/muhammadan
 
 If ExpenseFlow is useful to you, a star on the repository is appreciated.
 
-## Development roadmap
+## Module notes
+
+Short notes written while each module was built. The current reference is in [docs/MODULES.md](docs/MODULES.md).
 
 A new UI (Personal + Shared expenses, new landing/auth pages) and installable apps are being built in small parts.
 See [`docs/ROADMAP.md`](docs/ROADMAP.md) for status. Design references are in `docs/design/`.
