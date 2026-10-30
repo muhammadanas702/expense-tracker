@@ -13,6 +13,7 @@ What protects the app, where it lives in code, and the checklist you must follow
 | XSS | Every printed value goes through `e()` (`htmlspecialchars`) | all pages |
 | Headers | `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy` (camera/mic/geo off), CSP `frame-ancestors 'self'; base-uri 'self'; object-src 'none'`, HSTS on HTTPS | `send_security_headers()` and `.htaccess` |
 | Rate limits | DB-backed buckets (`rl_key/rl_blocked/rl_hit/rl_clear`) | login 5/15 min per e-mail+IP, 20 per e-mail, 100 per IP; register 10/hour/IP; reset code 5/hour per e-mail, 20 per IP; wrong sign-up code 5 tries |
+| Google sign-in | Authorization-code flow with PKCE and a single-use `state`; code exchanged server-to-server; only `email_verified` addresses trusted; client secret only in `config/google.local.php` / GitHub secret; refused for blocked users, blocked IPs, closed sign-ups; hidden in embedded app web views | `modules/oauth`, `auth/google*.php` |
 | Enumeration | Register and friend-request replies never reveal whether an e-mail has an account (an "account exists" mail is sent instead) | `auth/register.php`, `modules/friends` |
 | Roles | server-side permission check on every admin page; menu hiding is cosmetic | `modules/admin/lib.php` `admin_can()` |
 | Audit | every staff action is logged (`admin_audit`); failed logins in `security_events`; staff can block IPs | `modules/security`, `admin/audit.php` |
@@ -25,7 +26,7 @@ What protects the app, where it lives in code, and the checklist you must follow
 
 ## 2. Secrets
 
-- Never commit `config/db.local.php`, `config/mail.local.php`, SQL dumps, backups or exported files. They are in `.gitignore`.
+- Never commit `config/db.local.php`, `config/mail.local.php`, `config/google.local.php`, SQL dumps, backups or exported files. They are in `.gitignore`.
 - Production secrets live only in **GitHub Actions secrets** (list in [`DEPLOYMENT.md`](DEPLOYMENT.md)); the deploy workflow writes the private config files on the runner.
 - Use a Gmail **app password** for SMTP, never the account password. Rotate it and the DB password if either was ever pasted somewhere public.
 - `apps/android/sideload.jks` is a *sideload* signing key kept in the repo on purpose so every APK installs as an update of the previous one. It is not a Play Store key. If you ever publish on Google Play, create a new upload key and keep it out of Git.

@@ -7,6 +7,7 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../modules/security/lib.php';
 require_once __DIR__ . '/../modules/settings/lib.php';
 require_once __DIR__ . '/../modules/signup/lib.php';
+require_once __DIR__ . '/../modules/oauth/lib.php';
 require_once __DIR__ . '/../config/mail.php';
 
 $msg = "";
@@ -146,6 +147,7 @@ require_once __DIR__ . '/../includes/auth-layout.php';
 <h2>Create your account</h2>
 <p class="s3">Start tracking in under a minute.</p>
 <?= ef_msg($msg) ?>
+<?= google_button('signup') ?>
 <form method="POST">
     <?= csrf_field() ?>
     <?= ef_field('FULL NAME', 'name', 'usr', 'text', $name, ['placeholder' => 'Your name', 'required' => true, 'maxlength' => 100, 'autocomplete' => 'name']) ?>

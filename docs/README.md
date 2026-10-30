@@ -8,9 +8,9 @@ Everything needed to understand, run, change, test, deploy and operate the proje
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | folder map, request life-cycle, modules, self-healing schema, exports, conventions |
 | [`THEME.md`](THEME.md) | the design system: colours, fonts, spacing, components, icons, logos, breakpoints, UI rules |
 | [`MODULES.md`](MODULES.md) | every feature and admin page, what it does and which permission guards it |
-| [`DATABASE.md`](DATABASE.md) | all 28 tables, money rules, relationships, backups, handy SQL |
+| [`DATABASE.md`](DATABASE.md) | all 29 tables, money rules, relationships, backups, handy SQL |
 | [`SECURITY.md`](SECURITY.md) | protections in place, secret handling, the checklist for new code, known limits |
-| [`TESTING.md`](TESTING.md) | local setup, the 20 test files, visual checks, manual release checklist |
+| [`TESTING.md`](TESTING.md) | local setup, the 22 test files, visual checks, manual release checklist |
 | [`DEPLOYMENT.md`](DEPLOYMENT.md) | website deploy, GitHub secrets, app releases, rollback, other hosts |
 | [`OPERATIONS.md`](OPERATIONS.md) | production runbook: InfinityFree quirks, Safe Browsing, routine admin tasks, moving to your own domain, monthly checks |
 | [`APPS.md`](APPS.md) | Android, Windows and Store shells |

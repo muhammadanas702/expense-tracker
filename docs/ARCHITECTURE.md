@@ -23,7 +23,8 @@ ExpenseFlow is a **server-rendered PHP 8 + MySQL web app**. There is no framewor
 | Language | PHP 8.1+ (no framework) | Runs on free shared hosting; simple to deploy by FTP |
 | Database | MySQL/MariaDB via PDO, prepared statements only | Free hosting provides it |
 | Front end | Hand-written CSS (`assets/app.css`), small vanilla JS files, Chart.js (self-hosted in `assets/lib/`) | No build tooling, fast, offline-friendly |
-| Mail | PHPMailer over SMTP | Sign-up codes, password reset, friend requests, support replies |
+| Mail | PHPMailer over SMTP |
+| Sign-in | e-mail + password, optional Google (OpenID Connect, PKCE) | Sign-up codes, password reset, friend requests, support replies |
 | Spreadsheet/PDF export | PhpSpreadsheet (Excel), TCPDF (PDF) | Branded exports, see section 8 |
 | Hosting | InfinityFree free plan | Free; has quirks, see [`OPERATIONS.md`](OPERATIONS.md) |
 | Installable | PWA (`manifest.json`, `sw.js`), Android WebView shell, Electron shell, Microsoft Store MSIX | One codebase, many surfaces |
@@ -35,7 +36,7 @@ ExpenseFlow is a **server-rendered PHP 8 + MySQL web app**. There is no framewor
 ├── index.php                  Landing page (public)
 ├── about.php privacy.php terms.php contact.php   Public information pages
 ├── guides/                    SEO guide articles (public)
-├── auth/                      Register, verify e-mail, login, logout, forgot/reset password, delete account
+├── auth/                      Register, verify e-mail, login, Google sign-in (google.php, google-callback.php), logout, forgot/reset password, delete account
 ├── dashboard.php              Personal dashboard
 ├── expense/ income/           "Add" pages (thin wrappers, real code in modules/personal)
 ├── edit-*.php delete-*.php change-base-currency.php reset-data.php stop-recurring.php   Personal actions
@@ -46,7 +47,7 @@ ExpenseFlow is a **server-rendered PHP 8 + MySQL web app**. There is no framewor
 ├── admin/                     Admin panel pages (staff only)
 ├── modules/                   ★ The feature code (see section 4). modules/ is deny-all from the web
 ├── includes/                  Shared building blocks (layouts, security, schema helper, icons, export, currency)
-├── config/                    app.php (base URL), db.php, mail.php (+ private *.local.php, never committed)
+├── config/                    app.php (base URL), db.php, mail.php, google.php (+ private *.local.php, never committed)
 ├── assets/                    app.css, admin.css, JS, icons, lib/chart.umd.min.js
 ├── storage/                   Runtime data: sessions, schema markers, backups, receipts, rate cache (never public)
 ├── database/                  part-N.sql scripts (historic manual upgrades; the app self-heals, see DATABASE.md)

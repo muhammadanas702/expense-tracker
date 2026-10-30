@@ -1,6 +1,7 @@
 # Local secrets. The deployment workflow creates production copies from Actions secrets.
 /config/db.local.php
 /config/mail.local.php
+/config/google.local.php
 /.env
 /.env.*
 !/.env.example

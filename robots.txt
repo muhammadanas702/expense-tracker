@@ -20,6 +20,8 @@ Disallow: /comments/
 Disallow: /setup.php
 Disallow: /profile.php
 Disallow: /auth/logout.php
+Disallow: /auth/google.php
+Disallow: /auth/google-callback.php
 Disallow: /auth/delete-account.php
 
 Sitemap: https://expenseflow.rf.gd/sitemap.xml

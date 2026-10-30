@@ -13,7 +13,7 @@
 </FilesMatch>
 
 # Private configuration and deploy state.
-<FilesMatch "^(db|mail)\.local\.php$">
+<FilesMatch "^(db|mail|google)\.local\.php$">
     Require all denied
 </FilesMatch>
 <Files ".ftp-deploy-sync-state.json">

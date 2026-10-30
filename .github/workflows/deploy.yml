@@ -31,6 +31,8 @@ jobs:
           EXPENSEFLOW_MAIL_FROM: ${{ secrets.EXPENSEFLOW_MAIL_FROM }}
           EXPENSEFLOW_MAIL_FROM_NAME: ${{ secrets.EXPENSEFLOW_MAIL_FROM_NAME }}
           EXPENSEFLOW_MAIL_REPLY_TO: ${{ secrets.EXPENSEFLOW_MAIL_REPLY_TO }}
+          EXPENSEFLOW_GOOGLE_CLIENT_ID: ${{ secrets.EXPENSEFLOW_GOOGLE_CLIENT_ID }}
+          EXPENSEFLOW_GOOGLE_CLIENT_SECRET: ${{ secrets.EXPENSEFLOW_GOOGLE_CLIENT_SECRET }}
         run: |
           python3 - <<'PY'
           import os
@@ -92,6 +94,12 @@ jobs:
           Path("config").mkdir(exist_ok=True)
           write_private_config("config/db.local.php", {"production": database})
           write_private_config("config/mail.local.php", mail)
+          # Optional: "Continue with Google" appears only when both secrets exist.
+          if os.environ.get("EXPENSEFLOW_GOOGLE_CLIENT_ID") and os.environ.get("EXPENSEFLOW_GOOGLE_CLIENT_SECRET"):
+              write_private_config("config/google.local.php", {
+                  "client_id": os.environ["EXPENSEFLOW_GOOGLE_CLIENT_ID"],
+                  "client_secret": os.environ["EXPENSEFLOW_GOOGLE_CLIENT_SECRET"],
+              })
           PY
 
       - name: Deploy over explicit FTPS

@@ -128,6 +128,7 @@ The shell is produced by **`ef_page_start()` / `ef_page_end()`** in `includes/la
 | Notification pop-up | `.np`, `.npop` | `assets/notif-pop.js` |
 | Sign-in trust block | `.atrust`, `.aboutln` | explains who runs the site (Safe Browsing trust) |
 | Terms tick box | `.agree` | register form |
+| Google button | `.gbtn` + `.gmark`, note `.gnote`, divider `.gor` | login/register; white button, 12px radius; the "G" mark is a plain gradient letter, replace with Google's official asset if you want their exact branding |
 | Inline SVG icon | `svg.i` (18px, 2px stroke, round caps) | |
 
 Grids: `.G3` (1.5fr 1fr 1fr), `.G2` (1.6fr 1fr), `.GE` (equal halves), `.G4` (auto-fit 220px), admin `.G4a` (auto-fit 190px).
