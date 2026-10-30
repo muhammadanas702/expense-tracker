@@ -103,8 +103,10 @@ Rules every admin page follows: sign-in + role check at the top (`admin/auth.php
 - Flow: `auth/google.php` stores a random `state` and a PKCE verifier in the session and redirects to Google (scope `openid email profile`, `prompt=select_account`); `auth/google-callback.php` checks the single-use state (10 min), exchanges the code on the server, checks the claims (`iss`, `aud`, `exp`, `sub`, and **`email_verified` must be true**), then `google_user_for_claims()`:
   1. known Google identity -> that account;
   2. else an account with the same e-mail -> linked to it (the person proved the address);
+  2b. Gmail spellings count as the same mailbox (dots, `+tag`, `googlemail.com`), so `a.nas+x@gmail.com` and `anas@gmail.com` find the same account instead of creating a duplicate (`google_find_by_email`);
   3. else a new account (only if sign-ups are open) with a random password hash nobody knows; Terms acceptance is logged;
   4. blocked accounts and blocked IPs are refused; rate limits per IP.
+- Failures send the person back to login with a short **reason code** (for example `state no_session`, `token exchange google: invalid_client`) that is also written to the PHP log; a return URL without `state` does not destroy the saved state.
 - Table `user_identities` (`provider`, `subject` unique, cascades with the user). Google-created users can set a real password with **Forgot password** (hints on Profile and Delete account pages).
 - Setup steps: [`OPERATIONS.md`](OPERATIONS.md) "Google sign-in setup". Tests: `tests/google_signin_test.php`, `tests/google_http_test.py`.
 

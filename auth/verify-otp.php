@@ -59,5 +59,5 @@ ef_auth_start(['title' => 'Check your email']); ?>
     <div style="height:16px"></div>
     <button class="btn lg" style="width:100%" type="submit">Verify code</button>
 </form>
-<div class="ft2">Did not get it? <a class="lnk" href="forgot-password.php">Request a new code</a></div>
+<div class="aft">Did not get it? <a class="lnk" href="forgot-password.php">Request a new code</a></div>
 <?php ef_auth_end(); ?>

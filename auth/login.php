@@ -107,6 +107,6 @@ require_once __DIR__ . '/../includes/auth-layout.php';
     <div class="rw"><span></span><a class="lnk" href="forgot-password.php">Forgot password?</a></div>
     <button class="btn lg" style="width:100%" type="submit">Log in</button>
 </form>
-<div class="ft2">New to ExpenseFlow? <a class="lnk" href="register.php">Create account</a></div>
-<div class="ft2"><a class="lnk" href="<?= e(ef_url('index.php')) ?>"><?= ef_icon('bk') ?> Back to home</a></div>
+<div class="aft">New to ExpenseFlow? <a class="lnk" href="register.php">Create account</a></div>
+<div class="aft q"><a class="lnk" href="<?= e(ef_url('index.php')) ?>"><?= ef_icon('bk') ?> Back to home</a></div>
 <?php ef_auth_end(); ?>

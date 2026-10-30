@@ -58,6 +58,18 @@ ok($u5 === null && $e5 === 'closed', 'closed sign-ups refuse new accounts');
 [$u6] = google_user_for_claims($conn, $good, false);
 ok($u6 && (int) $u6['id'] === $id1, 'existing Google account still signs in when sign-ups are closed');
 
+// 5b. Gmail spellings find the same person (dots, +tag, googlemail.com) instead of creating a duplicate
+$conn->prepare('INSERT INTO users(name,email,password) VALUES(?,?,?)')->execute(['Dotty', 'an.as+shop@gmail.com', password_hash('Test#12345', PASSWORD_DEFAULT)]);
+$dotId = (int) $conn->lastInsertId();
+[$g1] = google_user_for_claims($conn, ['sub' => 'g-sub-4', 'email' => 'anas@gmail.com'] + $good, true);
+ok($g1 && (int) $g1['id'] === $dotId && empty($g1['created']), 'anas@gmail.com finds an.as+shop@gmail.com');
+[$g2] = google_user_for_claims($conn, ['sub' => 'g-sub-5', 'email' => 'a.n.a.s@googlemail.com'] + $good, true);
+ok($g2 && (int) $g2['id'] === $dotId && empty($g2['created']), 'googlemail.com with dots finds the same account');
+[$g3] = google_user_for_claims($conn, ['sub' => 'g-sub-6', 'email' => 'someoneelse@gmail.com'] + $good, true);
+ok($g3 && !empty($g3['created']) && (int) $g3['id'] !== $dotId, 'a different Gmail person gets their own account');
+[$g4] = google_user_for_claims($conn, ['sub' => 'g-sub-7', 'email' => 'anas@yahoo.com'] + $good, true);
+ok($g4 && !empty($g4['created']), 'dots rule is Gmail only');
+
 // 6. deleting the user removes the identity
 $conn->exec("DELETE FROM users WHERE id=$id1");
 ok((int) $conn->query("SELECT COUNT(*) FROM user_identities WHERE user_id=$id1")->fetchColumn() === 0, 'identity removed with the account');
@@ -70,14 +82,18 @@ parse_str((string) parse_url($url, PHP_URL_QUERY), $q);
 ok(strpos($url, 'https://accounts.google.com/o/oauth2/v2/auth?') === 0, 'goes to Google');
 ok(($q['code_challenge_method'] ?? '') === 'S256' && strlen($q['code_challenge'] ?? '') === 43, 'PKCE S256 challenge');
 ok(($q['scope'] ?? '') === 'openid email profile' && ($q['client_id'] ?? '') === $cid, 'scope and client id');
-ok(google_take_state('wrong') === null, 'wrong state refused');
+ok(google_take_state('wrong', $w) === null && $w === 'mismatch', 'wrong state refused (mismatch)');
+google_start_url('login');
+ok(google_take_state('', $w) === null && $w === 'no_state' && isset($_SESSION['g_oauth']), 'missing state refused but the saved one is kept');
+$_SESSION = [];
+ok(google_take_state('abc', $w) === null && $w === 'no_session', 'no session at all is reported as no_session');
 google_start_url('signup');
 $st = $_SESSION['g_oauth']['state'];
 ok(is_array(google_take_state($st)), 'right state accepted');
 ok(google_take_state($st) === null, 'state is single use');
 google_start_url('login');
 $_SESSION['g_oauth']['t'] = time() - 3600;
-ok(google_take_state($_SESSION['g_oauth']['state']) === null, 'old state refused');
+ok(google_take_state($_SESSION['g_oauth']['state'], $w) === null && $w === 'old', 'old state refused');
 unlink(__DIR__ . '/../config/google.local.php');
 
 $conn->exec("DELETE FROM users WHERE email LIKE '%@google-test.local'");

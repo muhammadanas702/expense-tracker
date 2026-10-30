@@ -103,10 +103,10 @@ ef_auth_start(['title' => 'Confirm your email']); ?>
     <div style="height:16px"></div>
     <button class="btn lg" style="width:100%" type="submit">Confirm and create account</button>
 </form>
-<form method="POST" class="ft2" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+<form method="POST" class="aft" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
     <?= csrf_field() ?>
     <button class="lnk" type="submit" name="do" value="resend" style="background:none;border:0;cursor:pointer;font:inherit">Send a new code</button>
     <button class="lnk" type="submit" name="do" value="cancel" style="background:none;border:0;cursor:pointer;font:inherit">Wrong address? Start again</button>
 </form>
-<div class="ft2">Nothing arrived? Check your spam folder.</div>
+<div class="aft">Nothing arrived? Check your spam folder.</div>
 <?php ef_auth_end(); ?>

@@ -8,9 +8,14 @@ require_once __DIR__ . '/../modules/oauth/lib.php';
 require_once __DIR__ . '/../modules/security/lib.php';
 require_once __DIR__ . '/../modules/settings/lib.php';
 
-function google_fail(string $msg): void
+/** Sends the person back to the login page with a friendly message and a short reason code (also written to the PHP log). */
+function google_fail(string $msg, string $code = ''): void
 {
     global $base_url;
+    if ($code !== '') {
+        error_log('ExpenseFlow Google sign-in refused: ' . $code);
+        $msg .= ' (reason: ' . preg_replace('/[^A-Za-z0-9 :_\-\.]/', '', substr($code, 0, 90)) . ')';
+    }
     $_SESSION['reset_message'] = $msg;
     $_SESSION['reset_type'] = 'error';
     header('Location: ' . $base_url . '/auth/login.php');
@@ -29,9 +34,12 @@ if (security_ip_blocked($conn)) {
     google_fail('Signing in is not available from this connection right now. Please contact support.');
 }
 
-$saved = google_take_state((string) ($_GET['state'] ?? ''));
+$saved = google_take_state((string) ($_GET['state'] ?? ''), $stateWhy);
 if ($saved === null) {
-    google_fail('The Google sign-in expired. Please try again.');
+    if ($stateWhy === 'no_state' && !empty($_GET['error'])) {
+        google_fail('Google sign-in was cancelled. You can try again or use your email and password.');
+    }
+    google_fail('The Google sign-in could not be continued. Please press "Continue with Google" again.', 'state ' . $stateWhy);
 }
 if (!empty($_GET['error']) || empty($_GET['code']) || !is_string($_GET['code'])) {
     google_fail('Google sign-in was cancelled. You can try again or use your email and password.');
@@ -43,11 +51,10 @@ if (rl_blocked($conn, 'google_cb_ip', $ipKey, 60, 3600)) {
 }
 rl_hit($conn, 'google_cb_ip', $ipKey);
 
-$claims = google_exchange_code((string) $_GET['code'], (string) $saved['verifier']);
-$why = $claims === null ? 'exchange failed' : google_claims_error($claims, google_settings()['client_id']);
+$claims = google_exchange_code((string) $_GET['code'], (string) $saved['verifier'], $exWhy);
+$why = $claims === null ? 'token exchange ' . ($exWhy ?? 'failed') : google_claims_error($claims, google_settings()['client_id']);
 if ($why !== null) {
-    error_log('ExpenseFlow Google sign-in refused: ' . $why);
-    google_fail('We could not confirm your Google account. Please try again or use your email and password.');
+    google_fail('We could not confirm your Google account. Please try again or use your email and password.', $why);
 }
 
 [$user, $err] = google_user_for_claims($conn, $claims, settings_signups_open($conn));

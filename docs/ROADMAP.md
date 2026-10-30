@@ -241,3 +241,7 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 
 ## Part 33 — Contact page
 - Contact page no longer links to the GitHub issue tracker; it shows `expenseflowteam@gmail.com` instead (also added to `security.txt`).
+
+## Part 34 — Google sign-in fixes + sign-in page polish
+- Google callback now shows a reason code on failure and keeps the saved state when a return URL has none; Gmail dots / `+tag` / googlemail.com no longer create a duplicate account; button uses `assets/icons/google-g.svg` if present.
+- Sign-in/register footers renamed `.aft` (they were broken by the landing footer class `.ft2`); button/divider/spacing refined.

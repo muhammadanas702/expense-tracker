@@ -42,7 +42,8 @@ try:
     ok(r.status_code == 302 and 'login.php' in r.headers['Location'], 'wrong state refused')
     r = get(s, '/auth/google-callback.php?state=' + state + '&code=abc')
     ok('login.php' in r.headers.get('Location', ''), 'state already used (single use)')
-    ok('expired' in get(s, '/auth/login.php').text.lower() or 'try again' in get(s, '/auth/login.php').text.lower(), 'login page shows a message')
+    page = get(s, '/auth/login.php').text
+    ok('could not be continued' in page and 'reason: state' in page, 'login page explains the failure with a reason code')
 
     s2 = requests.Session(); get(s2, '/auth/google.php')
     st2 = parse_qs(urlparse(get(s2, '/auth/google.php').headers['Location']).query)['state'][0]

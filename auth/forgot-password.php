@@ -18,5 +18,5 @@ ef_auth_start(['title' => 'Forgot password']); ?>
     <?= ef_field('EMAIL', 'email', 'mail', 'email', '', ['placeholder' => 'you@example.com', 'required' => true, 'maxlength' => 190, 'autocomplete' => 'email']) ?>
     <button class="btn lg" style="width:100%" type="submit">Send code</button>
 </form>
-<div class="ft2"><a class="lnk" href="login.php"><?= ef_icon('bk') ?> Back to login</a></div>
+<div class="aft"><a class="lnk" href="login.php"><?= ef_icon('bk') ?> Back to login</a></div>
 <?php ef_auth_end(); ?>
