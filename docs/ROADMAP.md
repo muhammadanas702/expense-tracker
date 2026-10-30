@@ -238,3 +238,6 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - New module `modules/oauth` + `auth/google.php`, `auth/google-callback.php`, `config/google.php`: OpenID Connect code flow with PKCE, single-use state, verified e-mail only; finds, links (same e-mail) or creates the account; refuses blocked users/IPs and respects closed sign-ups. Table `user_identities` (29 tables now).
 - Button on login and sign-up, hidden until `EXPENSEFLOW_GOOGLE_CLIENT_ID/SECRET` are set and hidden inside the Android/Windows shells (Google blocks embedded web views). Deploy workflow writes `config/google.local.php` from the secrets. Hints for Google-created accounts to set a password via Forgot password.
 - Tests: `google_signin_test.php`, `google_http_test.py`. Setup guide: `docs/OPERATIONS.md` section 4b.
+
+## Part 33 — Contact page
+- Contact page no longer links to the GitHub issue tracker; it shows `expenseflowteam@gmail.com` instead (also added to `security.txt`).
