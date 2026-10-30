@@ -46,13 +46,18 @@
       "publisher": "CN=BD6A12CC-89FA-40A3-8A17-F92091A0CCD3",
       "publisherDisplayName": "Muhammad_Anas",
       "displayName": "ExpenseFlow - Money Manager",
-      "backgroundColor": "transparent",
+      "backgroundColor": "#FFFFFF",
       "languages": [
         "en-US"
       ],
       "artifactName": "ExpenseFlow-Store.msix",
       "minVersion": "10.0.17763.0",
       "maxVersionTested": "10.0.22621.0"
-    }
+    },
+    "compression": "maximum",
+    "asar": true,
+    "electronLanguages": [
+      "en-US"
+    ]
   }
 }

@@ -253,3 +253,8 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 
 ## Part 36 — Official Google "G" on the sign-in button
 - `assets/icons/google-g.png` (supplied by the owner) is used by `google_mark()`; an `.svg` with the same name takes priority if added later.
+
+## Part 37 — Windows app icon background + package size
+- Cause of the changing tile colour (blue / red / white): the Store tile images were transparent and `appx.backgroundColor` was `transparent`, so Windows painted the user's accent colour behind the logo. All tile images in `apps/desktop/build/appx/` are now regenerated from `assets/icons/icon-512.png` on a solid white plate and `backgroundColor` is `#FFFFFF` (same look as the Android and PWA icons).
+- Size: `electronLanguages: ["en-US"]` (drops about 40 MB of unused language packs), maximum compression, asar on. Electron itself ships a whole Chromium, so the app cannot go much below ~150 MB installed; the only big saving is a WebView2-based shell (a few MB) — see ROADMAP ideas.
+- To apply to the Store version: run the release workflow with a new version, upload the new `.msix` as a new submission in Partner Center. The tile in the Start menu changes only after the update installs.
