@@ -8,7 +8,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 - One feature = one module folder `modules/<name>/` with a `module.php` manifest (see `includes/modules.php`).
 - Pages use `includes/layout.php` (`ef_page_start` / `ef_page_end`) and `assets/app.css`.
 - A module owns its own tables/files and never edits another module's tables. Cross-module links go through small helper functions only.
-- Every new table goes into `schema.sql` AND `database/part-N.sql` (copy-paste for InfinityFree phpMyAdmin).
+- Every new table goes into the module's `ensure_schema()` (self-healing) AND `schema.sql`. `database/part-N.sql` files stopped at Part 11f and are no longer needed.
 - All writes are POST + CSRF. Prepared statements only.
 
 ## Status
@@ -227,3 +227,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Exports are built fully in memory and sent only when complete (`ef_export_try/send/begin`): PHP warnings or errors can no longer end up inside a downloaded file; on failure the user sees a message and CSV still works. Android download manager now sends the page's User-Agent/Referer/cookies.
 
 - Part 30: Safe Browsing "Deceptive pages" response — login/register pages now carry a plain "what is ExpenseFlow / who made it / never asks for bank or card details" block with links to Home/About/Privacy/Terms/Contact; added `/.well-known/security.txt`. Permanent fix = own domain.
+
+
+## Part 31 — Project documentation
+- New docs: `docs/README.md` (index), `ONBOARDING`, `ARCHITECTURE`, `THEME`, `MODULES`, `DATABASE`, `SECURITY`, `TESTING`, `DEPLOYMENT`, `OPERATIONS`, `APPS`, `CONTRIBUTING`; `MICROSOFT_STORE.md` gained the certification-failure fixes; root `README.md` rewritten and `DEPLOYMENT.md` now points to the docs.
+- `schema.sql` now includes `friend_links` (28 tables, checked on an empty database).
+- Found: `assets/theme.css`, `style.css`, `dashboard.css`, `responsive.css`, `landing.css`, `auth.css` are legacy and not loaded by any page; only `app.css` + `admin.css` are live. Inter is not downloaded (system font fallback).

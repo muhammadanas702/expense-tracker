@@ -361,3 +361,15 @@ CREATE TABLE IF NOT EXISTS `app_settings` (
   `updated_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`k`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Friends by e-mail (Part 21): direct friend requests; friends are also derived from shared groups.
+CREATE TABLE IF NOT EXISTS `friend_links` (
+  `id`           INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `requester_id` INT UNSIGNED NOT NULL,
+  `addressee_id` INT UNSIGNED NOT NULL,
+  `status`       VARCHAR(10)  NOT NULL DEFAULT 'pending',
+  `created_at`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_pair` (`requester_id`, `addressee_id`),
+  KEY `idx_addressee` (`addressee_id`, `status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
