@@ -66,7 +66,7 @@ Feed of everything in your groups (Today / Yesterday / Earlier, filter by group)
 
 ## Support (`modules/support`)
 
-Users open a ticket from Profile (subject, category, message) and read replies there; staff with the `support` permission get an inbox to reply, close, reopen. Staff replies show as "ExpenseFlow support" and trigger `sendSupportReplyMail`. The public `contact.php` page has no form: it explains how to reach support (sign in, then Profile & Settings > Help & support).
+Users open a ticket from Profile (subject, category, message) and read replies there; staff with the `support` permission get an inbox to reply, close, reopen. Staff replies show as "ExpenseFlow support" and trigger `sendSupportReplyMail`. The public `contact.php` page has no form: it explains how to reach support (sign in, then Profile & Settings > Help & support) and gives the team e-mail `expenseflowteam@gmail.com` for people who cannot sign in (also listed in `/.well-known/security.txt`).
 
 ## Admin and staff modules
 
