@@ -88,54 +88,89 @@ function google_start_url(string $intent): string
     ], '', '&', PHP_QUERY_RFC3986);
 }
 
-/** Checks the state sent back by Google. Returns the saved data once (it is single use) or null. */
-function google_take_state(string $state): ?array
+/**
+ * Checks the state sent back by Google. Returns the saved data once (it is single use) or null.
+ * $why says what went wrong: no_state (the return URL carried none, the saved one is kept), no_session (the browser
+ * did not send the session cookie back), mismatch, old.
+ */
+function google_take_state(string $state, ?string &$why = null): ?array
 {
+    $why = null;
     $saved = $_SESSION['g_oauth'] ?? null;
+    if ($state === '') {
+        $why = 'no_state';
+        return null; // keep the saved state: a stray request without parameters must not break the real one
+    }
     unset($_SESSION['g_oauth']);
-    if (!is_array($saved) || $state === '' || !hash_equals((string) $saved['state'], $state) || time() - (int) $saved['t'] > GOOGLE_STATE_TTL) {
+    if (!is_array($saved)) {
+        $why = 'no_session';
+        return null;
+    }
+    if (!hash_equals((string) $saved['state'], $state)) {
+        $why = 'mismatch';
+        return null;
+    }
+    if (time() - (int) $saved['t'] > GOOGLE_STATE_TTL) {
+        $why = 'old';
         return null;
     }
     return $saved;
 }
 
-/** POST form fields to Google and decode the JSON answer. */
-function google_post(string $url, array $fields): ?array
+/** POST form fields to Google and decode the JSON answer. $err gets a short reason when nothing usable came back. */
+function google_post(string $url, array $fields, ?string &$err = null): ?array
 {
     $body = http_build_query($fields);
     $raw = false;
+    $err = null;
     if (function_exists('curl_init')) {
         $ch = curl_init($url);
         curl_setopt_array($ch, [CURLOPT_POST => true, CURLOPT_POSTFIELDS => $body, CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 12, CURLOPT_CONNECTTIMEOUT => 6,
             CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded', 'Accept: application/json']]);
         $raw = curl_exec($ch);
+        if ($raw === false) {
+            $err = 'network: ' . substr((string) curl_error($ch), 0, 80);
+        }
         curl_close($ch);
-    } elseif (ini_get('allow_url_fopen')) {
+    } elseif (!ini_get('allow_url_fopen')) {
+        $err = 'network: neither curl nor allow_url_fopen is available';
+    } else {
         $raw = @file_get_contents($url, false, stream_context_create(['http' => ['method' => 'POST', 'timeout' => 12, 'ignore_errors' => true,
             'header' => "Content-Type: application/x-www-form-urlencoded\r\nAccept: application/json\r\n", 'content' => $body]]));
     }
+    if ($raw === false && $err === null) {
+        $err = 'network: no answer';
+    }
     $json = is_string($raw) ? json_decode($raw, true) : null;
+    if (is_array($json) && isset($json['error'])) {
+        $err = 'google: ' . substr((string) $json['error'], 0, 40) . (isset($json['error_description']) ? ' - ' . substr((string) $json['error_description'], 0, 80) : '');
+    } elseif (!is_array($json) && $err === null) {
+        $err = 'bad answer';
+    }
     return is_array($json) ? $json : null;
 }
 
 /** Exchanges the one-time code for the signed-in person's claims (null on any failure). */
-function google_exchange_code(string $code, string $verifier): ?array
+function google_exchange_code(string $code, string $verifier, ?string &$why = null): ?array
 {
     $cfg = google_settings();
+    $why = null;
     $res = google_post(GOOGLE_TOKEN_URL, [
         'code' => $code, 'client_id' => $cfg['client_id'], 'client_secret' => $cfg['client_secret'],
         'redirect_uri' => google_redirect_uri(), 'grant_type' => 'authorization_code', 'code_verifier' => $verifier,
-    ]);
+    ], $why);
     if (!$res || empty($res['id_token']) || !is_string($res['id_token'])) {
+        $why = $why ?? 'no id_token';
         return null;
     }
     // The id_token came straight from Google's token endpoint over TLS, so its payload is trusted after the claim checks below.
     $parts = explode('.', $res['id_token']);
-    if (count($parts) !== 3) {
+    $claims = count($parts) === 3 ? json_decode((string) base64_decode(strtr($parts[1], '-_', '+/')), true) : null;
+    if (!is_array($claims)) {
+        $why = 'unreadable id_token';
         return null;
     }
-    $claims = json_decode((string) base64_decode(strtr($parts[1], '-_', '+/')), true);
-    return is_array($claims) ? $claims : null;
+    return $claims;
 }
 
 /** Null when the claims are acceptable, otherwise a short reason (never shown to the visitor). */
@@ -167,6 +202,34 @@ function google_claims_error(array $c, string $clientId, ?int $now = null): ?str
 }
 
 /**
+ * The existing account for an e-mail address. An exact match wins. For Gmail, the dots and "+tag" in the part before
+ * the @ do not change the mailbox (a.nas+x@gmail.com is anas@gmail.com, and googlemail.com is gmail.com), so those
+ * spellings find the same person instead of creating a second account.
+ */
+function google_find_by_email(PDO $conn, string $email): ?array
+{
+    $email = strtolower(trim($email));
+    $st = $conn->prepare('SELECT id, name, blocked FROM users WHERE email = ?');
+    $st->execute([$email]);
+    $row = $st->fetch(PDO::FETCH_ASSOC);
+    if ($row) {
+        return $row;
+    }
+    [$local, $domain] = array_pad(explode('@', $email, 2), 2, '');
+    if (!in_array($domain, ['gmail.com', 'googlemail.com'], true)) {
+        return null;
+    }
+    $key = str_replace('.', '', explode('+', $local, 2)[0]);
+    $st = $conn->prepare("SELECT id, name, blocked FROM users
+        WHERE SUBSTRING_INDEX(email, '@', -1) IN ('gmail.com','googlemail.com')
+          AND REPLACE(SUBSTRING_INDEX(SUBSTRING_INDEX(email, '@', 1), '+', 1), '.', '') = ?
+        ORDER BY id LIMIT 1");
+    $st->execute([$key]);
+    $row = $st->fetch(PDO::FETCH_ASSOC);
+    return $row ?: null;
+}
+
+/**
  * Finds, links or creates the ExpenseFlow account for verified Google claims.
  * @return array{0:?array,1:string} [user row (id, name) or null, error code: '', 'blocked', 'closed', 'failed']
  */
@@ -181,9 +244,7 @@ function google_user_for_claims(PDO $conn, array $c, bool $signupsOpen): array
     $user = $st->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
-        $st = $conn->prepare('SELECT id, name, blocked FROM users WHERE email = ?');
-        $st->execute([$email]);
-        $user = $st->fetch(PDO::FETCH_ASSOC);
+        $user = google_find_by_email($conn, $email);
         if (!$user) {
             if (!$signupsOpen) {
                 return [null, 'closed'];
@@ -202,9 +263,7 @@ function google_user_for_claims(PDO $conn, array $c, bool $signupsOpen): array
                     error_log('Google sign-up failed: ' . $e->getMessage());
                     return [null, 'failed'];
                 }
-                $st = $conn->prepare('SELECT id, name, blocked FROM users WHERE email = ?'); // lost a race with another request
-                $st->execute([$email]);
-                $user = $st->fetch(PDO::FETCH_ASSOC);
+                $user = google_find_by_email($conn, $email); // lost a race with another request
                 if (!$user) {
                     return [null, 'failed'];
                 }
@@ -223,6 +282,18 @@ function google_user_for_claims(PDO $conn, array $c, bool $signupsOpen): array
     return [$user, ''];
 }
 
+/**
+ * The mark inside the button. If the official Google "G" file is at assets/icons/google-g.svg it is used
+ * (download it from Google's sign-in branding guidelines); until then a plain neutral letter is shown.
+ */
+function google_mark(): string
+{
+    if (is_file(__DIR__ . '/../../assets/icons/google-g.svg')) {
+        return '<img class="gimg" src="' . e(ef_asset('assets/icons/google-g.svg')) . '" alt="" width="20" height="20">';
+    }
+    return '<span class="gmark" aria-hidden="true">G</span>';
+}
+
 /** The "Continue with Google" button + "or" divider. Empty string when Google sign-in is not available. */
 function google_button(string $intent): string
 {
@@ -234,5 +305,5 @@ function google_button(string $intent): string
     $note = $intent === 'signup'
         ? '<p class="gnote">By continuing you agree to the <a href="' . e(ef_url('terms.php')) . '">Terms of Use</a> and the <a href="' . e(ef_url('privacy.php')) . '">Privacy Policy</a>.</p>'
         : '';
-    return '<a class="gbtn" href="' . e($url) . '"><span class="gmark" aria-hidden="true">G</span>' . e($label) . '</a>' . $note . '<div class="gor"><span>or use your email</span></div>';
+    return '<a class="gbtn" href="' . e($url) . '">' . google_mark() . '' . e($label) . '</a>' . $note . '<div class="gor"><span>or use your email</span></div>';
 }
