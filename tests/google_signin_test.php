@@ -70,9 +70,23 @@ ok($g3 && !empty($g3['created']) && (int) $g3['id'] !== $dotId, 'a different Gma
 [$g4] = google_user_for_claims($conn, ['sub' => 'g-sub-7', 'email' => 'anas@yahoo.com'] + $good, true);
 ok($g4 && !empty($g4['created']), 'dots rule is Gmail only');
 
-// 6. deleting the user removes the identity
+// 6. deleting the user removes the identity (no foreign key: older databases have a different users.id type)
+require_once __DIR__ . '/../modules/shared/lib.php';
+shared_on_user_deleted($conn, $id1);
 $conn->exec("DELETE FROM users WHERE id=$id1");
-ok((int) $conn->query("SELECT COUNT(*) FROM user_identities WHERE user_id=$id1")->fetchColumn() === 0, 'identity removed with the account');
+ok((int) $conn->query("SELECT COUNT(*) FROM user_identities WHERE user_id=$id1")->fetchColumn() === 0, 'identity removed with the account (via shared_on_user_deleted)');
+// a stale row left behind (deleted user) must not make the person create a new account every time
+$conn->prepare("INSERT INTO user_identities(user_id,provider,subject,email) VALUES(?, 'google', 'g-stale', 'x@google-test.local')")->execute([999999]);
+[$st1] = google_user_for_claims($conn, ['sub' => 'g-stale', 'email' => 'stale@google-test.local'] + $good, true);
+ok($st1 && !empty($st1['created']), 'stale identity: account is created once');
+[$st2] = google_user_for_claims($conn, ['sub' => 'g-stale', 'email' => 'stale@google-test.local'] + $good, true);
+ok($st2 && (int) $st2['id'] === (int) $st1['id'] && empty($st2['created']), 'stale identity: next sign-in finds the same account');
+// table creation does not depend on the users.id type
+$conn->exec('DROP TABLE IF EXISTS user_identities');
+foreach (glob(__DIR__ . '/../storage/schema/*oauth*') ?: [] as $f) { @unlink($f); }
+oauth_ensure_schema($conn);
+ok((int) $conn->query("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='user_identities'")->fetchColumn() === 1, 'user_identities exists without a foreign key');
+ok((int) $conn->query("SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='user_identities' AND CONSTRAINT_TYPE='FOREIGN KEY'")->fetchColumn() === 0, 'no foreign key on user_identities');
 
 // 7. start URL carries state + PKCE; state is single use and expires
 file_put_contents(__DIR__ . '/../config/google.local.php', "<?php return ['client_id'=>'$cid','client_secret'=>'s3cret'];");

@@ -17,6 +17,12 @@ require_once __DIR__ . '/../../includes/assets.php';
 
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
+
+/** Google's token endpoint. Only the tests override it (EXPENSEFLOW_GOOGLE_TOKEN_URL) to talk to a local fake. */
+function google_token_url(): string
+{
+    return (string) (getenv('EXPENSEFLOW_GOOGLE_TOKEN_URL') ?: GOOGLE_TOKEN_URL);
+}
 const GOOGLE_STATE_TTL = 600; // seconds the person has to finish on Google's side
 
 function oauth_ensure_schema(PDO $conn): void
@@ -24,6 +30,8 @@ function oauth_ensure_schema(PDO $conn): void
     if (ef_schema_ok(__FUNCTION__, __FILE__)) {
         return;
     }
+    // user_id has no foreign key on purpose: some hosts refuse it (table type / column type differs) and that made the
+    // table, and with it the whole sign-in, fail. oauth_on_user_deleted() removes the rows instead.
     try {
         $conn->exec(
             "CREATE TABLE IF NOT EXISTS `user_identities` (
@@ -35,8 +43,7 @@ function oauth_ensure_schema(PDO $conn): void
               `created_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
               PRIMARY KEY (`id`),
               UNIQUE KEY `uq_identity` (`provider`, `subject`),
-              KEY `idx_identity_user` (`user_id`),
-              CONSTRAINT `fk_identity_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+              KEY `idx_identity_user` (`user_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
         );
         if (function_exists('ef_schema_mark')) {
@@ -44,6 +51,17 @@ function oauth_ensure_schema(PDO $conn): void
         }
     } catch (Throwable $e) {
         error_log('oauth schema: ' . $e->getMessage());
+    }
+}
+
+/** Account deleted: forget its Google links (no foreign key, so this is done here; called by shared_on_user_deleted). */
+function oauth_on_user_deleted(PDO $conn, int $userId): void
+{
+    try {
+        oauth_ensure_schema($conn);
+        $conn->prepare('DELETE FROM user_identities WHERE user_id = ?')->execute([$userId]);
+    } catch (Throwable $e) {
+        error_log('oauth cleanup: ' . $e->getMessage());
     }
 }
 
@@ -155,7 +173,7 @@ function google_exchange_code(string $code, string $verifier, ?string &$why = nu
 {
     $cfg = google_settings();
     $why = null;
-    $res = google_post(GOOGLE_TOKEN_URL, [
+    $res = google_post(google_token_url(), [
         'code' => $code, 'client_id' => $cfg['client_id'], 'client_secret' => $cfg['client_secret'],
         'redirect_uri' => google_redirect_uri(), 'grant_type' => 'authorization_code', 'code_verifier' => $verifier,
     ], $why);
@@ -261,6 +279,7 @@ function google_user_for_claims(PDO $conn, array $c, bool $signupsOpen): array
             } catch (PDOException $e) {
                 if ($e->getCode() !== '23000') {
                     error_log('Google sign-up failed: ' . $e->getMessage());
+                    $GLOBALS['google_fail_detail'] = 'signup sql ' . $e->getCode();
                     return [null, 'failed'];
                 }
                 $user = google_find_by_email($conn, $email); // lost a race with another request
@@ -270,9 +289,11 @@ function google_user_for_claims(PDO $conn, array $c, bool $signupsOpen): array
             }
         }
         try {
-            $conn->prepare("INSERT IGNORE INTO user_identities(user_id,provider,subject,email) VALUES(?, 'google', ?, ?)")->execute([(int) $user['id'], $sub, $email]);
+            $conn->prepare("INSERT INTO user_identities(user_id,provider,subject,email) VALUES(?, 'google', ?, ?)
+                ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), email = VALUES(email)")->execute([(int) $user['id'], $sub, $email]);
         } catch (PDOException $e) {
             error_log('Google identity link failed: ' . $e->getMessage());
+            $GLOBALS['google_fail_detail'] = 'identity sql ' . $e->getCode();
             return [null, 'failed'];
         }
     }

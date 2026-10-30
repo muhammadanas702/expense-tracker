@@ -11,7 +11,7 @@ require_once __DIR__ . '/balance.php';
 if (is_file(__DIR__ . '/../activity/lib.php')) {
     require_once __DIR__ . '/../activity/lib.php'; // optional: feed + notifications
 }
-foreach (['comments', 'receipts', 'support', 'announce'] as $ef_opt) {
+foreach (['comments', 'receipts', 'support', 'announce', 'oauth'] as $ef_opt) {
     if (is_file(__DIR__ . '/../' . $ef_opt . '/lib.php')) {
         require_once __DIR__ . '/../' . $ef_opt . '/lib.php'; // optional modules, each with its own tables
     }
@@ -290,6 +290,9 @@ function shared_on_user_deleted(PDO $conn, int $userId): void
     }
     if (function_exists('activity_on_user_deleted')) {
         activity_on_user_deleted($conn, $userId);
+    }
+    if (function_exists('oauth_on_user_deleted')) {
+        oauth_on_user_deleted($conn, $userId);
     }
     if (function_exists('support_on_user_deleted')) {
         support_on_user_deleted($conn, $userId);
