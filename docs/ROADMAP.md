@@ -233,3 +233,8 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - New docs: `docs/README.md` (index), `ONBOARDING`, `ARCHITECTURE`, `THEME`, `MODULES`, `DATABASE`, `SECURITY`, `TESTING`, `DEPLOYMENT`, `OPERATIONS`, `APPS`, `CONTRIBUTING`; `MICROSOFT_STORE.md` gained the certification-failure fixes; root `README.md` rewritten and `DEPLOYMENT.md` now points to the docs.
 - `schema.sql` now includes `friend_links` (28 tables, checked on an empty database).
 - Found: `assets/theme.css`, `style.css`, `dashboard.css`, `responsive.css`, `landing.css`, `auth.css` are legacy and not loaded by any page; only `app.css` + `admin.css` are live. Inter is not downloaded (system font fallback).
+
+## Part 32 — Continue with Google
+- New module `modules/oauth` + `auth/google.php`, `auth/google-callback.php`, `config/google.php`: OpenID Connect code flow with PKCE, single-use state, verified e-mail only; finds, links (same e-mail) or creates the account; refuses blocked users/IPs and respects closed sign-ups. Table `user_identities` (29 tables now).
+- Button on login and sign-up, hidden until `EXPENSEFLOW_GOOGLE_CLIENT_ID/SECRET` are set and hidden inside the Android/Windows shells (Google blocks embedded web views). Deploy workflow writes `config/google.local.php` from the secrets. Hints for Google-created accounts to set a password via Forgot password.
+- Tests: `google_signin_test.php`, `google_http_test.py`. Setup guide: `docs/OPERATIONS.md` section 4b.

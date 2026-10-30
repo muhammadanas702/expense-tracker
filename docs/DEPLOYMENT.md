@@ -34,6 +34,7 @@ Settings > Secrets and variables > Actions.
 | `EXPENSEFLOW_SMTP_USERNAME`, `EXPENSEFLOW_SMTP_PASSWORD` | Gmail address and **app password** |
 | `EXPENSEFLOW_MAIL_FROM`, `EXPENSEFLOW_MAIL_FROM_NAME`, `EXPENSEFLOW_MAIL_REPLY_TO` | optional sender details |
 | `EXPENSEFLOW_SMTP_HOST/PORT/ENCRYPTION` (env) | optional; default `smtp.gmail.com`, `587`, `tls` |
+| `EXPENSEFLOW_GOOGLE_CLIENT_ID`, `EXPENSEFLOW_GOOGLE_CLIENT_SECRET` | optional; when both exist the deploy writes `config/google.local.php` and the "Continue with Google" button appears |
 | `STORE_IDENTITY_NAME`, `STORE_PUBLISHER`, `STORE_PUBLISHER_DISPLAY_NAME` | optional overrides for the Microsoft Store identity (defaults are in `apps/desktop/package.json`) |
 
 ### What is not deployed

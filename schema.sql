@@ -373,3 +373,17 @@ CREATE TABLE IF NOT EXISTS `friend_links` (
   UNIQUE KEY `uq_pair` (`requester_id`, `addressee_id`),
   KEY `idx_addressee` (`addressee_id`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Google sign-in (Part 32): which external identity belongs to which account.
+CREATE TABLE IF NOT EXISTS `user_identities` (
+  `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id`    INT UNSIGNED NOT NULL,
+  `provider`   VARCHAR(10)  NOT NULL,
+  `subject`    VARCHAR(64)  NOT NULL,
+  `email`      VARCHAR(190) NOT NULL DEFAULT '',
+  `created_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_identity` (`provider`, `subject`),
+  KEY `idx_identity_user` (`user_id`),
+  CONSTRAINT `fk_identity_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

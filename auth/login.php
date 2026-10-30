@@ -6,6 +6,7 @@ secure_session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/logging.php';
 require_once __DIR__ . '/../modules/security/lib.php';
+require_once __DIR__ . '/../modules/oauth/lib.php';
 
 // Used to spend the same time on unknown emails as on real ones (stops user enumeration by timing).
 const LOGIN_DUMMY_HASH = '$2y$10$upDqZzLSCX4uV4KiKU.A2udyaMdt1.F45WteM6RgWu.XNBqNEFfiu';
@@ -98,6 +99,7 @@ require_once __DIR__ . '/../includes/auth-layout.php';
 <p class="s3">Log in to continue to ExpenseFlow.</p>
 <?= ef_msg($notice, $noticeType === 'success' ? 'ok' : 'err') ?>
 <?= ef_msg($error) ?>
+<?= google_button('login') ?>
 <form method="POST" autocomplete="on">
     <?= csrf_field() ?>
     <?= ef_field('EMAIL', 'email', 'mail', 'email', $email, ['placeholder' => 'you@example.com', 'required' => true, 'maxlength' => 190, 'autocomplete' => 'email']) ?>

@@ -37,6 +37,7 @@ MySQL / MariaDB, `utf8mb4`, InnoDB, accessed only through PDO prepared statement
 | `shared_expenses` | A bill added to a group | `amount_minor` (integer paisa/cents), `currency`, `paid_by`, `created_by`, `split_type` (`equal`/`exact`/`percent`/`shares`), `expense_date`, `personal_expense_id` (link to the member's own Personal copy) |
 | `shared_splits` | Each person's share of an expense | `share_minor`, `weight`; shares always add up exactly to the total |
 | `shared_settlements` | "X paid Y" payments | `from_user`, `to_user`, `amount_minor`, `currency`, `settled_on` |
+| `user_identities` | Links a login provider to an account | `user_id`, `provider` (`google`), `subject` (Google's stable id), `email`; unique (`provider`,`subject`); deleted with the user |
 | `friend_links` | Direct friend requests by e-mail | `requester_id`, `addressee_id`, `status` `pending`/`accepted`; unique pair. Friends are also *derived* from shared groups |
 
 **Money rules (Shared):** all amounts are **integers in minor units** (`amount_minor`). Never use floats. Balances are calculated per person and per currency from expenses, splits and settlements (`shared_group_pairs`, `shared_group_nets`); only two people who owe each other cancel out.
@@ -74,6 +75,7 @@ users *─* shared_groups  via shared_members
 shared_groups 1─* shared_expenses 1─* shared_splits
 shared_groups 1─* shared_settlements, activity_events, comments_items, receipts_files
 shared_expenses 0..1─1 expenses   (personal_expense_id: the member's own copy of their share)
+users 1─* user_identities (Google sign-in)
 users *─* users via friend_links
 support_tickets 1─* support_messages
 ```

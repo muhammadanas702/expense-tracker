@@ -9,6 +9,7 @@ Practical knowledge about the live site `https://expenseflow.rf.gd`, its hosting
 | Website | InfinityFree free hosting, Apache + PHP, `htdocs/` |
 | Database | InfinityFree MySQL (phpMyAdmin in the host panel) |
 | Deploy | GitHub Actions over FTPS (see [`DEPLOYMENT.md`](DEPLOYMENT.md)) |
+| Google sign-in | Optional OAuth client (Google Cloud project), secrets `EXPENSEFLOW_GOOGLE_CLIENT_ID/SECRET` |
 | Mail | Gmail SMTP with an app password (`config/mail.local.php`, created by the workflow) |
 | Exchange rates | exchangerate-api.com free endpoint, cached 1 hour in `storage/currency_cache.json`; built-in fallback rates when unreachable |
 | Apps | GitHub Releases (APK, exe) and Microsoft Store |
@@ -57,6 +58,22 @@ Practical knowledge about the live site `https://expenseflow.rf.gd`, its hosting
 5. The durable fix is your **own domain** (section 6).
 
 Indexing: guides under `/guides/` are listed in `sitemap.xml`; submit new URLs in Search Console > URL inspection > Request indexing. Update `sitemap.xml` whenever a public page is added.
+
+## 4b. Google sign-in setup ("Continue with Google")
+
+The button stays hidden until these two secrets exist. No Google call is made without them.
+
+1. Open https://console.cloud.google.com, create a project (for example "ExpenseFlow").
+2. **APIs & Services > OAuth consent screen**: user type **External**; app name `ExpenseFlow`; support e-mail; app logo (optional, use `ExpenseFlow Logo.png`); homepage `https://expenseflow.rf.gd`, privacy `https://expenseflow.rf.gd/privacy.php`, terms `https://expenseflow.rf.gd/terms.php`. Google may ask for an **authorized domain** for those links; if it does not accept the shared domain `rf.gd`, that is one more reason to move to your own domain (section 6). Scopes: only `openid`, `.../auth/userinfo.email`, `.../auth/userinfo.profile` (non-sensitive, no verification review needed). Publishing status: **In production** (in "Testing" only listed test users can sign in).
+3. **Credentials > Create credentials > OAuth client ID**, type **Web application**:
+   - Authorized JavaScript origins: `https://expenseflow.rf.gd`
+   - Authorized redirect URIs: `https://expenseflow.rf.gd/auth/google-callback.php` (exact, including `https`; add the localhost one `http://127.0.0.1:8080/auth/google-callback.php` only for local testing)
+4. Copy the **Client ID** and **Client secret**. In GitHub > Settings > Secrets and variables > Actions add `EXPENSEFLOW_GOOGLE_CLIENT_ID` and `EXPENSEFLOW_GOOGLE_CLIENT_SECRET`.
+5. Run the **Deploy** workflow (or merge any change). Open the login page: "Continue with Google" appears.
+6. Test with a Google account that has no ExpenseFlow account (new account is created), then with one that has (it is linked).
+7. **If you move to your own domain**, add the new origin and redirect URI in the same OAuth client and update the consent-screen links.
+
+Troubleshooting: `redirect_uri_mismatch` = the URI in step 3 does not match exactly; "Access blocked: app not verified / only test users" = consent screen still in Testing; no button = secrets missing, or you are inside the Android/Windows app (intended: Google refuses sign-in in embedded web views; people use e-mail + password there, or the website/PWA in a browser). The reason for a refused sign-in is written to the PHP error log as `ExpenseFlow Google sign-in refused: ...`.
 
 ## 5. Microsoft Store status checklist
 

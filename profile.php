@@ -119,6 +119,7 @@ ef_page_start(['title' => 'Profile & Settings', 'sub' => 'Account, goals and dat
 
     <div class="g card">
       <div class="t">Change password</div>
+      <p class="k" style="margin:-4px 0 12px">Signed up with Google and never set a password? Log out, choose <b>Forgot password</b> on the login page and set one. After that you can use both ways to sign in.</p>
       <form method="POST" autocomplete="off">
         <?= csrf_field() ?>
         <div class="fl"><label for="current_password">Current password</label><input class="inp" id="current_password" type="password" name="current_password" autocomplete="current-password" required></div>

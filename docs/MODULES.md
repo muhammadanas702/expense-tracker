@@ -16,6 +16,7 @@ Every feature is a folder in `modules/` with a `module.php` manifest (see [`ARCH
 | `support` | neutral | Help in Profile | Help requests and replies | `support/*.php` |
 | `announce` | any | none | Banner notices from staff | `announce/dismiss.php` |
 | `signup` | auth | none | E-mail code confirmation at sign-up | used by `auth/register.php`, `auth/verify-email.php` |
+| `oauth` | auth | none | **Continue with Google** (login and sign-up) | `auth/google.php`, `auth/google-callback.php` |
 | `admin` | staff | Admin button | Roles, permissions, audit trail, shell | `admin/*.php` |
 | `categories` | admin | none | Expense category list | `admin/categories.php` |
 | `currencies` | admin | none | Hide currencies, see rates | `admin/currencies.php` |
@@ -92,9 +93,20 @@ Rules every admin page follows: sign-in + role check at the top (`admin/auth.php
 ## Sign-up and sign-in (not a module menu, but central)
 
 - `auth/register.php`: name, e-mail, password policy, Terms/Privacy tick box, rate-limited (10/hour/IP). Sends a 6-digit code (`sendVerifyMail`); `auth/verify-email.php` creates the account. Throw-away e-mail domains are refused.
-- `auth/login.php`: rate limits per e-mail+IP (5 per 15 min), per e-mail (20), per IP (100); failures go to `security_events`; blocked users and blocked IPs are refused.
+- `auth/login.php` (also offers Continue with Google, below): rate limits per e-mail+IP (5 per 15 min), per e-mail (20), per IP (100); failures go to `security_events`; blocked users and blocked IPs are refused.
 - `auth/forgot-password.php` -> `send-otp.php` (5/hour/e-mail) -> `verify-otp.php` -> `set-new-password.php`; 6-digit code valid 10 minutes.
 - Sessions: 3-day idle timeout, 30-day cookie lifetime, regenerated ID after login.
+
+## Continue with Google (`modules/oauth`)
+
+- Button on `auth/login.php` and `auth/register.php` (`google_button()`), shown **only when** a Google client id + secret are configured (`config/google.php`) and the visitor is not inside the Android/Windows shell (Google refuses sign-in from embedded web views, so those users keep e-mail + password).
+- Flow: `auth/google.php` stores a random `state` and a PKCE verifier in the session and redirects to Google (scope `openid email profile`, `prompt=select_account`); `auth/google-callback.php` checks the single-use state (10 min), exchanges the code on the server, checks the claims (`iss`, `aud`, `exp`, `sub`, and **`email_verified` must be true**), then `google_user_for_claims()`:
+  1. known Google identity -> that account;
+  2. else an account with the same e-mail -> linked to it (the person proved the address);
+  3. else a new account (only if sign-ups are open) with a random password hash nobody knows; Terms acceptance is logged;
+  4. blocked accounts and blocked IPs are refused; rate limits per IP.
+- Table `user_identities` (`provider`, `subject` unique, cascades with the user). Google-created users can set a real password with **Forgot password** (hints on Profile and Delete account pages).
+- Setup steps: [`OPERATIONS.md`](OPERATIONS.md) "Google sign-in setup". Tests: `tests/google_signin_test.php`, `tests/google_http_test.py`.
 
 ## Adding a new module (recipe)
 

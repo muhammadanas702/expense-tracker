@@ -136,7 +136,7 @@ Sign-up e-mails need SMTP (`config/mail.local.php`, Gmail app password). To beco
 ├── apps/android, apps/desktop   Native shells
 ├── tests/                 PHP + HTTP tests (test DB only)
 ├── docs/                  Documentation
-├── schema.sql             Fresh-install schema (28 tables)
+├── schema.sql             Fresh-install schema (29 tables)
 ├── sw.js, manifest.json, offline.html   PWA
 └── .github/workflows/     deploy.yml, release.yml
 ```
