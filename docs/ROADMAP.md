@@ -250,3 +250,6 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - `user_identities` no longer has a foreign key to `users` (some hosts reject it, so the table could not be created and the callback crashed); `shared_on_user_deleted()` now calls `oauth_on_user_deleted()` to remove the rows.
 - `auth/google-callback.php` is wrapped in try/catch plus a shutdown handler: any error becomes a normal "try again" message with a short `(reason: ...)` code instead of a blank 500.
 - Tests: stale-identity and no-foreign-key cases in `tests/google_signin_test.php`.
+
+## Part 36 — Official Google "G" on the sign-in button
+- `assets/icons/google-g.png` (supplied by the owner) is used by `google_mark()`; an `.svg` with the same name takes priority if added later.
