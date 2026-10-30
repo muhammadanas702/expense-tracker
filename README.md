@@ -1,18 +1,20 @@
 <div align="center">
 
+<img src="assets/icons/favicon-192.png" width="84" alt="ExpenseFlow logo">
+
 # ExpenseFlow
 
-**A multi-currency income and expense tracker, built as an installable web app.**
-
-Record what you earn and spend in the currency you actually used, see everything converted into the one you choose, and understand your money through a live dashboard, charts and a printable report.
+**Track. Budget. Split.** A free personal expense tracker and bill splitter: multi-currency, installable, with groups, friends and an admin panel.
 
 ![PHP](https://img.shields.io/badge/PHP-8.1%2B-777BB4?logo=php&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-PDO-4479A1?logo=mysql&logoColor=white)
 ![Chart.js](https://img.shields.io/badge/Chart.js-4.4-FF6384?logo=chartdotjs&logoColor=white)
 ![PWA](https://img.shields.io/badge/PWA-installable-5A0FC8?logo=pwa&logoColor=white)
+![Android](https://img.shields.io/badge/Android-APK-3DDC84?logo=android&logoColor=white)
+![Windows](https://img.shields.io/badge/Windows-exe%20%2B%20Store-0078D4?logo=windows&logoColor=white)
 ![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)
 
-**[Live site: expenseflow.rf.gd](https://expenseflow.rf.gd)**
+**[Live site: expenseflow.rf.gd](https://expenseflow.rf.gd)** · **[Documentation](docs/README.md)** · **[Latest release (APK / Windows)](https://github.com/muhammadanas702/expense-tracker/releases/latest)**
 
 </div>
 
@@ -20,295 +22,159 @@ Record what you earn and spend in the currency you actually used, see everything
 
 ## Table of contents
 
-- [Overview](#overview)
+- [What it is](#what-it-is)
 - [Features](#features)
 - [Tech stack](#tech-stack)
-- [How it works](#how-it-works)
+- [Documentation map](#documentation-map)
+- [Quick start](#quick-start)
 - [Project structure](#project-structure)
-- [Database](#database)
-- [Getting started](#getting-started)
-- [Configuration](#configuration)
+- [Look and feel](#look-and-feel)
+- [Security in brief](#security-in-brief)
+- [Apps and installing](#apps-and-installing)
 - [Deployment](#deployment)
-- [Installing as an app](#installing-as-an-app)
-- [Project status and roadmap](#project-status-and-roadmap)
+- [Status and roadmap](#status-and-roadmap)
 - [Contributing](#contributing)
 - [Author](#author)
 
-## Overview
+## What it is
 
-ExpenseFlow is a server-rendered PHP and MySQL application for personal finance. You add income and expenses in any of 40 currencies, and ExpenseFlow converts them with live exchange rates so your totals always make sense in a single currency.
+ExpenseFlow is a server-rendered **PHP 8 + MySQL** web app with no framework and no build step. It has two sides that share one account:
 
-It is built for people who earn or spend across several currencies, for example a freelancer paid in USD who lives on PKR. A dashboard summarises your money, charts show where it goes, and a report page lets you export or print your history. An admin panel lets the site owner manage users and review activity. The site can be installed on a phone like a native app.
+- **Personal** (teal): income and expenses in **40 currencies** with live exchange rates, a dashboard with insights and charts, reports, and monthly recurring items.
+- **Shared** (blue): groups for trips, rent or family, bills split four ways, friends, balances person by person, settle up, activity feed, comments and receipt photos.
+
+Around that: a role-based **admin panel**, branded **Excel / PDF / CSV exports**, e-mail confirmation at sign-up, and apps for **Android**, **Windows** and the **Microsoft Store**. It runs on free shared hosting.
 
 ## Features
 
-### Money tracking
-- Add, edit and delete **income** and **expenses**, each with a title, amount and currency.
-- Expense categories: Food, Transport, Shopping, Entertainment, Bills, Healthcare, Education, or a custom category of your own.
-- Every entry is time-stamped automatically.
-- Reset all income, all expenses, or all data from the dashboard.
+### Personal
+- Add, edit, delete **income** and **expenses** with title, amount, currency, category, payment method, note and date; **repeat monthly** switch.
+- **Base currency per month**; every entry keeps the exchange rate it had when saved, so old totals never change.
+- Dashboard: period chips (this month, last month, last 3 months, this year, custom), savings rate against your goal, insights (health, trend, top category, daily average), category and income/expense charts.
+- **Full Report** with filters, monthly comparison, category breakdown and **CSV, Excel and PDF** downloads (branded with the ExpenseFlow logo).
+- Profile: name, password, savings goal, notifications, reset data, delete account.
 
-### Multi-currency
-- 40 currencies for transactions, including PKR, USD, EUR, GBP, AED, SAR, INR, JPY and more.
-- Live exchange rates, cached for one hour, with built-in fallback rates if the rate service cannot be reached.
-- A **base currency per month**, which you can change from the dashboard.
+### Shared
+- Groups with invite link or WhatsApp; owner tools; members can leave when settled.
+- Shared expenses split **equally, by exact amounts, by percent or by shares**, always adding up to the last paisa; optional "add my share to Personal".
+- **Friends** (everyone you share a group with, plus friends added by e-mail) with per-person balances; settle in one tap.
+- Activity feed and notification bell, comments (500 chars), one receipt photo per expense (re-encoded for safety).
 
-### Dashboard and analytics
-- Current-month overview with total income, total expense and net balance.
-- Custom date-range filter (results are shown in USD).
-- Smart insights: financial health from your savings rate, spending trend against last month, top spending category, monthly surplus or deficit, and average daily spend.
-- Recent income and expense lists with edit and delete actions.
-- Interactive Chart.js charts: income vs expense doughnut, bar chart and a category pie chart.
+### Admin and support
+- Roles **Super Admin / Admin / Support / User** with a permission matrix edited by the Super Admin.
+- Users (search, filter, block, temporary password, roles, delete, export), support inbox, announcements, categories, currencies, shared groups (counts only), audit log, user logs, security (failed logins, IP blocks), backups, maintenance mode and sign-up switch.
 
-### Reports
-- Full report for any date range with summary, monthly breakdown and detailed transactions.
-- **Export to Excel** (styled, Excel-compatible file) or **Save as PDF** through the browser's print dialog.
-- Totals use the exchange rate saved with each entry, so past numbers do not change when rates move.
-
-### Accounts
-- Register, log in and log out.
-- **Email confirmation at sign-up:** a 6-digit code is emailed and the account is created only after it is entered, so only real, readable addresses get an account (throw-away email services are refused).
-- Password reset with a one-time code (OTP) sent by email.
-- Update your profile name, change your password, or delete your account.
-
-### Admin panel
-- Role based: **Super Admin** (everything), **Admin** and **Support** (only what a Super Admin allows), plus normal users. Every admin page checks the role on the server, and the menu only shows what your role may use. An overview page shows users, sign-ups and recent staff actions.
-- **Users:** search, filter (active, blocked, staff), sort, open a profile, add a user, block or unblock (a blocked user is signed out and cannot log in), set a temporary password, change a role or name/email (Super Admin only), delete, and export the list as CSV. What each role may do is checked on the server; Admin and Support can only manage plain users.
-- **Roles & permissions:** a Super Admin chooses what Admin and Support may do (view, add, block, delete, export, support, announcements, categories, currencies, groups, audit log, backups, settings). Every change is written to the **Audit log**, which also records blocks, role changes, deletions and exports. The **User logs** page shows what normal users did.
-- **Support:** users send a help request from Profile (Help & support) and read the answer there; staff with the support permission get an inbox to reply, close and reopen. Staff replies appear as "ExpenseFlow support".
-- **Content:** staff can post **announcements** (banner with optional start and end time that each user can close), manage the expense **categories** (add, reorder, turn off), hide **currencies** from the pick lists and see the exchange rates, and review or delete shared **groups** (counts only; staff never see the expenses). Each page has its own permission and every change is written to the Audit log.
-- **Security and system:** a Security page shows failed sign-ins and lock-outs (e-mails masked) and lets staff block an IP address; **Backups** makes a downloadable copy of the database (Super Admin decides who may); **Settings** can close new sign-ups or switch on maintenance mode (only signed-in staff get through). The admin menu scrolls on its own and shows a **More** page on phones.
-- **Activity log** with time, user, action, details and IP address, filterable by user, action and date and paginated. Logged actions include login, logout, adding, editing and deleting expenses and income, data resets and base currency changes.
-
-### Progressive web app
-- Web app manifest, service worker and a custom offline page.
-- Installable on Android, iPhone and iPad, and responsive from phone to desktop.
+### Platform
+- PWA with offline page; Android app; Windows installer with auto-update; Microsoft Store package.
+- Public pages for SEO: landing, About, Privacy, Terms, Contact and 8 guides (English and Roman Urdu), sitemap, robots, structured data.
 
 ## Tech stack
 
 | Layer | Technology |
 | --- | --- |
-| Language | PHP 8.1+ |
-| Database | MySQL through PDO with prepared statements |
-| Frontend | HTML, CSS and vanilla JavaScript, Chart.js 4.4, Font Awesome, Inter font |
-| Email | PHPMailer over SMTP |
-| Exchange rates | exchangerate-api.com (free endpoint) |
-| Hosting and CI/CD | InfinityFree, deployed from GitHub Actions over FTPS |
+| Language | PHP 8.1+ (no framework) |
+| Database | MySQL / MariaDB through PDO prepared statements |
+| Frontend | Hand-written CSS design system (`assets/app.css`), vanilla JS, Chart.js 4 (self-hosted) |
+| Mail | PHPMailer over SMTP |
+| Exports | PhpSpreadsheet (Excel), TCPDF (PDF) |
+| Rates | exchangerate-api.com with cache and fallback rates |
+| Hosting / CI | InfinityFree, GitHub Actions (FTPS deploy, app builds) |
+| Apps | Android WebView (Gradle), Electron + electron-builder (NSIS, MSIX) |
 
-## How it works
+## Documentation map
 
-### Currency conversion
+New here? Read **[`docs/ONBOARDING.md`](docs/ONBOARDING.md)** first.
 
-| Part | Behaviour |
+| Doc | Topic |
 | --- | --- |
-| Rates | Fetched from exchangerate-api.com and cached in `storage/currency_cache.json` for one hour |
-| Conversion | An amount is converted to USD first, then to the target currency |
-| Fallback | If the rate service is unreachable, built-in rates for USD, PKR, EUR, GBP, AED, SAR and INR are used |
-| Expenses | Stored in the currency they were entered in and converted when displayed |
-| Income | Stored with its PKR equivalent, calculated when the income is added |
-| Base currency | Stored per user and per month. The first transaction of a month sets it, and it can be changed from the dashboard |
+| [`docs/ONBOARDING.md`](docs/ONBOARDING.md) | what it is, run locally, key ideas, recipes, glossary |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | folders, request flow, modules, exports, conventions |
+| [`docs/THEME.md`](docs/THEME.md) | colours, fonts, components, icons, logos, UI rules |
+| [`docs/MODULES.md`](docs/MODULES.md) | every feature and admin page |
+| [`docs/DATABASE.md`](docs/DATABASE.md) | tables, money rules, backups |
+| [`docs/SECURITY.md`](docs/SECURITY.md) | protections and the checklist for new code |
+| [`docs/TESTING.md`](docs/TESTING.md) | test setup, files, checklists |
+| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | deploy, secrets, releases, rollback |
+| [`docs/OPERATIONS.md`](docs/OPERATIONS.md) | production runbook, Safe Browsing, own domain |
+| [`docs/APPS.md`](docs/APPS.md), [`docs/MICROSOFT_STORE.md`](docs/MICROSOFT_STORE.md) | Android, Windows, Store |
+| [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) | workflow and definition of done |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | history of every Part and ideas |
 
-### Dashboard insights
+## Quick start
 
-| Insight | How it is calculated |
-| --- | --- |
-| Financial health | From your savings rate: 30% or more is Excellent, 15% or more is Good, anything lower is Needs Control |
-| Spending trend | Percentage change in spending compared with the previous month (not shown for custom ranges) |
-| Top category | The category with the highest total expense |
-| Monthly status | Surplus, deficit or neutral, from income minus expenses |
+Requirements: PHP 8.1+ (`pdo_mysql`, `openssl`, `mbstring`, `gd`), MySQL or MariaDB, Python 3 only for the tests.
 
-### Password reset
+```bash
+git clone https://github.com/muhammadanas702/expense-tracker.git && cd expense-tracker
+mysql -uroot -e "CREATE DATABASE expenseflow_test CHARACTER SET utf8mb4"
+mysql -uroot expenseflow_test < schema.sql
 
-1. On the forgot-password page you enter your account email.
-2. ExpenseFlow emails you a 6-digit code that is valid for 10 minutes.
-3. You enter the code and choose a new password, which is stored as a hash.
+cat > config/db.local.php <<'PHP'
+<?php
+return ['local' => ['host'=>'127.0.0.1','dbname'=>'expenseflow_test','username'=>'root','password'=>'']];
+PHP
+
+php -S 127.0.0.1:8080 -t . router.php      # then open http://127.0.0.1:8080/
+```
+
+Sign-up e-mails need SMTP (`config/mail.local.php`, Gmail app password). To become Super Admin: `UPDATE users SET role='super', is_admin=1 WHERE email='you@example.com';` and open `/admin/`. Details, including how to run the tests, are in the docs above.
 
 ## Project structure
 
 ```
 .
-├── modules/                One folder per feature, each with a module.php manifest (personal, profile,
-│                           shared, friends, activity, comments, receipts). A module can be switched
-│                           off in its manifest without breaking the others.
-├── shared/, friends/, activity/, comments/, receipts/   Pages of the Shared mode
-├── admin/                  Admin panel: users, view/edit/delete user, activity logs
-├── assets/                 CSS, JavaScript and icons (including PWA icons)
-├── auth/                   Register, login, logout, password reset, delete account
-├── config/                 App base URL, database, mail and currency settings
-├── expense/, income/       Add expense, add income
-├── reports/                Full report with Excel export and print-to-PDF
-├── includes/               Layout, security helpers, currencies, schema upgrade, CurrencyConverter, logging
-├── database/               One SQL file per part (part-N.sql) to run in phpMyAdmin on an existing install
-├── tests/                  PHP and HTTP checks (run against a TEST database only; never deployed)
-├── docs/                   Roadmap and design files (never deployed)
-├── storage/                Cached exchange rates and private receipt pictures (blocked from the web)
-├── tcpdf/, vendor/         Bundled third-party libraries (not used at runtime)
-├── .github/workflows/      GitHub Actions deployment workflow
-├── dashboard.php, profile.php, edit-*.php, delete-*.php, change-base-currency.php, reset-data.php   Personal pages
-├── index.php               Landing page
-├── sw.js, manifest.json, offline.html   PWA files
-├── schema.sql              Database schema for a fresh install
-└── DEPLOYMENT.md           Deployment guide
+├── index.php, about/privacy/terms/contact.php, guides/   Public pages
+├── auth/                  Register, e-mail code, login, reset, delete account
+├── dashboard.php, expense/, income/, reports/, profile.php   Personal pages (thin wrappers)
+├── shared/, friends/, activity/, comments/, receipts/, support/, announce/   Shared + helper pages
+├── admin/                 Admin panel pages
+├── modules/               ★ Feature code: one folder per module with module.php manifest (not web-accessible)
+├── includes/              Layouts, security, schema helper, icons, export engine, currencies
+├── config/                app.php, db.php, mail.php (+ private *.local.php, never committed)
+├── assets/                app.css, admin.css, JS, icons, lib/chart.umd.min.js
+├── storage/               sessions, schema markers, backups, receipts, rate cache (private)
+├── apps/android, apps/desktop   Native shells
+├── tests/                 PHP + HTTP tests (test DB only)
+├── docs/                  Documentation
+├── schema.sql             Fresh-install schema (28 tables)
+├── sw.js, manifest.json, offline.html   PWA
+└── .github/workflows/     deploy.yml, release.yml
 ```
 
-## Database
+More in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
-ExpenseFlow uses MySQL. These are the main tables and the columns the application relies on.
+## Look and feel
 
-| Table | Purpose | Main columns |
-| --- | --- | --- |
-| `users` | Accounts and roles | `id`, `name`, `email`, `password` (hashed), `is_admin`, `created_at` |
-| `income` | Income entries | `id`, `user_id`, `title`, `amount`, `amount_pkr`, `currency`, `transaction_date` |
-| `expenses` | Expense entries | `id`, `user_id`, `title`, `amount`, `currency`, `amount_pkr`, `category`, `transaction_date` |
-| `user_monthly_currency` | Base currency per user per month | `user_id`, `year_month`, `base_currency` |
-| `user_logs` | Activity log shown in the admin panel | `user_id`, `action`, `details`, `ip_address`, `created_at` |
-| `rate_limit_hits` | Login and password-reset attempt limits | `bucket`, `key_hash`, `created_at` |
+Frosted-glass cards over a soft gradient. **Teal = Personal, blue = Shared, green = income, orange = expense**, deep navy text (`#0B2545`), rounded corners (20 px cards, 12 px controls), one set of 24 px outline icons, mobile bottom bar and desktop sidebar. Tokens and components are documented in [`docs/THEME.md`](docs/THEME.md); the whole design is `assets/app.css` + `assets/admin.css`.
 
-The full definition is in [`schema.sql`](schema.sql). An older database is upgraded automatically on first use.
+## Security in brief
 
-## Getting started
+Prepared statements, CSRF on every form, escaped output, hardened sessions, rate limits on login/codes, non-enumerating sign-up and friend requests, role checks on the server, private folders blocked at web-server level, re-encoded uploads, formula-safe exports and an audit trail. Full list and the checklist for new code: [`docs/SECURITY.md`](docs/SECURITY.md).
 
-### Prerequisites
+## Apps and installing
 
-- PHP 8.1 or newer with the **PDO MySQL** and **OpenSSL** extensions, and `allow_url_fopen` enabled (used to fetch exchange rates)
-- MySQL or MariaDB
-- Apache, for example through XAMPP, WAMP or similar
+| Platform | How |
+| --- | --- |
+| Android | download `ExpenseFlow.apk` from [Releases](https://github.com/muhammadanas702/expense-tracker/releases/latest), allow "Install unknown apps" |
+| Windows | `ExpenseFlow-Setup.exe` from Releases, (Microsoft Store listing "ExpenseFlow - Money Manager" is in certification) |
+| Any browser / iPhone / iPad | open the site, then Install app (Chrome) or Share > Add to Home Screen (Safari) |
 
-### Installation
-
-1. Clone the repository into your web root. With XAMPP that is `htdocs/expense-tracker`:
-
-   ```bash
-   git clone https://github.com/muhammadanas702/expense-tracker.git
-   ```
-
-2. Create an empty MySQL database and import [`schema.sql`](schema.sql) into it (phpMyAdmin > Import, or `mysql -u USER -p DBNAME < schema.sql`).
-
-3. Create `config/db.local.php` with your local credentials:
-
-   ```php
-   <?php
-   return [
-       'local' => [
-           'host'     => 'localhost',
-           'dbname'   => 'your_database_name',
-           'username' => 'your_database_user',
-           'password' => 'your_database_password',
-       ],
-   ];
-   ```
-
-4. Set up an SMTP account for sign-up confirmation and password-reset emails (sign-up needs it to work). For Gmail, use an **app password**, never your normal password.
-
-5. Open `http://localhost/expense-tracker/`, register your first account and log in.
-
-### Becoming an administrator
-
-Register normally, then promote your account in the database:
-
-```sql
-UPDATE users SET is_admin = 1 WHERE email = 'you@example.com';
-```
-
-The **Admin Panel** button then appears on your dashboard.
-
-## Configuration
-
-| Setting | Where | Notes |
-| --- | --- | --- |
-| Database | `config/db.local.php`, or the `EXPENSEFLOW_DB_HOST`, `EXPENSEFLOW_DB_NAME`, `EXPENSEFLOW_DB_USERNAME` and `EXPENSEFLOW_DB_PASSWORD` environment variables | The file supports separate `local` and `production` blocks |
-| Base URL | `config/app.php` | Separate values for local development and production. Set the production value to your own domain if you host it elsewhere |
-
-`config/db.local.php` and `config/mail.local.php` hold credentials and are ignored by Git. Never commit credentials of any kind.
+The apps display the live website, so a site deploy updates them instantly. See [`docs/APPS.md`](docs/APPS.md).
 
 ## Deployment
 
-Every push to `main` runs `.github/workflows/deploy.yml`, which creates the private database configuration inside the GitHub Actions runner from repository secrets and uploads the site over explicit FTPS. The list of secrets to create and the full walkthrough are in [DEPLOYMENT.md](DEPLOYMENT.md).
+Merging into `main` deploys the website to InfinityFree through GitHub Actions (private DB and mail config are generated from repository secrets). Tagging `vX.Y.Z` (or running the release workflow) builds the APK, the Windows installer and the Store package. Full guide: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
-ExpenseFlow runs on any host that provides PHP 8.1+, MySQL and Apache.
+## Status and roadmap
 
-## Installing as an app
-
-Once the site is served over HTTPS:
-
-- **Android (Chrome):** open the site, then Menu > **Install app**.
-- **iPhone and iPad (Safari):** open the site, then **Share > Add to Home Screen**.
-
-When the connection drops, the service worker shows a custom offline page instead of a browser error.
-
-## Security
-
-ExpenseFlow uses prepared statements, CSRF tokens on every form, POST-only delete and reset actions, escaped output, hardened session cookies, login and reset rate limiting, a strong password policy and one-time reset codes that are stored hashed. Shared groups re-check membership on the server for every request (groups, expenses, comments, receipts, friends), receipt pictures are re-encoded and served only to group members, and the `modules/`, `tests/`, `storage/`, `includes/` and `config/` folders are blocked from direct web access. `tests/` is also excluded from deployment. To report a vulnerability, please open a private security advisory on GitHub instead of a public issue.
-
-## Project status and roadmap
-
-ExpenseFlow is an actively developed personal project. Planned next:
-
-- Split-bill groups (shared expenses between friends or hostel mates)
-- Email verification at sign-up
+Actively developed in small Parts; history and ideas are in [`docs/ROADMAP.md`](docs/ROADMAP.md). Planned or open: Microsoft Store certification, own domain (recommended), report/block user, offline entry sync, scheduled backups, ARM64 Windows build, iOS app.
 
 ## Contributing
 
-Suggestions and contributions are welcome.
-
-1. Fork the repository and create a branch: `git checkout -b feature/your-feature`
-2. Make your changes and test them locally.
-3. Open a pull request that explains what changed and why.
-
-For bugs and feature ideas, please open an issue.
+Branch from `main`, keep changes small, run the tests, update the docs, open a Pull Request. Rules and definition of done: [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md).
 
 ## Author
 
-Developed by **Muhammad Anas** ([@muhammadanas702](https://github.com/muhammadanas702)).
+Developed by **Muhammad Anas** ([@muhammadanas702](https://github.com/muhammadanas702)), software engineering student at UMT Lahore, Pakistan.
 
 If ExpenseFlow is useful to you, a star on the repository is appreciated.
-
-## Development roadmap
-
-A new UI (Personal + Shared expenses, new landing/auth pages) and installable apps are being built in small parts.
-See [`docs/ROADMAP.md`](docs/ROADMAP.md) for status. Design references are in `docs/design/`.
-Each feature is its own module under `modules/` so changing one does not affect another.
-
-### Personal module (new)
-
-- Add income and expenses with payment method, an optional note and a **Repeat every month** switch.
-- Repeating items are added automatically when you open the dashboard after they are due.
-- New dashboard: period chips (this month, last month, last 3 months, this year, custom), insights, category chart, recent activity, list of repeating items with a stop button.
-- Edit pages show payment method and note too.
-- Full Report in the new design: date and type filters, monthly comparison, category breakdown, all transactions. Export to CSV, Excel, or PDF (print).
-
-### Profile & settings (new)
-
-- Profile & Settings page: name, password, monthly savings goal, notifications switch, reset data and delete account in one Danger zone.
-- The savings goal is used on the dashboard tip and savings rate.
-- New users see a short first-run setup card (main currency + savings goal) that can be skipped.
-
-### Shared module (new, in progress)
-
-- Create groups (trip, rent, family...), invite friends with a link or WhatsApp, join after signing in.
-- Owner can rename, remove members, make a new invite link or delete the group; members can leave.
-- **Shared expenses:** add a bill to a group, choose who paid and split it **equally, by exact amounts, by percent or by shares**. Splits always add up to the total to the last paisa.
-- Optional **Add my share to Personal expenses** switch saves only your own share as a Personal expense.
-- The group page lists expenses with "you owe / you lent" and who owes what. The person who added an expense (or the group owner) can edit or delete it.
-- **Balances and settle up:** the group page shows **Who pays whom**, person by person: what Munna owes you never cancels what you owe Ali. Only two people who owe each other cancel out. Record a payment with **Settle**; it lowers the balance. Balances are kept per currency.
-- The Shared Overview shows what you are owed (from each person), what you owe (to each person) and the net of both, across all groups, plus a "To settle" list.
-- A member cannot leave (or be removed) while they still owe or are owed money. If an account is deleted, debts with it are written off automatically.
-- Group page shows, for every member, what they paid, their share and what they paid back, so every balance can be checked by hand.
-- Add-expense and settle forms ignore a second submit of the same form (double tap or refresh), so nothing is saved twice.
-
-### Activity module (new)
-
-- **Activity feed:** everything that happens in your groups (expenses added, changed or deleted, payments, people joining or leaving), grouped by Today / Yesterday / Earlier, with a filter per group. You only see what happened after you joined.
-- **Notifications:** a bell in the top bar with a count. You are told when someone adds or changes an expense that involves you, records a payment to you, or adds/removes you. Opening the page marks them read. Turn them off in Profile & Settings.
-- The Shared Overview shows your latest activity.
-- It is a separate module (`modules/activity`). Other modules only call one guarded helper, so it can be switched off in `modules/activity/module.php` without breaking Shared.
-
-### Friends (new)
-
-- **Friends:** everyone who is in a group with you appears automatically, with what they owe you or you owe them (kept person by person, per currency). Open a friend to see the groups you share, settle up in one tap and view the payments between you. No extra setup or database table is needed.
-
-### Comments & receipts (new)
-
-- **Comments:** every shared expense has a comment box (up to 500 characters). Members are notified through the Activity module. You can delete your own comments; the group owner can delete any.
-- **Receipts:** attach one photo (JPG, PNG or WebP, up to 3 MB) when adding or editing an expense. The picture is re-drawn as a JPEG of at most 1600 px (this removes metadata and anything hidden in the file), stored in a private folder that web visitors cannot open directly, and shown only to members of that group. Remove or replace it by editing the expense.
-- Both are separate modules (`modules/comments`, `modules/receipts`). Shared only calls their helpers when they exist, so either can be switched off without breaking Shared. Deleting an expense or group removes its comments and receipt files.

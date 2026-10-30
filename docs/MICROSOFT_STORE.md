@@ -30,3 +30,8 @@ Notes: the Store build does not use the in-app updater (the Store updates it). T
 - `build.appx.displayName` must equal the reserved Store name exactly ("ExpenseFlow - Money Manager").
 - The Store rejects packages whose MinVersion is 10.0.17134.0 or lower; `build.appx.minVersion` is 10.0.17763.0 (Windows 10 1809).
 - `runFullTrust` is required by every Electron/desktop app. In Partner Center → Submission options → "Notes for certification" explain: "ExpenseFlow is an Electron desktop app that displays the ExpenseFlow web app; it needs runFullTrust to run as a desktop process."
+- **Certification failures seen (Oct 2026) and fixes**
+  - *10.3.1 App Is Testable - Test Account*: the sign-up needs an e-mail code, so the tester could not get past the login screen. Fix: create a dedicated review account on the live site, add a few sample entries, and put its e-mail and password in "Notes for certification". Keep that account alive.
+  - *10.1.3 Search Terms*: a keyword was another company's product name ("split wise"). Fix: use only generic terms such as `bill splitter, split expenses, shared expenses, group expenses, budget tracker, expense tracker, money manager`. Never use other brands in keywords.
+  - Earlier rejections: display name not reserved (use `ExpenseFlow - Money Manager`), MinVersion too low (use `10.0.17763.0`).
+- Each resubmission after a failure needs a **Submit for certification** click again; a failed submission stays editable ("In draft").
