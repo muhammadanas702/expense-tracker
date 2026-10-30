@@ -245,3 +245,8 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 ## Part 34 — Google sign-in fixes + sign-in page polish
 - Google callback now shows a reason code on failure and keeps the saved state when a return URL has none; Gmail dots / `+tag` / googlemail.com no longer create a duplicate account; button uses `assets/icons/google-g.svg` if present.
 - Sign-in/register footers renamed `.aft` (they were broken by the landing footer class `.ft2`); button/divider/spacing refined.
+
+## Part 35 — Fix HTTP 500 on the Google callback
+- `user_identities` no longer has a foreign key to `users` (some hosts reject it, so the table could not be created and the callback crashed); `shared_on_user_deleted()` now calls `oauth_on_user_deleted()` to remove the rows.
+- `auth/google-callback.php` is wrapped in try/catch plus a shutdown handler: any error becomes a normal "try again" message with a short `(reason: ...)` code instead of a blank 500.
+- Tests: stale-identity and no-foreign-key cases in `tests/google_signin_test.php`.
