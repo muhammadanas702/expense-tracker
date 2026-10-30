@@ -304,13 +304,15 @@ function google_user_for_claims(PDO $conn, array $c, bool $signupsOpen): array
 }
 
 /**
- * The mark inside the button. If the official Google "G" file is at assets/icons/google-g.svg it is used
+ * The mark inside the button. If the official Google "G" file is at assets/icons/google-g.svg (or .png) it is used
  * (download it from Google's sign-in branding guidelines); until then a plain neutral letter is shown.
  */
 function google_mark(): string
 {
-    if (is_file(__DIR__ . '/../../assets/icons/google-g.svg')) {
-        return '<img class="gimg" src="' . e(ef_asset('assets/icons/google-g.svg')) . '" alt="" width="20" height="20">';
+    foreach (['svg', 'png'] as $ext) {
+        if (is_file(__DIR__ . '/../../assets/icons/google-g.' . $ext)) {
+            return '<img class="gimg" src="' . e(ef_asset('assets/icons/google-g.' . $ext)) . '" alt="" width="20" height="20">';
+        }
     }
     return '<span class="gmark" aria-hidden="true">G</span>';
 }
