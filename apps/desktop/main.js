@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const { spawn } = require('child_process');
+const googleReturn = require('./google-return');
 
 const HOST = 'expenseflow.rf.gd';
 const HOME = 'https://' + HOST + '/auth/login.php';
@@ -92,6 +93,19 @@ function createWindow() {
 app.whenReady().then(() => {
   ipcMain.on('ef-version', (e) => { e.returnValue = app.getVersion(); });
   ipcMain.on('ef-check-update', () => checkForUpdate(true));
+  // Google sign-in: listen on this computer for the browser coming back, then open the login page with the proof.
+  let googleListener = null;
+  ipcMain.handle('ef-google-listen', async () => {
+    if (googleListener) googleListener.close();
+    googleListener = await googleReturn.listen((id, proof) => {
+      googleListener = null;
+      if (!win) return;
+      if (win.isMinimized()) win.restore();
+      win.show(); win.focus();
+      win.loadURL('https://' + HOST + '/auth/login.php?gh=' + id + '&gp=' + proof);
+    });
+    return googleListener.port;
+  });
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     { label: 'App', submenu: [
       { label: 'Home', accelerator: 'CmdOrCtrl+H', click: () => win && win.loadURL(HOME) },

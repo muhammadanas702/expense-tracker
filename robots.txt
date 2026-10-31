@@ -23,7 +23,7 @@ Disallow: /auth/logout.php
 Disallow: /auth/google.php
 Disallow: /auth/google-callback.php
 Disallow: /auth/google-app.php
-Disallow: /auth/google-app-confirm.php
+Disallow: /auth/google-app-return.php
 Disallow: /auth/google-password.php
 Disallow: /auth/delete-account.php
 

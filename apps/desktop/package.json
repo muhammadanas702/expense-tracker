@@ -19,6 +19,7 @@
     },
     "files": [
       "main.js",
+      "google-return.js",
       "preload.js",
       "offline.html",
       "package.json",
