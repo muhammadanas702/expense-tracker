@@ -49,7 +49,7 @@ try {
             $u = $st->fetch(PDO::FETCH_ASSOC);
             if ($u && (int) $u['blocked'] !== 1) {
                 session_after_login((int) $u['id'], (string) $u['name']);
-                ha_out(['state' => 'ok', 'url' => ef_url('dashboard.php')]);
+                ha_out(['state' => 'ok', 'url' => ef_url(google_landing_path($conn, (int) $u['id']))]);
             }
             ha_out(['state' => 'error', 'message' => 'This account has been blocked. Please contact support.']);
         }

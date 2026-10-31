@@ -20,6 +20,13 @@
     Require all denied
 </Files>
 
+# Friendly pages instead of the host's plain error screens (error.php works without the database).
+ErrorDocument 400 /error.php?c=400
+ErrorDocument 403 /error.php?c=403
+ErrorDocument 404 /error.php?c=404
+ErrorDocument 500 /error.php?c=500
+ErrorDocument 503 /error.php?c=503
+
 # Extra response headers (only if the host has mod_headers; ignored otherwise).
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"

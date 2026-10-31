@@ -47,6 +47,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $update = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
         $update->execute([$hashed, $user['id']]);
 
+        if (is_file(__DIR__ . '/../modules/oauth/lib.php')) {
+            require_once __DIR__ . '/../modules/oauth/lib.php';
+            oauth_password_set($conn, (int) $user['id']);
+        }
         logAction($conn, $user['id'], 'password_reset', "Password reset with an emailed code");
 
         // Throw away every trace of the reset and start a clean session.

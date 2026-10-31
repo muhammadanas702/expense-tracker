@@ -30,6 +30,7 @@ function google_exception_code(Throwable $e): string
 }
 
 // A real PHP fatal error (not catchable) would otherwise be a blank "HTTP 500": turn it into a normal message instead.
+define('EF_CUSTOM_FATAL', true);
 register_shutdown_function(function () {
     $err = error_get_last();
     if ($err && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true) && !headers_sent()) {
@@ -110,7 +111,7 @@ if (!empty($_GET['error']) || empty($_GET['code']) || !is_string($_GET['code']))
     if (is_string($pending) && preg_match('/^[0-9a-f]{32}$/', $pending)) {
         header('Location: ' . $base_url . '/shared/join.php?code=' . $pending);
     } else {
-        header('Location: ' . $base_url . '/dashboard.php');
+        header('Location: ' . $base_url . '/' . google_landing_path($conn, (int) $user['id']));
     }
     exit();
 } catch (Throwable $e) {

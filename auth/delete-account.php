@@ -98,7 +98,7 @@ require_once __DIR__ . '/../includes/auth-layout.php';
 <form method="POST" onsubmit="return confirm('Delete your account permanently?');">
     <?= csrf_field() ?>
     <?= ef_field('ENTER YOUR PASSWORD TO CONFIRM', 'password', 'lock', 'password', '', ['placeholder' => 'Your password', 'required' => true, 'autofocus' => true, 'autocomplete' => 'current-password']) ?>
-<p class="s3" style="margin:-8px 0 14px;font-size:.78rem">Signed up with Google? Set a password first with <b>Forgot password</b> on the login page, then come back.</p>
+<p class="s3" style="margin:-8px 0 14px;font-size:.78rem">Signed up with Google and no password yet? <a class="lnk" href="<?= e($base_url) ?>/auth/google-password.php">Set a password</a> first, then come back.</p>
     <div class="GE">
         <a class="btn lg o" style="width:100%" href="<?= e($base_url) ?>/dashboard.php">Cancel</a>
         <button class="btn lg e2" style="width:100%" type="submit">Delete</button>

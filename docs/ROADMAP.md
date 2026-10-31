@@ -268,3 +268,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - The browser itself is never signed in during this flow. Rate limits: 20 starts/hour, 600 polls/hour per IP.
 - Tests: `tests/google_app_handoff_test.py` (starts its own servers and a fake Google token endpoint, `tests/mock_google_token.php`).
 - To ship: merge, then run the release workflow with a new version (Android + Windows shells changed) and submit the new .msix to the Store.
+
+## Part 40 — Google sign-in made solid (app code panel, password offer, friendly errors)
+- App: the code is now a big panel under the Google button ("compare with the browser"), survives a page reload (sessionStorage), has Open browser again / Cancel and a timeout message. `google_in_app_shell()` also recognises plain Electron / Android web view user agents (the service worker fetches pages without our marker, which made the app show the plain link instead of the code panel).
+- Password: a person who signed up with Google is offered "Set a password / Skip" on first sign-in (`auth/google-password.php`, `users`-level state `pw_state`: 1 offered, 2 skipped, 0 has a password). Profile keeps offering it; Forgot password and admin password reset mark it as set. Delete account no longer needs the Forgot-password detour.
+- Errors: `error.php` + `includes/errors.php` give friendly 400/403/404/405/429/500/503 pages without needing the database (`.htaccess` ErrorDocument, router parity, uncaught exception and fatal handlers; JSON endpoints answer JSON). `router.php` now blocks `modules/` like Apache does.
+- Tests added: `google_app_ui_test.py` (real headless browser), `google_password_http_test.py`, `errors_http_test.py`; `google_signin_test.php` extended.
