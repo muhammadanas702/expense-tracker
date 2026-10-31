@@ -1,7 +1,7 @@
 """
 Google sign-in pages against a LOCAL test server (no calls to Google).
 Usage: php -S 127.0.0.1:8080 -t . router.php   then   python3 tests/google_http_test.py
-Checks: button hidden until configured and hidden inside the app shells, redirect to Google carries state + PKCE,
+Checks: button hidden until configured; inside the app shells the hand-off button instead of the link, redirect to Google carries state + PKCE,
 bad/missing/replayed state is refused, Google error is handled, callback never signs anyone in without Google.
 """
 import os, re, requests, sys
@@ -27,7 +27,8 @@ try:
     t = get(s, '/auth/register.php').text
     ok('Sign up with Google' in t and 'intent=signup' in t and 'Privacy Policy' in t, 'register shows the button with terms note')
     for ua in ('Mozilla/5.0 ExpenseFlowApp/1.0.15', 'Mozilla/5.0 ExpenseFlowDesktop/1.0.15', 'Mozilla/5.0 (Linux; Android 14; Pixel; wv) AppleWebKit'):
-        ok('gbtn' not in get(requests.Session(), '/auth/login.php', headers={'User-Agent': ua}).text, 'hidden in app shell: ' + ua[-22:])
+        t = get(requests.Session(), '/auth/login.php', headers={'User-Agent': ua}).text
+        ok('id="gapp"' in t and 'href="http://127.0.0.1:8080/auth/google.php' not in t, 'app shell gets the hand-off button, not the link: ' + ua[-22:])
 
     r = get(s, '/auth/google.php?intent=signup')
     loc = r.headers.get('Location', '')

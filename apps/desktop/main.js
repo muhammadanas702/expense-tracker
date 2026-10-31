@@ -77,8 +77,10 @@ function createWindow() {
 
   // Only the ExpenseFlow site opens inside the app; everything else goes to the normal browser.
   const inside = (u) => { try { return new URL(u).hostname === HOST; } catch (e) { return false; } };
-  win.webContents.setWindowOpenHandler(({ url }) => { if (inside(url)) return { action: 'allow' }; shell.openExternal(url); return { action: 'deny' }; });
-  win.webContents.on('will-navigate', (e, url) => { if (!inside(url) && !url.startsWith('file:')) { e.preventDefault(); shell.openExternal(url); } });
+  // Google refuses sign-in inside an embedded window: its first step opens in the normal browser (the page keeps waiting).
+  const googleStep = (u) => { try { const x = new URL(u); return x.hostname === HOST && x.pathname.endsWith('/auth/google.php'); } catch (e) { return false; } };
+  win.webContents.setWindowOpenHandler(({ url }) => { if (inside(url) && !googleStep(url)) return { action: 'allow' }; shell.openExternal(url); return { action: 'deny' }; });
+  win.webContents.on('will-navigate', (e, url) => { if (googleStep(url) || (!inside(url) && !url.startsWith('file:'))) { e.preventDefault(); shell.openExternal(url); } });
 
   // No internet: the site's own offline pages (service worker) show saved data; otherwise a simple offline screen.
   win.webContents.on('did-fail-load', (e, code, desc, url, isMain) => {

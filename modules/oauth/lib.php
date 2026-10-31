@@ -46,6 +46,20 @@ function oauth_ensure_schema(PDO $conn): void
               KEY `idx_identity_user` (`user_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
         );
+        // Sign-in started inside the Android/Windows app and finished in the normal browser (see "App hand-off" below).
+        $conn->exec(
+            "CREATE TABLE IF NOT EXISTS `app_handoffs` (
+              `id`          CHAR(32)     NOT NULL,
+              `secret_hash` CHAR(64)     NOT NULL,
+              `code`        VARCHAR(8)   NOT NULL,
+              `status`      TINYINT      NOT NULL DEFAULT 0,
+              `user_id`     INT UNSIGNED NULL,
+              `expires_at`  INT UNSIGNED NOT NULL,
+              PRIMARY KEY (`id`),
+              UNIQUE KEY `uq_handoff_secret` (`secret_hash`),
+              KEY `idx_handoff_exp` (`expires_at`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+        );
         if (function_exists('ef_schema_mark')) {
             ef_schema_mark(__FUNCTION__, __FILE__);
         }
@@ -72,9 +86,15 @@ function google_in_app_shell(): bool
     return strpos($ua, 'ExpenseFlowApp/') !== false || strpos($ua, 'ExpenseFlowDesktop/') !== false || strpos($ua, '; wv)') !== false;
 }
 
+function google_configured(): bool
+{
+    return google_settings() !== null;
+}
+
+/** True where the normal "Continue with Google" link works (a real browser). The apps use the hand-off instead. */
 function google_available(): bool
 {
-    return google_settings() !== null && !google_in_app_shell();
+    return google_configured() && !google_in_app_shell();
 }
 
 function google_redirect_uri(): string
@@ -88,12 +108,12 @@ function google_b64url(string $raw): string
 }
 
 /** Builds the Google URL and remembers state + PKCE verifier in the session. */
-function google_start_url(string $intent): string
+function google_start_url(string $intent, string $appId = ''): string
 {
     $cfg = google_settings();
     $state = bin2hex(random_bytes(16));
     $verifier = google_b64url(random_bytes(32));
-    $_SESSION['g_oauth'] = ['state' => $state, 'verifier' => $verifier, 't' => time(), 'intent' => $intent === 'signup' ? 'signup' : 'login'];
+    $_SESSION['g_oauth'] = ['state' => $state, 'verifier' => $verifier, 't' => time(), 'intent' => $intent === 'signup' ? 'signup' : 'login', 'app' => $appId];
     return GOOGLE_AUTH_URL . '?' . http_build_query([
         'client_id' => $cfg['client_id'],
         'redirect_uri' => google_redirect_uri(),
@@ -320,6 +340,9 @@ function google_mark(): string
 /** The "Continue with Google" button + "or" divider. Empty string when Google sign-in is not available. */
 function google_button(string $intent): string
 {
+    if (google_configured() && google_in_app_shell()) {
+        return google_app_button($intent);
+    }
     if (!google_available()) {
         return '';
     }
@@ -329,4 +352,92 @@ function google_button(string $intent): string
         ? '<p class="gnote">By continuing you agree to the <a href="' . e(ef_url('terms.php')) . '">Terms of Use</a> and the <a href="' . e(ef_url('privacy.php')) . '">Privacy Policy</a>.</p>'
         : '';
     return '<a class="gbtn" href="' . e($url) . '">' . google_mark() . '' . e($label) . '</a>' . $note . '<div class="gor"><span>or use your email</span></div>';
+}
+
+
+/* ------------------------------------------------------------------ *
+ * App hand-off. Google refuses sign-in inside an embedded web view, so the Android / Windows apps open the
+ * normal browser for the Google step and then pick the result up themselves:
+ *   1. the app asks auth/google-app.php (start) for a hand-off: a public id, a private secret and a 4-letter code
+ *   2. the browser runs the usual Google flow for that id; at the end the person confirms the same 4 letters
+ *      (so nobody can be tricked into signing in somebody else's app)
+ *   3. the app polls with its secret; once approved it is logged in exactly once.
+ * ------------------------------------------------------------------ */
+const HANDOFF_TTL = 300; // seconds to finish in the browser
+
+function google_app_button(string $intent): string
+{
+    $label = $intent === 'signup' ? 'Sign up with Google' : 'Continue with Google';
+    $note = '<p class="gnote" id="gapp-note">Opens your browser to sign in, then brings you back here.'
+        . ($intent === 'signup' ? ' By continuing you agree to the <a href="' . e(ef_url('terms.php')) . '">Terms of Use</a> and the <a href="' . e(ef_url('privacy.php')) . '">Privacy Policy</a>.' : '') . '</p>';
+    return '<button type="button" class="gbtn" id="gapp" data-api="' . e(ef_url('auth/google-app.php')) . '" data-csrf="' . e(csrf_token()) . '">'
+        . google_mark() . e($label) . '</button>' . $note
+        . '<script src="' . e(ef_asset('assets/google-app.js')) . '" defer></script>'
+        . '<div class="gor"><span>or use your email</span></div>';
+}
+
+/** Creates a hand-off. Returns [id, secret, code]. */
+function handoff_create(PDO $conn): array
+{
+    oauth_ensure_schema($conn);
+    $conn->prepare('DELETE FROM app_handoffs WHERE expires_at < ?')->execute([time() - 3600]);
+    $id = bin2hex(random_bytes(16));
+    $secret = bin2hex(random_bytes(24));
+    $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    $code = '';
+    for ($i = 0; $i < 4; $i++) {
+        $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+    }
+    $conn->prepare('INSERT INTO app_handoffs(id, secret_hash, code, status, expires_at) VALUES(?,?,?,0,?)')
+        ->execute([$id, hash('sha256', $secret), $code, time() + HANDOFF_TTL]);
+    return [$id, $secret, $code];
+}
+
+/** The waiting hand-off with this public id, or null (unknown, expired, already used). */
+function handoff_waiting(PDO $conn, string $id): ?array
+{
+    if (!preg_match('/^[0-9a-f]{32}$/', $id)) {
+        return null;
+    }
+    $st = $conn->prepare('SELECT id, code FROM app_handoffs WHERE id = ? AND status = 0 AND expires_at >= ?');
+    $st->execute([$id, time()]);
+    $row = $st->fetch(PDO::FETCH_ASSOC);
+    return $row ?: null;
+}
+
+/** Browser side: the person confirmed the code. */
+function handoff_approve(PDO $conn, string $id, int $userId): bool
+{
+    $st = $conn->prepare('UPDATE app_handoffs SET status = 1, user_id = ? WHERE id = ? AND status = 0 AND expires_at >= ?');
+    $st->execute([$userId, $id, time()]);
+    return $st->rowCount() === 1;
+}
+
+/** Browser side: the person said the code is not theirs. */
+function handoff_cancel(PDO $conn, string $id): void
+{
+    $conn->prepare('UPDATE app_handoffs SET status = 3 WHERE id = ? AND status = 0')->execute([$id]);
+}
+
+/**
+ * App side: asks whether the hand-off was approved. Returns ['wait'], ['gone'] or ['ok', userId].
+ * An approval can be collected exactly once.
+ */
+function handoff_redeem(PDO $conn, string $secret): array
+{
+    if (!preg_match('/^[0-9a-f]{48}$/', $secret)) {
+        return ['gone'];
+    }
+    $st = $conn->prepare('SELECT id, status, user_id, expires_at FROM app_handoffs WHERE secret_hash = ?');
+    $st->execute([hash('sha256', $secret)]);
+    $row = $st->fetch(PDO::FETCH_ASSOC);
+    if (!$row || (int) $row['expires_at'] < time() || (int) $row['status'] === 2 || (int) $row['status'] === 3) {
+        return ['gone'];
+    }
+    if ((int) $row['status'] === 0) {
+        return ['wait'];
+    }
+    $take = $conn->prepare('UPDATE app_handoffs SET status = 2 WHERE id = ? AND status = 1');
+    $take->execute([$row['id']]);
+    return $take->rowCount() === 1 ? ['ok', (int) $row['user_id']] : ['gone'];
 }

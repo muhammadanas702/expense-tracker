@@ -44,7 +44,8 @@ register_shutdown_function(function () {
 
 try {
 header('Cache-Control: no-store');
-if (!empty($_SESSION['user_id'])) {
+$appFlow = !empty($_SESSION['g_oauth']['app']); // started from the Android / Windows app: finish in the browser, then hand over
+if (!$appFlow && !empty($_SESSION['user_id'])) {
     header('Location: ' . $base_url . '/dashboard.php');
     exit();
 }
@@ -87,6 +88,16 @@ if (!empty($_GET['error']) || empty($_GET['code']) || !is_string($_GET['code']))
         google_fail($msgs[$err] ?? 'Could not sign you in with Google. Please try again.', isset($msgs[$err]) ? '' : (string) ($GLOBALS['google_fail_detail'] ?? 'account ' . $err));
     }
 
+    if ($appFlow) {
+        // Do not sign this browser in: ask the person to confirm the app's code, then the app collects the sign-in.
+        if (!empty($user['created'])) {
+            logAction($conn, (int) $user['id'], 'terms_accepted', 'Continued with Google and accepted the Terms of Use and Privacy Policy on ' . date('Y-m-d H:i'));
+            logAction($conn, (int) $user['id'], 'signup_google', 'Account created with Google (app)');
+        }
+        $_SESSION['g_app_confirm'] = ['id' => (string) $saved['app'], 'user' => (int) $user['id'], 'name' => (string) $user['name'], 't' => time()];
+        header('Location: ' . $base_url . '/auth/google-app-confirm.php');
+        exit();
+    }
     session_after_login((int) $user['id'], (string) $user['name']);
     if (!empty($user['created'])) {
         logAction($conn, (int) $user['id'], 'terms_accepted', 'Continued with Google and accepted the Terms of Use and Privacy Policy on ' . date('Y-m-d H:i'));
