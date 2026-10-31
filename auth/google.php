@@ -15,11 +15,16 @@ function google_back(string $msg): void
     exit();
 }
 
-if (!empty($_SESSION['user_id'])) {
+oauth_ensure_schema($conn);
+$appId = (string) ($_GET['app'] ?? ''); // set when the Android / Windows app sent the person here (see "App hand-off")
+if ($appId !== '' && (google_in_app_shell() || handoff_waiting($conn, $appId) === null)) {
+    google_back('This sign-in link has expired. Please press "Continue with Google" in the app again.');
+}
+if ($appId === '' && !empty($_SESSION['user_id'])) {
     header('Location: ' . $base_url . '/dashboard.php');
     exit();
 }
-if (!google_available()) {
+if (!google_configured() || ($appId === '' && !google_available())) {
     google_back(google_in_app_shell()
         ? 'Google sign-in is not available inside the app. Please log in with your email and password.'
         : 'Google sign-in is not available right now. Please use your email and password.');
@@ -35,5 +40,5 @@ rl_hit($conn, 'google_start_ip', $ipKey);
 
 $intent = (($_GET['intent'] ?? '') === 'signup') ? 'signup' : 'login';
 header('Cache-Control: no-store');
-header('Location: ' . google_start_url($intent));
+header('Location: ' . google_start_url($intent, $appId));
 exit();

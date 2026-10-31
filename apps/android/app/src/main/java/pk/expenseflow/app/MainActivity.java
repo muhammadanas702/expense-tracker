@@ -246,6 +246,11 @@ public class MainActivity extends Activity {
             public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
                 Uri u = r.getUrl();
                 if (u.getPath() != null && u.getPath().endsWith("/auth/logout.php")) clearSnapshots();
+                // Google refuses sign-in inside a web view: its first step goes to the normal browser (the page keeps waiting).
+                if (HOST.equals(u.getHost()) && u.getPath() != null && u.getPath().endsWith("/auth/google.php")) {
+                    try { startActivity(new Intent(Intent.ACTION_VIEW, u)); } catch (Exception ignored) { }
+                    return true;
+                }
                 if (HOST.equals(u.getHost()) || "file".equals(u.getScheme())) return false;
                 try { startActivity(new Intent(Intent.ACTION_VIEW, u)); } catch (Exception ignored) { }
                 return true;

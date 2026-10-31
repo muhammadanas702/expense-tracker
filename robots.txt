@@ -22,6 +22,8 @@ Disallow: /profile.php
 Disallow: /auth/logout.php
 Disallow: /auth/google.php
 Disallow: /auth/google-callback.php
+Disallow: /auth/google-app.php
+Disallow: /auth/google-app-confirm.php
 Disallow: /auth/delete-account.php
 
 Sitemap: https://expenseflow.rf.gd/sitemap.xml

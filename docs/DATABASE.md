@@ -37,6 +37,7 @@ MySQL / MariaDB, `utf8mb4`, InnoDB, accessed only through PDO prepared statement
 | `shared_expenses` | A bill added to a group | `amount_minor` (integer paisa/cents), `currency`, `paid_by`, `created_by`, `split_type` (`equal`/`exact`/`percent`/`shares`), `expense_date`, `personal_expense_id` (link to the member's own Personal copy) |
 | `shared_splits` | Each person's share of an expense | `share_minor`, `weight`; shares always add up exactly to the total |
 | `shared_settlements` | "X paid Y" payments | `from_user`, `to_user`, `amount_minor`, `currency`, `settled_on` |
+| `app_handoffs` | Short-lived sign-in hand-off between an app and the browser (Google in the apps) | `id` (public), `secret_hash`, `code` (4 letters), `status` (0 waiting, 1 approved, 2 used, 3 cancelled), `user_id`, `expires_at` |
 | `user_identities` | Links a login provider to an account | `user_id`, `provider` (`google`), `subject` (Google's stable id), `email`; unique (`provider`,`subject`); removed by `oauth_on_user_deleted()` (no foreign key) |
 | `friend_links` | Direct friend requests by e-mail | `requester_id`, `addressee_id`, `status` `pending`/`accepted`; unique pair. Friends are also *derived* from shared groups |
 

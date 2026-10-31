@@ -262,3 +262,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 ## Part 38 — One place for app links and contact (Admin > Settings)
 - New "Apps & contact" block in Admin > Settings: Android link, Windows link, Microsoft Store link (empty = button hidden) and the contact e-mail. Landing page, profile page and contact page read them via `settings_public()`, which uses `storage/public-settings.json` (written on save) so they never need the database. Changes are audit-logged.
 - Idea left: logo/colours are still files (`assets/`, `THEME.md`); moving them to the panel is possible later but riskier.
+
+## Part 39 — Continue with Google inside the Android and Windows apps
+- Google blocks sign-in in embedded web views, so the apps use a hand-off: the app (`assets/google-app.js` > `auth/google-app.php`) gets an id, a secret and a 4-letter code; the Google step opens in the normal browser (`auth/google.php?app=<id>`, caught by `MainActivity` / `main.js`); the browser shows the same code on `auth/google-app-confirm.php` and the person confirms; the app polls and is signed in once (`app_handoffs` table, 5 minute lifetime, secret stored hashed).
+- The browser itself is never signed in during this flow. Rate limits: 20 starts/hour, 600 polls/hour per IP.
+- Tests: `tests/google_app_handoff_test.py` (starts its own servers and a fake Google token endpoint, `tests/mock_google_token.php`).
+- To ship: merge, then run the release workflow with a new version (Android + Windows shells changed) and submit the new .msix to the Store.
