@@ -35,6 +35,7 @@ def browser_flow(url, sub, do='yes'):
         b.post(A + '/auth/google-app-confirm.php', data={'csrf_token': tok, 'do': do})
     return b, page
 
+subprocess.run(['mysql', '--socket=/run/mysqld/mysqld.sock', '-uroot', 'expenseflow_test', '-e', "DELETE FROM rate_limit_hits WHERE bucket LIKE 'google\\_%'"])  # earlier runs must not hit the limits
 env = dict(os.environ, EXPENSEFLOW_GOOGLE_TOKEN_URL='http://127.0.0.1:8081/mock_google_token.php', MOCK_GOOGLE_CLAIMS=CLAIMS)
 procs = [subprocess.Popen(['php', '-S', '127.0.0.1:8081', '-t', os.path.join(ROOT, 'tests')], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL),
          subprocess.Popen(['php', '-S', '127.0.0.1:8082', '-t', ROOT, 'router.php'], cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)]
@@ -57,7 +58,7 @@ try:
     b, confirm = browser_flow(h['url'], 'happy1')
     ok(h['code'] in confirm, 'confirm page shows the same code as the app')
     p = api(app, csrf, do='poll', secret=h['secret'])
-    ok(p['state'] == 'ok' and p['url'].endswith('/dashboard.php'), 'app collects the sign-in after confirmation')
+    ok(p['state'] == 'ok' and re.search(r'/(dashboard|auth/google-password)\.php$', p['url']), 'app collects the sign-in after confirmation')
     ok(app.get(A + '/dashboard.php', allow_redirects=False).status_code in (200, 302) and 'login.php' not in app.get(A + '/dashboard.php', allow_redirects=False).headers.get('Location', ''), 'the app session is signed in')
     ok(api(requests.Session(), csrf, do='poll', secret=h['secret'])['state'] in ('gone', 'error'), 'a collected hand-off cannot be used again')
 

@@ -382,7 +382,21 @@ CREATE TABLE IF NOT EXISTS `user_identities` (
   `subject`    VARCHAR(64)  NOT NULL,
   `email`      VARCHAR(190) NOT NULL DEFAULT '',
   `created_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `pw_state`   TINYINT      NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_identity` (`provider`, `subject`),
   KEY `idx_identity_user` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Sign-in started inside the Android/Windows app and finished in the normal browser (Google sign-in hand-off)
+CREATE TABLE IF NOT EXISTS `app_handoffs` (
+  `id`          CHAR(32)     NOT NULL,
+  `secret_hash` CHAR(64)     NOT NULL,
+  `code`        VARCHAR(8)   NOT NULL,
+  `status`      TINYINT      NOT NULL DEFAULT 0,
+  `user_id`     INT UNSIGNED NULL,
+  `expires_at`  INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_handoff_secret` (`secret_hash`),
+  KEY `idx_handoff_exp` (`expires_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

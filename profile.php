@@ -6,6 +6,7 @@ require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/includes/logging.php';
 require_once __DIR__ . '/includes/layout.php';
 require_once __DIR__ . '/modules/profile/lib.php';
+require_once __DIR__ . '/modules/oauth/lib.php';
 
 if (!isset($_SESSION["user_id"])) {
     header("Location: auth/login.php");
@@ -82,6 +83,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 ?>
 <?php
 $settings = profile_settings($conn, $user_id);
+$gpw = oauth_pw_state($conn, (int) $user_id) !== 0; // signed up with Google and no password of their own yet
 $csrf = csrf_token();
 if ($success !== '') { $_SESSION['success'] = $success; }
 if ($error !== '') { $_SESSION['error'] = $error; }
@@ -118,8 +120,12 @@ ef_page_start(['title' => 'Profile & Settings', 'sub' => 'Account, goals and dat
     </div>
 
     <div class="g card">
-      <div class="t">Change password</div>
-      <p class="k" style="margin:-4px 0 12px">Signed up with Google and never set a password? Log out, choose <b>Forgot password</b> on the login page and set one. After that you can use both ways to sign in.</p>
+      <div class="t"><?= $gpw ? 'Password' : 'Change password' ?></div>
+<?php if ($gpw): ?>
+      <p class="k" style="margin:-4px 0 12px">You signed up with Google, so you have no password yet. You can keep using Google, or set a password to also sign in with your e-mail.</p>
+      <a class="btn" href="<?= e($base_url) ?>/auth/google-password.php">Set a password</a>
+<?php else: ?>
+      <p class="k" style="margin:-4px 0 12px">Choose a new password. You need your current one.</p>
       <form method="POST" autocomplete="off">
         <?= csrf_field() ?>
         <div class="fl"><label for="current_password">Current password</label><input class="inp" id="current_password" type="password" name="current_password" autocomplete="current-password" required></div>
@@ -127,6 +133,7 @@ ef_page_start(['title' => 'Profile & Settings', 'sub' => 'Account, goals and dat
         <div class="fl"><label for="confirm_password">Confirm new password</label><input class="inp" id="confirm_password" type="password" name="confirm_password" autocomplete="new-password" required></div>
         <button class="btn" type="submit" name="update_password" value="1">Change password</button>
       </form>
+<?php endif; ?>
     </div>
   </div>
 

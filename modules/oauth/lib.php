@@ -60,6 +60,13 @@ function oauth_ensure_schema(PDO $conn): void
               KEY `idx_handoff_exp` (`expires_at`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
         );
+        // pw_state: 0 = the person has a password of their own, 1 = account made by Google, never asked yet, 2 = asked and skipped.
+        if (!schema_has($conn, 'user_identities', 'pw_state')) {
+            $conn->exec('ALTER TABLE user_identities ADD COLUMN pw_state TINYINT NOT NULL DEFAULT 0');
+            schema_has($conn, 'user_identities', 'pw_state', true);
+            // accounts created through Google before this column existed also have no password they know
+            $conn->exec("UPDATE user_identities i JOIN user_logs l ON l.user_id = i.user_id AND l.action = 'signup_google' SET i.pw_state = 2 WHERE i.pw_state = 0");
+        }
         if (function_exists('ef_schema_mark')) {
             ef_schema_mark(__FUNCTION__, __FILE__);
         }
@@ -83,7 +90,10 @@ function oauth_on_user_deleted(PDO $conn, int $userId): void
 function google_in_app_shell(): bool
 {
     $ua = (string) ($_SERVER['HTTP_USER_AGENT'] ?? '');
-    return strpos($ua, 'ExpenseFlowApp/') !== false || strpos($ua, 'ExpenseFlowDesktop/') !== false || strpos($ua, '; wv)') !== false;
+    // Also the plain Electron / Android web view markers: the page's service worker fetches pages WITHOUT the custom
+    // "ExpenseFlowApp/" or "ExpenseFlowDesktop/" part, but with the web view's own user agent.
+    return strpos($ua, 'ExpenseFlowApp/') !== false || strpos($ua, 'ExpenseFlowDesktop/') !== false
+        || strpos($ua, '; wv)') !== false || strpos($ua, ' Electron/') !== false;
 }
 
 function google_configured(): bool
@@ -309,8 +319,8 @@ function google_user_for_claims(PDO $conn, array $c, bool $signupsOpen): array
             }
         }
         try {
-            $conn->prepare("INSERT INTO user_identities(user_id,provider,subject,email) VALUES(?, 'google', ?, ?)
-                ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), email = VALUES(email)")->execute([(int) $user['id'], $sub, $email]);
+            $conn->prepare("INSERT INTO user_identities(user_id,provider,subject,email,pw_state) VALUES(?, 'google', ?, ?, ?)
+                ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), email = VALUES(email), pw_state = VALUES(pw_state)")->execute([(int) $user['id'], $sub, $email, !empty($user['created']) ? 1 : 0]);
         } catch (PDOException $e) {
             error_log('Google identity link failed: ' . $e->getMessage());
             $GLOBALS['google_fail_detail'] = 'identity sql ' . $e->getCode();
@@ -370,8 +380,14 @@ function google_app_button(string $intent): string
     $label = $intent === 'signup' ? 'Sign up with Google' : 'Continue with Google';
     $note = '<p class="gnote" id="gapp-note">Opens your browser to sign in, then brings you back here.'
         . ($intent === 'signup' ? ' By continuing you agree to the <a href="' . e(ef_url('terms.php')) . '">Terms of Use</a> and the <a href="' . e(ef_url('privacy.php')) . '">Privacy Policy</a>.' : '') . '</p>';
+    $panel = '<div class="gpanel" id="gapp-panel" hidden aria-live="polite">'
+        . '<p class="gp-t">Finish signing in with your browser</p>'
+        . '<p class="gp-s">Your browser has opened. Pick your Google account there. It will show a code: if it is the same as the one below, tap <b>Yes, sign in</b>.</p>'
+        . '<div class="hocode" id="gapp-code" aria-label="Your code">----</div>'
+        . '<p class="gp-s" id="gapp-status">Waiting for you to finish in the browser…</p>'
+        . '<div class="gp-b"><button type="button" class="btn o" id="gapp-reopen">Open browser again</button><button type="button" class="btn o" id="gapp-cancel">Cancel</button></div></div>';
     return '<button type="button" class="gbtn" id="gapp" data-api="' . e(ef_url('auth/google-app.php')) . '" data-csrf="' . e(csrf_token()) . '">'
-        . google_mark() . e($label) . '</button>' . $note
+        . google_mark() . e($label) . '</button>' . $panel . $note
         . '<script src="' . e(ef_asset('assets/google-app.js')) . '" defer></script>'
         . '<div class="gor"><span>or use your email</span></div>';
 }
@@ -440,4 +456,46 @@ function handoff_redeem(PDO $conn, string $secret): array
     $take = $conn->prepare('UPDATE app_handoffs SET status = 2 WHERE id = ? AND status = 1');
     $take->execute([$row['id']]);
     return $take->rowCount() === 1 ? ['ok', (int) $row['user_id']] : ['gone'];
+}
+
+
+/* ------------------------------------------------------------------ *
+ * Password for accounts made by Google. Such an account starts with a random password nobody knows. Right after the
+ * first sign-in the person is offered to set one (or skip); the profile keeps the same option available.
+ * ------------------------------------------------------------------ */
+
+/** 0 = has a password of their own, 1 = never asked, 2 = skipped. Never throws. */
+function oauth_pw_state(PDO $conn, int $userId): int
+{
+    try {
+        oauth_ensure_schema($conn);
+        $st = $conn->prepare('SELECT MAX(pw_state) FROM user_identities WHERE user_id = ?');
+        $st->execute([$userId]);
+        return (int) $st->fetchColumn();
+    } catch (Throwable $e) {
+        return 0;
+    }
+}
+
+function oauth_set_pw_state(PDO $conn, int $userId, int $state): void
+{
+    try {
+        $conn->prepare('UPDATE user_identities SET pw_state = ? WHERE user_id = ?')->execute([$state, $userId]);
+    } catch (Throwable $e) {
+        error_log('oauth pw_state: ' . $e->getMessage());
+    }
+}
+
+/** Call whenever a password the person knows has been set (reset by e-mail, set by staff, chosen after Google). */
+function oauth_password_set(PDO $conn, int $userId): void
+{
+    if (function_exists('oauth_set_pw_state')) {
+        oauth_set_pw_state($conn, $userId, 0);
+    }
+}
+
+/** Where to send someone right after a Google sign-in: the password offer the first time, otherwise the dashboard. */
+function google_landing_path(PDO $conn, int $userId): string
+{
+    return oauth_pw_state($conn, $userId) === 1 ? 'auth/google-password.php' : 'dashboard.php';
 }

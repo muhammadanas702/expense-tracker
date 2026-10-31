@@ -25,7 +25,7 @@ ok(google_claims_error($nv, $cid) !== null, 'missing email_verified refused');
 ok(google_claims_error(['email' => 'not-an-email'] + $good, $cid) !== null, 'bad e-mail refused');
 ok(google_claims_error(['sub' => ''] + $good, $cid) !== null, 'empty subject refused');
 
-$conn->exec("DELETE FROM users WHERE email LIKE '%@google-test.local'");
+$conn->exec("DELETE FROM users WHERE email LIKE '%@google-test.local' OR email LIKE '%@gmail.com' OR email LIKE '%@googlemail.com' OR email = 'anas@yahoo.com'"); // also what an aborted earlier run left
 
 // 1. new person: account created and linked
 [$u, $e] = google_user_for_claims($conn, $good, true);
@@ -84,9 +84,32 @@ ok($st2 && (int) $st2['id'] === (int) $st1['id'] && empty($st2['created']), 'sta
 // table creation does not depend on the users.id type
 $conn->exec('DROP TABLE IF EXISTS user_identities');
 foreach (glob(__DIR__ . '/../storage/schema/*oauth*') ?: [] as $f) { @unlink($f); }
+schema_has($conn, 'user_identities', 'pw_state', true); // the table was dropped: forget the cached answer
 oauth_ensure_schema($conn);
 ok((int) $conn->query("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='user_identities'")->fetchColumn() === 1, 'user_identities exists without a foreign key');
 ok((int) $conn->query("SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='user_identities' AND CONSTRAINT_TYPE='FOREIGN KEY'")->fetchColumn() === 0, 'no foreign key on user_identities');
+
+// 6b. password offer: new Google accounts are asked once, linked accounts and people with a password are not
+[$pa] = google_user_for_claims($conn, ['sub' => 'g-pw-new', 'email' => 'pwnew@google-test.local'] + $good, true);
+ok($pa && !empty($pa['created']) && oauth_pw_state($conn, (int) $pa['id']) === 1, 'new Google account: password never asked yet (1)');
+ok(google_landing_path($conn, (int) $pa['id']) === 'auth/google-password.php', 'first Google sign-in lands on the password offer');
+oauth_set_pw_state($conn, (int) $pa['id'], 2);
+ok(google_landing_path($conn, (int) $pa['id']) === 'dashboard.php', 'after skipping, the dashboard');
+ok(oauth_pw_state($conn, (int) $pa['id']) === 2, 'skipped is remembered (2) so Profile keeps offering it');
+oauth_password_set($conn, (int) $pa['id']);
+ok(oauth_pw_state($conn, (int) $pa['id']) === 0, 'password set: state 0');
+$conn->prepare('INSERT INTO users(name,email,password) VALUES(?,?,?)')->execute(['Has Pw', 'haspw@google-test.local', password_hash('Test#12345', PASSWORD_DEFAULT)]);
+$haspw = (int) $conn->lastInsertId();
+[$pb] = google_user_for_claims($conn, ['sub' => 'g-pw-link', 'email' => 'haspw@google-test.local'] + $good, true);
+ok($pb && (int) $pb['id'] === $haspw && empty($pb['created']) && oauth_pw_state($conn, $haspw) === 0, 'existing e-mail account linked: logs into it, no password offer, no duplicate');
+// older table without pw_state is upgraded, and Google-created accounts that already exist count as "skipped"
+$conn->exec('ALTER TABLE user_identities DROP COLUMN pw_state');
+$conn->prepare("INSERT INTO user_logs(user_id,action,details,created_at) VALUES(?, 'signup_google', 'x', NOW())")->execute([(int) $pa['id']]);
+foreach (glob(__DIR__ . '/../storage/schema/*oauth*') ?: [] as $f) { @unlink($f); }
+schema_has($conn, 'user_identities', 'pw_state', true);
+oauth_ensure_schema($conn);
+ok(schema_has($conn, 'user_identities', 'pw_state', true), 'pw_state column added to an older table');
+ok(oauth_pw_state($conn, (int) $pa['id']) === 2 && oauth_pw_state($conn, $haspw) === 0, 'older Google-made account becomes "skipped", linked account stays 0');
 
 // 7. start URL carries state + PKCE; state is single use and expires
 file_put_contents(__DIR__ . '/../config/google.local.php', "<?php return ['client_id'=>'$cid','client_secret'=>'s3cret'];");
@@ -109,6 +132,16 @@ google_start_url('login');
 $_SESSION['g_oauth']['t'] = time() - 3600;
 ok(google_take_state($_SESSION['g_oauth']['state'], $w) === null && $w === 'old', 'old state refused');
 unlink(__DIR__ . '/../config/google.local.php');
+
+// the app shells are recognised, also from a service worker (web view's own user agent, without our marker)
+foreach (['Mozilla/5.0 ExpenseFlowApp/1.0.17', 'Mozilla/5.0 ExpenseFlowDesktop/1.0.17', 'Mozilla/5.0 (Linux; Android 14; Pixel 8; wv) AppleWebKit/537.36 Chrome/130 Mobile Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ExpenseFlow/1.0.17 Chrome/130.0.0.0 Electron/33.2.1 Safari/537.36'] as $ua) {
+    $_SERVER['HTTP_USER_AGENT'] = $ua;
+    ok(google_in_app_shell(), 'app shell recognised: ' . substr($ua, -30));
+}
+$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0.0.0 Safari/537.36';
+ok(!google_in_app_shell(), 'a normal browser is not an app shell');
+unset($_SERVER['HTTP_USER_AGENT']);
 
 $conn->exec("DELETE FROM users WHERE email LIKE '%@google-test.local'");
 echo $fails ? "$fails FAILED\n" : "google_signin tests: ALL PASSED\n";

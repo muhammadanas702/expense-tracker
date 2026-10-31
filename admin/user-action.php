@@ -34,6 +34,10 @@ if ($do === 'block' || $do === 'unblock') {
     admin_need('reset');
     $pw = admin_temp_password();
     $conn->prepare('UPDATE users SET password = ? WHERE id = ?')->execute([password_hash($pw, PASSWORD_DEFAULT), $id]);
+    if (is_file(__DIR__ . '/../modules/oauth/lib.php')) {
+        require_once __DIR__ . '/../modules/oauth/lib.php';
+        oauth_password_set($conn, $id);
+    }
     admin_audit($conn, $admin['id'], 'reset_password', 'Set a temporary password for ' . $who);
     $_SESSION['admin_secret'] = ['uid' => $id, 'pw' => $pw];
     require_once __DIR__ . '/../config/mail.php';
