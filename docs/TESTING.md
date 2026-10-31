@@ -40,6 +40,7 @@ Mail is not sent locally. `signup_verify_http_test.py` and `staff_mail_http_test
 | `seo_http_test.py` | HTTP | public pages reachable, one `h1`, canonical, valid JSON-LD, listed in the sitemap, private areas blocked in robots.txt |
 | `admin_http_test.py`, `admin_users_http_test.py`, `admin_content_http_test.py`, `admin_audit_http_test.py` (roles page + audit log), `admin_system_http_test.py` (security, backups, settings), `admin_super_privacy_http_test.py` (only Super Admins see Super Admin activity), `staff_mail_http_test.py` (temporary-password and support-reply e-mails) | HTTP | admin access by role, user management, content pages, audit trail, system pages, privacy of super admin activity, staff mail |
 | `support_http_test.py` | HTTP | help requests and replies |
+| `settings_links_test.php` | PHP | Apps & contact settings: https-only links, e-mail check, save and the public JSON copy |
 | `google_signin_test.php` | PHP | Google claim checks (issuer, audience, expiry, verified e-mail), find / link / create / refuse (blocked, sign-ups closed), PKCE start URL, single-use state |
 | `google_http_test.py` | HTTP | button hidden until configured and inside the app shells, redirect to Google with state + PKCE, bad/replayed state refused. Temporarily writes `config/google.local.php` and restores it |
 | `export_http_test.py` | HTTP | Excel/PDF/CSV downloads: correct content type, headers, not HTML, branded content |
