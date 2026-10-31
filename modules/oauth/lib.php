@@ -52,6 +52,8 @@ function oauth_ensure_schema(PDO $conn): void
               `id`          CHAR(32)     NOT NULL,
               `secret_hash` CHAR(64)     NOT NULL,
               `code`        VARCHAR(8)   NOT NULL,
+              `ret`         VARCHAR(24)  NOT NULL DEFAULT '',
+              `proof_hash`  CHAR(64)     NULL,
               `status`      TINYINT      NOT NULL DEFAULT 0,
               `user_id`     INT UNSIGNED NULL,
               `expires_at`  INT UNSIGNED NOT NULL,
@@ -66,6 +68,13 @@ function oauth_ensure_schema(PDO $conn): void
             schema_has($conn, 'user_identities', 'pw_state', true);
             // accounts created through Google before this column existed also have no password they know
             $conn->exec("UPDATE user_identities i JOIN user_logs l ON l.user_id = i.user_id AND l.action = 'signup_google' SET i.pw_state = 2 WHERE i.pw_state = 0");
+        }
+        // Part 41: where the browser sends the person back to (app deep link / local port) and the proof only that device receives.
+        if (!schema_has($conn, 'app_handoffs', 'ret', true)) {
+            $conn->exec("ALTER TABLE `app_handoffs` ADD COLUMN `ret` VARCHAR(24) NOT NULL DEFAULT '' AFTER `code`");
+        }
+        if (!schema_has($conn, 'app_handoffs', 'proof_hash', true)) {
+            $conn->exec("ALTER TABLE `app_handoffs` ADD COLUMN `proof_hash` CHAR(64) NULL AFTER `ret`");
         }
         if (function_exists('ef_schema_mark')) {
             ef_schema_mark(__FUNCTION__, __FILE__);
@@ -366,12 +375,14 @@ function google_button(string $intent): string
 
 
 /* ------------------------------------------------------------------ *
- * App hand-off. Google refuses sign-in inside an embedded web view, so the Android / Windows apps open the
- * normal browser for the Google step and then pick the result up themselves:
- *   1. the app asks auth/google-app.php (start) for a hand-off: a public id, a private secret and a 4-letter code
- *   2. the browser runs the usual Google flow for that id; at the end the person confirms the same 4 letters
- *      (so nobody can be tricked into signing in somebody else's app)
- *   3. the app polls with its secret; once approved it is logged in exactly once.
+ * App hand-off. Google refuses sign-in inside an embedded web view, so the Android / Windows apps open the normal
+ * browser for the Google step and are brought back afterwards:
+ *   1. the app asks auth/google-app.php (start) for a hand-off: a public id and a private secret, and says how the
+ *      browser can reach it again ("android" = expenseflow:// link, or the local port the Windows app listens on)
+ *   2. the browser runs the usual Google flow for that id. At the end the server makes a one-time PROOF and sends the
+ *      browser back to the app with it (deep link / http://127.0.0.1:port). Only an app on the SAME device receives it,
+ *      so somebody else's app can never collect your sign-in, and no code has to be compared.
+ *   3. the app redeems id + secret + proof once and is signed in.
  * ------------------------------------------------------------------ */
 const HANDOFF_TTL = 300; // seconds to finish in the browser
 
@@ -381,10 +392,8 @@ function google_app_button(string $intent): string
     $note = '<p class="gnote" id="gapp-note">Opens your browser to sign in, then brings you back here.'
         . ($intent === 'signup' ? ' By continuing you agree to the <a href="' . e(ef_url('terms.php')) . '">Terms of Use</a> and the <a href="' . e(ef_url('privacy.php')) . '">Privacy Policy</a>.' : '') . '</p>';
     $panel = '<div class="gpanel" id="gapp-panel" hidden aria-live="polite">'
-        . '<p class="gp-t">Finish signing in with your browser</p>'
-        . '<p class="gp-s">Your browser has opened. Pick your Google account there. It will show a code: if it is the same as the one below, tap <b>Yes, sign in</b>.</p>'
-        . '<div class="hocode" id="gapp-code" aria-label="Your code">----</div>'
-        . '<p class="gp-s" id="gapp-status">Waiting for you to finish in the browser…</p>'
+        . '<p class="gp-t" id="gapp-title">Finish signing in with your browser</p>'
+        . '<p class="gp-s" id="gapp-status">Your browser has opened. Choose your Google account there. You will be brought back here automatically.</p>'
         . '<div class="gp-b"><button type="button" class="btn o" id="gapp-reopen">Open browser again</button><button type="button" class="btn o" id="gapp-cancel">Cancel</button></div></div>';
     return '<button type="button" class="gbtn" id="gapp" data-api="' . e(ef_url('auth/google-app.php')) . '" data-csrf="' . e(csrf_token()) . '">'
         . google_mark() . e($label) . '</button>' . $panel . $note
@@ -392,21 +401,25 @@ function google_app_button(string $intent): string
         . '<div class="gor"><span>or use your email</span></div>';
 }
 
-/** Creates a hand-off. Returns [id, secret, code]. */
-function handoff_create(PDO $conn): array
+/** "android" or a local port number (1024-65535); anything else is refused (returns ''). */
+function handoff_clean_return(string $ret): string
+{
+    if ($ret === 'android') {
+        return $ret;
+    }
+    return preg_match('/^[0-9]{4,5}$/', $ret) && (int) $ret >= 1024 && (int) $ret <= 65535 ? $ret : '';
+}
+
+/** Creates a hand-off. Returns [id, secret]. $ret says how the browser comes back (see handoff_clean_return). */
+function handoff_create(PDO $conn, string $ret): array
 {
     oauth_ensure_schema($conn);
     $conn->prepare('DELETE FROM app_handoffs WHERE expires_at < ?')->execute([time() - 3600]);
     $id = bin2hex(random_bytes(16));
     $secret = bin2hex(random_bytes(24));
-    $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    $code = '';
-    for ($i = 0; $i < 4; $i++) {
-        $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
-    }
-    $conn->prepare('INSERT INTO app_handoffs(id, secret_hash, code, status, expires_at) VALUES(?,?,?,0,?)')
-        ->execute([$id, hash('sha256', $secret), $code, time() + HANDOFF_TTL]);
-    return [$id, $secret, $code];
+    $conn->prepare("INSERT INTO app_handoffs(id, secret_hash, code, ret, status, expires_at) VALUES(?,?,'',?,0,?)")
+        ->execute([$id, hash('sha256', $secret), handoff_clean_return($ret), time() + HANDOFF_TTL]);
+    return [$id, $secret];
 }
 
 /** The waiting hand-off with this public id, or null (unknown, expired, already used). */
@@ -415,49 +428,62 @@ function handoff_waiting(PDO $conn, string $id): ?array
     if (!preg_match('/^[0-9a-f]{32}$/', $id)) {
         return null;
     }
-    $st = $conn->prepare('SELECT id, code FROM app_handoffs WHERE id = ? AND status = 0 AND expires_at >= ?');
+    $st = $conn->prepare('SELECT id, ret FROM app_handoffs WHERE id = ? AND status = 0 AND expires_at >= ?');
     $st->execute([$id, time()]);
     $row = $st->fetch(PDO::FETCH_ASSOC);
     return $row ?: null;
 }
 
-/** Browser side: the person confirmed the code. */
-function handoff_approve(PDO $conn, string $id, int $userId): bool
+/** Browser side, after Google: approves the hand-off. Returns the one-time proof (given only to the app on this device) or null. */
+function handoff_approve(PDO $conn, string $id, int $userId): ?string
 {
-    $st = $conn->prepare('UPDATE app_handoffs SET status = 1, user_id = ? WHERE id = ? AND status = 0 AND expires_at >= ?');
-    $st->execute([$userId, $id, time()]);
-    return $st->rowCount() === 1;
+    $proof = bin2hex(random_bytes(24));
+    $st = $conn->prepare('UPDATE app_handoffs SET status = 1, user_id = ?, proof_hash = ? WHERE id = ? AND status = 0 AND expires_at >= ?');
+    $st->execute([$userId, hash('sha256', $proof), $id, time()]);
+    return $st->rowCount() === 1 ? $proof : null;
 }
 
-/** Browser side: the person said the code is not theirs. */
-function handoff_cancel(PDO $conn, string $id): void
+/** Where the browser goes to get back into the app. '' when the app gave no (valid) way back. */
+function handoff_return_url(string $ret, string $id, string $proof): string
 {
-    $conn->prepare('UPDATE app_handoffs SET status = 3 WHERE id = ? AND status = 0')->execute([$id]);
+    $q = http_build_query(['h' => $id, 'p' => $proof]);
+    if ($ret === 'android') {
+        return 'expenseflow://auth?' . $q;
+    }
+    return handoff_clean_return($ret) !== '' ? 'http://127.0.0.1:' . $ret . '/done?' . $q : '';
 }
 
-/**
- * App side: asks whether the hand-off was approved. Returns ['wait'], ['gone'] or ['ok', userId].
- * An approval can be collected exactly once.
- */
-function handoff_redeem(PDO $conn, string $secret): array
+/** App side, while waiting: 'wait', 'approved' (the browser is bringing the person back) or 'gone'. Never signs anyone in. */
+function handoff_status(PDO $conn, string $secret): string
 {
     if (!preg_match('/^[0-9a-f]{48}$/', $secret)) {
-        return ['gone'];
+        return 'gone';
     }
-    $st = $conn->prepare('SELECT id, status, user_id, expires_at FROM app_handoffs WHERE secret_hash = ?');
+    $st = $conn->prepare('SELECT status, expires_at FROM app_handoffs WHERE secret_hash = ?');
     $st->execute([hash('sha256', $secret)]);
     $row = $st->fetch(PDO::FETCH_ASSOC);
-    if (!$row || (int) $row['expires_at'] < time() || (int) $row['status'] === 2 || (int) $row['status'] === 3) {
-        return ['gone'];
+    if (!$row || (int) $row['expires_at'] < time() || in_array((int) $row['status'], [2, 3], true)) {
+        return 'gone';
     }
-    if ((int) $row['status'] === 0) {
-        return ['wait'];
-    }
-    $take = $conn->prepare('UPDATE app_handoffs SET status = 2 WHERE id = ? AND status = 1');
-    $take->execute([$row['id']]);
-    return $take->rowCount() === 1 ? ['ok', (int) $row['user_id']] : ['gone'];
+    return (int) $row['status'] === 1 ? 'approved' : 'wait';
 }
 
+/** App side, after the browser brought the proof back: returns the user id, once, or null. */
+function handoff_redeem(PDO $conn, string $id, string $secret, string $proof): ?int
+{
+    if (!preg_match('/^[0-9a-f]{32}$/', $id) || !preg_match('/^[0-9a-f]{48}$/', $secret) || !preg_match('/^[0-9a-f]{48}$/', $proof)) {
+        return null;
+    }
+    $st = $conn->prepare('SELECT user_id, proof_hash FROM app_handoffs WHERE id = ? AND secret_hash = ? AND status = 1 AND expires_at >= ?');
+    $st->execute([$id, hash('sha256', $secret), time()]);
+    $row = $st->fetch(PDO::FETCH_ASSOC);
+    if (!$row || !hash_equals((string) $row['proof_hash'], hash('sha256', $proof))) {
+        return null;
+    }
+    $take = $conn->prepare('UPDATE app_handoffs SET status = 2 WHERE id = ? AND status = 1');
+    $take->execute([$id]);
+    return $take->rowCount() === 1 ? (int) $row['user_id'] : null;
+}
 
 /* ------------------------------------------------------------------ *
  * Password for accounts made by Google. Such an account starts with a random password nobody knows. Right after the

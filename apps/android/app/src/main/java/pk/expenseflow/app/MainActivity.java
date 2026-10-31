@@ -51,6 +51,26 @@ public class MainActivity extends Activity {
     private boolean showingSnapshot = false;
     private static final String RELEASE_API = "https://api.github.com/repos/muhammadanas702/expense-tracker/releases/latest";
 
+    // ---- "Continue with Google": the browser comes back with expenseflow://auth?h=<id>&p=<proof> ----
+    /** The login page address that finishes the Google sign-in, or null when the intent is something else. */
+    private String googleReturnUrl(Intent i) {
+        try {
+            Uri d = i == null ? null : i.getData();
+            if (d == null || !"expenseflow".equals(d.getScheme()) || !"auth".equals(d.getHost())) return null;
+            String h = d.getQueryParameter("h"), p = d.getQueryParameter("p");
+            if (h == null || p == null || !h.matches("[0-9a-f]{32}") || !p.matches("[0-9a-f]{48}")) return null;
+            return HOME + "?gh=" + h + "&gp=" + p;
+        } catch (Exception e) { return null; }
+    }
+
+    @Override
+    protected void onNewIntent(Intent i) {
+        super.onNewIntent(i);
+        setIntent(i);
+        String back = googleReturnUrl(i);
+        if (back != null && web != null) web.loadUrl(back);
+    }
+
     // ---- Update check: asks GitHub for the newest release and offers the download when it is newer ----
     private String myVersion() {
         try { return getPackageManager().getPackageInfo(getPackageName(), 0).versionName; } catch (Exception e) { return "1.0.0"; }
@@ -300,7 +320,8 @@ public class MainActivity extends Activity {
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
             }
         });
-        if (b != null) web.restoreState(b); else web.loadUrl(HOME);
+        String back = googleReturnUrl(getIntent());
+        if (back != null) web.loadUrl(back); else if (b != null) web.restoreState(b); else web.loadUrl(HOME);
         checkForUpdate();
         web.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
     }

@@ -4,4 +4,5 @@ const ver = ipcRenderer.sendSync('ef-version');
 contextBridge.exposeInMainWorld('EFApp', {
   version: () => ver,
   checkUpdate: () => ipcRenderer.send('ef-check-update'),
+  googleListen: () => ipcRenderer.invoke('ef-google-listen'), // port the browser comes back to after Google sign-in
 });

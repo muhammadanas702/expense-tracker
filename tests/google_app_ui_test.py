@@ -1,7 +1,7 @@
 """
 The app's "Continue with Google" screen in a real (headless) browser pretending to be the Android/Windows app.
-It checks what the person SEES: the big code panel, the waiting text, and that the app signs in by itself once the
-browser step is confirmed. The shell's "open the browser" step is emulated by catching the navigation to /auth/google.php.
+It checks what the person SEES: the waiting panel (no code to compare), and that the app signs in by itself once the
+browser brings the one-time return link back. The shell's "open the browser" step is emulated by catching the navigation to /auth/google.php.
 Usage: python3 tests/google_app_ui_test.py   (starts its own PHP servers on 8081/8082; needs the test database + Playwright)
 """
 import json, os, re, subprocess, sys, tempfile, time, requests
@@ -41,47 +41,53 @@ try:
         ok(btn.is_visible(), 'Continue with Google button is visible in the app')
         ok(not page.locator('#gapp-panel').is_visible(), 'code panel hidden before the click')
         btn.click()
-        try:
-            page.wait_for_selector('#gapp-code:visible', timeout=5000)
-        except Exception:
-            print('DEBUG url:', page.url, '| panel:', page.locator('#gapp-panel').inner_text(), '| ua:', page.evaluate('navigator.userAgent')[-40:])
-            raise
-        code = page.locator('#gapp-code').inner_text().strip()
-        ok(re.fullmatch(r'[A-Z2-9]{4}', code) is not None, 'a 4-letter code is shown big on the screen: ' + code)
-        ok('same as the one below' in page.locator('#gapp-panel').inner_text(), 'panel explains what to compare')
+        page.wait_for_selector('#gapp-panel:visible', timeout=5000)
+        ok('code' not in page.locator('#gapp-panel').inner_text().lower(), 'no code to compare anywhere on the screen')
+        ok('brought back here automatically' in page.locator('#gapp-status').inner_text(), 'the app says it will come back by itself')
         ok(page.locator('#gapp').is_disabled(), 'button is disabled while waiting')
         page.wait_for_timeout(600)
         caught[:] = page.evaluate('window.__opened || []')
         ok(len(caught) == 1 and '/auth/google.php?app=' in caught[0], 'the browser address was handed to the shell: ' + (caught[0] if caught else 'none'))
         ok(page.url.endswith('/auth/login.php'), 'the app page stays on the login screen')
-        ok(page.locator('#gapp-code').inner_text().strip() == code, 'code still on screen after the browser opened')
 
-        # reload (Android may recreate the page): the wait and the same code come back
-        page.goto(A + '/auth/login.php')  # (a fresh load, like Android re-creating the page)
-        try:
-            page.wait_for_selector('#gapp-code:visible', timeout=5000)
-        except Exception:
-            print('DEBUG reload:', page.inner_text('body')[:400].replace(chr(10), ' | '), page.evaluate('document.querySelector("#gapp-panel") && document.querySelector("#gapp-panel").outerHTML.slice(0,200)'))
-            raise
-        ok(page.locator('#gapp-code').inner_text().strip() == code, 'after a reload the same code is shown again')
-
-        # the normal browser does the Google step and the person confirms the same code
+        # the normal browser does the Google step and is sent back with the one-time link
         json.dump({'iss': 'https://accounts.google.com', 'aud': 'test-id.apps.googleusercontent.com', 'exp': int(time.time()) + 3600, 'sub': 'ui-sub-1', 'email': 'ui1@uitest.local', 'email_verified': True, 'name': 'Ui One'}, open(CLAIMS, 'w'))
         b = requests.Session()
         r = b.get(caught[0], allow_redirects=False)
         state = parse_qs(urlparse(r.headers['Location']).query)['state'][0]
         b.get(A + '/auth/google-callback.php?state=' + state + '&code=abc', allow_redirects=False)
-        cp = b.get(A + '/auth/google-app-confirm.php').text
-        ok(code in cp, 'the browser shows the SAME code as the app')
-        b.post(A + '/auth/google-app-confirm.php', data={'csrf_token': re.search(r'name="csrf_token" value="([0-9a-f]+)"', cp).group(1), 'do': 'yes'})
+        rp = b.get(A + '/auth/google-app-return.php').text
+        m = re.search(r'href="expenseflow://auth\?h=([0-9a-f]{32})&amp;p=([0-9a-f]{48})"', rp)
+        ok(m is not None and 'Open ExpenseFlow app' in rp, 'the browser shows "Open ExpenseFlow app" with the deep link')
 
+        # the app sees "approved" while the browser brings the person back
+        page.wait_for_function("document.getElementById('gapp-title').textContent.indexOf('Signed in') >= 0", timeout=8000)
+        ok('back to the app' in page.locator('#gapp-status').inner_text(), 'while the browser returns, the app says it is taking you back')
+
+        # a link for a DIFFERENT app / hand-off must not sign this app in
+        page.goto(A + '/auth/login.php?gh=' + 'a' * 32 + '&gp=' + 'b' * 48)
+        page.wait_for_selector('#gapp-status')
+        ok('not for this app' in page.locator('#gapp-status').inner_text() or 'expired' in page.locator('#gapp-status').inner_text(), 'a link for someone else\'s hand-off is refused: ' + page.locator('#gapp-status').inner_text()[:60])
+        ok('gp=' not in page.url, 'the proof does not stay in the address bar')
+
+        # the app shell (Android intent / Windows local port) loads the login page with the proof: the app signs in by itself
+        page.goto(A + '/auth/login.php'); page.locator('#gapp').click(); page.wait_for_selector('#gapp-panel:visible')
+        page.wait_for_timeout(300)
+        opened = page.evaluate('window.__opened || []')
+        b2 = requests.Session()
+        r = b2.get(opened[-1], allow_redirects=False)
+        state = parse_qs(urlparse(r.headers['Location']).query)['state'][0]
+        json.dump({'iss': 'https://accounts.google.com', 'aud': 'test-id.apps.googleusercontent.com', 'exp': int(time.time()) + 3600, 'sub': 'ui-sub-2', 'email': 'ui2@uitest.local', 'email_verified': True, 'name': 'Ui Two'}, open(CLAIMS, 'w'))
+        b2.get(A + '/auth/google-callback.php?state=' + state + '&code=abc', allow_redirects=False)
+        m2 = re.search(r'href="expenseflow://auth\?h=([0-9a-f]{32})&amp;p=([0-9a-f]{48})"', b2.get(A + '/auth/google-app-return.php').text)
+        page.goto(A + '/auth/login.php?gh=' + m2.group(1) + '&gp=' + m2.group(2))   # what MainActivity / main.js do
         page.wait_for_url('**/auth/google-password.php', timeout=15000)
-        ok('Set a password?' in page.content(), 'the app signs itself in and shows the password offer for a new Google account')
+        ok('Set a password?' in page.content(), 'the app signs itself in after the return link and shows the password offer')
 
         # cancel button
         page2 = ctx.new_page()
         ctx.clear_cookies()
-        page2.goto(A + '/auth/login.php'); page2.locator('#gapp').click(); page2.wait_for_selector('#gapp-code:visible')
+        page2.goto(A + '/auth/login.php'); page2.locator('#gapp').click(); page2.wait_for_selector('#gapp-panel:visible')
         page2.locator('#gapp-cancel').click()
         ok(not page2.locator('#gapp-panel').is_visible() and page2.locator('#gapp').is_enabled(), 'Cancel returns to the normal button')
         br.close()

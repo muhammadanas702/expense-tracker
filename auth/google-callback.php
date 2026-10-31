@@ -90,13 +90,19 @@ if (!empty($_GET['error']) || empty($_GET['code']) || !is_string($_GET['code']))
     }
 
     if ($appFlow) {
-        // Do not sign this browser in: ask the person to confirm the app's code, then the app collects the sign-in.
+        // Do not sign this browser in: approve the app's hand-off and send the browser back to the app with the proof.
         if (!empty($user['created'])) {
             logAction($conn, (int) $user['id'], 'terms_accepted', 'Continued with Google and accepted the Terms of Use and Privacy Policy on ' . date('Y-m-d H:i'));
             logAction($conn, (int) $user['id'], 'signup_google', 'Account created with Google (app)');
         }
-        $_SESSION['g_app_confirm'] = ['id' => (string) $saved['app'], 'user' => (int) $user['id'], 'name' => (string) $user['name'], 't' => time()];
-        header('Location: ' . $base_url . '/auth/google-app-confirm.php');
+        $hand = handoff_waiting($conn, (string) $saved['app']);
+        $proof = $hand ? handoff_approve($conn, (string) $saved['app'], (int) $user['id']) : null;
+        if ($hand === null || $proof === null) {
+            google_fail('This sign-in link has expired. Please press "Continue with Google" in the app again.');
+        }
+        logAction($conn, (int) $user['id'], 'login', 'User logged in with Google (app)');
+        $_SESSION['g_app_return'] = ['url' => handoff_return_url((string) $hand['ret'], (string) $saved['app'], $proof), 't' => time()];
+        header('Location: ' . $base_url . '/auth/google-app-return.php');
         exit();
     }
     session_after_login((int) $user['id'], (string) $user['name']);

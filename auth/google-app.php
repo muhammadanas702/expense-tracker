@@ -31,29 +31,34 @@ try {
             ha_out(['state' => 'error', 'message' => 'Too many attempts. Please wait a while and try again.'], 429);
         }
         rl_hit($conn, 'google_app_start', $ipKey);
-        [$id, $secret, $code] = handoff_create($conn);
-        ha_out(['state' => 'started', 'url' => ef_url('auth/google.php?app=' . $id), 'secret' => $secret, 'code' => $code, 'ttl' => HANDOFF_TTL]);
+        [$id, $secret] = handoff_create($conn, (string) ($_POST['ret'] ?? ''));
+        ha_out(['state' => 'started', 'id' => $id, 'url' => ef_url('auth/google.php?app=' . $id), 'secret' => $secret, 'ttl' => HANDOFF_TTL]);
     }
-    if (($_POST['do'] ?? '') === 'poll') {
+    if (($_POST['do'] ?? '') === 'poll') { // only reports progress; signing in needs the proof (do=redeem)
         if (rl_blocked($conn, 'google_app_poll', $ipKey, 600, 3600)) {
             ha_out(['state' => 'error', 'message' => 'Too many checks. Please try again in a while.'], 429);
         }
         rl_hit($conn, 'google_app_poll', $ipKey);
-        $r = handoff_redeem($conn, (string) ($_POST['secret'] ?? ''));
-        if ($r[0] === 'wait') {
-            ha_out(['state' => 'wait']);
+        $st = handoff_status($conn, (string) ($_POST['secret'] ?? ''));
+        ha_out($st === 'gone' ? ['state' => 'gone', 'message' => 'The sign-in was cancelled or expired. Please try again.'] : ['state' => $st]);
+    }
+    if (($_POST['do'] ?? '') === 'redeem') { // the browser brought the proof back to this device
+        if (rl_blocked($conn, 'google_app_redeem', $ipKey, 30, 3600)) {
+            ha_out(['state' => 'error', 'message' => 'Too many attempts. Please try again in a while.'], 429);
         }
-        if ($r[0] === 'ok') {
-            $st = $conn->prepare('SELECT id, name, blocked FROM users WHERE id = ?');
-            $st->execute([$r[1]]);
-            $u = $st->fetch(PDO::FETCH_ASSOC);
-            if ($u && (int) $u['blocked'] !== 1) {
-                session_after_login((int) $u['id'], (string) $u['name']);
-                ha_out(['state' => 'ok', 'url' => ef_url(google_landing_path($conn, (int) $u['id']))]);
-            }
-            ha_out(['state' => 'error', 'message' => 'This account has been blocked. Please contact support.']);
+        rl_hit($conn, 'google_app_redeem', $ipKey);
+        $uid = handoff_redeem($conn, (string) ($_POST['id'] ?? ''), (string) ($_POST['secret'] ?? ''), (string) ($_POST['proof'] ?? ''));
+        if ($uid === null) {
+            ha_out(['state' => 'gone', 'message' => 'The sign-in could not be completed or has expired. Please try again.']);
         }
-        ha_out(['state' => 'gone', 'message' => 'The sign-in was cancelled or expired. Please try again.']);
+        $st = $conn->prepare('SELECT id, name, blocked FROM users WHERE id = ?');
+        $st->execute([$uid]);
+        $u = $st->fetch(PDO::FETCH_ASSOC);
+        if ($u && (int) $u['blocked'] !== 1) {
+            session_after_login((int) $u['id'], (string) $u['name']);
+            ha_out(['state' => 'ok', 'url' => ef_url(google_landing_path($conn, (int) $u['id']))]);
+        }
+        ha_out(['state' => 'error', 'message' => 'This account has been blocked. Please contact support.']);
     }
     ha_out(['state' => 'error', 'message' => 'Unknown request.'], 400);
 } catch (Throwable $e) {
