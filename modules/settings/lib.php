@@ -9,7 +9,13 @@ const SETTINGS_DEFAULTS = [
     'maintenance' => '0',
     'maintenance_msg' => 'ExpenseFlow is being updated. Please try again in a few minutes.',
     'signups' => '1',
+    // "Apps & contact": edited by staff in Admin > Settings, used by the landing page, profile and contact page.
+    'link_android' => 'https://github.com/muhammadanas702/expense-tracker/releases/latest/download/ExpenseFlow.apk',
+    'link_windows' => 'https://github.com/muhammadanas702/expense-tracker/releases/latest/download/ExpenseFlow-Setup.exe',
+    'link_store' => '',
+    'contact_email' => 'expenseflowteam@gmail.com',
 ];
+const SETTINGS_LINK_KEYS = ['link_android' => 'Android download link', 'link_windows' => 'Windows download link', 'link_store' => 'Microsoft Store link'];
 
 function settings_ensure_schema(PDO $conn): void
 {
@@ -59,6 +65,30 @@ function settings_all(?PDO $conn = null, bool $fresh = false): array
     return $cache = $out;
 }
 
+const SETTINGS_PUBLIC_FILE = __DIR__ . '/../../storage/public-settings.json';
+
+/**
+ * Value for public pages (landing, contact, profile). Read from a small file written when staff save Settings, so these
+ * pages keep working without the database (outage or maintenance). Falls back to the built-in default.
+ */
+function settings_public(string $key): string
+{
+    static $cache = null;
+    if ($cache === null) {
+        $cache = [];
+        try {
+            if (is_file(SETTINGS_PUBLIC_FILE)) {
+                $j = json_decode((string) file_get_contents(SETTINGS_PUBLIC_FILE), true);
+                $cache = is_array($j) ? $j : [];
+            }
+        } catch (Throwable $e) {
+            $cache = [];
+        }
+    }
+    $v = $cache[$key] ?? null;
+    return is_string($v) && ($v !== '' || $key === 'link_store') ? $v : (SETTINGS_DEFAULTS[$key] ?? '');
+}
+
 function settings_get(string $key, ?PDO $conn = null): string
 {
     return settings_all($conn)[$key] ?? (SETTINGS_DEFAULTS[$key] ?? '');
@@ -79,7 +109,26 @@ function settings_validate(array $in): array
     if ($msg === null) {
         return [null, 'The maintenance message can be up to ' . SETTINGS_MESSAGE_MAX . ' characters.'];
     }
-    return [['maintenance' => !empty($in['maintenance']) ? '1' : '0', 'maintenance_msg' => $msg, 'signups' => !empty($in['signups']) ? '1' : '0'], null];
+    $vals = ['maintenance' => !empty($in['maintenance']) ? '1' : '0', 'maintenance_msg' => $msg, 'signups' => !empty($in['signups']) ? '1' : '0'];
+    foreach (SETTINGS_LINK_KEYS as $k => $label) {
+        $u = trim((string) ($in[$k] ?? ''));
+        if ($u === '') {
+            $vals[$k] = $k === 'link_store' ? '' : SETTINGS_DEFAULTS[$k]; // only the Store link may be empty (it is then hidden)
+        } elseif (strlen($u) > 255 || !preg_match('#^https://[^\s<>"\']+$#i', $u) || filter_var($u, FILTER_VALIDATE_URL) === false) {
+            return [null, $label . ' must be a full https:// address (up to 255 characters).'];
+        } else {
+            $vals[$k] = $u;
+        }
+    }
+    $mail = strtolower(trim((string) ($in['contact_email'] ?? '')));
+    if ($mail === '') {
+        $mail = SETTINGS_DEFAULTS['contact_email'];
+    }
+    if (strlen($mail) > 120 || filter_var($mail, FILTER_VALIDATE_EMAIL) === false) {
+        return [null, 'Please enter a valid contact e-mail address.'];
+    }
+    $vals['contact_email'] = $mail;
+    return [$vals, null];
 }
 
 /** Saves values; returns the human-readable list of what changed. */
@@ -97,10 +146,18 @@ function settings_save(PDO $conn, array $values): array
         $changes[] = match ($k) {
             'maintenance' => 'maintenance ' . ($v === '1' ? 'on' : 'off'),
             'signups' => 'sign-ups ' . ($v === '1' ? 'open' : 'closed'),
+            'link_android', 'link_windows', 'link_store' => (SETTINGS_LINK_KEYS[$k] ?? $k) . ' changed',
+            'contact_email' => 'contact e-mail changed',
             default => 'maintenance message changed',
         };
     }
-    settings_all($conn, true);
+    $all = settings_all($conn, true);
+    try { // copy of the public values for pages that must not need the database
+        $pub = array_intersect_key($all, array_flip(['link_android', 'link_windows', 'link_store', 'contact_email']));
+        @file_put_contents(SETTINGS_PUBLIC_FILE, json_encode($pub), LOCK_EX);
+    } catch (Throwable $e) {
+        error_log('ExpenseFlow public settings file: ' . $e->getMessage());
+    }
     return $changes;
 }
 

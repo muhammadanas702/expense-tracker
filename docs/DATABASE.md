@@ -62,7 +62,7 @@ MySQL / MariaDB, `utf8mb4`, InnoDB, accessed only through PDO prepared statement
 | `app_currency_hidden` | Currency codes staff hid from pick lists (e.g. if KRW is missing in a dropdown, check Admin > Currencies) |
 | `security_events` | Failed logins and lock-outs (e-mails are masked when shown) |
 | `ip_blocks` | Blocked IPs with optional expiry |
-| `app_settings` | Key/value: `maintenance` (0/1), `maintenance_msg`, `signups` (1 = open) |
+| `app_settings` | Key/value: `maintenance` (0/1), `maintenance_msg`, `signups` (1 = open), `link_android`, `link_windows`, `link_store`, `contact_email` (copied to `storage/public-settings.json` on save so public pages work without the database) |
 
 **Audit log:** there is no separate table. Staff actions are rows in `user_logs` whose `action` starts with `admin_` (written by `admin_audit()`), shown in Admin > Audit log; normal user rows are shown in Admin > User logs.
 

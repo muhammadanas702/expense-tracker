@@ -258,3 +258,7 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Cause of the changing tile colour (blue / red / white): the Store tile images were transparent and `appx.backgroundColor` was `transparent`, so Windows painted the user's accent colour behind the logo. All tile images in `apps/desktop/build/appx/` are now regenerated from `assets/icons/icon-512.png` on a solid white plate and `backgroundColor` is `#FFFFFF` (same look as the Android and PWA icons).
 - Size: `electronLanguages: ["en-US"]` (drops about 40 MB of unused language packs), maximum compression, asar on. Electron itself ships a whole Chromium, so the app cannot go much below ~150 MB installed; the only big saving is a WebView2-based shell (a few MB) — see ROADMAP ideas.
 - To apply to the Store version: run the release workflow with a new version, upload the new `.msix` as a new submission in Partner Center. The tile in the Start menu changes only after the update installs.
+
+## Part 38 — One place for app links and contact (Admin > Settings)
+- New "Apps & contact" block in Admin > Settings: Android link, Windows link, Microsoft Store link (empty = button hidden) and the contact e-mail. Landing page, profile page and contact page read them via `settings_public()`, which uses `storage/public-settings.json` (written on save) so they never need the database. Changes are audit-logged.
+- Idea left: logo/colours are still files (`assets/`, `THEME.md`); moving them to the panel is possible later but riskier.

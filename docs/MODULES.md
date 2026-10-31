@@ -86,7 +86,7 @@ Users open a ticket from Profile (subject, category, message) and read replies t
 | User logs | `admin/logs.php` | `log` |
 | Security (failed logins, IP blocks) | `admin/security.php` | `log` |
 | Backups | `admin/backups.php` | `backup` |
-| Settings (maintenance, sign-ups) | `admin/settings.php` | `set` |
+| Settings (maintenance, sign-ups, app download links, Store link, contact e-mail) | `admin/settings.php` | `set` |
 
 Rules every admin page follows: sign-in + role check at the top (`admin/auth.php`), permission check with `admin_can()`, POST + CSRF for actions, `admin_audit()` for every change, and the menu hides what the role cannot use (but the server check is what really protects). Maintenance mode lets only signed-in staff through.
 

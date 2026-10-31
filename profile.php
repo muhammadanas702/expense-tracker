@@ -148,8 +148,8 @@ ef_page_start(['title' => 'Profile & Settings', 'sub' => 'Account, goals and dat
       <?php endif; ?>
       <div class="row"><span><?= ef_icon('lifebuoy') ?> Help &amp; support<small>Ask us a question or report a problem</small></span><b><a class="lnk" href="<?= e($base_url) ?>/support/index.php">Open</a></b></div>
       <div class="row" id="install-row" hidden><span><?= ef_icon('phone') ?> Install app<small>Works offline on your phone or PC</small></span><b><a class="lnk" href="#" id="install-btn">Install</a></b></div>
-      <div class="row" id="app-dl"><span><?= ef_icon('dl') ?> Android app<small>Download the ExpenseFlow APK</small></span><b><a class="lnk" href="https://github.com/muhammadanas702/expense-tracker/releases/latest" rel="noopener">Download</a></b></div>
-      <div class="row" id="app-win"><span><?= ef_icon('lap') ?> Windows app<small>Download the ExpenseFlow installer (.exe)</small></span><b><a class="lnk" href="https://github.com/muhammadanas702/expense-tracker/releases/latest" rel="noopener">Download</a></b></div>
+      <div class="row" id="app-dl"><span><?= ef_icon('dl') ?> Android app<small>Download the ExpenseFlow APK</small></span><b><a class="lnk" href="<?= e(settings_public('link_android')) ?>" rel="noopener">Download</a></b></div>
+      <div class="row" id="app-win"><span><?= ef_icon('lap') ?> Windows app<small>Download the ExpenseFlow installer (.exe)</small></span><b><a class="lnk" href="<?= e(settings_public('link_store') ?: settings_public('link_windows')) ?>" rel="noopener">Download</a></b></div>
       <div class="row" id="app-upd" hidden><span><?= ef_icon('ref') ?> App updates<small id="app-ver">Check for a newer version</small></span><b><a class="lnk" href="#" id="app-upd-btn">Check</a></b></div>
       <div class="row"><span><?= ef_icon('doc') ?> Full report<small>Export CSV, Excel or PDF</small></span><b><a class="lnk" href="<?= e($base_url) ?>/reports/view-report.php">Open</a></b></div>
       <a class="btn" style="width:100%;margin-top:12px" href="<?= e($base_url) ?>/auth/logout.php" data-post data-csrf="<?= e($csrf) ?>"><?= ef_icon('out') ?> Logout</a>
