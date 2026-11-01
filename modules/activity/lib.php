@@ -8,6 +8,7 @@ require_once __DIR__ . '/../../includes/schema.php';
 const ACTIVITY_KINDS = [
     'expense_add', 'expense_edit', 'expense_delete', 'settle', 'settle_delete',
     'member_join', 'member_leave', 'member_remove', 'group_create', 'group_rename', 'comment',
+    'budget_80', 'budget_100', // personal budget alerts (group_id 0)
 ];
 
 function activity_ensure_schema(PDO $conn): void
@@ -115,7 +116,13 @@ function activity_notifications(PDO $conn, int $userId, int $limit = 50): array
          WHERE n.user_id = ? ORDER BY n.id DESC LIMIT ' . (int) $limit
     );
     $q->execute([$userId]);
-    return $q->fetchAll(PDO::FETCH_ASSOC);
+    $rows = $q->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($rows as &$r) {
+        if ((int) $r['group_id'] === 0) {
+            $r['group_name'] = 'Budgets'; // personal events have no group
+        }
+    }
+    return $rows;
 }
 
 function activity_mark_read(PDO $conn, int $userId): void
@@ -165,6 +172,8 @@ function activity_describe(array $r, int $viewerId): array
         case 'group_create':   return ['users', "$who created the group", ''];
         case 'group_rename':   return ['pen', "$who renamed the group", ''];
         case 'comment':        return ['msg', "$who commented on $t", ''];
+        case 'budget_80':      return ['tgt', ($r['title'] ?? 'A category') . ' has used ' . (int) $r['amount_minor'] . '% of its monthly budget', ''];
+        case 'budget_100':     return ['tgt', ($r['title'] ?? 'A category') . ' went over its monthly budget (' . (int) $r['amount_minor'] . '%)', ''];
     }
     return ['act', "$who did something", ''];
 }

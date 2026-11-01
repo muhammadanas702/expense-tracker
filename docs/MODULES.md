@@ -117,3 +117,5 @@ Rules every admin page follows: sign-in + role check at the top (`admin/auth.php
 3. Root wrapper pages (`<name>/index.php` ...) that `require` `boot.php` or the standard header (security, session, db, layout), check sign-in, then `ef_page_start([...])` / `ef_page_end()`.
 4. If other modules need to react (delete cleanup, notifications), expose `<name>_on_user_deleted()` etc. and call them only behind `function_exists()`.
 5. Add tests in `tests/` (see [`TESTING.md`](TESTING.md)) and a line in `docs/ROADMAP.md`.
+
+- **budgets** (personal, optional): `budgets.php`, `modules/budgets/lib.php`. Tables `budgets`, `budget_alerts`. Hooks: `budgets_check_alerts()` after an expense is saved, `budgets_on_user_deleted()`. Adds activity kinds `budget_80`, `budget_100`.

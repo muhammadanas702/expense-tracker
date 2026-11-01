@@ -214,6 +214,25 @@ ef_page_start([
     <div class="g card"><div class="k">Total expense</div><div class="v ex"><?= $fmt($total_expense) ?> <?= e($display_currency) ?></div></div>
 </div>
 
+<?php
+// Optional Budgets module: a compact card for the month being viewed (hidden when off or when there are no budgets).
+$budgetItems = [];
+if (!$use_date_range && isset(ef_modules()['budgets']) && is_file(__DIR__ . '/modules/budgets/lib.php')) {
+    require_once __DIR__ . '/modules/budgets/lib.php';
+    $budgetItems = budgets_status($conn, $user_id, $period_start->format('Y-m'));
+    usort($budgetItems, fn($a, $b) => $b['pct'] <=> $a['pct']);
+    $budgetItems = array_slice($budgetItems, 0, 3);
+}
+if ($budgetItems): $bcol = ['ok' => '#0d9f6e', 'warn' => '#f59e0b', 'over' => '#dc2626']; ?>
+<div class="g card" id="budget-card" style="margin-bottom:14px">
+    <div class="t">Budgets <a href="<?= e($base_url) ?>/budgets.php">Manage →</a></div>
+    <?php foreach ($budgetItems as $b): ?>
+    <div style="margin-top:8px"><div style="display:flex;justify-content:space-between;font-size:.88rem"><b><?= e($b['category']) ?></b><span style="color:<?= e($bcol[$b['level']]) ?>;font-weight:700"><?= e((string) round($b['pct'])) ?>%</span></div>
+        <div class="bar"><i style="width:<?= e((string) min(100, $b['pct'])) ?>%;background:<?= e($bcol[$b['level']]) ?>"></i></div></div>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>
+
 <div class="G2">
     <div class="g card">
         <div class="t">Where your money goes</div>

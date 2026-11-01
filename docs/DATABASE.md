@@ -39,6 +39,8 @@ MySQL / MariaDB, `utf8mb4`, InnoDB, accessed only through PDO prepared statement
 | `shared_settlements` | "X paid Y" payments | `from_user`, `to_user`, `amount_minor`, `currency`, `settled_on` |
 | `app_handoffs` | Short-lived sign-in hand-off between an app and the browser (Google in the apps) | `id` (public), `secret_hash`, `ret` (`android` or the Windows app's local port), `proof_hash`, `code` (unused since Part 41), `status` (0 waiting, 1 approved, 2 used, 3 cancelled), `user_id`, `expires_at` |
 | `user_identities` | Links a login provider to an account | `user_id`, `provider` (`google`), `subject` (Google's stable id), `email`; unique (`provider`,`subject`); removed by `oauth_on_user_deleted()` (no foreign key) |
+| `budgets` | Monthly limit per expense category | `user_id`, `category`, `amount`, `currency`; unique (`user_id`,`category`); removed by `budgets_on_user_deleted()` (no foreign key) |
+| `budget_alerts` | Which 80% / 100% alerts were already sent this month | `user_id`, `category`, `ym` (YYYY-MM), `level` (80/100); unique on all four, so an alert is sent once |
 | `friend_links` | Direct friend requests by e-mail | `requester_id`, `addressee_id`, `status` `pending`/`accepted`; unique pair. Friends are also *derived* from shared groups |
 
 **Money rules (Shared):** all amounts are **integers in minor units** (`amount_minor`). Never use floats. Balances are calculated per person and per currency from expenses, splits and settlements (`shared_group_pairs`, `shared_group_nets`); only two people who owe each other cancel out.
