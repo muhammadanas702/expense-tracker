@@ -131,15 +131,38 @@ function ef_page_end(array $o = []): void
 <?php if ($mode === 's' && !$pg['neutral'] && ef_nav('s')): ?>
 <a class="fabf" href="<?= e(ef_url('shared/add.php')) ?>" aria-label="Add shared expense"><?= ef_icon('pl') ?></a>
 <?php endif; ?>
+<?php
+// Phone bottom bar: at most 4 main items (entries flagged 'bar' in module.php, else the first 4) and a "More" sheet for the rest.
+$barItems = $bottom;
+$moreItems = [];
+if (count($bottom) > 5) {
+    $flagged = array_values(array_filter($bottom, fn($n) => !empty($n[4])));
+    $barItems = array_slice($flagged ?: $bottom, 0, 4);
+    $moreItems = array_values(array_filter($bottom, fn($n) => !in_array($n, $barItems, true)));
+}
+$moreActive = false;
+foreach ($moreItems as $n) { if ($n[3] === $active) { $moreActive = true; } }
+?>
+<?php if ($moreItems): ?>
+<div class="g msheet" id="more-sheet" hidden role="menu" aria-label="More">
+<?php foreach ($moreItems as $n): ?>
+  <a class="<?= $n[3] === $active ? 'on' : '' ?>" role="menuitem" href="<?= e(ef_url($n[0])) ?>"><?= ef_icon($n[1]) ?><span><?= e($n[2]) ?></span></a>
+<?php endforeach; ?>
+</div>
+<?php endif; ?>
 <nav class="g bn">
-<?php foreach ($bottom as $n): ?>
+<?php foreach ($barItems as $n): ?>
   <a class="<?= $n[3] === $active ? 'on' : '' ?>" href="<?= e(ef_url($n[0])) ?>"><?= ef_icon($n[1]) ?><?= e(str_replace(['Add ', 'Full '], '', $n[2])) ?></a>
 <?php endforeach; ?>
+<?php if ($moreItems): ?>
+  <button type="button" class="mbtn<?= $moreActive ? ' on' : '' ?>" id="more-btn" aria-haspopup="true" aria-expanded="false" aria-controls="more-sheet"><?= ef_icon('menu') ?>More</button>
+<?php endif; ?>
 </nav>
 </div>
 <script src="<?= e(ef_asset('assets/client-time.js')) ?>" defer></script>
 <script src="<?= e(ef_asset('assets/fx.js')) ?>" defer></script>
 <script src="<?= e(ef_asset('assets/notif-pop.js')) ?>" defer></script>
+<script src="<?= e(ef_asset('assets/more-menu.js')) ?>" defer></script>
 <?= $o['scripts'] ?? '' ?>
 </body>
 </html>

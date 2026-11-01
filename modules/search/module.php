@@ -5,5 +5,5 @@ return [
     'mode' => 'p',
     'enabled' => true,
     'order' => 58,
-    'nav' => [['search.php', 'search', 'Search', 'find']],
+    'nav' => [], // no menu entry: the search box lives on the Dashboard (the page search.php is still the full search)
 ];
