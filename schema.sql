@@ -422,3 +422,26 @@ CREATE TABLE IF NOT EXISTS `budget_alerts` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_budget_alert` (`user_id`, `category`, `ym`, `level`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Part 45: savings goals and the money put in / taken out
+CREATE TABLE IF NOT EXISTS `savings_goals` (
+  `id`         INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  `user_id`    INT UNSIGNED  NOT NULL,
+  `name`       VARCHAR(60)   NOT NULL,
+  `target`     DECIMAL(15,2) NOT NULL,
+  `currency`   VARCHAR(3)    NOT NULL DEFAULT 'PKR',
+  `deadline`   DATE          NULL DEFAULT NULL,
+  `created_at` TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_goal_user` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `goal_entries` (
+  `id`         INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  `goal_id`    INT UNSIGNED  NOT NULL,
+  `user_id`    INT UNSIGNED  NOT NULL,
+  `amount`     DECIMAL(15,2) NOT NULL,
+  `created_at` TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_entry_goal` (`goal_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

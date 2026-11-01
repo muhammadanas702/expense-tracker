@@ -41,6 +41,8 @@ MySQL / MariaDB, `utf8mb4`, InnoDB, accessed only through PDO prepared statement
 | `user_identities` | Links a login provider to an account | `user_id`, `provider` (`google`), `subject` (Google's stable id), `email`; unique (`provider`,`subject`); removed by `oauth_on_user_deleted()` (no foreign key) |
 | `budgets` | Monthly limit per expense category | `user_id`, `category`, `amount`, `currency`; unique (`user_id`,`category`); removed by `budgets_on_user_deleted()` (no foreign key) |
 | `budget_alerts` | Which 80% / 100% alerts were already sent this month | `user_id`, `category`, `ym` (YYYY-MM), `level` (80/100); unique on all four, so an alert is sent once |
+| `savings_goals` | Savings goals | `user_id`, `name`, `target`, `currency`, optional `deadline`; removed by `goals_on_user_deleted()` (no foreign key) |
+| `goal_entries` | Money put into (+) or taken out of (-) a goal | `goal_id`, `user_id`, `amount`; saved = sum of entries |
 | `friend_links` | Direct friend requests by e-mail | `requester_id`, `addressee_id`, `status` `pending`/`accepted`; unique pair. Friends are also *derived* from shared groups |
 
 **Money rules (Shared):** all amounts are **integers in minor units** (`amount_minor`). Never use floats. Balances are calculated per person and per currency from expenses, splits and settlements (`shared_group_pairs`, `shared_group_nets`); only two people who owe each other cancel out.

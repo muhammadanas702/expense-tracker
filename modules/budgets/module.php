@@ -5,6 +5,6 @@ return [
     'id' => 'budgets',
     'mode' => 'p',
     'enabled' => true,
-    'order' => 45,
+    'order' => 55,
     'nav' => [['budgets.php', 'tgt', 'Budgets', 'bud']],
 ];
