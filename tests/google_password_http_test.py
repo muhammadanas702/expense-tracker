@@ -54,7 +54,7 @@ try:
     r = s.post(A + '/auth/google-password.php', data={'csrf_token': token(r.text), 'skip': '1'}, allow_redirects=False)
     ok(r.headers.get('Location', '').endswith('dashboard.php'), 'skip goes to the dashboard')
     ok(db("SELECT MAX(pw_state) FROM user_identities i JOIN users u ON u.id=i.user_id WHERE u.email='newbie@pwtest.local'") == '2', 'skip is remembered')
-    prof = s.get(A + '/profile.php').text
+    prof = s.get(A + '/settings/security.php').text
     ok('google-password.php' in prof and 'Set a password' in prof and 'Current password' not in prof, 'Profile keeps offering a password (no "current password" box)')
     ok('Set a password' in s.get(A + '/auth/delete-account.php').text, 'delete-account points to the same page')
 
@@ -69,7 +69,7 @@ try:
     r = s2.post(A + '/auth/google-password.php', data={'csrf_token': token(page), 'password': 'Abcdef#123', 'confirm_password': 'Abcdef#123'}, allow_redirects=False)
     ok(r.headers.get('Location', '').endswith('dashboard.php'), 'valid password saved')
     ok(db("SELECT MAX(pw_state) FROM user_identities i JOIN users u ON u.id=i.user_id WHERE u.email='newbie@pwtest.local'") == '0', 'state is "has a password"')
-    ok('Current password' in s2.get(A + '/profile.php').text, 'Profile now shows the normal change-password form')
+    ok('Current password' in s2.get(A + '/settings/security.php').text, 'Profile now shows the normal change-password form')
     ok(s2.get(A + '/auth/google-password.php', allow_redirects=False).headers.get('Location', '').endswith('dashboard.php'), 'password page is closed once a password exists')
     s3 = requests.Session()
     lp = s3.get(A + '/auth/login.php').text

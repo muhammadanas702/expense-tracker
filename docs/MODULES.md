@@ -7,7 +7,7 @@ Every feature is a folder in `modules/` with a `module.php` manifest (see [`ARCH
 | Module | Mode | In menu | Purpose | Public pages (wrappers) |
 | --- | --- | --- | --- | --- |
 | `personal` | Personal | Dashboard, Add Income, Add Expense, Full Report | Income, expenses, recurring items, dashboard, reports | `dashboard.php`, `income/add-income.php`, `expense/add-expense.php`, `edit-*.php`, `delete-*.php`, `reports/view-report.php`, `change-base-currency.php`, `reset-data.php`, `stop-recurring.php` |
-| `profile` | neutral | via layout link | Profile, savings goal, notifications, first-run setup, danger zone | `profile.php` |
+| `profile` | neutral | via layout link | Profile & Settings hub (`profile.php`) and one page per section under `settings/` (account, security, preferences, notifications, apps, data); first-run setup | `profile.php`, `settings/*.php` |
 | `shared` | Shared | Overview, Groups, Add Shared | Groups, split bills, balances, settle up | `shared/*.php` |
 | `friends` | Shared | Friends | Friends by e-mail + people you share groups with, per-person balances | `friends/*.php` |
 | `activity` | Shared | Activity | Feed + notification bell | `activity/*.php` |
@@ -36,7 +36,7 @@ Every feature is a folder in `modules/` with a `module.php` manifest (see [`ARCH
 
 ## Profile and settings (`modules/profile`)
 
-Name, password change, **monthly savings goal** (default 20 %), notifications on/off, first-run card (main currency + goal; can be skipped), "Danger zone" with reset data and **delete account** (`auth/delete-account.php`, asks for the password).
+`profile.php` is a hub of cards; each card opens its own page (`settings/account.php`, `security.php`, `preferences.php`, `notifications.php`, `apps.php`, `data.php`). Sections are listed in `settings_sections()` in `modules/profile/settings-ui.php`; a new page calls `settings_boot()` / `settings_page_start()` / `settings_page_end()`. Contents: name, password change, **monthly savings goal** (default 20 %), notifications on/off, first-run card (main currency + goal; can be skipped), "Danger zone" with reset data and **delete account** (`auth/delete-account.php`, asks for the password).
 
 ## Shared (`modules/shared`)
 
