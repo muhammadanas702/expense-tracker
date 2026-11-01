@@ -307,3 +307,8 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Bell: one notification when it gets within 3 days and one when it is late, per due date (`soon_for`/`late_for`). Checked whenever the dashboard or Reminders page opens (no cron needed on free hosting). Dashboard card "Due soon" shows late/soon items.
 - Not done yet: "remind me to settle up" for shared groups (needs balances per friend; planned as a follow-up inside the Shared section).
 - Tests: `reminders_test.php`, `reminders_http_test.py`; `module_failsafe_http_test.py` now cleans its schema markers.
+
+## Part 47 — Tags + search
+- Add/Edit income and expense have a Tags field (up to 5 per entry, up to 20 letters/numbers each, `#` optional). Stored in the new `tags` column as `,trip,work,` so one tag matches exactly (`expenses`/`income` get the column from `personal_ensure_schema()`).
+- New optional module `modules/search/` (page `search.php`, menu entry Search): free text over title, note, category and tags, plus tag chips (your own tags), type, category, date range and amount range (PKR). Shows count and income/expense totals of the matches, newest 100, each row opens the edit page. Only the signed-in person's rows are ever read; `%` and `_` typed by the person are escaped.
+- Tests: `search_test.php`, `search_http_test.py`.

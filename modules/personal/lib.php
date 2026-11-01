@@ -17,6 +17,38 @@ function personal_payment_method($value): ?string
     return is_string($value) && isset(personal_payment_methods()[$value]) ? $value : null;
 }
 
+const PERSONAL_MAX_TAGS = 5;
+
+/**
+ * Turns what the person typed ("Trip, #office work") into the stored form ",trip,office-work," (so one tag can be matched exactly).
+ * Returns null for no tags, false when the input is not allowed (more than 5 tags, a tag over 20 characters, odd characters).
+ */
+function personal_tags_store(string $raw)
+{
+    $out = [];
+    foreach (preg_split('/[,;\n]+/', $raw) ?: [] as $t) {
+        $t = mb_strtolower(trim(ltrim(trim($t), '#')));
+        $t = preg_replace('/\s+/', '-', $t);
+        if ($t === '') {
+            continue;
+        }
+        if (mb_strlen($t) > 20 || !preg_match('/^[\p{L}\p{N}_-]+$/u', $t)) {
+            return false;
+        }
+        $out[$t] = true;
+    }
+    if (count($out) > PERSONAL_MAX_TAGS) {
+        return false;
+    }
+    return $out ? ',' . implode(',', array_keys($out)) . ',' : null;
+}
+
+/** ",trip,work," -> ['trip', 'work'] */
+function personal_tags_list(?string $stored): array
+{
+    return array_values(array_filter(explode(',', (string) $stored), fn($t) => $t !== ''));
+}
+
 /** Creates the Part 3 columns/table when the SQL file has not been run yet. */
 function personal_ensure_schema(PDO $conn): void
 {
@@ -30,7 +62,7 @@ function personal_ensure_schema(PDO $conn): void
     $done = true;
     try {
         foreach (['income', 'expenses'] as $t) {
-            foreach (['payment_method' => 'VARCHAR(20) NULL DEFAULT NULL', 'note' => 'VARCHAR(255) NULL DEFAULT NULL'] as $col => $def) {
+            foreach (['payment_method' => 'VARCHAR(20) NULL DEFAULT NULL', 'note' => 'VARCHAR(255) NULL DEFAULT NULL', 'tags' => 'VARCHAR(150) NULL DEFAULT NULL'] as $col => $def) {
                 if (!schema_has($conn, $t, $col)) {
                     $conn->exec("ALTER TABLE `$t` ADD COLUMN `$col` $def");
                     schema_has($conn, $t, $col, true);
