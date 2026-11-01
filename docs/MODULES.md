@@ -119,3 +119,4 @@ Rules every admin page follows: sign-in + role check at the top (`admin/auth.php
 5. Add tests in `tests/` (see [`TESTING.md`](TESTING.md)) and a line in `docs/ROADMAP.md`.
 
 - **budgets** (personal, optional): `budgets.php`, `modules/budgets/lib.php`. Tables `budgets`, `budget_alerts`. Hooks: `budgets_check_alerts()` after an expense is saved, `budgets_on_user_deleted()`. Adds activity kinds `budget_80`, `budget_100`.
+- **goals** (personal, optional): `goals.php`, `modules/goals/lib.php`. Tables `savings_goals`, `goal_entries`. Hook `goals_on_user_deleted()`. Menu order values: personal 50, budgets 55, goals 56 (an optional module must never sort before `personal`, or it becomes the home link).

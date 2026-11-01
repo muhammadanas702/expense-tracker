@@ -292,3 +292,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - After an expense is added or edited, `budgets_check_alerts()` sends ONE bell notification at 80% and ONE at 100% per category per month (`budget_alerts` remembers; jumping straight past 100% sends one message). Respects the person's notifications switch. Events use group id 0 and are labelled "Budgets".
 - Spending uses the PKR value saved with each expense, so rate changes never move a budget. Switch off by setting `enabled` to false in `module.php`; the expense form and dashboard check with `function_exists`/`ef_modules()`.
 - Tables: `budgets`, `budget_alerts` (self-healing, no foreign keys). Tests: `budgets_test.php`, `budgets_http_test.py`.
+
+## Part 45 — Savings goals
+- New optional module `modules/goals/` (page `goals.php`, menu entry Goals): name, target, currency and optional deadline; add or take out money by hand (history kept in `goal_entries`, never below zero); progress bar, "to go", and "save about X a month" until the deadline; reached goals are marked.
+- Goals do not touch income/expense totals (they are a separate piggy-bank), so nothing in reports changes.
+- Fix: Budgets had menu order 45 and so appeared before Dashboard (its link became the home link); now 55. `goals_test.php` checks Dashboard is first.
+- Tables: `savings_goals`, `goal_entries`. Tests: `goals_test.php`, `goals_http_test.py`.
