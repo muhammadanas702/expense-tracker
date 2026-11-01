@@ -215,6 +215,28 @@ ef_page_start([
 </div>
 
 <?php
+// Optional Reminders module: bills that are late or due within 3 days (also sends the bell notifications).
+$remindItems = [];
+if (isset(ef_modules()['reminders']) && is_file(__DIR__ . '/modules/reminders/lib.php')) {
+    try {
+        require_once __DIR__ . '/modules/reminders/lib.php';
+        reminders_check_due($conn, $user_id);
+        $remindItems = array_slice(array_values(array_filter(reminders_list($conn, $user_id), fn($r) => $r['state'] !== 'later')), 0, 3);
+    } catch (Throwable $e) {
+        error_log('ExpenseFlow dashboard reminders: ' . $e->getMessage());
+        $remindItems = [];
+    }
+}
+if ($remindItems): ?>
+<div class="g card" id="reminder-card" style="margin-bottom:14px">
+    <div class="t">Due soon <a href="<?= e($base_url) ?>/reminders.php">All reminders →</a></div>
+    <?php foreach ($remindItems as $r): ?>
+    <div style="display:flex;justify-content:space-between;gap:10px;margin-top:8px;font-size:.9rem"><b><?= e($r['title']) ?></b>
+        <span style="font-weight:700;color:<?= $r['state'] === 'late' ? '#dc2626' : '#f59e0b' ?>"><?= $r['days'] < 0 ? 'Overdue' : ($r['days'] === 0 ? 'Today' : 'In ' . (int) $r['days'] . ' d') ?></span></div>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>
+<?php
 // Optional Budgets module: a compact card for the month being viewed (hidden when off or when there are no budgets).
 $budgetItems = [];
 if (!$use_date_range && isset(ef_modules()['budgets']) && is_file(__DIR__ . '/modules/budgets/lib.php')) {

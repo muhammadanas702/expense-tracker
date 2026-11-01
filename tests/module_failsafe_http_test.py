@@ -1,6 +1,6 @@
 """A broken optional-module table must never give the dashboard or its own page a 500.
 Usage: php -S 127.0.0.1:8080 -t . router.php   then   python3 tests/module_failsafe_http_test.py   (TEST database)"""
-import re, subprocess, requests
+import re, subprocess, requests, glob, os
 B='http://127.0.0.1:8080'
 def sql(q): return subprocess.run(['mysql','--socket=/run/mysqld/mysqld.sock','-uroot','expenseflow_test','-N','-e',q],capture_output=True,text=True).stdout.strip()
 def tok(h): return re.search(r'name="csrf_token" value="([^"]+)"',h).group(1)
@@ -16,5 +16,6 @@ for p,msg in (('/dashboard.php',False),('/budgets.php',True),('/goals.php',True)
     if not good: fails+=1; print('FAIL',p,r.status_code)
 sql("DELETE FROM users WHERE email='brk@b.local'")
 
+for f in glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'storage', 'schema', '*')): os.remove(f)  # the dropped tables must be re-created by the next request
 print('module failsafe tests:', 'ALL PASSED' if not fails else f'{fails} FAILED')
 raise SystemExit(1 if fails else 0)

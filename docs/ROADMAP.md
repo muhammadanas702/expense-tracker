@@ -301,3 +301,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 
 ## Fix after Parts 44/45 — Budgets/Goals errors on the live site
 - Live dashboard and Budgets page showed "Error 500" inside the page. Hardening: `ef_schema_add_missing()` (in `includes/schema.php`) adds any missing column to a table that already exists in another shape, `budgets`/`budget_alerts` also get their unique keys repaired; the dashboard budget card is wrapped so it can never break the dashboard; Budgets and Goals pages catch load errors and show "could not load right now" (admins also see the technical reason). Test: `module_failsafe_http_test.py`.
+
+## Part 46 — Reminders
+- New optional module `modules/reminders/` (page `reminders.php`, menu entry Reminders): bill/payment with due date, optional amount, optional "every month". States: late, today, soon (within 3 days), later. "Paid" moves a monthly reminder to the next month (clamped for short months, skips dates already past) or finishes a one-time one; the box "Also save as expense" records it in Bills, once (concurrent clicks cannot double-record).
+- Bell: one notification when it gets within 3 days and one when it is late, per due date (`soon_for`/`late_for`). Checked whenever the dashboard or Reminders page opens (no cron needed on free hosting). Dashboard card "Due soon" shows late/soon items.
+- Not done yet: "remind me to settle up" for shared groups (needs balances per friend; planned as a follow-up inside the Shared section).
+- Tests: `reminders_test.php`, `reminders_http_test.py`; `module_failsafe_http_test.py` now cleans its schema markers.
