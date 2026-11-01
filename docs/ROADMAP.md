@@ -312,3 +312,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Add/Edit income and expense have a Tags field (up to 5 per entry, up to 20 letters/numbers each, `#` optional). Stored in the new `tags` column as `,trip,work,` so one tag matches exactly (`expenses`/`income` get the column from `personal_ensure_schema()`).
 - New optional module `modules/search/` (page `search.php`, menu entry Search): free text over title, note, category and tags, plus tag chips (your own tags), type, category, date range and amount range (PKR). Shows count and income/expense totals of the matches, newest 100, each row opens the edit page. Only the signed-in person's rows are ever read; `%` and `_` typed by the person are escaped.
 - Tests: `search_test.php`, `search_http_test.py`.
+
+## Part 48 — Quick add from a pasted bank SMS
+- New optional module `modules/quickadd/` (page `quick-add.php`, menu entry Quick add): paste a payment SMS, the app finds amount and currency (Rs/PKR/USD…), debit or credit (the first money word wins when both appear), who (after at / to / from, never an account or card word) and a category guess from merchant keywords, then offers "Review and save" which opens the normal Add Expense / Add Income form already filled in. If it cannot tell debit from credit it offers both buttons.
+- Privacy and safety: the message is not stored (no table), only the first 600 characters are read, everything shown is escaped, and the Add form treats the pre-filled values as suggestions (unknown category or currency is ignored, the amount is validated on save).
+- Idea left for later: Android "share to ExpenseFlow" from the SMS app (needs the Android shell change and a release).
+- Tests: `quickadd_test.php`, `quickadd_http_test.py`.
