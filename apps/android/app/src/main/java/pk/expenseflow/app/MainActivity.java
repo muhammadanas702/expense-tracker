@@ -11,6 +11,9 @@ import android.provider.Settings;
 import androidx.core.content.FileProvider;
 import android.content.SharedPreferences;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.Manifest;
 import android.net.Uri;
 import android.os.Bundle;
 import android.net.ConnectivityManager;
@@ -151,6 +154,60 @@ public class MainActivity extends Activity {
     private class Bridge {
         @JavascriptInterface public String version() { return myVersion(); }
         @JavascriptInterface public void checkUpdate() { runOnUiThread(() -> checkForUpdate(true)); }
+
+        // ---- Quick add: "Read my messages" (asks Android for the SMS permission; the page shows only money messages) ----
+        @JavascriptInterface public boolean smsSupported() { return true; }
+        @JavascriptInterface public boolean smsGranted() { return checkSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED; }
+        @JavascriptInterface public void smsAsk() {
+            runOnUiThread(() -> {
+                if (Build.VERSION.SDK_INT >= 23) requestPermissions(new String[]{Manifest.permission.READ_SMS}, SMS_REQ);
+            });
+        }
+        /** Opens this app's page in Android settings (used when the person denied the permission "for good"). */
+        @JavascriptInterface public void smsSettings() {
+            runOnUiThread(() -> {
+                try { startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName()))); } catch (Exception ignored) { }
+            });
+        }
+        /** JSON array [{id, from, date, text}] of the newest money messages of the last {days} days (max 40); "[]" without permission. */
+        @JavascriptInterface public String smsRead(int days) { return readMoneySms(Math.max(1, Math.min(days, 90))); }
+    }
+
+    private static final int SMS_REQ = 2;
+    private static final java.util.regex.Pattern SMS_AMOUNT = java.util.regex.Pattern.compile("(?i)(rs\\.?|pkr|usd|aed|sar|gbp|eur|\\$)\\s*[0-9][0-9,]*(\\.[0-9]{1,2})?|[0-9][0-9,]*(\\.[0-9]{1,2})?\\s*(pkr|rs)\\b");
+    private static final java.util.regex.Pattern SMS_MONEY = java.util.regex.Pattern.compile("(?i)\\b(debited|credited|received|paid|payment|spent|purchase|purchased|sent|withdrawn|withdrawal|charged|deposited|transferred|salary|refund|deducted)\\b");
+    private static final java.util.regex.Pattern SMS_OTP = java.util.regex.Pattern.compile("(?i)\\b(otp|one[- ]time|verification code|login code|passcode|pin)\\b");
+
+    /** Reads the inbox on the phone and keeps only messages that look like a payment (amount + a money word, not a code). Nothing is sent anywhere. */
+    private String readMoneySms(int days) {
+        org.json.JSONArray out = new org.json.JSONArray();
+        if (checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) return out.toString();
+        long since = System.currentTimeMillis() - days * 24L * 3600 * 1000;
+        try (Cursor c = getContentResolver().query(Uri.parse("content://sms/inbox"), new String[]{"_id", "address", "body", "date"}, "date >= ?", new String[]{String.valueOf(since)}, "date DESC LIMIT 300")) {
+            if (c == null) return out.toString();
+            while (c.moveToNext() && out.length() < 40) {
+                String body = c.getString(2);
+                if (body == null || body.length() > 600) continue;
+                if (SMS_OTP.matcher(body).find() || !SMS_AMOUNT.matcher(body).find() || !SMS_MONEY.matcher(body).find()) continue;
+                JSONObject o = new JSONObject();
+                o.put("id", c.getLong(0));
+                o.put("from", c.getString(1) == null ? "" : c.getString(1));
+                o.put("date", c.getLong(3));
+                o.put("text", body);
+                out.put(o);
+            }
+        } catch (Exception e) {
+            return "[]";
+        }
+        return out.toString();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int req, String[] perms, int[] results) {
+        super.onRequestPermissionsResult(req, perms, results);
+        if (req != SMS_REQ || web == null) return;
+        boolean ok = results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED;
+        web.evaluateJavascript("window.efSmsPermission&&window.efSmsPermission(" + ok + ")", null);
     }
     private void note(String m) { runOnUiThread(() -> Toast.makeText(this, m, Toast.LENGTH_LONG).show()); }
     private void checkForUpdate() { checkForUpdate(false); }

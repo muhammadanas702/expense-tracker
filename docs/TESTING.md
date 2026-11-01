@@ -55,6 +55,7 @@ Mail is not sent locally. `signup_verify_http_test.py` and `staff_mail_http_test
 | `search_http_test.py` | Python | Search page and tag field on the add/edit forms, chips, results, other users' data never shown |
 | `quickadd_test.php` | PHP | Reading 9 kinds of bank/wallet SMS (debit, credit, USD, who, category guess), no amount, length limit, markup, form link |
 | `quickadd_http_test.py` | Python | Quick add page: sign-in, CSRF, result card, pre-filled Add form, nothing stored until saved, crafted links cannot inject |
+| `quickadd_device_ui_test.py` | Python (browser) | Quick add "Read my messages" with a fake Android bridge: hidden on the website and older apps, allow lists money messages as plain text, deny falls back to paste, used messages hidden |
 | `module_failsafe_http_test.py` | Python | Break the Budgets/Goals tables: dashboard stays 200 without the card, their pages show a small notice (no 500) |
 | `errors_http_test.py` | Python | Friendly error pages and JSON errors |
 | `settings_links_test.php` | PHP | Apps & contact settings: https-only links, e-mail check, save and the public JSON copy |

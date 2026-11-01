@@ -43,6 +43,13 @@ ef_page_start(['title' => 'Quick add', 'sub' => 'Paste a bank or wallet SMS', 'm
 ?>
     <div class="g" style="max-width:640px;margin:0 auto;padding:6px 0">
       <?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e($error) ?> <a href="<?= e($base_url) ?>/expense/add-expense.php">Add by hand</a></div><?php endif; ?>
+      <div class="card" id="sms-device" hidden style="margin-bottom:14px">
+        <div class="t"><?= ef_icon('phone') ?> Read my messages</div>
+        <p style="color:var(--mu);font-size:.9rem;margin-top:0">Let ExpenseFlow look through the SMS on this phone for payments. Android asks you first. The messages stay on your phone: only the one you tap is read by the form below.</p>
+        <button class="btn" type="button" id="sms-read" style="width:100%;padding:12px">Allow and read</button>
+        <p id="sms-info" style="color:var(--mu);font-size:.85rem;margin:8px 0 0" role="status"></p>
+        <div id="sms-list"></div>
+      </div>
       <div class="card">
         <form method="POST" autocomplete="off">
           <?= csrf_field() ?>
@@ -70,4 +77,4 @@ ef_page_start(['title' => 'Quick add', 'sub' => 'Paste a bank or wallet SMS', 'm
       </div>
       <?php endif; ?>
     </div>
-<?php ef_page_end(['active' => 'qadd']);
+<?php ef_page_end(['active' => 'qadd', 'scripts' => '<script src="' . e(ef_asset('assets/quick-add.js')) . '" defer></script>']);
