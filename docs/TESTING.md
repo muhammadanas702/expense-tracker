@@ -51,6 +51,8 @@ Mail is not sent locally. `signup_verify_http_test.py` and `staff_mail_http_test
 | `goals_http_test.py` | Python | Goals page: create, add/take out, progress, reached, escaping, other users cannot touch it |
 | `reminders_test.php` | PHP | Reminders: validation, month maths (31 Jan, leap year), states, notifications once per due date, Paid (+expense), ownership |
 | `reminders_http_test.py` | Python | Reminders page: create, bell text, dashboard card, Paid saves the expense once, other users cannot touch it |
+| `search_test.php` | PHP | Tags (store/list rules, limits) and search filters: text, tag, type, category, dates, amounts, only own rows, LIKE wildcards escaped |
+| `search_http_test.py` | Python | Search page and tag field on the add/edit forms, chips, results, other users' data never shown |
 | `module_failsafe_http_test.py` | Python | Break the Budgets/Goals tables: dashboard stays 200 without the card, their pages show a small notice (no 500) |
 | `errors_http_test.py` | Python | Friendly error pages and JSON errors |
 | `settings_links_test.php` | PHP | Apps & contact settings: https-only links, e-mail check, save and the public JSON copy |

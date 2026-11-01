@@ -44,7 +44,7 @@ function personal_tx_page(string $kind, ?int $editId = null): void
         $categories = categories_active($conn);
     }
     $error = '';
-    $old = ['title' => '', 'amount' => '', 'currency' => null, 'category' => isset($categories['Food']) ? 'Food' : (string) array_key_first($categories), 'other_category' => '', 'payment_method' => 'Cash', 'note' => '', 'repeat' => ''];
+    $old = ['title' => '', 'amount' => '', 'currency' => null, 'category' => isset($categories['Food']) ? 'Food' : (string) array_key_first($categories), 'other_category' => '', 'payment_method' => 'Cash', 'note' => '', 'tags' => '', 'repeat' => ''];
 
     // New entries start in the currency the person already uses: this month's base currency, else the last one used.
     try {
@@ -70,6 +70,7 @@ function personal_tx_page(string $kind, ?int $editId = null): void
         $old['currency'] = strtoupper(trim((string) ($row['currency'] ?? 'PKR')));
         $old['payment_method'] = personal_payment_method($row['payment_method'] ?? null) ?? '';
         $old['note'] = (string) ($row['note'] ?? '');
+        $old['tags'] = implode(', ', personal_tags_list($row['tags'] ?? ''));
         if ($isExpense) {
             $cat = (string) $row['category'];
             if (isset($categories[$cat])) {
@@ -91,6 +92,7 @@ function personal_tx_page(string $kind, ?int $editId = null): void
         $currency = normalize_currency($old['currency']);
         $method = personal_payment_method($old['payment_method']);
         $note = trim($old['note']) === '' ? null : clean_text($old['note'], 255);
+        $tags = personal_tags_store($old['tags']);
         $category = $old['category'];
 
         if (!csrf_valid()) {
@@ -105,6 +107,8 @@ function personal_tx_page(string $kind, ?int $editId = null): void
             $error = 'Please choose a valid category.';
         } elseif (trim($old['note']) !== '' && $note === null) {
             $error = 'The note is too long (255 characters at most).';
+        } elseif ($tags === false) {
+            $error = 'Tags: up to ' . PERSONAL_MAX_TAGS . ', each up to 20 letters or numbers (for example trip, office).';
         } else {
             if ($isExpense && $category === 'Other') {
                 $custom = clean_text($old['other_category'], 50);
@@ -119,11 +123,11 @@ function personal_tx_page(string $kind, ?int $editId = null): void
                     || $currency !== strtoupper((string) ($row['currency'] ?? 'PKR'));
                 $pkr = $moneyChanged ? round(CurrencyConverter::convert($amount, $currency, 'PKR'), 2) : (float) $row['amount_pkr'];
                 if ($isExpense) {
-                    $conn->prepare('UPDATE expenses SET title=?, amount=?, currency=?, amount_pkr=?, category=?, payment_method=?, note=? WHERE id=? AND user_id=?')
-                        ->execute([$title, $amount, $currency, $pkr, $category, $method, $note, $editId, $user_id]);
+                    $conn->prepare('UPDATE expenses SET title=?, amount=?, currency=?, amount_pkr=?, category=?, payment_method=?, note=?, tags=? WHERE id=? AND user_id=?')
+                        ->execute([$title, $amount, $currency, $pkr, $category, $method, $note, $tags, $editId, $user_id]);
                 } else {
-                    $conn->prepare('UPDATE income SET title=?, amount=?, currency=?, amount_pkr=?, payment_method=?, note=? WHERE id=? AND user_id=?')
-                        ->execute([$title, $amount, $currency, $pkr, $method, $note, $editId, $user_id]);
+                    $conn->prepare('UPDATE income SET title=?, amount=?, currency=?, amount_pkr=?, payment_method=?, note=?, tags=? WHERE id=? AND user_id=?')
+                        ->execute([$title, $amount, $currency, $pkr, $method, $note, $tags, $editId, $user_id]);
                 }
                 logAction($conn, $user_id, $isExpense ? 'edit_expense' : 'edit_income', "Updated record ID: $editId");
                 if ($isExpense && function_exists('budgets_check_alerts')) {
@@ -146,11 +150,11 @@ function personal_tx_page(string $kind, ?int $editId = null): void
                         ->execute([$user_id, $year_month, $currency]);
                 }
                 if ($isExpense) {
-                    $conn->prepare('INSERT INTO `expenses` (`user_id`,`title`,`amount`,`currency`,`amount_pkr`,`category`,`transaction_date`,`payment_method`,`note`) VALUES (?,?,?,?,?,?,?,?,?)')
-                        ->execute([$user_id, $title, $amount, $currency, $amount_pkr, $category, $when, $method, $note]);
+                    $conn->prepare('INSERT INTO `expenses` (`user_id`,`title`,`amount`,`currency`,`amount_pkr`,`category`,`transaction_date`,`payment_method`,`note`,`tags`) VALUES (?,?,?,?,?,?,?,?,?,?)')
+                        ->execute([$user_id, $title, $amount, $currency, $amount_pkr, $category, $when, $method, $note, $tags]);
                 } else {
-                    $conn->prepare('INSERT INTO `income` (`user_id`,`title`,`amount`,`currency`,`amount_pkr`,`transaction_date`,`payment_method`,`note`) VALUES (?,?,?,?,?,?,?,?)')
-                        ->execute([$user_id, $title, $amount, $currency, $amount_pkr, $when, $method, $note]);
+                    $conn->prepare('INSERT INTO `income` (`user_id`,`title`,`amount`,`currency`,`amount_pkr`,`transaction_date`,`payment_method`,`note`,`tags`) VALUES (?,?,?,?,?,?,?,?,?)')
+                        ->execute([$user_id, $title, $amount, $currency, $amount_pkr, $when, $method, $note, $tags]);
                 }
                 if ($old['repeat'] === '1') {
                     personal_add_recurring($conn, $user_id, $kind, [
@@ -215,6 +219,8 @@ function personal_tx_page(string $kind, ?int $editId = null): void
           </div></div>
         <div class="fl"><label for="note">Note <span style="text-transform:none;font-weight:500">(optional)</span></label>
           <input class="inp" id="note" type="text" name="note" maxlength="255" value="<?= e($old['note']) ?>" placeholder="Anything to remember"></div>
+        <div class="fl"><label for="tags">Tags <span style="text-transform:none;font-weight:500">(optional, separate with commas)</span></label>
+          <input class="inp" id="tags" type="text" name="tags" maxlength="100" value="<?= e($old['tags']) ?>" placeholder="e.g. trip, office"></div>
         <?php if (!$isEdit): ?>
         <label class="row" style="cursor:pointer">
           <span><?= ef_icon('rpt') ?> Repeat every month<small>Adds this <?= e(strtolower($label)) ?> automatically each month</small></span>

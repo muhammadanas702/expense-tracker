@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS `income` (
   `transaction_date` DATETIME      NOT NULL,
   `payment_method`   VARCHAR(20)   NULL DEFAULT NULL,
   `note`             VARCHAR(255)  NULL DEFAULT NULL,
+  `tags`             VARCHAR(150)  NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_income_user_date` (`user_id`, `transaction_date`),
   CONSTRAINT `fk_income_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
@@ -59,6 +60,7 @@ CREATE TABLE IF NOT EXISTS `expenses` (
   `transaction_date` DATETIME      NOT NULL,
   `payment_method`   VARCHAR(20)   NULL DEFAULT NULL,
   `note`             VARCHAR(255)  NULL DEFAULT NULL,
+  `tags`             VARCHAR(150)  NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_expenses_user_date` (`user_id`, `transaction_date`),
   CONSTRAINT `fk_expenses_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
