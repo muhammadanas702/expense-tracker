@@ -33,7 +33,8 @@ r = s.post(B + '/goals.php', data={'do': 'create', 'name': 'Laptop', 'target': '
 ok('target above zero' in r.text, 'zero target refused with message')
 r = s.post(B + '/goals.php', data={'do': 'create', 'name': 'Laptop', 'target': '1000', 'currency': 'PKR', 'deadline': '2020-01-01', 'csrf_token': t})
 ok('future date' in r.text and sql(f"SELECT COUNT(*) FROM savings_goals WHERE user_id={uid}") == '0', 'past deadline refused')
-dl = (datetime.date.today() + datetime.timedelta(days=95)).isoformat()
+from zoneinfo import ZoneInfo
+dl = (datetime.datetime.now(ZoneInfo('Asia/Karachi')).date() + datetime.timedelta(days=95)).isoformat()
 r = s.post(B + '/goals.php', data={'do': 'create', 'name': '<b>Laptop</b>', 'target': '1000', 'currency': 'PKR', 'deadline': dl, 'csrf_token': t}, allow_redirects=False)
 ok(r.status_code == 302 and sql(f"SELECT COUNT(*) FROM savings_goals WHERE user_id={uid}") == '1', 'goal created, redirect after POST')
 page = s.get(B + '/goals.php').text

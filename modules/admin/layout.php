@@ -29,6 +29,7 @@ function admin_menu(): array
         'System' => [
             ['bak', 'admin/backups.php', 'db', 'Backups', 'backup'],
             ['set', 'admin/settings.php', 'set', 'Settings', 'set'],
+            ['spd', 'admin/speed.php', 'zap', 'Speed check', 'set'],
         ],
     ];
 }

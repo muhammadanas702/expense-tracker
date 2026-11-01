@@ -322,3 +322,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 ## Part 48b — Quick add can read SMS on Android (with permission)
 - Quick add shows "Read my messages" only inside the new Android app. Tapping it makes Android ask for the SMS permission; if allowed, the phone lists the recent payment messages (amount + money word, no codes) and one tap sends that single message through the normal Quick add flow. If denied, the person is told it is fine and pastes as before. Website and Windows keep paste only (browsers cannot read SMS).
 - Files: `AndroidManifest.xml`, `MainActivity.java` (bridge), `assets/quick-add.js`, `quick-add.php`. Test: `quickadd_device_ui_test.py` (the Java itself cannot run here: check on a phone after the release).
+
+## Speed check + sturdier schema markers
+- Live site felt slow after Parts 44-48. Local profile: a warm dashboard needs about 24 queries (same as before Part 44) and opens in milliseconds, so the cause is on the host. New super-admin page `admin/speed.php` (Admin > System > Speed check) measures it on the real server: database round trip, whether the schema markers work (if not, every page repeats its CREATE/ALTER checks), cold cost per module, session files, exchange-rate cache.
+- Markers now fall back to a folder in the system temp directory when `storage/schema` cannot be written (`ef_schema_dirs()`).
+- Dashboard saves one query (`reminders_check_due()` can reuse the list it already loaded).
+- Tests: `speed_check_test.py`; reminders/goals HTTP tests now use Karachi time like the app (they failed after midnight UTC).
