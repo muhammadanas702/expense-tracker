@@ -43,6 +43,7 @@ Mail is not sent locally. `signup_verify_http_test.py` and `staff_mail_http_test
 | `google_app_handoff_test.py` | Python | Google sign-in hand-off for the apps: Android link / Windows port return, proof checks, single use (fake Google token endpoint, own servers) |
 | `google_app_ui_test.py` | Python | The app's Google screen in a real headless browser: waiting panel, return link signs in |
 | `desktop_google_return_test.js` | Node | The Windows app's local listener (`apps/desktop/google-return.js`): only well-formed `/done` requests, delivered once |
+| `settings_hub_http_test.py` | Python | Profile & Settings hub: every section page, saving, sign-in required |
 | `errors_http_test.py` | Python | Friendly error pages and JSON errors |
 | `settings_links_test.php` | PHP | Apps & contact settings: https-only links, e-mail check, save and the public JSON copy |
 | `google_signin_test.php` | PHP | Google claim checks (issuer, audience, expiry, verified e-mail), find / link / create / refuse (blocked, sign-ups closed), PKCE start URL, single-use state |
