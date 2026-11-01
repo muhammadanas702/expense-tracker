@@ -169,15 +169,15 @@ function reminders_list(PDO $conn, int $userId, ?DateTimeImmutable $today = null
     return $out;
 }
 
-/** Sends the bell notifications that are due (each once per due date). Never throws. Returns how many were sent. */
-function reminders_check_due(PDO $conn, int $userId, ?DateTimeImmutable $today = null): int
+/** Sends the bell notifications that are due (each once per due date). Never throws. Returns how many were sent. $items = a list already loaded by the caller (saves a query). */
+function reminders_check_due(PDO $conn, int $userId, ?DateTimeImmutable $today = null, ?array $items = null): int
 {
     $sent = 0;
     try {
         if (!function_exists('activity_record')) {
             return 0;
         }
-        foreach (reminders_list($conn, $userId, $today) as $r) {
+        foreach ($items ?? reminders_list($conn, $userId, $today) as $r) {
             if ($r['state'] === 'later') {
                 continue;
             }

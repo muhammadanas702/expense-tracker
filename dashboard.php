@@ -220,8 +220,9 @@ $remindItems = [];
 if (isset(ef_modules()['reminders']) && is_file(__DIR__ . '/modules/reminders/lib.php')) {
     try {
         require_once __DIR__ . '/modules/reminders/lib.php';
-        reminders_check_due($conn, $user_id);
-        $remindItems = array_slice(array_values(array_filter(reminders_list($conn, $user_id), fn($r) => $r['state'] !== 'later')), 0, 3);
+        $allReminders = reminders_list($conn, $user_id);
+        reminders_check_due($conn, $user_id, null, $allReminders);
+        $remindItems = array_slice(array_values(array_filter($allReminders, fn($r) => $r['state'] !== 'later')), 0, 3);
     } catch (Throwable $e) {
         error_log('ExpenseFlow dashboard reminders: ' . $e->getMessage());
         $remindItems = [];

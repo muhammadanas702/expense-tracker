@@ -35,6 +35,12 @@ function ef_schema_add_missing(PDO $conn, string $table, array $columns): void
     }
 }
 
+/** Folders for the schema markers: storage/schema first, then a folder in the system temp directory (some hosts do not let PHP write to storage/). */
+function ef_schema_dirs(): array
+{
+    return [__DIR__ . '/../storage/schema', rtrim(sys_get_temp_dir(), '/\\') . '/ef-schema-' . md5(__DIR__)];
+}
+
 /**
  * Fast path for the self-healing schema checks. Each check runs CREATE/ALTER statements, which cost several
  * database round trips on every request. After one clean run the check is remembered in storage/schema
@@ -46,27 +52,36 @@ function ef_schema_ok(string $name, string $file): bool
     if (getenv('EXPENSEFLOW_NO_SCHEMA_CACHE')) {
         return false;
     }
-    $dir = __DIR__ . '/../storage/schema';
-    $mark = $dir . '/' . $name . '-' . (int) @filemtime($file) . '.ok';
-    if (is_file($mark)) {
-        return true;
+    $dirs = ef_schema_dirs();
+    $stamp = $name . '-' . (int) @filemtime($file) . '.ok';
+    foreach ($dirs as $d) {
+        if (is_file($d . '/' . $stamp)) {
+            return true;
+        }
     }
     static $queued = [];
-    if (isset($queued[$mark])) {
+    if (isset($queued[$stamp])) {
         return false;
     }
-    $queued[$mark] = true;
-    register_shutdown_function(static function () use ($dir, $mark, $name) {
+    $queued[$stamp] = true;
+    register_shutdown_function(static function () use ($dirs, $stamp, $name) {
         if (error_get_last() !== null && in_array(error_get_last()['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
             return;
         }
-        if (!is_dir($dir)) {
-            @mkdir($dir, 0775, true);
+        foreach ($dirs as $dir) {
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0775, true);
+            }
+            if (!is_dir($dir) || !is_writable($dir)) {
+                continue;
+            }
+            foreach (glob($dir . '/' . $name . '-*.ok') ?: [] as $old) {
+                @unlink($old);
+            }
+            if (@file_put_contents($dir . '/' . $stamp, date('c')) !== false) {
+                return; // written: no need for the next folder
+            }
         }
-        foreach (glob($dir . '/' . $name . '-*.ok') ?: [] as $old) {
-            @unlink($old);
-        }
-        @file_put_contents($mark, date('c'));
     });
     return false;
 }

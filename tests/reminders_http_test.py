@@ -19,7 +19,9 @@ def login(n):
     s = requests.Session()
     s.post(B + '/auth/login.php', data={'email': f'rm{n}@r.local', 'password': 'Test#12345', 'csrf_token': token(s.get(B + '/auth/login.php').text)})
     return s
-iso = lambda d: (datetime.date.today() + datetime.timedelta(days=d)).isoformat()
+from zoneinfo import ZoneInfo
+_today = datetime.datetime.now(ZoneInfo('Asia/Karachi')).date()  # the app runs in Karachi time
+iso = lambda d: (_today + datetime.timedelta(days=d)).isoformat()
 
 r = requests.get(B + '/reminders.php', allow_redirects=False)
 ok(r.status_code == 302 and 'login.php' in r.headers.get('Location', ''), 'signed-out visitor sent to login')
