@@ -49,6 +49,7 @@ Mail is not sent locally. `signup_verify_http_test.py` and `staff_mail_http_test
 | `budgets_http_test.py` | Python | Budgets page CRUD, alert after adding an expense, bell text, dashboard card, other users cannot delete |
 | `goals_test.php` | PHP | Goals: validation, money in/out, never below zero, per-month hint, ownership, clean-up; Dashboard stays first in the menu |
 | `goals_http_test.py` | Python | Goals page: create, add/take out, progress, reached, escaping, other users cannot touch it |
+| `module_failsafe_http_test.py` | Python | Break the Budgets/Goals tables: dashboard stays 200 without the card, their pages show a small notice (no 500) |
 | `errors_http_test.py` | Python | Friendly error pages and JSON errors |
 | `settings_links_test.php` | PHP | Apps & contact settings: https-only links, e-mail check, save and the public JSON copy |
 | `google_signin_test.php` | PHP | Google claim checks (issuer, audience, expiry, verified e-mail), find / link / create / refuse (blocked, sign-ups closed), PKCE start URL, single-use state |

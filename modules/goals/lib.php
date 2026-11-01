@@ -42,9 +42,13 @@ function goals_ensure_schema(PDO $conn): void
               KEY `idx_entry_goal` (`goal_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
         );
-        if (function_exists('ef_schema_mark')) {
-            ef_schema_mark(__FUNCTION__, __FILE__);
-        }
+        ef_schema_add_missing($conn, 'savings_goals', [
+            'user_id' => 'INT UNSIGNED NOT NULL DEFAULT 0', 'name' => "VARCHAR(60) NOT NULL DEFAULT ''", 'target' => 'DECIMAL(15,2) NOT NULL DEFAULT 0',
+            'currency' => "VARCHAR(3) NOT NULL DEFAULT 'PKR'", 'deadline' => 'DATE NULL DEFAULT NULL',
+        ]);
+        ef_schema_add_missing($conn, 'goal_entries', [
+            'goal_id' => 'INT UNSIGNED NOT NULL DEFAULT 0', 'user_id' => 'INT UNSIGNED NOT NULL DEFAULT 0', 'amount' => 'DECIMAL(15,2) NOT NULL DEFAULT 0',
+        ]);
     } catch (Throwable $e) {
         error_log('ExpenseFlow goals schema check failed: ' . $e->getMessage());
     }

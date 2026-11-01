@@ -26,6 +26,8 @@ if (!$user) {
 goals_ensure_schema($conn);
 
 $error = '';
+$loadError = '';
+$is_admin_user = !empty($user['is_admin']);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_post_csrf();
     $do = (string) ($_POST['do'] ?? 'create');
@@ -56,11 +58,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$goals = goals_list($conn, $uid);
+try {
+    $goals = goals_list($conn, $uid);
+} catch (Throwable $e) {
+    error_log('ExpenseFlow goals page: ' . $e->getMessage());
+    $goals = [];
+    $loadError = $is_admin_user ? $e->getMessage() : 'unavailable';
+}
 $fmt = fn(float $n) => number_format($n, 2);
 ef_page_start(['title' => 'Savings goals', 'sub' => 'Save for something that matters', 'mode' => 'p', 'active' => 'goal', 'user' => $user]);
 ?>
     <div class="g" style="max-width:720px;margin:0 auto;padding:6px 0">
+      <?php if ($loadError !== ''): ?><div class="msg err" role="alert">Goals could not load right now. Please try again in a moment.<?= $loadError !== 'unavailable' ? ' (Admin detail: ' . e($loadError) . ')' : '' ?></div><?php endif; ?>
       <?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e($error) ?></div><?php endif; ?>
       <?php if (!$goals): ?>
         <div class="card"><p style="color:var(--mu);margin:0">No goals yet. Create one below: a name, how much you need and (optionally) by when. Add money whenever you set some aside and watch the bar fill.</p></div>
