@@ -333,3 +333,8 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - The live Speed check showed a fast database and working schema markers, but the exchange-rate cache was 13 hours old with no failure note: the cache could not remember its failed attempts, so any page that converts money (a base currency other than PKR) waited up to 4 seconds for the rate service on every view.
 - `CurrencyConverter` now: remembers an attempt BEFORE asking (one wait per 15 minutes at most), waits 2 seconds instead of 4, keeps its files in the first writable folder (`storage/`, `storage/schema/`, or a temp folder) and does not call the service at all when no folder is writable (it uses the old cache or built-in rates). Speed check shows the folders and whether the service is reachable in under 2 seconds.
 - Tests: `currency_cache_test.php`.
+
+## Fix: phone menu crowded, Search moved to the Dashboard
+- With Budgets, Goals, Reminders, Search and Quick add the phone bottom bar had 9 tiny items. Now: Dashboard, Income, Expense, Report + a "More" button with a small sheet (Budgets, Goals, Reminders, Quick add). Works in light and dark, closes with a tap elsewhere or Escape, and highlights More when the current page is inside it. Desktop keeps the full sidebar.
+- Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
+- Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.

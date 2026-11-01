@@ -189,6 +189,13 @@ ef_page_start([
 <?php if ($needs_setup): ?>
 <div class="g card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><span><b>Welcome! Finish your quick setup</b><div class="k">Pick your main currency and savings goal (20 seconds).</div></span><a class="btn" style="margin-left:auto" href="<?= e($base_url) ?>/setup.php">Start</a></div>
 <?php endif; ?>
+<?php if (isset(ef_modules()['search'])): ?>
+<form method="GET" action="<?= e($base_url) ?>/search.php" class="g card" id="dash-search" role="search" style="display:flex;gap:8px;align-items:center;padding:10px 12px">
+    <?= ef_icon('search') ?>
+    <input class="inp" type="search" name="q" maxlength="60" aria-label="Search income and expenses" placeholder="Search entries, notes, #tags" style="flex:1;min-width:0;border:0;background:transparent">
+    <button class="btn sm" type="submit">Search</button>
+</form>
+<?php endif; ?>
 <div class="chips" style="margin-bottom:2px">
 <?php foreach ($presets as $label => $q): ?>
     <a class="chip<?= $activePreset === $label ? ' on' : '' ?>" href="<?= e($base_url . '/dashboard.php' . ($q ? '?' . http_build_query($q) : '')) ?>"><?= e($label) ?></a>

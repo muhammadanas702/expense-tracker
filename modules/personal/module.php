@@ -5,9 +5,9 @@ return [
     'mode' => 'p',
     'enabled' => true,
     'nav' => [
-        ['dashboard.php', 'home', 'Dashboard', 'dash'],
-        ['income/add-income.php', 'inc', 'Add Income', 'inc'],
-        ['expense/add-expense.php', 'exp', 'Add Expense', 'exp'],
-        ['reports/view-report.php', 'doc', 'Full Report', 'rep'],
+        ['dashboard.php', 'home', 'Dashboard', 'dash', true],
+        ['income/add-income.php', 'inc', 'Add Income', 'inc', true],
+        ['expense/add-expense.php', 'exp', 'Add Expense', 'exp', true],
+        ['reports/view-report.php', 'doc', 'Full Report', 'rep', true],
     ],
 ];

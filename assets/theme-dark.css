@@ -6,6 +6,7 @@ html[data-theme=dark] body{background:#08111b}
 html[data-theme=dark] .fr{background:linear-gradient(135deg,var(--b1),var(--b2) 55%,#1a120b)}
 html[data-theme=dark] .fr:before,html[data-theme=dark] .fr:after{opacity:.28}
 html[data-theme=dark] .g{background:rgba(20,32,48,.66)}
+html[data-theme=dark] .msheet{background:rgba(16,26,40,.98)}
 html[data-theme=dark] .nv:hover,html[data-theme=dark] a.row:hover,html[data-theme=dark] table.tbl tr:hover td{background:rgba(255,255,255,.07)}
 html[data-theme=dark] .seg,html[data-theme=dark] .ic,html[data-theme=dark] .ins,html[data-theme=dark] .chip,html[data-theme=dark] .btn.o,html[data-theme=dark] .gi,html[data-theme=dark] .stat .ibx{background:rgba(255,255,255,.07)}
 html[data-theme=dark] .cat{background:rgba(255,255,255,.1);box-shadow:none}

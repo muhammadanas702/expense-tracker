@@ -23,7 +23,9 @@ def login(n):
 r = requests.get(B + '/search.php', allow_redirects=False)
 ok(r.status_code == 302 and 'login.php' in r.headers.get('Location', ''), 'signed-out visitor sent to login')
 s = login(1)
-ok('search.php' in s.get(B + '/dashboard.php').text, 'menu links to Search')
+dash = s.get(B + '/dashboard.php').text
+ok('id="dash-search"' in dash and 'action="' in dash and 'search.php' in dash, 'Dashboard has the search box')
+ok('<span>Search</span>' not in dash and '>Search</a>' not in dash, 'Search is no longer a menu entry')
 form = s.get(B + '/expense/add-expense.php').text
 ok('name="tags"' in form, 'tags field on the expense form')
 ok('name="tags"' in s.get(B + '/income/add-income.php').text, 'tags field on the income form')

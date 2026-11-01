@@ -57,6 +57,7 @@ Mail is not sent locally. `signup_verify_http_test.py` and `staff_mail_http_test
 | `quickadd_http_test.py` | Python | Quick add page: sign-in, CSRF, result card, pre-filled Add form, nothing stored until saved, crafted links cannot inject |
 | `quickadd_device_ui_test.py` | Python (browser) | Quick add "Read my messages" with a fake Android bridge: hidden on the website and older apps, allow lists money messages as plain text, deny falls back to paste, used messages hidden |
 | `speed_check_test.py` | Python | Admin Speed check page: only super admin sees it, shows markers working, cold checks listed, marker folder fallback |
+| `mobile_nav_ui_test.py` | Python (browser) | Phone bottom bar: 4 main items + More sheet (light and dark), fits the screen, More opens/closes, desktop sidebar unchanged, Dashboard search box |
 | `currency_cache_test.php` | PHP | Exchange-rate cache with a dead service: one short wait, the attempt is remembered, stale cache still used, a good fetch refreshes it (`mock_rates.php` is the fake service) |
 | `module_failsafe_http_test.py` | Python | Break the Budgets/Goals tables: dashboard stays 200 without the card, their pages show a small notice (no 500) |
 | `errors_http_test.py` | Python | Friendly error pages and JSON errors |
