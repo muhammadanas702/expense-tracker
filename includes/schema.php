@@ -24,6 +24,17 @@ function schema_has(PDO $conn, string $table, string $column, bool $refresh = fa
     return $cache[$key];
 }
 
+/** Adds each listed column ('name' => 'definition') that $table lacks. Used by the self-healing checks of newer modules. */
+function ef_schema_add_missing(PDO $conn, string $table, array $columns): void
+{
+    $t = str_replace('`', '', $table);
+    foreach ($columns as $col => $def) {
+        if (!schema_has($conn, $t, $col, true)) {
+            $conn->exec('ALTER TABLE `' . $t . '` ADD COLUMN `' . str_replace('`', '', $col) . '` ' . $def);
+        }
+    }
+}
+
 /**
  * Fast path for the self-healing schema checks. Each check runs CREATE/ALTER statements, which cost several
  * database round trips on every request. After one clean run the check is remembered in storage/schema

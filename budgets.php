@@ -33,6 +33,8 @@ if (is_file(__DIR__ . '/modules/categories/lib.php')) {
 }
 
 $error = '';
+$loadError = '';
+$is_admin_user = !empty($user['is_admin']);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_post_csrf();
     if (($_POST['do'] ?? '') === 'delete') {
@@ -54,12 +56,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $error = $err;
 }
 
-$items = budgets_status($conn, $uid);
+try {
+    $items = budgets_status($conn, $uid);
+} catch (Throwable $e) {
+    error_log('ExpenseFlow budgets page: ' . $e->getMessage());
+    $items = [];
+    $loadError = $is_admin_user ? $e->getMessage() : 'unavailable';
+}
 $colors = ['ok' => '#0d9f6e', 'warn' => '#f59e0b', 'over' => '#dc2626'];
 $msg = ['ok' => 'On track', 'warn' => 'Close to the limit', 'over' => 'Over budget'];
 ef_page_start(['title' => 'Budgets', 'sub' => 'Monthly limits for ' . date('F Y'), 'mode' => 'p', 'active' => 'bud', 'user' => $user]);
 ?>
     <div class="g" style="max-width:720px;margin:0 auto;padding:6px 0">
+      <?php if ($loadError !== ''): ?><div class="msg err" role="alert">Budgets could not load right now. Please try again in a moment.<?= $loadError !== 'unavailable' ? ' (Admin detail: ' . e($loadError) . ')' : '' ?></div><?php endif; ?>
       <?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e($error) ?></div><?php endif; ?>
       <div class="card">
         <div class="t"><?= ef_icon('tgt') ?> This month</div>

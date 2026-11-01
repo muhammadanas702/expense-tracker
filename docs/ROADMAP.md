@@ -298,3 +298,6 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Goals do not touch income/expense totals (they are a separate piggy-bank), so nothing in reports changes.
 - Fix: Budgets had menu order 45 and so appeared before Dashboard (its link became the home link); now 55. `goals_test.php` checks Dashboard is first.
 - Tables: `savings_goals`, `goal_entries`. Tests: `goals_test.php`, `goals_http_test.py`.
+
+## Fix after Parts 44/45 — Budgets/Goals errors on the live site
+- Live dashboard and Budgets page showed "Error 500" inside the page. Hardening: `ef_schema_add_missing()` (in `includes/schema.php`) adds any missing column to a table that already exists in another shape, `budgets`/`budget_alerts` also get their unique keys repaired; the dashboard budget card is wrapped so it can never break the dashboard; Budgets and Goals pages catch load errors and show "could not load right now" (admins also see the technical reason). Test: `module_failsafe_http_test.py`.

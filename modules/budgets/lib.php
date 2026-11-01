@@ -44,8 +44,23 @@ function budgets_ensure_schema(PDO $conn): void
               UNIQUE KEY `uq_budget_alert` (`user_id`, `category`, `ym`, `level`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
         );
-        if (function_exists('ef_schema_mark')) {
-            ef_schema_mark(__FUNCTION__, __FILE__);
+        // A table with this name may already exist in another shape (an older or hand-made copy): add what is missing.
+        ef_schema_add_missing($conn, 'budgets', [
+            'user_id' => 'INT UNSIGNED NOT NULL DEFAULT 0', 'category' => "VARCHAR(50) NOT NULL DEFAULT ''",
+            'amount' => 'DECIMAL(15,2) NOT NULL DEFAULT 0', 'currency' => "VARCHAR(3) NOT NULL DEFAULT 'PKR'",
+        ]);
+        ef_schema_add_missing($conn, 'budget_alerts', [
+            'user_id' => 'INT UNSIGNED NOT NULL DEFAULT 0', 'category' => "VARCHAR(50) NOT NULL DEFAULT ''",
+            'ym' => "CHAR(7) NOT NULL DEFAULT ''", 'level' => 'TINYINT NOT NULL DEFAULT 0',
+        ]);
+        foreach ([['budgets', 'uq_budget_user_category', '`user_id`, `category`'], ['budget_alerts', 'uq_budget_alert', '`user_id`, `category`, `ym`, `level`']] as [$t, $k, $cols]) {
+            if (!$conn->query("SHOW INDEX FROM `$t` WHERE Key_name = '$k'")->fetch()) {
+                try {
+                    $conn->exec("ALTER TABLE `$t` ADD UNIQUE KEY `$k` ($cols)");
+                } catch (Throwable $e) {
+                    error_log("ExpenseFlow budgets: could not add key $k: " . $e->getMessage());
+                }
+            }
         }
     } catch (Throwable $e) {
         error_log('ExpenseFlow budgets schema check failed: ' . $e->getMessage());

@@ -218,10 +218,15 @@ ef_page_start([
 // Optional Budgets module: a compact card for the month being viewed (hidden when off or when there are no budgets).
 $budgetItems = [];
 if (!$use_date_range && isset(ef_modules()['budgets']) && is_file(__DIR__ . '/modules/budgets/lib.php')) {
-    require_once __DIR__ . '/modules/budgets/lib.php';
-    $budgetItems = budgets_status($conn, $user_id, $period_start->format('Y-m'));
-    usort($budgetItems, fn($a, $b) => $b['pct'] <=> $a['pct']);
-    $budgetItems = array_slice($budgetItems, 0, 3);
+    try {
+        require_once __DIR__ . '/modules/budgets/lib.php';
+        $budgetItems = budgets_status($conn, $user_id, $period_start->format('Y-m'));
+        usort($budgetItems, fn($a, $b) => $b['pct'] <=> $a['pct']);
+        $budgetItems = array_slice($budgetItems, 0, 3);
+    } catch (Throwable $e) {
+        error_log('ExpenseFlow dashboard budget card: ' . $e->getMessage());
+        $budgetItems = []; // the card is a bonus: never let it break the dashboard
+    }
 }
 if ($budgetItems): $bcol = ['ok' => '#0d9f6e', 'warn' => '#f59e0b', 'over' => '#dc2626']; ?>
 <div class="g card" id="budget-card" style="margin-bottom:14px">
