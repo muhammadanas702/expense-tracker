@@ -61,6 +61,7 @@ function ef_auth_start(array $o = []): void
 <meta name="robots" content="noindex">
 <?php require __DIR__ . '/pwa-head.php'; ?>
 <link rel="stylesheet" href="<?= e(ef_asset('assets/app.css')) ?>">
+<?php require_once __DIR__ . '/theme.php'; echo ef_theme_head(); ?>
 </head>
 <body>
 <div class="fr" data-mode="p">

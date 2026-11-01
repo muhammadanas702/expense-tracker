@@ -292,6 +292,7 @@ window.addEventListener("load",function(){
   var inc = ' . json_encode($total_income, $json_flags) . ', exp = ' . json_encode($total_expense, $json_flags) . ';
   var palette = ["#0f766e","#1d4ed8","#F59E0B","#f97316","#4DA8DA","#a855f7","#ef4444","#64748b"];
   var c1 = document.getElementById("categoryChart");
+  Chart.defaults.color = getComputedStyle(document.documentElement).getPropertyValue("--mu").trim() || "#5b6b80"; Chart.defaults.borderColor = "rgba(128,140,160,.2)";
   if (c1) new Chart(c1, {type:"doughnut", data:{labels:cats, datasets:[{data:vals, backgroundColor:palette, borderWidth:0}]},
     options:{cutout:"62%", maintainAspectRatio:true, aspectRatio:1.15, plugins:{legend:{position:"bottom"}, tooltip:{callbacks:{label:function(c){return " "+c.label+": "+Number(c.raw).toFixed(2)}}}}}});
   var c2 = document.getElementById("flowChart");

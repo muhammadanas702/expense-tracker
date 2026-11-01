@@ -52,6 +52,7 @@ function ef_public_start(array $o): void
 <meta name="twitter:description" content="<?= e($desc) ?>">
 <meta name="twitter:image" content="<?= e($img) ?>">
 <link rel="stylesheet" href="<?= e(ef_asset('assets/app.css')) ?>">
+<?php require_once __DIR__ . '/theme.php'; echo ef_theme_head(); ?>
 <?php foreach ($schemas as $s): ?>
 <script type="application/ld+json"><?= json_encode($s, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?></script>
 <?php endforeach; ?>

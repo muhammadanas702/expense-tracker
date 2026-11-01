@@ -70,6 +70,7 @@ function admin_page_start(array $o): void
 <?php require_once __DIR__ . '/../../includes/favicons.php'; ?>
 <link rel="stylesheet" href="<?= e(ef_asset('assets/app.css')) ?>">
 <link rel="stylesheet" href="<?= e(ef_asset('assets/admin.css')) ?>">
+<?php require_once __DIR__ . '/../../includes/theme.php'; echo ef_theme_head(); ?>
 <?= $o['head'] ?? '' ?>
 </head>
 <body>

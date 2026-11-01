@@ -283,3 +283,6 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 ## Part 42 — Profile & Settings hub with sections
 - `profile.php` is now a hub (who you are + one card per section). Each section is its own page under `settings/` with a side menu and breadcrumb on desktop: Account, Password & security, Preferences, Notifications, Apps & devices, Data & privacy. Add a section by listing it in `settings_sections()`.
 - Plan for the next Parts (see the list in the chat/ROADMAP ideas): dark mode, category budgets, savings goals, reminders, tags + search, SMS quick-add, 2FA, onboarding + crowded pages, Urdu/RTL, backups/push.
+
+## Part 43 — Dark mode
+- `assets/theme-dark.css` + `includes/theme.php`: Auto / Light / Dark in Settings > Preferences > Appearance (cookie `ef_theme`, applied before paint, also on login, public pages, landing and admin). Charts follow the theme colours.
