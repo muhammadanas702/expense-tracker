@@ -6,8 +6,8 @@ class CurrencyConverter
 {
     private const API_URL = 'https://api.exchangerate-api.com/v4/latest/USD';
     private const CACHE_TTL = 3600;     // fresh live rates are reused for 1 hour
-    private const FAIL_BACKOFF = 300;   // after an API failure, do not retry for 5 minutes
-    private const API_TIMEOUT = 4;      // seconds
+    private const FAIL_BACKOFF = 900;   // after an attempt, do not ask the API again for 15 minutes
+    private const API_TIMEOUT = 2;      // seconds
 
     private static ?array $rates = null;
     private static bool $usingFallback = false;
@@ -52,7 +52,7 @@ class CurrencyConverter
             'ssl' => ['verify_peer' => true, 'verify_peer_name' => true],
         ]);
 
-        $json = @file_get_contents(self::API_URL, false, $context);
+        $json = @file_get_contents(getenv('EXPENSEFLOW_RATES_URL') ?: self::API_URL, false, $context); // the variable is only for tests
         if ($json === false) {
             return null;
         }
@@ -71,17 +71,41 @@ class CurrencyConverter
         return self::validRates($rates) ? $rates : null;
     }
 
-    private static function prepareStorage(): bool
+    /** Folders the rate cache may live in, best first (some hosts do not let PHP write to storage/ itself). */
+    public static function cacheDirs(): array
     {
-        $dir = self::storageDir();
-        if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
-            return false;
+        $s = self::storageDir();
+        return [$s, $s . '/schema', rtrim(sys_get_temp_dir(), '/\\') . '/ef-cache-' . md5(__DIR__)];
+    }
+
+    /** The first folder PHP can really write to (created when missing), or null. */
+    private static function writableCacheDir(): ?string
+    {
+        foreach (self::cacheDirs() as $i => $dir) {
+            if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
+                continue;
+            }
+            if ($i === 0 && !is_file($dir . '/.htaccess')) {
+                @file_put_contents($dir . '/.htaccess', "Require all denied\n"); // the cache is not meant to be downloaded by visitors
+            }
+            if (is_writable($dir)) {
+                return $dir;
+            }
         }
-        // The cache is not meant to be downloaded by visitors.
-        if (!is_file($dir . '/.htaccess')) {
-            @file_put_contents($dir . '/.htaccess', "Require all denied\n");
+        return null;
+    }
+
+    /** Newest file called $name across the cache folders, or null. */
+    private static function newestFile(string $name): ?string
+    {
+        $best = null;
+        foreach (self::cacheDirs() as $dir) {
+            $f = $dir . '/' . $name;
+            if (is_file($f) && ($best === null || filemtime($f) > filemtime($best))) {
+                $best = $f;
+            }
         }
-        return is_writable($dir);
+        return $best;
     }
 
     private static function loadRates(): void
@@ -90,12 +114,11 @@ class CurrencyConverter
             return;
         }
 
-        $dir = self::storageDir();
-        $cacheFile = $dir . '/currency_cache.json';
-        $failFile = $dir . '/currency_cache.fail';
+        $cacheFile = self::newestFile('currency_cache.json');
+        $failFile = self::newestFile('currency_cache.fail');
 
         // 1. Fresh cache.
-        if (is_file($cacheFile) && (time() - (int) filemtime($cacheFile)) < self::CACHE_TTL) {
+        if ($cacheFile !== null && (time() - (int) filemtime($cacheFile)) < self::CACHE_TTL) {
             $cached = self::readCache($cacheFile);
             if ($cached !== null) {
                 self::$rates = $cached;
@@ -103,28 +126,29 @@ class CurrencyConverter
             }
         }
 
-        // 2. Ask the live API, unless it failed very recently.
-        $recentlyFailed = is_file($failFile) && (time() - (int) filemtime($failFile)) < self::FAIL_BACKOFF;
-        if (!$recentlyFailed) {
+        // 2. Ask the live API, but never on every request: the attempt is written down BEFORE asking, so a slow or blocked
+        //    API costs one short wait per backoff period, not one per page. Without a writable folder we cannot remember
+        //    attempts, so we do not ask at all (the old cache or built-in rates are used).
+        $dir = self::writableCacheDir();
+        $recentlyTried = $failFile !== null && (time() - (int) filemtime($failFile)) < self::FAIL_BACKOFF;
+        if ($dir !== null && !$recentlyTried) {
+            @file_put_contents($dir . '/currency_cache.fail', (string) time());
             $live = self::fetchRates();
             if ($live !== null) {
-                if (self::prepareStorage()) {
-                    $tmp = $cacheFile . '.' . bin2hex(random_bytes(4)) . '.tmp';
-                    if (@file_put_contents($tmp, json_encode($live)) !== false) {
-                        @rename($tmp, $cacheFile);
-                    }
-                    @unlink($failFile);
+                $tmp = $dir . '/currency_cache.json.' . bin2hex(random_bytes(4)) . '.tmp';
+                if (@file_put_contents($tmp, json_encode($live)) !== false) {
+                    @rename($tmp, $dir . '/currency_cache.json');
+                }
+                foreach (self::cacheDirs() as $d) {
+                    @unlink($d . '/currency_cache.fail');
                 }
                 self::$rates = $live;
                 return;
             }
-            if (self::prepareStorage()) {
-                @file_put_contents($failFile, (string) time());
-            }
         }
 
         // 3. An old cache is closer to reality than the built-in numbers.
-        $stale = self::readCache($cacheFile);
+        $stale = $cacheFile !== null ? self::readCache($cacheFile) : null;
         if ($stale !== null) {
             self::$rates = $stale;
             self::$usingFallback = true;
