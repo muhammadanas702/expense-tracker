@@ -328,3 +328,8 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Markers now fall back to a folder in the system temp directory when `storage/schema` cannot be written (`ef_schema_dirs()`).
 - Dashboard saves one query (`reminders_check_due()` can reuse the list it already loaded).
 - Tests: `speed_check_test.py`; reminders/goals HTTP tests now use Karachi time like the app (they failed after midnight UTC).
+
+## Fix: slow pages when the exchange-rate service cannot be reached
+- The live Speed check showed a fast database and working schema markers, but the exchange-rate cache was 13 hours old with no failure note: the cache could not remember its failed attempts, so any page that converts money (a base currency other than PKR) waited up to 4 seconds for the rate service on every view.
+- `CurrencyConverter` now: remembers an attempt BEFORE asking (one wait per 15 minutes at most), waits 2 seconds instead of 4, keeps its files in the first writable folder (`storage/`, `storage/schema/`, or a temp folder) and does not call the service at all when no folder is writable (it uses the old cache or built-in rates). Speed check shows the folders and whether the service is reachable in under 2 seconds.
+- Tests: `currency_cache_test.php`.

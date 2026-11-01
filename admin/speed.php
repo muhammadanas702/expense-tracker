@@ -39,9 +39,21 @@ putenv('EXPENSEFLOW_NO_SCHEMA_CACHE');
 // 4. Other things that can slow every request down.
 $storage = __DIR__ . '/../storage';
 $sessions = is_dir($storage . '/sessions') ? count(glob($storage . '/sessions/sess_*') ?: []) : null;
-$cacheFile = $storage . '/currency_cache.json';
-$cacheAge = is_file($cacheFile) ? time() - (int) filemtime($cacheFile) : null;
-$failAge = is_file($storage . '/currency_cache.fail') ? time() - (int) filemtime($storage . '/currency_cache.fail') : null;
+require_once __DIR__ . '/../includes/CurrencyConverter.php';
+$cacheAge = null; $failAge = null; $cacheDirs = [];
+foreach (CurrencyConverter::cacheDirs() as $d) {
+    $cf = $d . '/currency_cache.json'; $ff = $d . '/currency_cache.fail';
+    if (is_file($cf)) { $cacheAge = min($cacheAge ?? PHP_INT_MAX, time() - (int) filemtime($cf)); }
+    if (is_file($ff)) { $failAge = min($failAge ?? PHP_INT_MAX, time() - (int) filemtime($ff)); }
+    $cacheDirs[] = ['dir' => str_replace(dirname(__DIR__) . '/', '', $d), 'writable' => is_dir($d) && is_writable($d)];
+}
+$anyWritable = in_array(true, array_column($cacheDirs, 'writable'), true);
+// Can this host reach the exchange-rate service quickly? (2 second limit, admin page only.)
+$t = microtime(true);
+$sock = @fsockopen('ssl://api.exchangerate-api.com', 443, $errno, $errstr, 2);
+$apiMs = (microtime(true) - $t) * 1000;
+if ($sock) { fclose($sock); }
+$apiOk = (bool) $sock;
 $opcache = function_exists('opcache_get_status') && ini_get('opcache.enable');
 $modules = count(glob(__DIR__ . '/../modules/*/module.php') ?: []);
 
@@ -53,7 +65,9 @@ $rows = [
     ['PHP', PHP_VERSION . ($opcache ? ', OPcache on' : ', OPcache off'), 'ok', ''],
     ['Modules loaded per page', (string) $modules, 'ok', ''],
     ['Session files', $sessions === null ? 'not used' : (string) $sessions, ($sessions ?? 0) > 5000 ? 'warn' : 'ok', 'Thousands of old session files make every page slower.'],
-    ['Exchange-rate cache', $cacheAge === null ? 'none (built-in rates are used)' : 'updated ' . round($cacheAge / 3600, 1) . ' h ago' . ($failAge !== null ? ', last live fetch failed ' . round($failAge / 60) . ' min ago' : ''), 'ok', ''],
+    ['Exchange-rate cache', $cacheAge === null ? 'none (built-in rates are used)' : 'updated ' . round($cacheAge / 3600, 1) . ' h ago' . ($failAge !== null ? ', last live attempt ' . round($failAge / 60) . ' min ago' : ''), $cacheAge !== null && $cacheAge > 86400 ? 'warn' : 'ok', 'Rates are refreshed at most every 15 minutes; an old cache is still used.'],
+    ['Exchange-rate service reachable', $apiOk ? 'Yes (' . $ms($apiMs) . ')' : 'NO (gave up after ' . $ms($apiMs) . ')', $apiOk ? 'ok' : 'warn', 'If this is NO the host blocks it: the site then uses the saved or built-in rates and asks at most once per 15 minutes.'],
+    ['Exchange-rate cache folder', $anyWritable ? 'A writable folder exists' : 'NO writable folder: rates are never refreshed', $anyWritable ? 'ok' : 'bad', 'Without a writable folder the site cannot remember its attempts, so it does not call the service at all.'],
 ];
 admin_page_start(['title' => 'Speed check', 'sub' => 'Where does the time go?', 'active' => 'spd']);
 $col = ['ok' => '#0d9f6e', 'warn' => '#f59e0b', 'bad' => '#dc2626'];
@@ -67,6 +81,12 @@ $col = ['ok' => '#0d9f6e', 'warn' => '#f59e0b', 'bad' => '#dc2626'];
   <div class="t">Marker folders</div>
   <?php foreach ($markers as $m): ?>
   <div class="row"><span><?= e($m['dir']) ?><small><?= $m['exists'] ? ($m['writable'] ? 'writable' : 'NOT writable') : 'missing' ?></small></span><b><?= (int) $m['count'] ?> saved</b></div>
+  <?php endforeach; ?>
+</div>
+<div class="g card" style="margin-bottom:14px">
+  <div class="t">Exchange-rate cache folders</div>
+  <?php foreach ($cacheDirs as $m): ?>
+  <div class="row"><span><?= e($m['dir']) ?></span><b><?= $m['writable'] ? 'writable' : 'not writable' ?></b></div>
   <?php endforeach; ?>
 </div>
 <div class="g card">
