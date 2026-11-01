@@ -49,3 +49,11 @@ All apps are **thin shells around the live website**. They open `https://expense
 
 - Android: install the APK on a phone; test login, add expense, receipt upload, and Excel/PDF/CSV download from Full Report.
 - Windows: run the installer; check the icon in Start menu and taskbar, login, downloads, external link opening, and that the update prompt appears when a higher version exists.
+
+## Android: reading SMS for Quick add (permission asked on tap)
+- `AndroidManifest.xml` declares `READ_SMS` (and telephony as NOT required, so tablets still install). Android asks only when the person taps "Allow and read" on Quick add; nothing is read at install or start.
+- `MainActivity.Bridge` (`window.EFApp`): `smsSupported()`, `smsGranted()`, `smsAsk()`, `smsRead(days)`, `smsSettings()`. `smsRead` runs on the phone and returns at most 40 messages of the last 1-90 days that contain an amount AND a money word (debited, credited, paid, ...) and are not codes (OTP, PIN, verification). The result goes to the page as JSON and is shown as plain text.
+- Only the message the person taps is posted to the server (through the normal paste form); used message ids are remembered in the browser (`localStorage ef_sms_used`).
+- Deny: the page says so, offers "Open settings", and paste keeps working. Website, Windows and older Android apps never see the card (`typeof EFApp.smsSupported`).
+- This APK is installed from GitHub Releases. Google Play restricts `READ_SMS` heavily: if the app is ever published on Play, replace this with "Share to ExpenseFlow" or the notification listener.
+- Needs a new release: run the release workflow with a new version (after v1.0.17) and test on a phone.

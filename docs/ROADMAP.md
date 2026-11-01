@@ -318,3 +318,7 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Privacy and safety: the message is not stored (no table), only the first 600 characters are read, everything shown is escaped, and the Add form treats the pre-filled values as suggestions (unknown category or currency is ignored, the amount is validated on save).
 - Idea left for later: Android "share to ExpenseFlow" from the SMS app (needs the Android shell change and a release).
 - Tests: `quickadd_test.php`, `quickadd_http_test.py`.
+
+## Part 48b — Quick add can read SMS on Android (with permission)
+- Quick add shows "Read my messages" only inside the new Android app. Tapping it makes Android ask for the SMS permission; if allowed, the phone lists the recent payment messages (amount + money word, no codes) and one tap sends that single message through the normal Quick add flow. If denied, the person is told it is fine and pastes as before. Website and Windows keep paste only (browsers cannot read SMS).
+- Files: `AndroidManifest.xml`, `MainActivity.java` (bridge), `assets/quick-add.js`, `quick-add.php`. Test: `quickadd_device_ui_test.py` (the Java itself cannot run here: check on a phone after the release).
