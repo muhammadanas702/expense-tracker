@@ -445,3 +445,20 @@ CREATE TABLE IF NOT EXISTS `goal_entries` (
   PRIMARY KEY (`id`),
   KEY `idx_entry_goal` (`goal_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Part 46: reminders (bills and payments with a due date)
+CREATE TABLE IF NOT EXISTS `reminders` (
+  `id`         INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  `user_id`    INT UNSIGNED  NOT NULL,
+  `title`      VARCHAR(60)   NOT NULL,
+  `amount`     DECIMAL(15,2) NULL DEFAULT NULL,
+  `currency`   VARCHAR(3)    NOT NULL DEFAULT 'PKR',
+  `due_date`   DATE          NOT NULL,
+  `monthly`    TINYINT       NOT NULL DEFAULT 0,
+  `active`     TINYINT       NOT NULL DEFAULT 1,
+  `soon_for`   DATE          NULL DEFAULT NULL,
+  `late_for`   DATE          NULL DEFAULT NULL,
+  `created_at` TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_reminder_user` (`user_id`, `active`, `due_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
