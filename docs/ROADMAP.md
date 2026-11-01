@@ -286,3 +286,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 
 ## Part 43 — Dark mode
 - `assets/theme-dark.css` + `includes/theme.php`: Auto / Light / Dark in Settings > Preferences > Appearance (cookie `ef_theme`, applied before paint, also on login, public pages, landing and admin). Charts follow the theme colours.
+
+## Part 44 — Category budgets with alerts
+- New optional module `modules/budgets/` (page `budgets.php`, menu entry Budgets): a monthly limit per category in any currency, progress bars (green under 80%, orange 80-99%, red from 100%), and a small card on the dashboard (month view, three fullest budgets).
+- After an expense is added or edited, `budgets_check_alerts()` sends ONE bell notification at 80% and ONE at 100% per category per month (`budget_alerts` remembers; jumping straight past 100% sends one message). Respects the person's notifications switch. Events use group id 0 and are labelled "Budgets".
+- Spending uses the PKR value saved with each expense, so rate changes never move a budget. Switch off by setting `enabled` to false in `module.php`; the expense form and dashboard check with `function_exists`/`ef_modules()`.
+- Tables: `budgets`, `budget_alerts` (self-healing, no foreign keys). Tests: `budgets_test.php`, `budgets_http_test.py`.

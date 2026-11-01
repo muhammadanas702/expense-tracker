@@ -400,3 +400,25 @@ CREATE TABLE IF NOT EXISTS `app_handoffs` (
   UNIQUE KEY `uq_handoff_secret` (`secret_hash`),
   KEY `idx_handoff_exp` (`expires_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Part 44: category budgets (monthly limit per category) and the alerts already sent
+CREATE TABLE IF NOT EXISTS `budgets` (
+  `id`         INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  `user_id`    INT UNSIGNED  NOT NULL,
+  `category`   VARCHAR(50)   NOT NULL,
+  `amount`     DECIMAL(15,2) NOT NULL,
+  `currency`   VARCHAR(3)    NOT NULL DEFAULT 'PKR',
+  `created_at` TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_budget_user_category` (`user_id`, `category`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `budget_alerts` (
+  `id`       INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id`  INT UNSIGNED NOT NULL,
+  `category` VARCHAR(50)  NOT NULL,
+  `ym`       CHAR(7)      NOT NULL,
+  `level`    TINYINT      NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_budget_alert` (`user_id`, `category`, `ym`, `level`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

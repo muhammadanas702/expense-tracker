@@ -31,6 +31,12 @@ function personal_tx_page(string $kind, ?int $editId = null): void
         exit();
     }
     personal_ensure_schema($conn);
+    if (isset(ef_modules()['budgets']) && is_file(__DIR__ . '/../budgets/lib.php')) { // optional: budget alerts
+        require_once __DIR__ . '/../budgets/lib.php';
+        if (is_file(__DIR__ . '/../activity/lib.php')) {
+            require_once __DIR__ . '/../activity/lib.php';
+        }
+    }
 
     $categories = ['Food' => 'food', 'Transport' => 'car', 'Shopping' => 'bag', 'Entertainment' => 'tag', 'Bills' => 'zap', 'Healthcare' => 'heart', 'Education' => 'book', 'Other' => 'more'];
     if (is_file(__DIR__ . '/../categories/lib.php')) { // optional module: staff can change the list
@@ -120,6 +126,9 @@ function personal_tx_page(string $kind, ?int $editId = null): void
                         ->execute([$title, $amount, $currency, $pkr, $method, $note, $editId, $user_id]);
                 }
                 logAction($conn, $user_id, $isExpense ? 'edit_expense' : 'edit_income', "Updated record ID: $editId");
+                if ($isExpense && function_exists('budgets_check_alerts')) {
+                    budgets_check_alerts($conn, $user_id, $category);
+                }
                 $_SESSION['success'] = ($isExpense ? 'Expense' : 'Income') . ' updated.';
                 header('Location: ' . $base_url . '/dashboard.php');
                 exit();
@@ -158,6 +167,9 @@ function personal_tx_page(string $kind, ?int $editId = null): void
                 $error = 'Something went wrong. Please try again.';
             }
             if ($error === '') {
+                if ($isExpense && function_exists('budgets_check_alerts')) {
+                    budgets_check_alerts($conn, $user_id, $category);
+                }
                 logAction($conn, $user_id, $isExpense ? 'add_expense' : 'add_income', "Title: $title, Amount: $amount $currency" . ($old['repeat'] === '1' ? ', repeats monthly' : ''));
                 $_SESSION['success'] = ($isExpense ? 'Expense' : 'Income') . ' added successfully!' . ($old['repeat'] === '1' ? ' It will repeat every month.' : '');
                 header('Location: ' . $base_url . '/dashboard.php');
