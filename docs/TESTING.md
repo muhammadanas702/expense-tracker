@@ -53,6 +53,8 @@ Mail is not sent locally. `signup_verify_http_test.py` and `staff_mail_http_test
 | `reminders_http_test.py` | Python | Reminders page: create, bell text, dashboard card, Paid saves the expense once, other users cannot touch it |
 | `search_test.php` | PHP | Tags (store/list rules, limits) and search filters: text, tag, type, category, dates, amounts, only own rows, LIKE wildcards escaped |
 | `search_http_test.py` | Python | Search page and tag field on the add/edit forms, chips, results, other users' data never shown |
+| `quickadd_test.php` | PHP | Reading 9 kinds of bank/wallet SMS (debit, credit, USD, who, category guess), no amount, length limit, markup, form link |
+| `quickadd_http_test.py` | Python | Quick add page: sign-in, CSRF, result card, pre-filled Add form, nothing stored until saved, crafted links cannot inject |
 | `module_failsafe_http_test.py` | Python | Break the Budgets/Goals tables: dashboard stays 200 without the card, their pages show a small notice (no 500) |
 | `errors_http_test.py` | Python | Friendly error pages and JSON errors |
 | `settings_links_test.php` | PHP | Apps & contact settings: https-only links, e-mail check, save and the public JSON copy |

@@ -82,6 +82,21 @@ function personal_tx_page(string $kind, ?int $editId = null): void
         }
     }
 
+    // Quick add (pasted SMS) opens this form pre-filled through the address. Only plain suggestions: everything is validated again on save.
+    if (!$isEdit && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        foreach (['title' => 100, 'amount' => 20, 'note' => 255] as $k => $max) {
+            if (isset($_GET[$k]) && is_string($_GET[$k])) {
+                $old[$k] = mb_substr(trim($_GET[$k]), 0, $max);
+            }
+        }
+        if (isset($_GET['currency']) && is_string($_GET['currency']) && normalize_currency($_GET['currency']) !== null) {
+            $old['currency'] = normalize_currency($_GET['currency']);
+        }
+        if ($isExpense && isset($_GET['category']) && is_string($_GET['category']) && isset($categories[$_GET['category']])) {
+            $old['category'] = $_GET['category'];
+        }
+    }
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($old as $field => $default) {
             $value = $_POST[$field] ?? $default;
