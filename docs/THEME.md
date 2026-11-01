@@ -9,6 +9,9 @@ Everything a designer or developer needs to make a new screen look like ExpenseF
 
 > **Legacy files, not loaded anywhere:** `assets/theme.css`, `style.css`, `dashboard.css`, `responsive.css`, `landing.css`, `auth.css` are left over from the first design. Do not edit them expecting a change on screen. They can be deleted once you are sure (`grep -r "dashboard.css"` shows no PHP file links to them; `style.css` is only named inside a comment in `assets/fx.js`). The old v6/v7/v8 HTML mock-ups in `docs/design/` are visual references only.
 
+## Dark mode (Part 43)
+`assets/theme-dark.css` (loaded after `app.css` by `includes/theme.php`) re-colours the app when `<html data-theme="dark">`. A script in `<head>` sets that attribute from the `ef_theme` cookie (`auto` / `light` / `dark`; `auto` follows the device) before the page paints. People choose in Settings > Preferences > Appearance (saved per device). Rules for new UI: use the tokens (`--tx`, `--mu`, `--gb`, `--a1`, `--a2`); if you hard-code a white background, add a matching line in `theme-dark.css`; check both themes in the screenshots.
+
 ## 1. Design idea in one paragraph
 
 A calm, modern "glass" look: frosted translucent cards floating over a soft two-colour gradient with blurred colour blobs. The accent colour tells you **which side of the app you are in**: **teal = Personal** money, **blue = Shared** (groups, friends, balances). Money in is **green**, money out is **orange**. Text is deep navy. The font stack starts with Inter, then the system font. Icons are one consistent set of 24x24 outline SVGs.

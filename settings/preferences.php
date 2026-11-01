@@ -20,6 +20,13 @@ $settings = profile_settings($conn, $user_id);
 settings_page_start('preferences', $user);
 ?>
     <div class="g card">
+      <div class="t">Appearance</div>
+      <p class="k" style="margin:-4px 0 12px">Light, dark, or follow your device. Saved on this device.</p>
+      <div class="thm" id="thm" role="group" aria-label="Theme">
+        <button type="button" data-t="auto">Auto</button><button type="button" data-t="light">Light</button><button type="button" data-t="dark">Dark</button>
+      </div>
+    </div>
+    <div class="g card">
       <form method="POST">
         <?= csrf_field() ?>
         <div class="fl"><label for="savings_goal">Monthly savings goal (% of income)</label>
@@ -28,4 +35,7 @@ settings_page_start('preferences', $user);
         <button class="btn" type="submit" style="margin-top:10px">Save preferences</button>
       </form>
     </div>
-<?php settings_page_end();
+<?php settings_page_end('<script>(function(){var box=document.getElementById("thm");if(!box)return;var m=document.cookie.match(/(?:^|; )ef_theme=(auto|light|dark)/),cur=m?m[1]:"auto";'
+  . 'function apply(t){var dark=t==="dark"||(t==="auto"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);if(dark)document.documentElement.setAttribute("data-theme","dark");else document.documentElement.removeAttribute("data-theme");'
+  . '[].forEach.call(box.querySelectorAll("button"),function(b){b.setAttribute("aria-pressed",b.getAttribute("data-t")===t?"true":"false");});}'
+  . 'box.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;var t=b.getAttribute("data-t");document.cookie="ef_theme="+t+";path=/;max-age=31536000;SameSite=Lax";apply(t);});apply(cur);})();</script>');

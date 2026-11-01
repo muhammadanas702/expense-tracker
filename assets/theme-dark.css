@@ -1,0 +1,33 @@
+/* ExpenseFlow dark theme. Applied when <html data-theme="dark"> (see includes/theme.php). Only colours are changed here:
+   tokens first, then the few surfaces app.css paints with hard-coded white. Keep this file in step with app.css. */
+html[data-theme=dark]{color-scheme:dark;--tx:#e6edf6;--mu:#9db0c7;--gb:rgba(255,255,255,.09);--sh:0 10px 34px rgba(0,0,0,.45);--b1:#0a1b24;--b2:#0b1530;--bl:#0f766e;--inc:#34d399;--exp:#fb923c}
+html[data-theme=dark] [data-mode=s]{--b1:#0b1530;--b2:#0a1b2c;--bl:#1d4ed8}
+html[data-theme=dark] body{background:#08111b}
+html[data-theme=dark] .fr{background:linear-gradient(135deg,var(--b1),var(--b2) 55%,#1a120b)}
+html[data-theme=dark] .fr:before,html[data-theme=dark] .fr:after{opacity:.28}
+html[data-theme=dark] .g{background:rgba(20,32,48,.66)}
+html[data-theme=dark] .nv:hover,html[data-theme=dark] a.row:hover,html[data-theme=dark] table.tbl tr:hover td{background:rgba(255,255,255,.07)}
+html[data-theme=dark] .seg,html[data-theme=dark] .ic,html[data-theme=dark] .ins,html[data-theme=dark] .chip,html[data-theme=dark] .btn.o,html[data-theme=dark] .gi,html[data-theme=dark] .stat .ibx{background:rgba(255,255,255,.07)}
+html[data-theme=dark] .cat{background:rgba(255,255,255,.1);box-shadow:none}
+html[data-theme=dark] .inp,html[data-theme=dark] .sbar input[type=search],html[data-theme=dark] .frform input[type=email],html[data-theme=dark] select,html[data-theme=dark] textarea,html[data-theme=dark] input[type=date],html[data-theme=dark] input[type=number],html[data-theme=dark] input[type=text],html[data-theme=dark] input[type=email],html[data-theme=dark] input[type=password]{background:rgba(255,255,255,.06);border-color:rgba(157,176,199,.28);color:var(--tx)}
+html[data-theme=dark] .inp::placeholder,html[data-theme=dark] input::placeholder,html[data-theme=dark] textarea::placeholder{color:#7d8fa6}
+html[data-theme=dark] .gbtn{background:#fff;color:#0B2545}
+html[data-theme=dark] .sw{background:#3b4a5e}
+html[data-theme=dark] .cb i{background:rgba(255,255,255,.08);border-color:#5b6b80}
+html[data-theme=dark] .tabs{background:rgba(255,255,255,.07)}
+html[data-theme=dark] .npop,html[data-theme=dark] .np{background:#14202f}
+html[data-theme=dark] .stk .av{border-color:#14202f}
+html[data-theme=dark] .wm{background:linear-gradient(135deg,#5eead4,#7fb2ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+html[data-theme=dark] .hocode,html[data-theme=dark] .gpanel{background:rgba(94,234,212,.08);border-color:rgba(94,234,212,.3)}
+html[data-theme=dark] .grad{background-image:linear-gradient(135deg,#5eead4,#7fb2ff)}
+html[data-theme=dark] .btn.o,html[data-theme=dark] .btn.o svg{color:#5eead4}
+html[data-theme=dark] .lnk,html[data-theme=dark] .crumb a{color:#5eead4}
+html[data-theme=dark] .sci{background:rgba(94,234,212,.12);color:#5eead4}
+html[data-theme=dark] .snl.on{background:rgba(94,234,212,.12)}
+html[data-theme=dark] .msg.err{background:rgba(239,68,68,.14);color:#fca5a5}
+html[data-theme=dark] .msg.ok{background:rgba(16,185,129,.14);color:#6ee7b7}
+html[data-theme=dark] hr,html[data-theme=dark] .row{border-color:rgba(255,255,255,.08)}
+/* the theme choice control (settings/preferences.php) */
+.thm{display:flex;gap:8px;flex-wrap:wrap}.thm button{flex:1;min-width:92px;padding:12px 10px;border-radius:12px;border:1px solid rgba(91,107,128,.3);background:rgba(255,255,255,.7);font:inherit;font-weight:700;font-size:.86rem;color:var(--tx);cursor:pointer}
+.thm button[aria-pressed=true]{background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;border-color:transparent}
+html[data-theme=dark] .thm button{background:rgba(255,255,255,.07)}html[data-theme=dark] .thm button[aria-pressed=true]{background:linear-gradient(135deg,var(--a1),var(--a2))}

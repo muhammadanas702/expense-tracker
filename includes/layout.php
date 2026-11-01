@@ -69,6 +69,7 @@ function ef_page_start(array $o): void
 <link rel="manifest" href="<?= e(ef_url('manifest.json')) ?>">
 <?php require_once __DIR__ . '/favicons.php'; ?>
 <link rel="stylesheet" href="<?= e(ef_asset('assets/app.css')) ?>">
+<?php require_once __DIR__ . '/theme.php'; echo ef_theme_head(); ?>
 <?= $o['head'] ?? '' ?>
 </head>
 <body>
