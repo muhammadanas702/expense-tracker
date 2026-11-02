@@ -14,3 +14,4 @@ $expenseFlowPwaSafeBaseUrl = htmlspecialchars($expenseFlowPwaBaseUrl, ENT_QUOTES
 <meta name="apple-mobile-web-app-title" content="ExpenseFlow">
 <?php require __DIR__ . '/favicons.php'; ?>
 <script defer src="<?= $expenseFlowPwaSafeBaseUrl ?>/assets/pwa-register.js" data-app-base="<?= $expenseFlowPwaSafeBaseUrl ?>"></script>
+<script defer src="<?= $expenseFlowPwaSafeBaseUrl ?>/assets/net-status.js"></script>

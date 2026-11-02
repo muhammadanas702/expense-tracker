@@ -47,7 +47,8 @@ function ef_error_page(int $code = 500, ?string $title = null, ?string $message 
         . 'h1{margin:0 0 10px;font-size:1.35rem;line-height:1.3}p{margin:0 0 20px;color:#4a5b73;line-height:1.55}'
         . '.b{display:inline-block;margin:4px;padding:11px 20px;border-radius:12px;font-weight:700;text-decoration:none;background:#0f766e;color:#fff}.b.o{background:#fff;color:#0b2545;border:1px solid rgba(91,107,128,.35)}</style></head>'
         . '<body><main><span class="c">' . ($code >= 400 ? 'ERROR ' . (int) $code : '') . '</span><h1>' . $h($title) . '</h1><p>' . $h($message) . '</p>'
-        . '<a class="b" href="' . $h($home) . '">Go to home</a><a class="b o" href="javascript:history.back()">Go back</a></main></body></html>';
+        . '<a class="b" href="' . $h($home) . '">Go to home</a><a class="b o" href="javascript:history.back()">Go back</a></main>'
+        . ($code === 503 ? '<script>setTimeout(function(){location.reload()},15000)</script>' : '') . '</body></html>';
     exit();
 }
 

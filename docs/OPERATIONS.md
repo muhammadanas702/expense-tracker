@@ -44,6 +44,9 @@ Practical knowledge about the live site `https://expenseflow.rf.gd`, its hosting
 | Look at errors | PHP `error_log` in the host panel; exports and mail failures log `ExpenseFlow ...` lines |
 | Check what a user did | Admin > User logs; staff actions: Admin > Audit log |
 
+## 3b. Uptime monitor
+Add a free monitor (UptimeRobot, 5 min) on `https://expenseflow.rf.gd/health.php`; use `health.php?db=1` to also check the database (503 = DB down). The app itself keeps showing saved pages during outages (Part 53).
+
 ## 4. Google Safe Browsing / Search Console
 
 **What happened (Oct 2026):** Search Console reported "Deceptive pages" for `/auth/login.php` and `/dashboard.php`. Login pages on free shared subdomains get flagged often, because the sign-in form looks like phishing to the heuristic when the domain has no reputation. The site is genuine.

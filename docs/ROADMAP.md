@@ -338,3 +338,12 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - With Budgets, Goals, Reminders, Search and Quick add the phone bottom bar had 9 tiny items. Now: Dashboard, Income, Expense, Report + a "More" button with a small sheet (Budgets, Goals, Reminders, Quick add). Works in light and dark, closes with a tap elsewhere or Escape, and highlights More when the current page is inside it. Desktop keeps the full sidebar.
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
+
+## Part 53 — Resilience (site keeps working when internet or server fails)
+- Cause of the "no internet / nothing loads for half an hour" outage: the database connection had no timeout (workers hung when the DB host was slow), the old service worker waited forever for the network and never saved admin pages, and the signed-in layout did not register it.
+- Service worker: waits at most 4 s for the server, then shows the last saved copy of the page with a yellow "saved copy" bar (admin pages included); never-seen pages get a smart offline page that says whether the DEVICE has no internet or the SERVER is not answering, retries every 10 s and offers the saved dashboard. Saved private pages are wiped on logout.
+- When the server comes back the page reloads by itself (`assets/net-status.js`, polls `health.php` only while the saved-copy bar is shown) and an online/offline toast appears.
+- `health.php` (cheap JSON, `?db=1` also checks the database) — point a free uptime monitor (UptimeRobot, 5 min) at it.
+- `config/db.php`: 4 s connect timeout, 20 s read timeout; a dead DB shows a friendly 503 page that reloads itself after 15 s instead of hanging.
+- Honest limit: on a free host a real outage cannot be removed by code; saved pages + auto-recovery hide it. A custom domain behind Cloudflare (free) or a paid host is the real fix.
+
