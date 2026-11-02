@@ -164,6 +164,9 @@ foreach ($moreItems as $n) { if ($n[3] === $active) { $moreActive = true; } }
 <script src="<?= e(ef_asset('assets/notif-pop.js')) ?>" defer></script>
 <script src="<?= e(ef_asset('assets/more-menu.js')) ?>" defer></script>
 <script src="<?= e(ef_asset('assets/net-status.js')) ?>" defer></script>
+<?php if (isset(ef_modules()['quickadd'])): ?>
+<script src="<?= e(ef_asset('assets/sms-auto.js')) ?>" data-base="<?= e($GLOBALS['base_url'] ?? '') ?>" defer></script>
+<?php endif; ?>
 <script src="<?= e(ef_url('assets/pwa-register.js')) ?>" data-app-base="<?= e(rtrim((string) ($GLOBALS['base_url'] ?? ''), '/')) ?>" defer></script>
 <?= $o['scripts'] ?? '' ?>
 </body>

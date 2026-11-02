@@ -61,6 +61,9 @@ Mail is not sent locally. `signup_verify_http_test.py` and `staff_mail_http_test
 | `currency_cache_test.php` | PHP | Exchange-rate cache with a dead service: one short wait, the attempt is remembered, stale cache still used, a good fetch refreshes it (`mock_rates.php` is the fake service) |
 | `resilience_ui_test.py` | Python (Playwright) | health.php, saved pages incl. admin, server down / slow (4 s) / device offline messages, auto-recovery, logout wipes saved pages, dead DB host gives a friendly 503 (`slow_router.php` simulates a slow server) |
 | `twofactor_http_test.py` | Python | Two-step sign-in: turn on/off with a mailed code, login needs the code, wrong/expired/used codes, resend cooldown, staff always asked and cannot opt out, emergency switch skips it, no code on a wrong password (starts its own servers, mail goes to a sink file) |
+| `quickadd_classify_test.php` | PHP | Which SMS is added, reviewed or ignored (codes, offers, failed, reminders, requests, friend numbers, mixed) |
+| `quickadd_import_http_test.py` | Python | Auto-import endpoint: off by default, counts, learned category, no duplicates, review list, ownership, always-ignore, undo, turn off |
+| `quickadd_auto_ui_test.py` | Python (Playwright) | Fake Android bridge: opening a page imports new SMS, tap-to-see bar, nothing when off |
 | `module_failsafe_http_test.py` | Python | Break the Budgets/Goals tables: dashboard stays 200 without the card, their pages show a small notice (no 500) |
 | `errors_http_test.py` | Python | Friendly error pages and JSON errors |
 | `settings_links_test.php` | PHP | Apps & contact settings: https-only links, e-mail check, save and the public JSON copy |

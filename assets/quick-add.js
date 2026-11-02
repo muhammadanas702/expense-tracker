@@ -43,7 +43,7 @@
     render(items);
   }
   window.efSmsPermission = function (ok) {
-    if (ok) { load(); } else { say('No problem, the messages stay private. Paste a message below instead.', true); }
+    if (ok) { load(); if (window.efSmsAutoRun) { window.efSmsAutoRun(); } } else { say('No problem, the messages stay private. Paste a message below instead.', true); }
   };
   btn.addEventListener('click', function () {
     var granted = false;
