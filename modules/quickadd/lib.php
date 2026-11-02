@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../includes/schema.php';
 /**
  * Reads a pasted payment SMS (Pakistani banks and wallets: "Rs. 1,500.00 debited from A/C ... at FOODPANDA").
  * Pure text work: no database, nothing stored. The result only PRE-FILLS the normal Add form, which validates everything again.
@@ -28,7 +29,7 @@ function quickadd_category_hints(): array
  */
 function quickadd_parse(string $sms): array
 {
-    $out = ['ok' => false, 'type' => null, 'amount' => '', 'currency' => 'PKR', 'title' => '', 'category' => ''];
+    $out = ['ok' => false, 'type' => null, 'amount' => '', 'currency' => 'PKR', 'title' => '', 'category' => '', 'mixed' => false];
     $text = trim(preg_replace('/\s+/u', ' ', mb_substr($sms, 0, QUICKADD_MAX_LENGTH)));
     if ($text === '') {
         return $out;
@@ -59,7 +60,8 @@ function quickadd_parse(string $sms): array
 
     $lower = mb_strtolower($text);
     $in = preg_match('/\b(credited|received|deposited|deposit|refund(?:ed)?|salary|cashback|added to|has been received|incoming|sent you)\b/', $lower);
-    $outw = preg_match('/\b(debited|debit|spent|paid|payment|purchase|purchased|withdrawn|withdrawal|transferred|sent|charged|bill|pos|atm|deducted|buy)\b/', $lower);
+    $outw = preg_match('/\b(debited|debit|spent|paid|payment|purchase|purchased|withdrawn|withdrawal|transferred|sent|charged|bill|pos|atm|deducted|buy)\b/', preg_replace('/\bsent you\b/', 'sent_you', $lower));
+    $out['mixed'] = (bool) ($in && $outw);
     if ($in && !$outw) {
         $out['type'] = 'income';
     } elseif ($outw && !$in) {
@@ -114,4 +116,370 @@ function quickadd_form_url(string $base, array $p): string
         $q['category'] = $p['category'];
     }
     return $base . $page . '?' . http_build_query($q);
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Part 48c: automatic import with a classifier                        */
+/* ------------------------------------------------------------------ */
+
+const QUICKADD_BATCH_MAX = 40;
+
+function quickadd_ensure_schema(PDO $conn): void
+{
+    if (ef_schema_ok(__FUNCTION__, __FILE__)) {
+        return;
+    }
+    static $done = false;
+    if ($done) {
+        return;
+    }
+    $done = true;
+    try {
+        $conn->exec("CREATE TABLE IF NOT EXISTS `sms_prefs` (
+          `user_id` INT UNSIGNED NOT NULL,
+          `auto`    TINYINT NOT NULL DEFAULT 0,
+          `since`   DATETIME NULL DEFAULT NULL,
+          PRIMARY KEY (`user_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        $conn->exec("CREATE TABLE IF NOT EXISTS `sms_imports` (
+          `id`        INT UNSIGNED NOT NULL AUTO_INCREMENT,
+          `user_id`   INT UNSIGNED NOT NULL,
+          `msg_hash`  CHAR(40)     NOT NULL,
+          `status`    VARCHAR(8)   NOT NULL,
+          `reason`    VARCHAR(20)  NOT NULL DEFAULT '',
+          `tx_kind`   VARCHAR(8)   NULL DEFAULT NULL,
+          `tx_id`     INT UNSIGNED NULL DEFAULT NULL,
+          `amount`    DECIMAL(15,2) NULL DEFAULT NULL,
+          `currency`  VARCHAR(3)   NOT NULL DEFAULT 'PKR',
+          `title`     VARCHAR(100) NOT NULL DEFAULT '',
+          `category`  VARCHAR(50)  NOT NULL DEFAULT '',
+          `sender`    VARCHAR(40)  NOT NULL DEFAULT '',
+          `body`      VARCHAR(600) NULL DEFAULT NULL,
+          `sms_date`  DATETIME     NULL DEFAULT NULL,
+          `created_at` TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `uq_sms_hash` (`user_id`, `msg_hash`),
+          KEY `idx_sms_status` (`user_id`, `status`, `id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        $conn->exec("CREATE TABLE IF NOT EXISTS `sms_rules` (
+          `user_id`    INT UNSIGNED NOT NULL,
+          `sender_key` VARCHAR(40)  NOT NULL,
+          PRIMARY KEY (`user_id`, `sender_key`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } catch (Throwable $e) {
+        error_log('ExpenseFlow quickadd schema: ' . $e->getMessage());
+    }
+}
+
+function quickadd_sender_key(string $sender): string
+{
+    return substr(strtolower(preg_replace('/[^a-z0-9+]/i', '', $sender)), 0, 40);
+}
+
+/**
+ * Decides what to do with one message: verdict 'add' (sure: record it), 'review' (ask the person) or 'ignore', plus a short reason.
+ * Ignored on purpose: one-time codes, failed or declined payments, bill reminders, money requests, offers and adverts,
+ * balance-only alerts, anything without a money word, and senders the person asked to ignore.
+ * A message from a normal phone number is never added by itself (a friend's text may mention money): it goes to review.
+ */
+function quickadd_classify(string $text, string $sender = '', bool $senderIgnored = false): array
+{
+    $p = quickadd_parse($text);
+    $r = ['verdict' => 'ignore', 'reason' => 'no_amount', 'parsed' => $p];
+    if (!$p['ok']) {
+        return $r;
+    }
+    $l = mb_strtolower(preg_replace('/\s+/u', ' ', $text));
+    $strong = (bool) preg_match('/\b(debited|credited|deducted|withdrawn|charged|spent|purchased?|paid|received|deposited|sent|transferred|refund(?:ed)?|salary)\b/', $l);
+    $bank = $sender === '' || preg_match('/[a-z]/i', $sender); // names like "HBL" or "JazzCash", not +923...
+    if ($senderIgnored) {
+        $r['reason'] = 'sender';
+    } elseif (preg_match('/\b(otp|one[- ]?time|verification|login code|passcode|security code|pin)\b/', $l) && !preg_match('/\b(debited|credited)\b/', $l)) {
+        $r['reason'] = 'code';
+    } elseif (preg_match('/\b(declined|failed|unsuccessful|insufficient|not successful|could not|unable to|rejected)\b/', $l)) {
+        $r['reason'] = 'failed';
+    } elseif (preg_match('/\b(request(?:ed)? (?:money|rs|pkr|you)|has requested|asked you to pay|payment request)\b/', $l)) {
+        $r['reason'] = 'request';
+    } elseif (!preg_match('/\b(debited|credited|deducted|charged|spent|purchased?|paid|received|deposited|sent|withdrawn)\b/', $l)
+        && preg_match('/\b(due date|is due|bill due|overdue|please pay|kindly pay|pay before|outstanding|reminder|payable|expires?)\b/', $l)) {
+        $r['reason'] = 'reminder';
+    } elseif (!$strong && preg_match('/\b(offer|promo(?:tion)?|discount|win|prize|lucky|free|subscribe|dial|bundle|package|activate|limited time|apply now|loan|click)\b|www\.|https?:|bit\.ly/', $l)) {
+        $r['reason'] = 'promo';
+    } elseif (!$strong) {
+        $r['reason'] = 'no_money_word';
+    } elseif ($p['type'] === null) {
+        $r['verdict'] = 'review';
+        $r['reason'] = 'direction';
+    } elseif ($p['mixed']) {
+        $r['verdict'] = 'review';
+        $r['reason'] = 'mixed';
+    } elseif (!$bank) {
+        $r['verdict'] = 'review';
+        $r['reason'] = 'person';
+    } else {
+        $r['verdict'] = 'add';
+        $r['reason'] = 'ok';
+    }
+    return $r;
+}
+
+function quickadd_prefs(PDO $conn, int $uid): array
+{
+    quickadd_ensure_schema($conn);
+    $st = $conn->prepare('SELECT auto, since FROM sms_prefs WHERE user_id = ?');
+    $st->execute([$uid]);
+    $r = $st->fetch(PDO::FETCH_ASSOC);
+    return $r ? ['auto' => (int) $r['auto'] === 1, 'since' => $r['since']] : ['auto' => false, 'since' => null];
+}
+
+/** Turning auto-add on starts "from now": old messages are never imported. */
+function quickadd_set_auto(PDO $conn, int $uid, bool $on): void
+{
+    quickadd_ensure_schema($conn);
+    if ($on) {
+        $conn->prepare('INSERT INTO sms_prefs (user_id, auto, since) VALUES (?, 1, NOW()) ON DUPLICATE KEY UPDATE auto = 1, since = NOW()')->execute([$uid]);
+    } else {
+        $conn->prepare('INSERT INTO sms_prefs (user_id, auto, since) VALUES (?, 0, NULL) ON DUPLICATE KEY UPDATE auto = 0')->execute([$uid]);
+    }
+}
+
+function quickadd_categories(PDO $conn): array
+{
+    $cats = ['Food', 'Transport', 'Shopping', 'Entertainment', 'Bills', 'Healthcare', 'Education', 'Other'];
+    if (is_file(__DIR__ . '/../categories/lib.php')) {
+        require_once __DIR__ . '/../categories/lib.php';
+        try {
+            $cats = array_keys(categories_active($conn));
+        } catch (Throwable $e) {
+        }
+    }
+    return $cats;
+}
+
+/** The category for an automatic expense: what this person used last time for the same title, else the keyword guess, else Other. */
+function quickadd_pick_category(PDO $conn, int $uid, string $title, string $guess): string
+{
+    $cats = quickadd_categories($conn);
+    try {
+        $st = $conn->prepare('SELECT category FROM expenses WHERE user_id = ? AND title = ? ORDER BY id DESC LIMIT 1');
+        $st->execute([$uid, $title]);
+        $prev = (string) $st->fetchColumn();
+        if ($prev !== '' && in_array($prev, $cats, true)) {
+            return $prev;
+        }
+    } catch (Throwable $e) {
+    }
+    if ($guess !== '' && in_array($guess, $cats, true)) {
+        return $guess;
+    }
+    return in_array('Other', $cats, true) ? 'Other' : (string) ($cats[0] ?? 'Other');
+}
+
+function quickadd_method(string $text): string
+{
+    $l = mb_strtolower($text);
+    if (str_contains($l, 'easypaisa')) {
+        return 'Easypaisa';
+    }
+    if (str_contains($l, 'jazzcash') || str_contains($l, 'jazz cash')) {
+        return 'JazzCash';
+    }
+    if (preg_match('/\b(card|pos|atm)\b/', $l)) {
+        return 'Card';
+    }
+    return 'Bank';
+}
+
+/** Saves one entry like the Add form does (PKR value, monthly base currency, budget alerts). Returns the new id. */
+function quickadd_insert_tx(PDO $conn, int $uid, string $kind, array $f): int
+{
+    require_once __DIR__ . '/../../includes/CurrencyConverter.php';
+    require_once __DIR__ . '/../personal/lib.php';
+    $amount = (float) $f['amount'];
+    $currency = (string) $f['currency'];
+    $pkr = round(CurrencyConverter::convert($amount, $currency, 'PKR'), 2);
+    $when = date('Y-m-d H:i:s', (int) ($f['ts'] ?? time()));
+    $ym = date('Y-m', (int) ($f['ts'] ?? time()));
+    $title = mb_substr((string) $f['title'], 0, 100);
+    $note = 'From SMS';
+    $conn->beginTransaction();
+    try {
+        $st = $conn->prepare('SELECT `base_currency` FROM `user_monthly_currency` WHERE `user_id` = ? AND `year_month` = ?');
+        $st->execute([$uid, $ym]);
+        if (!$st->fetchColumn()) {
+            $conn->prepare('INSERT INTO `user_monthly_currency` (`user_id`, `year_month`, `base_currency`) VALUES (?, ?, ?)')->execute([$uid, $ym, $currency]);
+        }
+        if ($kind === 'expense') {
+            $conn->prepare('INSERT INTO expenses (user_id,title,amount,currency,amount_pkr,category,transaction_date,payment_method,note) VALUES (?,?,?,?,?,?,?,?,?)')
+                ->execute([$uid, $title, $amount, $currency, $pkr, $f['category'], $when, $f['method'], $note]);
+        } else {
+            $conn->prepare('INSERT INTO income (user_id,title,amount,currency,amount_pkr,transaction_date,payment_method,note) VALUES (?,?,?,?,?,?,?,?)')
+                ->execute([$uid, $title, $amount, $currency, $pkr, $when, $f['method'], $note]);
+        }
+        $id = (int) $conn->lastInsertId();
+        $conn->commit();
+    } catch (Throwable $e) {
+        if ($conn->inTransaction()) {
+            $conn->rollBack();
+        }
+        throw $e;
+    }
+    if (is_file(__DIR__ . '/../../includes/logging.php')) {
+        require_once __DIR__ . '/../../includes/logging.php';
+        logAction($conn, $uid, $kind === 'expense' ? 'add_expense' : 'add_income', "From SMS. Title: $title, Amount: $amount $currency");
+    }
+    if ($kind === 'expense' && isset(ef_modules()['budgets']) && is_file(__DIR__ . '/../budgets/lib.php')) {
+        require_once __DIR__ . '/../budgets/lib.php';
+        if (is_file(__DIR__ . '/../activity/lib.php')) {
+            require_once __DIR__ . '/../activity/lib.php';
+        }
+        if (function_exists('budgets_check_alerts')) {
+            budgets_check_alerts($conn, $uid, (string) $f['category']);
+        }
+    }
+    return $id;
+}
+
+/**
+ * Handles a batch from the phone: [{id, from, text, date(ms)}, ...]. Each message is claimed by its hash first, so the same
+ * message is never added twice (two tabs, a retry, the same SMS read again). Returns counts.
+ */
+function quickadd_import(PDO $conn, int $uid, array $msgs): array
+{
+    $res = ['off' => false, 'added' => 0, 'review' => 0, 'ignored' => 0, 'duplicate' => 0, 'old' => 0];
+    $prefs = quickadd_prefs($conn, $uid);
+    if (!$prefs['auto'] || !$prefs['since']) {
+        $res['off'] = true;
+        return $res;
+    }
+    $sinceTs = strtotime((string) $prefs['since']);
+    $rules = [];
+    $st = $conn->prepare('SELECT sender_key FROM sms_rules WHERE user_id = ?');
+    $st->execute([$uid]);
+    foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $k) {
+        $rules[$k] = true;
+    }
+    $n = 0;
+    foreach ($msgs as $m) {
+        if (++$n > QUICKADD_BATCH_MAX) {
+            break;
+        }
+        if (!is_array($m) || !is_string($m['text'] ?? null) || mb_strlen($m['text']) > QUICKADD_MAX_LENGTH) {
+            continue;
+        }
+        $text = $m['text'];
+        $sender = is_string($m['from'] ?? null) ? mb_substr($m['from'], 0, 40) : '';
+        $ts = (int) floor(((float) ($m['date'] ?? 0)) / 1000);
+        if ($ts < $sinceTs - 60 || $ts > time() + 86400) {
+            $res['old']++;
+            continue;
+        }
+        $hash = sha1($uid . '|' . $sender . '|' . $ts . '|' . $text);
+        $senderKey = quickadd_sender_key($sender);
+        $c = quickadd_classify($text, $sender, $senderKey !== '' && isset($rules[$senderKey]));
+        $p = $c['parsed'];
+        $status = $c['verdict'] === 'add' ? 'added' : ($c['verdict'] === 'review' ? 'review' : 'ignored');
+        $title = $p['ok'] ? $p['title'] : '';
+        $claim = $conn->prepare('INSERT IGNORE INTO sms_imports (user_id, msg_hash, status, reason, tx_kind, amount, currency, title, category, sender, body, sms_date) VALUES (?,?,?,?,?,?,?,?,?,?,?,FROM_UNIXTIME(?))');
+        $claim->execute([
+            $uid, $hash, $status, $c['reason'], $p['type'], $p['ok'] ? $p['amount'] : null, $p['currency'], $title,
+            $status === 'ignored' ? '' : $p['category'], $senderKey, $status === 'review' ? $text : null, $ts,
+        ]);
+        if ($claim->rowCount() === 0) {
+            $res['duplicate']++;
+            continue;
+        }
+        $rowId = (int) $conn->lastInsertId();
+        if ($status === 'added') {
+            try {
+                $cat = $p['type'] === 'expense' ? quickadd_pick_category($conn, $uid, $title, $p['category']) : '';
+                $txId = quickadd_insert_tx($conn, $uid, (string) $p['type'], [
+                    'title' => $title, 'amount' => $p['amount'], 'currency' => $p['currency'], 'category' => $cat,
+                    'method' => quickadd_method($text), 'ts' => $ts,
+                ]);
+                $conn->prepare('UPDATE sms_imports SET tx_id = ?, category = ? WHERE id = ?')->execute([$txId, $cat, $rowId]);
+            } catch (Throwable $e) {
+                error_log('ExpenseFlow SMS import failed: ' . $e->getMessage());
+                $conn->prepare('DELETE FROM sms_imports WHERE id = ?')->execute([$rowId]); // not recorded: it can be tried again
+                continue;
+            }
+        }
+        $res[$status === 'added' ? 'added' : ($status === 'review' ? 'review' : 'ignored')]++;
+    }
+    if (random_int(1, 20) === 1) {
+        $conn->prepare("DELETE FROM sms_imports WHERE user_id = ? AND created_at < (NOW() - INTERVAL 120 DAY)")->execute([$uid]);
+    }
+    return $res;
+}
+
+function quickadd_review_list(PDO $conn, int $uid): array
+{
+    quickadd_ensure_schema($conn);
+    $st = $conn->prepare("SELECT id, tx_kind, amount, currency, title, category, sender, body, reason, sms_date FROM sms_imports WHERE user_id = ? AND status = 'review' ORDER BY id DESC LIMIT 30");
+    $st->execute([$uid]);
+    return $st->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function quickadd_recent_added(PDO $conn, int $uid): array
+{
+    quickadd_ensure_schema($conn);
+    $st = $conn->prepare("SELECT id, tx_kind, amount, currency, title, category, sms_date FROM sms_imports WHERE user_id = ? AND status = 'added' AND created_at > (NOW() - INTERVAL 14 DAY) ORDER BY id DESC LIMIT 10");
+    $st->execute([$uid]);
+    return $st->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/** A "needs your check" message: $action 'add' (as $kind expense|income) or 'ignore' (optionally always ignore that sender). */
+function quickadd_review_resolve(PDO $conn, int $uid, int $id, string $action, string $kind = '', bool $always = false): bool
+{
+    $st = $conn->prepare("SELECT * FROM sms_imports WHERE id = ? AND user_id = ? AND status = 'review'");
+    $st->execute([$id, $uid]);
+    $row = $st->fetch(PDO::FETCH_ASSOC);
+    if (!$row) {
+        return false;
+    }
+    if ($action === 'add' && in_array($kind, ['expense', 'income'], true) && $row['amount'] !== null) {
+        $cat = $kind === 'expense' ? quickadd_pick_category($conn, $uid, (string) $row['title'], (string) $row['category']) : '';
+        $txId = quickadd_insert_tx($conn, $uid, $kind, [
+            'title' => (string) $row['title'], 'amount' => $row['amount'], 'currency' => $row['currency'], 'category' => $cat,
+            'method' => quickadd_method((string) $row['body']), 'ts' => strtotime((string) $row['sms_date']) ?: time(),
+        ]);
+        $conn->prepare("UPDATE sms_imports SET status = 'added', tx_kind = ?, tx_id = ?, category = ?, body = NULL WHERE id = ?")->execute([$kind, $txId, $cat, $id]);
+        return true;
+    }
+    if ($action === 'ignore') {
+        $conn->prepare("UPDATE sms_imports SET status = 'ignored', body = NULL WHERE id = ?")->execute([$id]);
+        if ($always && $row['sender'] !== '') {
+            $conn->prepare('INSERT IGNORE INTO sms_rules (user_id, sender_key) VALUES (?, ?)')->execute([$uid, $row['sender']]);
+        }
+        return true;
+    }
+    return false;
+}
+
+/** Takes back an automatic entry: deletes the income/expense and remembers the message so it is not added again. */
+function quickadd_undo(PDO $conn, int $uid, int $id): bool
+{
+    $st = $conn->prepare("SELECT tx_kind, tx_id FROM sms_imports WHERE id = ? AND user_id = ? AND status = 'added'");
+    $st->execute([$id, $uid]);
+    $row = $st->fetch(PDO::FETCH_ASSOC);
+    if (!$row || !$row['tx_id']) {
+        return false;
+    }
+    $table = $row['tx_kind'] === 'income' ? 'income' : 'expenses';
+    $conn->prepare("DELETE FROM `$table` WHERE id = ? AND user_id = ? AND note = 'From SMS'")->execute([$row['tx_id'], $uid]);
+    $conn->prepare("UPDATE sms_imports SET status = 'ignored', reason = 'undone' WHERE id = ?")->execute([$id]);
+    return true;
+}
+
+function quickadd_on_user_deleted(PDO $conn, int $userId): void
+{
+    try {
+        quickadd_ensure_schema($conn);
+        foreach (['sms_prefs', 'sms_imports', 'sms_rules'] as $t) {
+            $conn->prepare("DELETE FROM `$t` WHERE user_id = ?")->execute([$userId]);
+        }
+    } catch (Throwable $e) {
+        error_log('ExpenseFlow quickadd cleanup: ' . $e->getMessage());
+    }
 }

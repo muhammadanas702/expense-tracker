@@ -11,7 +11,7 @@ require_once __DIR__ . '/balance.php';
 if (is_file(__DIR__ . '/../activity/lib.php')) {
     require_once __DIR__ . '/../activity/lib.php'; // optional: feed + notifications
 }
-foreach (['comments', 'receipts', 'support', 'announce', 'oauth', 'budgets', 'goals', 'reminders', 'twofactor'] as $ef_opt) {
+foreach (['comments', 'receipts', 'support', 'announce', 'oauth', 'budgets', 'goals', 'reminders', 'twofactor', 'quickadd'] as $ef_opt) {
     if (is_file(__DIR__ . '/../' . $ef_opt . '/lib.php')) {
         require_once __DIR__ . '/../' . $ef_opt . '/lib.php'; // optional modules, each with its own tables
     }
@@ -302,6 +302,9 @@ function shared_on_user_deleted(PDO $conn, int $userId): void
     }
     if (function_exists('reminders_on_user_deleted')) {
         reminders_on_user_deleted($conn, $userId);
+    }
+    if (function_exists('quickadd_on_user_deleted')) {
+        quickadd_on_user_deleted($conn, $userId);
     }
     if (function_exists('twofa_on_user_deleted')) {
         twofa_on_user_deleted($conn, $userId);

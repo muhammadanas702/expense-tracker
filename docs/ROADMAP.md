@@ -354,3 +354,10 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Never locks people out: skipped when the server cannot send e-mail at all, or when the host owner sets the emergency switch `EXPENSEFLOW_2FA_OFF=1`. If an SMTP error stops a code from being sent the login shows a retry message. Google sign-in is not asked again (Google already verified the person).
 - Tests: `twofactor_http_test.py` (mail goes to a sink file via `EXPENSEFLOW_MAIL_SINK`). Local test servers must be started with `EXPENSEFLOW_2FA_OFF=1` when `config/mail.local.php` exists, otherwise staff test logins ask for a code.
 
+## Part 48c — SMS auto-add with a classifier
+- Quick add gets "Add payments automatically" (Android app, opt-in, starts from the moment it is turned on). Opening the app reads the new SMS and `quick-add-import.php` decides per message: ADD (clear bank/wallet payment or receipt), REVIEW (friend's phone number, direction unclear, both directions mentioned) or IGNORE (one-time codes, declined/failed, bill reminders, money requests, offers/adverts, balance alerts, anything without a money word, senders the person chose to ignore).
+- Category: the same title's last category from the person's own entries, else the keyword guess, else Other. Payment method from the text (Easypaisa, JazzCash, card, bank). Entry date = the SMS date.
+- Safety: hash claim (`sms_imports`, unique per user) means no duplicates; "Added from SMS" list with Undo (the message is then never added again); review list with Expense / Income / Ignore / "always ignore this sender" (`sms_rules`); ignored messages keep no text; review text is deleted once handled; 60 imports per hour per account.
+- Tables: `sms_prefs`, `sms_imports`, `sms_rules` (self-healing). Tests: `quickadd_classify_test.php`, `quickadd_import_http_test.py`, `quickadd_auto_ui_test.py`.
+- Honest limit: it reads when the app is opened (a background reader needs a native Android service, a future part).
+
