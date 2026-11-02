@@ -17,6 +17,8 @@
     .big svg { width: 32px; height: 32px; }
     h1 { margin: 0 0 8px; font-size: 1.5rem; letter-spacing: -.4px; }
     p { margin: 0 0 22px; color: #5F6C7D; line-height: 1.55; }
+    .small { font-size: .8rem; margin: 14px 0 0; }
+    button.sec { margin-top: 10px; background: #fff; color: #0B2545; border: 1px solid rgba(11,37,69,.25); }
     button { width: 100%; border: 0; border-radius: 14px; padding: 14px; font-size: 1rem; font-weight: 700; color: #fff; cursor: pointer;
       background: linear-gradient(135deg, #0f766e, #137A7F); }
   </style>
@@ -24,9 +26,46 @@
 <body>
   <main>
     <div class="big"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8.8a15 15 0 0 1 4-2.5M22 8.8a15 15 0 0 0-8.5-3.7M5 12.9a10 10 0 0 1 5-2.7M19 12.9a10 10 0 0 0-2-1.6M8.5 16.4a5 5 0 0 1 7 0"/><path d="M12 20h.01M2 2l20 20"/></svg></div>
-    <h1>You are offline</h1>
-    <p>Connect to the internet to securely load your ExpenseFlow account. Nothing is lost; your saved data is safe on the server.</p>
-    <button type="button" onclick="location.reload()">Try again</button>
+    <h1 id="oh">Cannot reach ExpenseFlow</h1>
+    <p id="om">Checking the connection&hellip;</p>
+    <button type="button" id="retry">Try again</button>
+    <button type="button" id="saved" class="sec" hidden>Open my saved dashboard</button>
+    <p class="small" id="auto">This page tries again by itself.</p>
   </main>
+  <script>
+  (function () {
+    var oh = document.getElementById('oh'), om = document.getElementById('om'), saved = document.getElementById('saved');
+    // Is it the phone's internet or ExpenseFlow's server? A tiny request to health.php (never saved) tells the two apart.
+    function check() {
+      if (navigator.onLine === false) {
+        oh.textContent = 'No internet connection';
+        om.textContent = 'This device is offline. Turn on Wi-Fi or mobile data. Nothing is lost; your data is safe on the server.';
+        return;
+      }
+      var c = new AbortController(), t = setTimeout(function () { c.abort(); }, 6000);
+      fetch('health.php?t=' + Date.now(), { cache: 'no-store', signal: c.signal }).then(function (r) {
+        clearTimeout(t);
+        if (r.ok) { location.reload(); return; }
+        throw new Error('bad');
+      }).catch(function () {
+        clearTimeout(t);
+        oh.textContent = 'ExpenseFlow is not answering';
+        om.textContent = 'Your internet looks fine, but the ExpenseFlow server is slow or down right now. This is not your fault and your data is safe. We keep trying.';
+      });
+    }
+    document.getElementById('retry').addEventListener('click', function () { location.reload(); });
+    window.addEventListener('online', check);
+    check();
+    setInterval(check, 10000);
+    if (window.caches) {
+      caches.open('expenseflow-pages-v1').then(function (c) { return c.match(new URL('dashboard.php', location.href).href); }).then(function (hit) {
+        if (hit) {
+          saved.hidden = false;
+          saved.addEventListener('click', function () { location.href = 'dashboard.php'; });
+        }
+      }).catch(function () {});
+    }
+  })();
+  </script>
 </body>
 </html>

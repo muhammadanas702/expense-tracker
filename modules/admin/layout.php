@@ -125,6 +125,8 @@ function admin_page_end(array $o = []): void
 <script>(function(){var a=document.querySelector('.sbs .nv.on');if(a&&a.scrollIntoView){var n=a.closest('.sbs');if(n&&a.offsetTop+a.offsetHeight>n.clientHeight){n.scrollTop=a.offsetTop-n.clientHeight/2}}})()</script>
 <script src="<?= e(ef_asset('assets/client-time.js')) ?>" defer></script>
 <script src="<?= e(ef_asset('assets/fx.js')) ?>" defer></script>
+<script src="<?= e(ef_asset('assets/net-status.js')) ?>" defer></script>
+<script src="<?= e(ef_url('assets/pwa-register.js')) ?>" data-app-base="<?= e(rtrim((string) ($GLOBALS['base_url'] ?? ''), '/')) ?>" defer></script>
 <?= $o['scripts'] ?? '' ?>
 </body>
 </html>

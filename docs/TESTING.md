@@ -59,6 +59,7 @@ Mail is not sent locally. `signup_verify_http_test.py` and `staff_mail_http_test
 | `speed_check_test.py` | Python | Admin Speed check page: only super admin sees it, shows markers working, cold checks listed, marker folder fallback |
 | `mobile_nav_ui_test.py` | Python (browser) | Phone bottom bar: 4 main items + More sheet (light and dark), fits the screen, More opens/closes, desktop sidebar unchanged, Dashboard search box |
 | `currency_cache_test.php` | PHP | Exchange-rate cache with a dead service: one short wait, the attempt is remembered, stale cache still used, a good fetch refreshes it (`mock_rates.php` is the fake service) |
+| `resilience_ui_test.py` | Python (Playwright) | health.php, saved pages incl. admin, server down / slow (4 s) / device offline messages, auto-recovery, logout wipes saved pages, dead DB host gives a friendly 503 (`slow_router.php` simulates a slow server) |
 | `module_failsafe_http_test.py` | Python | Break the Budgets/Goals tables: dashboard stays 200 without the card, their pages show a small notice (no 500) |
 | `errors_http_test.py` | Python | Friendly error pages and JSON errors |
 | `settings_links_test.php` | PHP | Apps & contact settings: https-only links, e-mail check, save and the public JSON copy |

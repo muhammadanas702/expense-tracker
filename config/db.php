@@ -35,17 +35,30 @@ if (
     exit('The database is not configured.');
 }
 
+// A database host that does not answer must never freeze the whole site: give up after a few seconds and say so kindly.
+$dbOptions = [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 4];
+if (defined('PDO::MYSQL_ATTR_READ_TIMEOUT')) {
+    $dbOptions[PDO::MYSQL_ATTR_READ_TIMEOUT] = 20; // a query that hangs is cut after 20 seconds
+}
 try {
     $conn = new PDO(
         'mysql:host=' . $dbConfig['host'] . ';dbname=' . $dbConfig['dbname'] . ';charset=utf8mb4',
         $dbConfig['username'],
         $dbConfig['password'],
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+        $dbOptions
     );
 } catch (PDOException $e) {
     error_log('ExpenseFlow database connection failed: ' . $e->getMessage());
-    http_response_code(500);
-    exit('Unable to connect to the database.');
+    if (defined('EF_HEALTH')) {
+        throw $e; // health.php?db=1 answers with its own JSON
+    }
+    if (!function_exists('ef_error_page')) {
+        require_once __DIR__ . '/../includes/errors.php';
+    }
+    if (!headers_sent()) {
+        header('Retry-After: 30');
+    }
+    ef_error_page(503, 'The database is busy', 'ExpenseFlow could not reach its database for a moment. Your data is safe. This page will try again by itself, or press the button to retry.');
 }
 
 // Adds tables/columns that newer code needs when an older database is in use.
