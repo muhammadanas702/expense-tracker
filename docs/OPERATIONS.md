@@ -47,6 +47,9 @@ Practical knowledge about the live site `https://expenseflow.rf.gd`, its hosting
 ## 3b. Uptime monitor
 Add a free monitor (UptimeRobot, 5 min) on `https://expenseflow.rf.gd/health.php`; use `health.php?db=1` to also check the database (503 = DB down). The app itself keeps showing saved pages during outages (Part 53).
 
+## 3c. Two-step sign-in
+Staff accounts must enter an e-mailed code after the password. If mail breaks and nobody can get in: on InfinityFree temporarily add the line `putenv('EXPENSEFLOW_2FA_OFF=1');` below `<?php` in `config/app.php` (File Manager), sign in, fix the mail settings, then remove the line. The code is also skipped by itself when the server has no mail settings at all.
+
 ## 4. Google Safe Browsing / Search Console
 
 **What happened (Oct 2026):** Search Console reported "Deceptive pages" for `/auth/login.php` and `/dashboard.php`. Login pages on free shared subdomains get flagged often, because the sign-in form looks like phishing to the heuristic when the domain has no reputation. The site is genuine.

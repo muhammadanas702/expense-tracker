@@ -40,8 +40,25 @@ function mail_settings(): ?array
 }
 
 /** Sends one HTML email through the configured SMTP server. Returns true when the server accepted it. */
+/** True when e-mail can be sent (SMTP settings exist, or the test sink is set). Does not write to the error log. */
+function ef_mail_configured(): bool
+{
+    if (getenv('EXPENSEFLOW_MAIL_SINK')) {
+        return true;
+    }
+    if (is_file(__DIR__ . '/mail.local.php')) {
+        return true;
+    }
+    return getenv('EXPENSEFLOW_SMTP_USERNAME') && getenv('EXPENSEFLOW_SMTP_PASSWORD');
+}
+
 function ef_send_mail(string $email, string $name, string $subject, string $html, string $alt, bool $logo = false): bool
 {
+    // Tests only: EXPENSEFLOW_MAIL_SINK=<file> writes each mail as one JSON line instead of sending it.
+    $sink = getenv('EXPENSEFLOW_MAIL_SINK');
+    if ($sink) {
+        return file_put_contents($sink, json_encode(['to' => $email, 'subject' => $subject, 'text' => $alt]) . "\n", FILE_APPEND | LOCK_EX) !== false;
+    }
     $settings = mail_settings();
     if ($settings === null) {
         return false;
@@ -147,6 +164,20 @@ function sendOtpMail(string $email, string $name, string $otp): bool
         $otp . ' is your ExpenseFlow password reset code',
         ef_mail_html('Reset your password', $name, 'Use this code to choose a new password for your ExpenseFlow account.', $otp, 'The code is valid for 10 minutes.'),
         "Hi {$name},\n\nYour ExpenseFlow password reset code is: {$otp}\nIt is valid for 10 minutes.\n\nNever share this code. If you did not ask for it, ignore this email.\n\nThis is an automatic message, please do not reply.",
+        true
+    );
+}
+
+/** Emails the 6-digit code for signing in or for turning two-step sign-in on or off. */
+function sendLoginCodeMail(string $email, string $name, string $code, string $purpose = 'login'): bool
+{
+    $what = ['login' => 'sign in', 'on' => 'turn on two-step sign-in', 'off' => 'turn off two-step sign-in'][$purpose] ?? 'sign in';
+    return ef_send_mail(
+        $email,
+        $name,
+        $code . ' is your ExpenseFlow security code',
+        ef_mail_html('Your security code', $name, 'Use this code to ' . $what . '.', $code, 'The code is valid for 10 minutes.'),
+        "Hi {$name},\n\nYour ExpenseFlow security code to {$what} is: {$code}\nIt is valid for 10 minutes.\n\nNever share this code. If you did not ask for it, change your password.\n\nThis is an automatic message, please do not reply.",
         true
     );
 }

@@ -26,7 +26,7 @@ import os, signal
 PORT = 8096
 APP = f'http://127.0.0.1:{PORT}'
 def start(slow=None):
-    env = dict(os.environ, PHP_CLI_SERVER_WORKERS='4')
+    env = dict(os.environ, PHP_CLI_SERVER_WORKERS='4', EXPENSEFLOW_2FA_OFF='1')
     if slow: env['EF_SLOW'] = str(slow)
     pr = subprocess.Popen(['php', '-S', f'127.0.0.1:{PORT}', '-t', '.', 'tests/slow_router.php'], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     for _ in range(30):
