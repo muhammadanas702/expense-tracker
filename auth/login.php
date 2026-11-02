@@ -7,6 +7,9 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/logging.php';
 require_once __DIR__ . '/../modules/security/lib.php';
 require_once __DIR__ . '/../modules/oauth/lib.php';
+if (is_file(__DIR__ . '/../modules/twofactor/lib.php')) {
+    require_once __DIR__ . '/../modules/twofactor/lib.php'; // optional: e-mailed code after the password
+}
 
 // Used to spend the same time on unknown emails as on real ones (stops user enumeration by timing).
 const LOGIN_DUMMY_HASH = '$2y$10$upDqZzLSCX4uV4KiKU.A2udyaMdt1.F45WteM6RgWu.XNBqNEFfiu';
@@ -66,6 +69,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ->execute([password_hash($password, PASSWORD_DEFAULT), $user["id"]]);
                 }
 
+                // Two-step sign-in: the password is right, but the person is not signed in until the e-mailed code is entered.
+                $needCode = function_exists('twofa_required') && twofa_required($conn, (int) $user['id']);
+                if ($needCode) {
+                    if (twofa_send_code($conn, (int) $user['id'], 'login')) {
+                        $_SESSION['twofa_pending'] = ['uid' => (int) $user['id'], 'name' => (string) $user['name'], 'at' => time()];
+                        header('Location: login-code.php');
+                        exit();
+                    }
+                    $error = "We could not send your sign-in code right now. Please wait a minute and try again.";
+                } else {
                 session_after_login((int) $user["id"], (string) $user["name"]);
 
                 logAction($conn, $user["id"], 'login', "User logged in");
@@ -79,6 +92,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     header("Location: " . $base_url . "/dashboard.php");
                 }
                 exit();
+                }
 
             } else {
                 // Same message for "no such email" and "wrong password".

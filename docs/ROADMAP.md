@@ -347,3 +347,10 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - `config/db.php`: 4 s connect timeout, 20 s read timeout; a dead DB shows a friendly 503 page that reloads itself after 15 s instead of hanging.
 - Honest limit: on a free host a real outage cannot be removed by code; saved pages + auto-recovery hide it. A custom domain behind Cloudflare (free) or a paid host is the real fix.
 
+## Part 49 — Two-step sign-in (e-mailed code)
+- New module `twofactor` (`modules/twofactor/`, table `user_2fa`). After the password the person enters a 6-digit code e-mailed to the account address (`auth/login-code.php`); the password step alone does not sign anybody in.
+- Opt-in in Settings > Security: turning it on or off first needs a code sent to the e-mail (so a wrong address cannot lock anyone out). Staff roles (support, admin, super) always need the code and cannot turn it off.
+- Codes: hashed in the session, 10 minutes, 5 tries, 30 s between re-sends, 10 mails/hour per account, 10 wrong codes per 15 min per IP+account.
+- Never locks people out: skipped when the server cannot send e-mail at all, or when the host owner sets the emergency switch `EXPENSEFLOW_2FA_OFF=1`. If an SMTP error stops a code from being sent the login shows a retry message. Google sign-in is not asked again (Google already verified the person).
+- Tests: `twofactor_http_test.py` (mail goes to a sink file via `EXPENSEFLOW_MAIL_SINK`). Local test servers must be started with `EXPENSEFLOW_2FA_OFF=1` when `config/mail.local.php` exists, otherwise staff test logins ask for a code.
+
