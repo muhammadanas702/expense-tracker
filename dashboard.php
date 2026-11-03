@@ -189,6 +189,30 @@ ef_page_start([
 <?php if ($needs_setup): ?>
 <div class="g card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><span><b>Welcome! Finish your quick setup</b><div class="k">Pick your main currency and savings goal (20 seconds).</div></span><a class="btn" style="margin-left:auto" href="<?= e($base_url) ?>/setup.php">Start</a></div>
 <?php endif; ?>
+<?php
+// Optional Getting started module: a short checklist for new accounts (nothing is stored; hidden when done or dismissed).
+$gsSteps = [];
+if (isset(ef_modules()['gettingstarted']) && is_file(__DIR__ . '/modules/gettingstarted/lib.php')) {
+    try {
+        require_once __DIR__ . '/modules/gettingstarted/lib.php';
+        $gsSteps = gettingstarted_steps($conn, $user_id, $base_url);
+    } catch (Throwable $e) {
+        error_log('ExpenseFlow dashboard getting started: ' . $e->getMessage());
+        $gsSteps = [];
+    }
+}
+if ($gsSteps): $gsDone = count(array_filter($gsSteps, fn($x) => $x['done'])); ?>
+<div class="g card" id="gs-card" hidden>
+    <div class="t">Getting started <span style="font-size:.78rem;color:var(--mu);font-weight:600"><?= (int) $gsDone ?> of <?= count($gsSteps) ?> done</span></div>
+    <?php foreach ($gsSteps as $x): ?>
+    <a class="row" href="<?= e($x['url']) ?>" style="display:flex;align-items:center;gap:10px;padding:8px 0;text-decoration:none;color:inherit;<?= $x['done'] ? 'opacity:.55' : '' ?>">
+        <span aria-hidden="true" style="width:20px;height:20px;border-radius:50%;border:2px solid <?= $x['done'] ? '#16a34a' : 'var(--gb)' ?>;display:inline-flex;align-items:center;justify-content:center;color:#16a34a;font-size:.8rem;flex:none"><?= $x['done'] ? '✓' : '' ?></span>
+        <span style="flex:1<?= $x['done'] ? ';text-decoration:line-through' : '' ?>"><?= e($x['label']) ?></span><?= $x['done'] ? '' : ef_icon('chev') ?></a>
+    <?php endforeach; ?>
+    <button class="btn sm o" type="button" id="gs-hide" style="margin-top:8px">Hide this</button>
+</div>
+<script>(function(){var c=document.getElementById('gs-card');if(!c)return;var h=false;try{h=localStorage.getItem('ef_gs_hide')==='1'}catch(e){}if(!h){c.hidden=false}document.getElementById('gs-hide').addEventListener('click',function(){c.hidden=true;try{localStorage.setItem('ef_gs_hide','1')}catch(e){}})})();</script>
+<?php endif; ?>
 <?php if (isset(ef_modules()['search'])): ?>
 <form method="GET" action="<?= e($base_url) ?>/search.php" class="g card" id="dash-search" role="search" style="display:flex;gap:8px;align-items:center;padding:10px 12px">
     <?= ef_icon('search') ?>
