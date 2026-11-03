@@ -60,13 +60,23 @@ ok(any(x.startswith('Foodpanda\t1500.00\tShopping') for x in rows), f'category l
 ok(any(x.startswith('Careem\t899.50\tTransport') for x in rows), 'keyword category guess for a new merchant')
 ok(sql(f"SELECT COUNT(*) FROM income WHERE user_id={uid} AND title='Ali Khan' AND amount=2000 AND note='From SMS'") == '1', 'income added')
 ok(sql(f"SELECT COUNT(*) FROM expenses WHERE user_id={uid} AND amount IN (1500.00) AND title LIKE '%Daraz%'") == '0', 'OTP / declined never became expenses')
-ok(sql(f"SELECT COUNT(*) FROM sms_imports WHERE user_id={uid} AND status='ignored' AND body IS NOT NULL") == '0', 'ignored messages keep no text')
+ok(sql(f"SELECT COUNT(*) FROM sms_imports WHERE user_id={uid} AND status='ignored' AND body IS NOT NULL") == '2', 'only the promo and the declined payment keep their text (for the Skipped list)')
 
 # the same messages again: nothing is added twice
 r = push(s, batch).json()
 ok(r['added'] == 0 and r['duplicate'] == 7, f'same batch twice: {r}')
 ok(sql(f"SELECT COUNT(*) FROM expenses WHERE user_id={uid} AND note='From SMS'") == '2', 'no duplicate expenses')
 
+# skipped list: promo + declined are kept 7 days with a reason, the OTP never is
+ok(sql(f"SELECT COUNT(*) FROM sms_imports WHERE user_id={uid} AND reason='code' AND body IS NOT NULL") == '0', 'a one-time-code message never keeps its text')
+page = s.get(B + '/quick-add.php').text
+ok('Skipped by the filter (2)' in page and 'failed or declined payment' in page and 'offer or advert' in page, 'skipped list shows the reasons')
+ok('482913' not in page, 'the code itself is never shown')
+sk = sql(f"SELECT id FROM sms_imports WHERE user_id={uid} AND reason='failed'")
+s.post(B + '/quick-add.php', data={'csrf_token': token(page), 'qa_action': 'review_add', 'id': sk, 'kind': 'expense'})
+ok(sql(f"SELECT COUNT(*) FROM expenses WHERE user_id={uid} AND amount=2000 AND note='From SMS'") == '1' and sql(f"SELECT status FROM sms_imports WHERE id={sk}") == 'added', 'a wrongly skipped message can be added with one tap')
+sql(f"DELETE FROM expenses WHERE user_id={uid} AND amount=2000")
+sql(f"UPDATE sms_imports SET status='ignored', reason='failed', body='x Rs 1 declined' WHERE id={sk}")
 # review list
 page = s.get(B + '/quick-add.php').text
 ok('Needs your check (1)' in page and 'I sent you Rs 500 for lunch' in page and 'From a phone number' in page, 'review list shows the friend text')

@@ -377,3 +377,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - The six overview cards (Total users, New this month, ...) were one huge card each on a phone. The compact layout is now the BASE style (2 columns = 3 rows, small numbers) instead of a `max-width:700px` override, and only screens wider than 700 px get the big cards in as many columns as fit. Changing `admin.css` also gives it a new `?v=` address, and the service worker cache name went from `static-v7` to `static-v8`, so a phone that kept an old copy of the style sheet loads the new one.
 - Test: `admin_mobile_ui_test.py` (320 to 1200 px).
 
+## Fix: payment SMS that were not detected
+- Banks that write from a short numeric code (for example `8258`) were treated like a friend's phone number and sent to "Needs your check"; a short code (3-6 digits, no +) now counts as a bank.
+- More money words count as a payment (successful/successfully, transaction, txn, trx, transfer, top-up). A message that has an amount but no clear direction waits in "Needs your check" instead of being lost.
+- New "Skipped by the filter" list on Quick add: messages that looked like offers, failed payments, reminders, money requests or balance alerts keep their text for 7 days with the reason, and can be added with one tap (Expense / Income). One-time-code messages never keep their text.
+- Tests: `quickadd_classify_test.php` (short code, "Transaction successful", direction unknown, phone number), `quickadd_import_http_test.py` (skipped list).
+
