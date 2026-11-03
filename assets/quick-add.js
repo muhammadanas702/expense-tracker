@@ -4,7 +4,12 @@
   'use strict';
   var box = document.getElementById('sms-device');
   var app = window.EFApp;
-  if (!box || !app || typeof app.smsSupported !== 'function') { return; } // website, Windows app or an older Android app: paste only
+  var none = document.getElementById('sms-nodevice'), noneText = document.getElementById('sms-nodevice-text');
+  if (!box || !app || typeof app.smsSupported !== 'function') { // website, Windows app or an older Android app: paste only, but say why
+    if (app && noneText) { noneText.textContent = 'This version of the app cannot read messages yet. Install the latest ExpenseFlow.apk from the Releases page (Settings > Apps) and open Quick add again. You can still paste a message below.'; }
+    return;
+  }
+  if (none) { none.hidden = true; }
   box.hidden = false;
   var btn = document.getElementById('sms-read'), info = document.getElementById('sms-info'), list = document.getElementById('sms-list');
   var KEY = 'ef_sms_used', used = [];

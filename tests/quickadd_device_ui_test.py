@@ -39,14 +39,17 @@ with sync_playwright() as pw:
     # website / older app: no bridge
     ctx, p = session(); p.goto(B + '/quick-add.php')
     ok(not p.locator('#sms-device').is_visible() and p.locator('#sms').is_visible(), 'no bridge: only the paste form')
+    ok(p.locator('#sms-nodevice').is_visible() and 'Android app' in p.inner_text('#sms-nodevice'), 'website: a note says SMS reading is in the Android app')
     ctx.close()
     ctx, p = session('window.EFApp = {version: function () { return "1.0.17"; }};'); p.goto(B + '/quick-add.php')
     ok(not p.locator('#sms-device').is_visible(), 'older app without SMS support: paste only')
+    ok('latest ExpenseFlow.apk' in p.inner_text('#sms-nodevice'), 'older app: told to install the latest APK')
     ctx.close()
 
     # allow
     ctx, p = session(BRIDGE % ('true', 'false')); p.goto(B + '/quick-add.php')
     ok(p.locator('#sms-device').is_visible(), 'bridge present: card shown')
+    ok(not p.locator('#sms-nodevice').is_visible(), 'bridge present: the note is hidden')
     p.click('#sms-read'); p.wait_for_selector('.sms-row')
     ok(p.evaluate('window.__asked') == 1, 'permission requested once')
     ok(p.locator('.sms-row').count() == 2 and '2 payment messages' in p.inner_text('#sms-info'), 'two money messages listed')
