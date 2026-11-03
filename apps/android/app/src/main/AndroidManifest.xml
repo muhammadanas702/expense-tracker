@@ -5,6 +5,9 @@
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <!-- Only asked when the person taps "Read my messages" in Quick add; the list of messages never leaves the phone until one is chosen. -->
     <uses-permission android:name="android.permission.READ_SMS" />
+    <!-- Background auto-add (Part 48d): wake up when a message arrives, and tell the person what was added. -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-feature android:name="android.hardware.telephony" android:required="false" />
 
     <application
@@ -31,6 +34,14 @@
                 <data android:scheme="expenseflow" android:host="auth" />
             </intent-filter>
         </activity>
+        <receiver
+            android:name=".SmsReceiver"
+            android:exported="true"
+            android:permission="android.permission.BROADCAST_SMS">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="pk.expenseflow.app.files"

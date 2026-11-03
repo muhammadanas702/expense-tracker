@@ -162,6 +162,16 @@ function quickadd_ensure_schema(PDO $conn): void
           UNIQUE KEY `uq_sms_hash` (`user_id`, `msg_hash`),
           KEY `idx_sms_status` (`user_id`, `status`, `id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        $conn->exec("CREATE TABLE IF NOT EXISTS `sms_devices` (
+          `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+          `user_id`    INT UNSIGNED NOT NULL,
+          `token_hash` CHAR(64)     NOT NULL,
+          `created_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `last_used`  DATETIME     NULL DEFAULT NULL,
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `uq_sms_token` (`token_hash`),
+          KEY `idx_sms_dev_user` (`user_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         $conn->exec("CREATE TABLE IF NOT EXISTS `sms_rules` (
           `user_id`    INT UNSIGNED NOT NULL,
           `sender_key` VARCHAR(40)  NOT NULL,
@@ -241,6 +251,7 @@ function quickadd_set_auto(PDO $conn, int $uid, bool $on): void
         $conn->prepare('INSERT INTO sms_prefs (user_id, auto, since) VALUES (?, 1, NOW()) ON DUPLICATE KEY UPDATE auto = 1, since = NOW()')->execute([$uid]);
     } else {
         $conn->prepare('INSERT INTO sms_prefs (user_id, auto, since) VALUES (?, 0, NULL) ON DUPLICATE KEY UPDATE auto = 0')->execute([$uid]);
+        $conn->prepare('DELETE FROM sms_devices WHERE user_id = ?')->execute([$uid]); // phones can no longer send in the background
     }
 }
 
@@ -347,7 +358,7 @@ function quickadd_insert_tx(PDO $conn, int $uid, string $kind, array $f): int
  */
 function quickadd_import(PDO $conn, int $uid, array $msgs): array
 {
-    $res = ['off' => false, 'added' => 0, 'review' => 0, 'ignored' => 0, 'duplicate' => 0, 'old' => 0];
+    $res = ['off' => false, 'added' => 0, 'review' => 0, 'ignored' => 0, 'duplicate' => 0, 'old' => 0, 'items' => []];
     $prefs = quickadd_prefs($conn, $uid);
     if (!$prefs['auto'] || !$prefs['since']) {
         $res['off'] = true;
@@ -399,6 +410,9 @@ function quickadd_import(PDO $conn, int $uid, array $msgs): array
                     'method' => quickadd_method($text), 'ts' => $ts,
                 ]);
                 $conn->prepare('UPDATE sms_imports SET tx_id = ?, category = ? WHERE id = ?')->execute([$txId, $cat, $rowId]);
+                if (count($res['items']) < 5) {
+                    $res['items'][] = ['kind' => $p['type'], 'title' => $title, 'amount' => $p['amount'], 'currency' => $p['currency']];
+                }
             } catch (Throwable $e) {
                 error_log('ExpenseFlow SMS import failed: ' . $e->getMessage());
                 $conn->prepare('DELETE FROM sms_imports WHERE id = ?')->execute([$rowId]); // not recorded: it can be tried again
@@ -476,10 +490,43 @@ function quickadd_on_user_deleted(PDO $conn, int $userId): void
 {
     try {
         quickadd_ensure_schema($conn);
-        foreach (['sms_prefs', 'sms_imports', 'sms_rules'] as $t) {
+        foreach (['sms_prefs', 'sms_imports', 'sms_rules', 'sms_devices'] as $t) {
             $conn->prepare("DELETE FROM `$t` WHERE user_id = ?")->execute([$userId]);
         }
     } catch (Throwable $e) {
         error_log('ExpenseFlow quickadd cleanup: ' . $e->getMessage());
     }
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Part 48d: phone sends new messages in the background                */
+/* ------------------------------------------------------------------ */
+const QUICKADD_MAX_DEVICES = 5;
+
+/** A secret for ONE phone. It can only send messages to the import endpoint. Only its hash is stored. Returns the token (shown once). */
+function quickadd_device_token_new(PDO $conn, int $uid): string
+{
+    quickadd_ensure_schema($conn);
+    $token = bin2hex(random_bytes(32));
+    $conn->prepare('INSERT INTO sms_devices (user_id, token_hash) VALUES (?, ?)')->execute([$uid, hash('sha256', $token)]);
+    $conn->prepare('DELETE FROM sms_devices WHERE user_id = ? AND id NOT IN (SELECT id FROM (SELECT id FROM sms_devices WHERE user_id = ? ORDER BY id DESC LIMIT ' . QUICKADD_MAX_DEVICES . ') x)')->execute([$uid, $uid]);
+    return $token;
+}
+
+/** The user id for a phone token, or 0. */
+function quickadd_device_user(PDO $conn, string $token): int
+{
+    if (!preg_match('/^[0-9a-f]{64}$/', $token)) {
+        return 0;
+    }
+    quickadd_ensure_schema($conn);
+    $st = $conn->prepare('SELECT id, user_id FROM sms_devices WHERE token_hash = ?');
+    $st->execute([hash('sha256', $token)]);
+    $r = $st->fetch(PDO::FETCH_ASSOC);
+    if (!$r) {
+        return 0;
+    }
+    $conn->prepare('UPDATE sms_devices SET last_used = NOW() WHERE id = ?')->execute([$r['id']]);
+    return (int) $r['user_id'];
 }

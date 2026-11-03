@@ -54,7 +54,7 @@ batch = [
     M(18, 'HBL', 'Rs 700 debited at SHOP', now - 5 * 86400 * 1000),
 ]
 r = push(s, batch).json()
-ok(r == {'off': False, 'added': 3, 'review': 1, 'ignored': 3, 'duplicate': 0, 'old': 1}, f'counts: {r}')
+ok({k: v for k, v in r.items() if k != 'items'} == {'off': False, 'added': 3, 'review': 1, 'ignored': 3, 'duplicate': 0, 'old': 1}, f'counts: {r}')
 rows = sql(f"SELECT title,amount,category FROM expenses WHERE user_id={uid} AND note='From SMS' ORDER BY id").split('\n')
 ok(any(x.startswith('Foodpanda\t1500.00\tShopping') for x in rows), f'category learned from the last Foodpanda entry: {rows}')
 ok(any(x.startswith('Careem\t899.50\tTransport') for x in rows), 'keyword category guess for a new merchant')

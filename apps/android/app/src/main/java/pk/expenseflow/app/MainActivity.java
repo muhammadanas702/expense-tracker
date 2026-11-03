@@ -160,7 +160,8 @@ public class MainActivity extends Activity {
         @JavascriptInterface public boolean smsGranted() { return checkSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED; }
         @JavascriptInterface public void smsAsk() {
             runOnUiThread(() -> {
-                if (Build.VERSION.SDK_INT >= 23) requestPermissions(new String[]{Manifest.permission.READ_SMS}, SMS_REQ);
+                if (Build.VERSION.SDK_INT >= 33) requestPermissions(new String[]{Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS, Manifest.permission.POST_NOTIFICATIONS}, SMS_REQ);
+                else if (Build.VERSION.SDK_INT >= 23) requestPermissions(new String[]{Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS}, SMS_REQ);
             });
         }
         /** Opens this app's page in Android settings (used when the person denied the permission "for good"). */
@@ -169,38 +170,20 @@ public class MainActivity extends Activity {
                 try { startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName()))); } catch (Exception ignored) { }
             });
         }
+        // ---- Background auto-add (Part 48d): the page hands the phone a secret; SmsReceiver uses it when a message arrives ----
+        @JavascriptInterface public boolean smsBackgroundReady() { return checkSelfPermission(Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED; }
+        @JavascriptInterface public boolean smsHasToken() { return SmsSync.hasToken(MainActivity.this); }
+        @JavascriptInterface public void smsSetToken(String token, String base) {
+            if (token != null && token.matches("[0-9a-f]{64}") && ("https://" + HOST).equals(base)) SmsSync.saveToken(MainActivity.this, token, base);
+        }
+        @JavascriptInterface public void smsClearToken() { SmsSync.clearToken(MainActivity.this); }
         /** JSON array [{id, from, date, text}] of the newest money messages of the last {days} days (max 40); "[]" without permission. */
         @JavascriptInterface public String smsRead(int days) { return readMoneySms(Math.max(1, Math.min(days, 90))); }
     }
 
     private static final int SMS_REQ = 2;
-    private static final java.util.regex.Pattern SMS_AMOUNT = java.util.regex.Pattern.compile("(?i)(rs\\.?|pkr|usd|aed|sar|gbp|eur|\\$)\\s*[0-9][0-9,]*(\\.[0-9]{1,2})?|[0-9][0-9,]*(\\.[0-9]{1,2})?\\s*(pkr|rs)\\b");
-    private static final java.util.regex.Pattern SMS_MONEY = java.util.regex.Pattern.compile("(?i)\\b(debited|credited|received|paid|payment|spent|purchase|purchased|sent|withdrawn|withdrawal|charged|deposited|transferred|salary|refund|deducted)\\b");
-    private static final java.util.regex.Pattern SMS_OTP = java.util.regex.Pattern.compile("(?i)\\b(otp|one[- ]time|verification code|login code|passcode|pin)\\b");
-
-    /** Reads the inbox on the phone and keeps only messages that look like a payment (amount + a money word, not a code). Nothing is sent anywhere. */
-    private String readMoneySms(int days) {
-        org.json.JSONArray out = new org.json.JSONArray();
-        if (checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) return out.toString();
-        long since = System.currentTimeMillis() - days * 24L * 3600 * 1000;
-        try (Cursor c = getContentResolver().query(Uri.parse("content://sms/inbox"), new String[]{"_id", "address", "body", "date"}, "date >= ?", new String[]{String.valueOf(since)}, "date DESC LIMIT 300")) {
-            if (c == null) return out.toString();
-            while (c.moveToNext() && out.length() < 40) {
-                String body = c.getString(2);
-                if (body == null || body.length() > 600) continue;
-                if (SMS_OTP.matcher(body).find() || !SMS_AMOUNT.matcher(body).find() || !SMS_MONEY.matcher(body).find()) continue;
-                JSONObject o = new JSONObject();
-                o.put("id", c.getLong(0));
-                o.put("from", c.getString(1) == null ? "" : c.getString(1));
-                o.put("date", c.getLong(3));
-                o.put("text", body);
-                out.put(o);
-            }
-        } catch (Exception e) {
-            return "[]";
-        }
-        return out.toString();
-    }
+    /** Reads the inbox on the phone and keeps only messages that look like a payment (see SmsSync). Nothing is sent anywhere. */
+    private String readMoneySms(int days) { return SmsSync.readMoneySms(this, days).toString(); }
 
     @Override
     public void onRequestPermissionsResult(int req, String[] perms, int[] results) {
