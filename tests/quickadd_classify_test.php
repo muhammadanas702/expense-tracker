@@ -24,6 +24,10 @@ $cases = [
     ['HBL', 'Rs 100 at the shop', 'ignore', 'no_money_word'],
     ['HBL', 'Rs 5,000 credited to your account. Your card was also charged Rs 50 as fee', 'review', 'mixed'],
     ['UBL', 'Purchase of PKR 899.50 at CAREEM on your card ending 4321', 'add', 'expense'],
+    ['8258', 'Rs. 1,200.00 debited from your account at DARAZ on 03-11-26', 'add', 'expense'],
+    ['Easypaisa', 'Transaction successful. Rs 500 sent to 03001234567. TID 123', 'add', 'expense'],
+    ['HBL', 'Transaction alert: Rs 750 at KFC', 'review', 'direction'],
+    ['03001234567', 'Rs 500 received from Ali', 'review', 'person'],
 ];
 foreach ($cases as [$from, $text, $verdict, $x]) {
     $c = quickadd_classify($text, $from);

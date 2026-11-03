@@ -124,6 +124,8 @@ function quickadd_form_url(string $base, array $p): string
 /* ------------------------------------------------------------------ */
 
 const QUICKADD_BATCH_MAX = 40;
+/** Skipped messages of these kinds keep their text for 7 days so the person can see why and add one anyway. One-time codes never do. */
+const QUICKADD_KEEP_REASONS = ['promo', 'failed', 'reminder', 'request', 'no_money_word'];
 
 function quickadd_ensure_schema(PDO $conn): void
 {
@@ -201,8 +203,9 @@ function quickadd_classify(string $text, string $sender = '', bool $senderIgnore
         return $r;
     }
     $l = mb_strtolower(preg_replace('/\s+/u', ' ', $text));
-    $strong = (bool) preg_match('/\b(debited|credited|deducted|withdrawn|charged|spent|purchased?|paid|received|deposited|sent|transferred|refund(?:ed)?|salary)\b/', $l);
-    $bank = $sender === '' || preg_match('/[a-z]/i', $sender); // names like "HBL" or "JazzCash", not +923...
+    $strong = (bool) preg_match('/\b(debited|credited|deducted|withdrawn|charged|spent|purchased?|paid|received|deposited|sent|transferred|transfer|refund(?:ed)?|salary|successful(?:ly)?|transaction|txn|trx|top-?up)\b/', $l);
+    // Banks write from a name ("HBL", "JazzCash") or a short code ("8258"); a friend writes from a long phone number (+92300..., 0300...).
+    $bank = $sender === '' || preg_match('/[a-z]/i', $sender) || preg_match('/^\d{3,6}$/', preg_replace('/\D/', '', $sender)) && !preg_match('/^\+/', $sender) && strlen(preg_replace('/\D/', '', $sender)) <= 6;
     if ($senderIgnored) {
         $r['reason'] = 'sender';
     } elseif (preg_match('/\b(otp|one[- ]?time|verification|login code|passcode|security code|pin)\b/', $l) && !preg_match('/\b(debited|credited)\b/', $l)) {
@@ -395,7 +398,7 @@ function quickadd_import(PDO $conn, int $uid, array $msgs): array
         $claim = $conn->prepare('INSERT IGNORE INTO sms_imports (user_id, msg_hash, status, reason, tx_kind, amount, currency, title, category, sender, body, sms_date) VALUES (?,?,?,?,?,?,?,?,?,?,?,FROM_UNIXTIME(?))');
         $claim->execute([
             $uid, $hash, $status, $c['reason'], $p['type'], $p['ok'] ? $p['amount'] : null, $p['currency'], $title,
-            $status === 'ignored' ? '' : $p['category'], $senderKey, $status === 'review' ? $text : null, $ts,
+            $status === 'ignored' ? '' : $p['category'], $senderKey, ($status === 'review' || ($status === 'ignored' && $p['ok'] && in_array($c['reason'], QUICKADD_KEEP_REASONS, true))) ? $text : null, $ts,
         ]);
         if ($claim->rowCount() === 0) {
             $res['duplicate']++;
@@ -422,6 +425,7 @@ function quickadd_import(PDO $conn, int $uid, array $msgs): array
         $res[$status === 'added' ? 'added' : ($status === 'review' ? 'review' : 'ignored')]++;
     }
     if (random_int(1, 20) === 1) {
+        $conn->prepare("UPDATE sms_imports SET body = NULL WHERE user_id = ? AND status = 'ignored' AND created_at < (NOW() - INTERVAL 7 DAY)")->execute([$uid]);
         $conn->prepare("DELETE FROM sms_imports WHERE user_id = ? AND created_at < (NOW() - INTERVAL 120 DAY)")->execute([$uid]);
     }
     return $res;
@@ -431,6 +435,15 @@ function quickadd_review_list(PDO $conn, int $uid): array
 {
     quickadd_ensure_schema($conn);
     $st = $conn->prepare("SELECT id, tx_kind, amount, currency, title, category, sender, body, reason, sms_date FROM sms_imports WHERE user_id = ? AND status = 'review' ORDER BY id DESC LIMIT 30");
+    $st->execute([$uid]);
+    return $st->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/** Messages the filter skipped in the last 7 days (not codes), with the reason, so a wrong skip can be fixed with one tap. */
+function quickadd_skipped_list(PDO $conn, int $uid): array
+{
+    quickadd_ensure_schema($conn);
+    $st = $conn->prepare("SELECT id, tx_kind, amount, currency, title, sender, body, reason, sms_date FROM sms_imports WHERE user_id = ? AND status = 'ignored' AND body IS NOT NULL AND created_at > (NOW() - INTERVAL 7 DAY) ORDER BY id DESC LIMIT 10");
     $st->execute([$uid]);
     return $st->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -446,7 +459,7 @@ function quickadd_recent_added(PDO $conn, int $uid): array
 /** A "needs your check" message: $action 'add' (as $kind expense|income) or 'ignore' (optionally always ignore that sender). */
 function quickadd_review_resolve(PDO $conn, int $uid, int $id, string $action, string $kind = '', bool $always = false): bool
 {
-    $st = $conn->prepare("SELECT * FROM sms_imports WHERE id = ? AND user_id = ? AND status = 'review'");
+    $st = $conn->prepare("SELECT * FROM sms_imports WHERE id = ? AND user_id = ? AND (status = 'review' OR (status = 'ignored' AND body IS NOT NULL))");
     $st->execute([$id, $uid]);
     $row = $st->fetch(PDO::FETCH_ASSOC);
     if (!$row) {

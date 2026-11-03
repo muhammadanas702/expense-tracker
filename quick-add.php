@@ -55,12 +55,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['qa_action'])) {
 }
 $review = [];
 $recent = [];
+$skipped = [];
 try {
     $review = quickadd_review_list($conn, $uid);
     $recent = quickadd_recent_added($conn, $uid);
+    $skipped = quickadd_skipped_list($conn, $uid);
 } catch (Throwable $e) {
     error_log('ExpenseFlow quick add lists: ' . $e->getMessage());
 }
+$skipWhy = ['promo' => 'Looks like an offer or advert', 'failed' => 'Looks like a failed or declined payment', 'reminder' => 'Looks like a bill reminder', 'request' => 'Looks like a money request', 'no_money_word' => 'No sign of money moving (maybe a balance alert)'];
 $reasons = ['direction' => 'Could not tell if money came in or went out', 'mixed' => 'Mentions both money in and out', 'person' => 'From a phone number, not a bank'];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!csrf_valid()) {
@@ -123,6 +126,22 @@ ef_page_start(['title' => 'Quick add', 'sub' => 'Paste a bank or wallet SMS', 'm
             <button class="btn sm o" type="submit" name="qa_action" value="review_ignore">Ignore</button>
             <label style="font-size:.8rem;color:var(--mu);align-self:center"><input type="checkbox" name="always" value="1"> always ignore this sender</label>
             <input type="hidden" name="kind" value="">
+          </form>
+        </div>
+        <?php endforeach; ?>
+      </div>
+      <?php endif; ?>
+      <?php if ($skipped): ?>
+      <div class="card" id="qa-skipped" style="margin-bottom:14px">
+        <h3 class="qh">Skipped by the filter (<?= count($skipped) ?>)</h3>
+        <p class="qp">These looked like payments but were not added. Wrong? Tap Expense or Income. Messages with codes are never kept here.</p>
+        <?php foreach ($skipped as $r): ?>
+        <div class="row" style="display:block;border-top:1px solid rgba(91,107,128,.15);padding:10px 0">
+          <div style="font-size:.88rem"><?= e((string) $r['body']) ?></div>
+          <small style="color:var(--mu)"><?= e($skipWhy[$r['reason']] ?? 'Skipped') ?> · <?= e($r['currency']) ?> <?= e(number_format((float) $r['amount'], 2)) ?></small>
+          <form method="POST" style="display:flex;gap:8px;margin-top:8px"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $r['id'] ?>"><input type="hidden" name="kind" value="">
+            <button class="btn sm" type="submit" name="qa_action" value="review_add" onclick="this.form.kind.value='expense'">Expense</button>
+            <button class="btn sm o" type="submit" name="qa_action" value="review_add" onclick="this.form.kind.value='income'">Income</button>
           </form>
         </div>
         <?php endforeach; ?>
