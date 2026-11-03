@@ -39,6 +39,9 @@ with sync_playwright() as pw:
     ok(p.locator('#sms-auto').is_visible(), 'auto-add card visible with the bridge')
     p.click('#auto-on'); p.wait_for_load_state(); p.wait_for_timeout(2500)
     ok(sql(f"SELECT auto FROM sms_prefs WHERE user_id={uid}") == '1', 'turned on')
+    ok('Check for new messages now' in p.inner_text('#sms-read'), 'auto-add on: the button says Check for new messages now')
+    p.click('#sms-read'); p.wait_for_timeout(600)
+    ok('Auto-add is on' in p.inner_text('#sms-info') and p.locator('.sms-row').count() == 0, 'auto-add on: no tap list (those messages are added by themselves)')
     # messages are only imported when newer than the moment it was turned on
     ok(sql(f"SELECT COUNT(*) FROM expenses WHERE user_id={uid}") in ('0', '1'), 'quick add page ran an import')
     ctx.close()
