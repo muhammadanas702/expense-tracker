@@ -60,7 +60,8 @@ with sync_playwright() as pw:
 
     # deny
     ctx, p = session(BRIDGE % ('false', 'false')); p.goto(B + '/quick-add.php')
-    p.click('#sms-read'); p.wait_for_function("document.getElementById('sms-info').textContent.indexOf('No problem') >= 0")
+    p.click('#sms-read'); p.wait_for_function("document.getElementById('sms-info').textContent.indexOf('Android did not allow') >= 0")
+    ok(p.evaluate("document.getElementById('sms-help').open"), 'denied: the help steps open by themselves')
     ok(p.locator('.sms-row').count() == 0, 'denied: nothing listed')
     p.click('#sms-info a'); ok(p.evaluate('window.__settings') == 1, 'denied: "Open settings" link works')
     p.fill('#sms', 'Rs 750 paid at KFC'); p.click('button[type=submit]:has-text("Read message")'); p.wait_for_selector('#qa-result')

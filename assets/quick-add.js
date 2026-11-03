@@ -43,7 +43,7 @@
     render(items);
   }
   window.efSmsPermission = function (ok) {
-    if (ok) { load(); if (window.efSmsAutoRun) { window.efSmsAutoRun(); } } else { say('No problem, the messages stay private. Paste a message below instead.', true); }
+    if (ok) { load(); if (window.efSmsAutoRun) { window.efSmsAutoRun(); } } else { say('Android did not allow reading messages. If no question appeared, Android is blocking it for apps installed outside Google Play: open the settings below, tap the three dots (top right) > "Allow restricted settings", then Permissions > SMS > Allow, and press the button again. Or paste a message below.', true); var h = document.getElementById('sms-help'); if (h) { h.open = true; } }
   };
   btn.addEventListener('click', function () {
     var granted = false;
