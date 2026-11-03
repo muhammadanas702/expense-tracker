@@ -66,6 +66,7 @@ Mail is not sent locally. `signup_verify_http_test.py` and `staff_mail_http_test
 | `quickadd_auto_ui_test.py` | Python (Playwright) | Fake Android bridge: opening a page imports new SMS, tap-to-see bar, nothing when off |
 | `quickadd_device_token_http_test.py` | Python | Background key: only a hash stored, import without cookies, duplicates with the page, bad keys refused, max 5 phones, turning auto-add off cancels keys |
 | `part50_http_test.py` | Python | Getting started card (new vs old account, steps tick) and the settle-up reminder (button only for the creditor, notification, 3-day limit, csrf) |
+| `admin_mobile_ui_test.py` | Python (Playwright) | Admin overview on 320-1200 px: 2 columns x 3 rows and small cards on phones, more columns on wide screens, no sideways scroll |
 | `module_failsafe_http_test.py` | Python | Break the Budgets/Goals tables: dashboard stays 200 without the card, their pages show a small notice (no 500) |
 | `errors_http_test.py` | Python | Friendly error pages and JSON errors |
 | `settings_links_test.php` | PHP | Apps & contact settings: https-only links, e-mail check, save and the public JSON copy |
