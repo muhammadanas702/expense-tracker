@@ -28,6 +28,12 @@ ef_page_start(['title' => $f['name'], 'sub' => 'Your balance with this friend', 
 </div>
 <?php endif; ?>
 
+<?php if ($f['owed']): ?>
+<div class="g card" style="margin:14px 0"><form method="post" action="<?= e(ef_url('friends/action.php')) ?>">
+  <?= csrf_field() ?><input type="hidden" name="do" value="nudge"><input type="hidden" name="id" value="<?= (int) $fid ?>">
+  <button class="btn sm" type="submit"><?= ef_icon('bell') ?> Remind <?= e($f['name']) ?> to settle up</button>
+  <p class="k" style="margin:8px 0 0">They get a notification. You can remind each friend once every 3 days.</p></form></div>
+<?php endif; ?>
 <?php if ($f['direct']): ?>
 <div class="g card" style="margin:14px 0"><form method="post" action="<?= e(ef_url('friends/action.php')) ?>" onsubmit="return confirm('Remove this friend?')">
   <?= csrf_field() ?><input type="hidden" name="do" value="remove"><input type="hidden" name="id" value="<?= (int) $f['link_id'] ?>">

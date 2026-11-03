@@ -367,3 +367,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - `assets/sms-auto.js` hands the phone its key after the permission is granted and clears it when auto-add is off.
 - Tests: `quickadd_device_token_http_test.py`. The Java code is compiled by the release workflow (not by the local tests).
 
+## Part 50 — Getting started checklist + settle-up reminder
+- New module `gettingstarted` (no tables): a "Getting started" card on the Dashboard for accounts younger than 45 days (add an expense, add income, and when the modules are on: set a budget, create a goal, add a bill reminder). Done steps come from the person's real data, "Hide this" is remembered in the browser, and the card disappears when every step is done.
+- "Remind to settle up": on a friend's page, someone who is owed money sees "Remind <name> to settle up". The friend gets a bell notification ("<name> reminded you to settle up", with the amount). New activity kind `settle_nudge` (group 0), at most once every 3 days per friend, only when the friend really owes money.
+- Not changed: the admin panel layout (no crowded page was found there); Urdu/RTL and backups stay as Parts 51-52.
+- Tests: `part50_http_test.py`.
+
