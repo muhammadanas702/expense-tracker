@@ -373,3 +373,7 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Not changed: the admin panel layout (no crowded page was found there); Urdu/RTL and backups stay as Parts 51-52.
 - Tests: `part50_http_test.py`.
 
+## Fix: admin overview numbers on phones
+- The six overview cards (Total users, New this month, ...) were one huge card each on a phone. The compact layout is now the BASE style (2 columns = 3 rows, small numbers) instead of a `max-width:700px` override, and only screens wider than 700 px get the big cards in as many columns as fit. Changing `admin.css` also gives it a new `?v=` address, and the service worker cache name went from `static-v7` to `static-v8`, so a phone that kept an old copy of the style sheet loads the new one.
+- Test: `admin_mobile_ui_test.py` (320 to 1200 px).
+
