@@ -24,10 +24,27 @@
     if (!force && !onQuick && now - parseInt(get(T, '0'), 10) < 300000) { return; }
     put(T, String(now));
     fetch(base + '/quick-add-import.php', { credentials: 'same-origin', cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (st) {
-      if (!st || !st.auto) { return; }
+      if (!st) { return; }
+      var bgApp = typeof app.smsHasToken === 'function'; // app 1.0.18+: can also work while the app is closed
+      if (!st.auto) { if (bgApp) { try { if (app.smsHasToken()) { app.smsClearToken(); } } catch (e) { } } return; }
       var granted = false;
       try { granted = app.smsGranted(); } catch (e) { }
       if (!granted) { if (onQuick) { try { app.smsAsk(); } catch (e) { } } return; }
+      var note = document.getElementById('sms-bg');
+      if (bgApp) {
+        var ready = false, has = false;
+        try { ready = app.smsBackgroundReady(); has = app.smsHasToken(); } catch (e) { }
+        if (!ready) {
+          if (note) { note.textContent = 'While the app is closed: needs the "Receive SMS" permission.'; }
+          if (onQuick) { try { app.smsAsk(); } catch (e) { } }
+        } else if (!has) {
+          // Hand this phone its own secret (only the import endpoint accepts it) so new messages are sent even when the app is closed.
+          fetch(base + '/quick-add-import.php', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ csrf: st.csrf, action: 'device_token' }) })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (t) { if (t && t.token) { try { app.smsSetToken(t.token, location.origin); } catch (e) { } if (note) { note.textContent = 'While the app is closed: on.'; } } })
+            .catch(function () { });
+        } else if (note) { note.textContent = 'While the app is closed: on.'; }
+      }
       var days = Math.max(1, Math.min(90, Math.ceil((Date.now() - (st.since || Date.now())) / 86400000) + 1));
       var items = [];
       try { items = JSON.parse(app.smsRead(days)); } catch (e) { items = []; }

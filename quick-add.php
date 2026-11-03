@@ -86,7 +86,8 @@ ef_page_start(['title' => 'Quick add', 'sub' => 'Paste a bank or wallet SMS', 'm
         <div id="sms-list"></div>
         <div id="sms-auto" style="border-top:1px solid rgba(91,107,128,.15);margin-top:12px;padding-top:12px" data-on="<?= $prefs['auto'] ? '1' : '0' ?>">
           <b><?= ef_icon('spark') ?> Add payments automatically</b>
-          <p style="color:var(--mu);font-size:.88rem;margin:6px 0 10px">When you open the app, new bank and wallet messages are read and added as income or expense by themselves. One-time codes, offers, failed payments, reminders and balance alerts are ignored; unclear ones wait below for your check. Only payment details are sent to your account, you can undo any entry, and old messages are never imported.</p>
+          <p style="color:var(--mu);font-size:.88rem;margin:6px 0 10px">When you open the app, new bank and wallet messages are read and added as income or expense by themselves. One-time codes, offers, failed payments, reminders and balance alerts are ignored; unclear ones wait below for your check. Only payment details are sent to your account, you can undo any entry, and old messages are never imported. With the latest Android app it also works while the app is closed (this phone gets its own key, which stops working when you turn auto-add off).</p>
+          <p id="sms-bg" style="color:var(--mu);font-size:.85rem;margin:-4px 0 10px" role="status"></p>
           <form method="POST"><?= csrf_field() ?>
             <?php if ($prefs['auto']): ?>
               <button class="btn o" type="submit" name="qa_action" value="auto_off" style="width:100%">Turn auto-add off</button>

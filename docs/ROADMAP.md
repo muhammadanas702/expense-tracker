@@ -361,3 +361,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Tables: `sms_prefs`, `sms_imports`, `sms_rules` (self-healing). Tests: `quickadd_classify_test.php`, `quickadd_import_http_test.py`, `quickadd_auto_ui_test.py`.
 - Honest limit: it reads when the app is opened (a background reader needs a native Android service, a future part).
 
+## Part 48d — SMS sync while the app is closed (Android)
+- New Android shell code (`SmsReceiver`, `SmsSync`, RECEIVE_SMS): new payment SMS are sent to the server the moment they arrive, even when ExpenseFlow is closed; a notification says what was added. Needs a NEW Android release (1.0.18+); the website and Windows app are unchanged.
+- Server: `sms_devices` (hashed per-phone keys, max 5, removed when auto-add is turned off), `quick-add-import.php` accepts `{token, action:'import'}` with no session or cookie; the key can only import. Same classifier, same duplicate protection as the open-app path.
+- `assets/sms-auto.js` hands the phone its key after the permission is granted and clears it when auto-add is off.
+- Tests: `quickadd_device_token_http_test.py`. The Java code is compiled by the release workflow (not by the local tests).
+
