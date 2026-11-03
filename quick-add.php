@@ -78,16 +78,29 @@ ef_page_start(['title' => 'Quick add', 'sub' => 'Paste a bank or wallet SMS', 'm
 ?>
     <div class="g" style="max-width:640px;margin:0 auto;padding:6px 0">
       <?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e($error) ?> <a href="<?= e($base_url) ?>/expense/add-expense.php">Add by hand</a></div><?php endif; ?>
+      <div class="card" id="sms-nodevice" style="margin-bottom:14px">
+        <h3 class="qh"><?= ef_icon('phone') ?> Read my messages</h3>
+        <p class="qp" id="sms-nodevice-text" style="margin:0">Automatic SMS reading works in the ExpenseFlow Android app. On the website you can paste a message below.</p>
+      </div>
       <div class="card" id="sms-device" hidden style="margin-bottom:14px">
-        <div class="t"><?= ef_icon('phone') ?> Read my messages</div>
-        <p style="color:var(--mu);font-size:.9rem;margin-top:0">Let ExpenseFlow look through the SMS on this phone for payments. Android asks you first. The messages stay on your phone: only the one you tap is read by the form below.</p>
+        <h3 class="qh"><?= ef_icon('phone') ?> Read my messages</h3>
+        <p class="qp" id="sms-intro">Let ExpenseFlow look through the SMS on this phone for payments. Android asks you first, and your messages are not sent anywhere unless you tap one or turn on auto-add below.</p>
         <button class="btn" type="button" id="sms-read" style="width:100%;padding:12px">Allow and read</button>
-        <p id="sms-info" style="color:var(--mu);font-size:.85rem;margin:8px 0 0" role="status"></p>
+        <p class="qinfo" id="sms-info" role="status"></p>
         <div id="sms-list"></div>
-        <div id="sms-auto" style="border-top:1px solid rgba(91,107,128,.15);margin-top:12px;padding-top:12px" data-on="<?= $prefs['auto'] ? '1' : '0' ?>">
-          <b><?= ef_icon('spark') ?> Add payments automatically</b>
-          <p style="color:var(--mu);font-size:.88rem;margin:6px 0 10px">When you open the app, new bank and wallet messages are read and added as income or expense by themselves. One-time codes, offers, failed payments, reminders and balance alerts are ignored; unclear ones wait below for your check. Only payment details are sent to your account, you can undo any entry, and old messages are never imported. With the latest Android app it also works while the app is closed (this phone gets its own key, which stops working when you turn auto-add off).</p>
-          <p id="sms-bg" style="color:var(--mu);font-size:.85rem;margin:-4px 0 10px" role="status"></p>
+        <details id="sms-help" class="qhelp">
+          <summary>Android keeps declining the permission?</summary>
+          <ol>
+            <li>Press <b>Open settings</b> in the message above (or: phone Settings &gt; Apps &gt; ExpenseFlow).</li>
+            <li>Tap the <b>three dots</b> at the top right and choose <b>Allow restricted settings</b>. Android 13 and newer block SMS for apps installed from outside Google Play until you do this.</li>
+            <li>Open <b>Permissions &gt; SMS</b> and choose <b>Allow</b>. Also allow <b>Notifications</b>.</li>
+            <li>Come back here and press <b>Allow and read</b> again.</li>
+          </ol>
+        </details>
+        <div id="sms-auto" class="qsec" data-on="<?= $prefs['auto'] ? '1' : '0' ?>">
+          <h3 class="qh"><?= ef_icon('spark') ?> Add payments automatically <?= $prefs['auto'] ? '<span class="pill" style="font-size:.7rem;font-weight:700;color:#16a34a">ON</span>' : '' ?></h3>
+          <p class="qp">New bank and wallet messages are added as income or expense by themselves. Codes, offers and failed payments are ignored, unclear ones wait below for your check, and you can undo any entry. Only messages that arrive after you turn it on are used.</p>
+          <p class="qp" id="sms-bg">Works even when the app is closed (latest Android app).</p>
           <form method="POST"><?= csrf_field() ?>
             <?php if ($prefs['auto']): ?>
               <button class="btn o" type="submit" name="qa_action" value="auto_off" style="width:100%">Turn auto-add off</button>

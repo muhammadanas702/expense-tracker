@@ -4,9 +4,16 @@
   'use strict';
   var box = document.getElementById('sms-device');
   var app = window.EFApp;
-  if (!box || !app || typeof app.smsSupported !== 'function') { return; } // website, Windows app or an older Android app: paste only
+  var none = document.getElementById('sms-nodevice'), noneText = document.getElementById('sms-nodevice-text');
+  if (!box || !app || typeof app.smsSupported !== 'function') { // website, Windows app or an older Android app: paste only, but say why
+    if (app && noneText) { noneText.textContent = 'This version of the app cannot read messages yet. Install the latest ExpenseFlow.apk from the Releases page (Settings > Apps) and open Quick add again. You can still paste a message below.'; }
+    return;
+  }
+  if (none) { none.hidden = true; }
   box.hidden = false;
   var btn = document.getElementById('sms-read'), info = document.getElementById('sms-info'), list = document.getElementById('sms-list');
+  var autoBox = document.getElementById('sms-auto'), autoOn = !!autoBox && autoBox.getAttribute('data-on') === '1';
+  if (autoOn) { btn.textContent = 'Check for new messages now'; }
   var KEY = 'ef_sms_used', used = [];
   try { used = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { used = []; }
   function remember(id) { used.push(id); used = used.slice(-300); try { localStorage.setItem(KEY, JSON.stringify(used)); } catch (e) { } }
@@ -24,9 +31,9 @@
     if (!fresh.length) { say(items.length ? 'All recent payment messages are already added.' : 'No payment messages found in the last 30 days. You can still paste one below.'); return; }
     say(fresh.length + ' payment message' + (fresh.length === 1 ? '' : 's') + ' found. Tap one to add it.');
     fresh.forEach(function (m) {
-      var row = document.createElement('button'); row.type = 'button'; row.className = 'row sms-row'; row.style.cssText = 'width:100%;text-align:left;background:none;border:0;border-top:1px solid rgba(91,107,128,.15);padding:10px 0;cursor:pointer;color:inherit;font:inherit';
+      var row = document.createElement('button'); row.type = 'button'; row.className = 'sms-row';
       var s = document.createElement('span'); s.textContent = m.text.length > 140 ? m.text.slice(0, 140) + '…' : m.text;
-      var small = document.createElement('small'); small.style.cssText = 'display:block;color:var(--mu)';
+      var small = document.createElement('small');
       small.textContent = (m.from || 'SMS') + ' · ' + new Date(m.date).toLocaleDateString();
       s.appendChild(small); row.appendChild(s);
       row.addEventListener('click', function () {
@@ -38,12 +45,17 @@
     });
   }
   function load() {
+    if (autoOn) { // the server adds new messages by itself: a tap list would offer messages that are already in
+      list.textContent = ''; say('Auto-add is on. New payment messages are added for you; anything unclear is listed under "Needs your check".');
+      if (window.efSmsAutoRun) { window.efSmsAutoRun(); }
+      return;
+    }
     var items = [];
     try { items = JSON.parse(app.smsRead(30)); } catch (e) { items = []; }
     render(items);
   }
   window.efSmsPermission = function (ok) {
-    if (ok) { load(); if (window.efSmsAutoRun) { window.efSmsAutoRun(); } } else { say('No problem, the messages stay private. Paste a message below instead.', true); }
+    if (ok) { load(); if (window.efSmsAutoRun) { window.efSmsAutoRun(); } } else { say('Android did not allow reading messages. If no question appeared, Android is blocking it for apps installed outside Google Play: open the settings below, tap the three dots (top right) > "Allow restricted settings", then Permissions > SMS > Allow, and press the button again. Or paste a message below.', true); var h = document.getElementById('sms-help'); if (h) { h.open = true; } }
   };
   btn.addEventListener('click', function () {
     var granted = false;
