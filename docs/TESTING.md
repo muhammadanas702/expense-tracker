@@ -60,6 +60,7 @@ Mail is not sent locally. `signup_verify_http_test.py` and `staff_mail_http_test
 | `mobile_nav_ui_test.py` | Python (browser) | Phone bottom bar: 4 main items + More sheet (light and dark), fits the screen, More opens/closes, desktop sidebar unchanged, Dashboard search box |
 | `currency_cache_test.php` | PHP | Exchange-rate cache with a dead service: one short wait, the attempt is remembered, stale cache still used, a good fetch refreshes it (`mock_rates.php` is the fake service) |
 | `schema_once_test.php` | PHP | A second schema check in the same request does not commit an open transaction |
+| `offline_prewarm_ui_test.py` | Python (Playwright, service worker on) | Add pages saved while online, open offline, entry queued and sent after reconnect, one offline bar, net balance never stuck at 0 |
 | `quickadd_check_ui_test.py` | Python (Playwright) | "Check my SMS setup" with a fake Android bridge: auto off / no permission, inbox counts and senders, old-messages explanation and the include-last-days action (limited to 30), empty inbox, old app; status fields |
 | `share_http_test.py` | Python | `?sms=` fills and escapes the Quick add box, saves nothing, is cut at 600 characters; Android manifest and MainActivity declare the share target |
 | `offline_queue_test.php` | PHP | Client id and phone-time validation (bad ids, old/future times refused) |

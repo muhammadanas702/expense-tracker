@@ -339,6 +339,14 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 57 — Fixes from phone testing (offline add, offline bars, net balance, SMS dates)
+
+- Offline add did not work because the Add Expense / Add Income pages had never been opened online, so no saved copy existed. Now the page asks the service worker (message `prewarm`, at most every 6 hours, only while online) to save the Add pages and the dashboard, so they open offline and entries are queued (Part 54). Service worker cache v9.
+- Two offline bars overlapped and one said "Changes cannot be saved" (no longer true). The old bar in `fx.js` was removed; `net-status.js` shows one bar that now says new income and expenses are kept on the phone. The bars no longer block taps (`pointer-events:none`), so the Save button below them can be pressed.
+- Net balance showed 0.00 while income and expense had values: the count-up animation could stay on its first frame when the page was resumed or opened in the background. The final number is now always restored (timer, `visibilitychange`, `pageshow`).
+- SMS entries are saved with the date of the message, so messages from an earlier month are not in "This month". Quick add now says so and shows each entry's date.
+- Test: `tests/offline_prewarm_ui_test.py` (service worker ON).
+
 ## Part 56 — "Check my SMS setup" (why SMS are not read / added)
 
 - Quick add (Android app) has a new "Check my SMS setup" button. It lists each step as OK / needs attention with what to do: app version, auto-add on/off, read and receive permissions (with the "Allow restricted settings" steps), notifications, whether this phone is registered for background sending, the last background send, the results of the last 7 days (added / need check / ignored), and what the phone's inbox shows (how many messages, how many look like payments, from which senders).

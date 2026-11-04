@@ -167,9 +167,10 @@ ef_page_start(['title' => 'Quick add', 'sub' => 'Paste a bank or wallet SMS', 'm
       <?php if ($recent): ?>
       <div class="card" id="qa-recent" style="margin-bottom:14px">
         <div class="t">Added from SMS</div>
+        <small style="display:block;color:var(--mu);margin:2px 0 6px">Each entry is saved with the date of its message. Messages from an earlier month show on the dashboard under "Last month" or "Last 3 months", not "This month".</small>
         <?php foreach ($recent as $r): ?>
         <div class="row" style="display:flex;justify-content:space-between;gap:8px;align-items:center;border-top:1px solid rgba(91,107,128,.15);padding:8px 0">
-          <span><?= e((string) $r['title']) ?><small style="display:block;color:var(--mu)"><?= $r['tx_kind'] === 'income' ? 'Income' : 'Expense' ?><?= $r['category'] !== '' ? ' · ' . e((string) $r['category']) : '' ?> · <?= e($r['currency']) ?> <?= e(number_format((float) $r['amount'], 2)) ?></small></span>
+          <span><?= e((string) $r['title']) ?><small style="display:block;color:var(--mu)"><?= $r['tx_kind'] === 'income' ? 'Income' : 'Expense' ?><?= $r['category'] !== '' ? ' · ' . e((string) $r['category']) : '' ?> · <?= e($r['currency']) ?> <?= e(number_format((float) $r['amount'], 2)) ?><?= !empty($r['sms_date']) ? ' · ' . e(date('d M', strtotime((string) $r['sms_date']))) : '' ?></small></span>
           <form method="POST"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $r['id'] ?>"><button class="btn sm o" type="submit" name="qa_action" value="undo">Undo</button></form>
         </div>
         <?php endforeach; ?>
