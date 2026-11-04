@@ -24,6 +24,21 @@ if ($do === 'create') {
     header('Cache-Control: no-store');
     readfile($path);
     exit();
+} elseif ($do === 'download_enc' && ($n = backup_valid_name($_POST['name'] ?? ''))) {
+    $blob = backup_encrypt((string) file_get_contents(backup_dir() . '/' . $n), (string) ($_POST['pass'] ?? ''));
+    if ($blob === null) {
+        $_SESSION['error'] = 'Type a passphrase of at least 8 characters to encrypt the file.';
+        header('Location: backups.php');
+        exit();
+    }
+    admin_audit($conn, $admin['id'], 'backup_download', 'Downloaded an encrypted database backup');
+    header('Content-Type: application/octet-stream');
+    header('Content-Disposition: attachment; filename="' . $n . '.enc"');
+    header('Content-Length: ' . strlen($blob));
+    header('X-Content-Type-Options: nosniff');
+    header('Cache-Control: no-store');
+    echo $blob;
+    exit();
 } elseif ($do === 'delete' && ($n = backup_valid_name($_POST['name'] ?? ''))) {
     backup_delete($n);
     admin_audit($conn, $admin['id'], 'backup_delete', 'Deleted a database backup');

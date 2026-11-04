@@ -1,6 +1,13 @@
 <?php
 require_once __DIR__ . '/auth.php';
 
+if (admin_can($conn, $admin['role'], 'backup')) {
+    require_once __DIR__ . '/../modules/backup/lib.php';
+    if (backup_auto_maybe($conn)) {
+        admin_audit($conn, $admin['id'], 'backup_create', 'Automatic daily database backup');
+    }
+}
+
 $one = fn(string $sql, array $p = []) => (function () use ($conn, $sql, $p) { try { $s = $conn->prepare($sql); $s->execute($p); return (int) $s->fetchColumn(); } catch (Throwable $e) { return 0; } })();
 $total = $one('SELECT COUNT(*) FROM users');
 $newMonth = $one("SELECT COUNT(*) FROM users WHERE created_at >= ?", [date('Y-m-01 00:00:00')]);

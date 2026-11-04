@@ -126,3 +126,91 @@ function backup_size_label(int $b): string
 {
     return $b >= 1048576 ? number_format($b / 1048576, 1) . ' MB' : max(1, (int) round($b / 1024)) . ' KB';
 }
+
+const BACKUP_STALE_DAYS = 7;
+const BACKUP_MAGIC = 'EFBK1';
+const BACKUP_KDF_ROUNDS = 200000;
+
+/** Days since the newest backup, or null when there is none. */
+function backup_age_days(): ?int
+{
+    $t = backup_list()[0]['time'] ?? 0;
+    return $t ? (int) floor((time() - $t) / 86400) : null;
+}
+
+/** True when there is no backup or the newest one is older than BACKUP_STALE_DAYS. */
+function backup_is_stale(): bool
+{
+    $a = backup_age_days();
+    return $a === null || $a >= BACKUP_STALE_DAYS;
+}
+
+/**
+ * Encrypts a string for safe storage OFF the server (e-mail, Drive, USB).
+ * Format: "EFBK1" + salt(16) + iv(12) + tag(16) + AES-256-GCM ciphertext; key = PBKDF2-SHA256(passphrase, salt).
+ * Returns null when the passphrase is too short or OpenSSL is missing.
+ */
+function backup_encrypt(string $plain, string $pass): ?string
+{
+    if (strlen($pass) < 8 || !function_exists('openssl_encrypt')) {
+        return null;
+    }
+    $salt = random_bytes(16);
+    $iv = random_bytes(12);
+    $key = hash_pbkdf2('sha256', $pass, $salt, BACKUP_KDF_ROUNDS, 32, true);
+    $tag = '';
+    $ct = openssl_encrypt($plain, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag, '', 16);
+    return $ct === false ? null : BACKUP_MAGIC . $salt . $iv . $tag . $ct;
+}
+
+/** Reverse of backup_encrypt(); null on a wrong passphrase or a damaged file. */
+function backup_decrypt(string $blob, string $pass): ?string
+{
+    $m = strlen(BACKUP_MAGIC);
+    if (strlen($blob) < $m + 44 || substr($blob, 0, $m) !== BACKUP_MAGIC) {
+        return null;
+    }
+    $salt = substr($blob, $m, 16);
+    $iv = substr($blob, $m + 16, 12);
+    $tag = substr($blob, $m + 28, 16);
+    $key = hash_pbkdf2('sha256', $pass, $salt, BACKUP_KDF_ROUNDS, 32, true);
+    $pt = openssl_decrypt(substr($blob, $m + 44), 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag);
+    return $pt === false ? null : $pt;
+}
+
+const BACKUP_AUTO_HOURS = 24;
+
+/** True when the newest backup is older than BACKUP_AUTO_HOURS (or none exists). */
+function backup_auto_due(?int $now = null): bool
+{
+    $t = backup_list()[0]['time'] ?? 0;
+    return ($now ?? time()) - $t >= BACKUP_AUTO_HOURS * 3600;
+}
+
+/**
+ * Free hosts have no cron, so a backup is made when a staff member with the backup permission opens the admin overview
+ * and the newest one is older than a day. Never throws; returns the new file name or null.
+ */
+function backup_auto_maybe(PDO $conn): ?string
+{
+    if (getenv('EXPENSEFLOW_AUTO_BACKUP_OFF') === '1' || !backup_auto_due() || !backup_prepare_dir()) {
+        return null;
+    }
+    $lock = @fopen(backup_dir() . '/.auto.lock', 'c');
+    if (!$lock || !flock($lock, LOCK_EX | LOCK_NB)) {
+        return null; // another request is already doing it
+    }
+    try {
+        if (!backup_auto_due()) {
+            return null;
+        }
+        [$name] = backup_create($conn);
+        return $name;
+    } catch (Throwable $e) {
+        error_log('ExpenseFlow auto backup: ' . $e->getMessage());
+        return null;
+    } finally {
+        flock($lock, LOCK_UN);
+        fclose($lock);
+    }
+}
