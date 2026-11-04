@@ -41,6 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['qa_action'])) {
             if ($act === 'auto_on' || $act === 'auto_off') {
                 quickadd_set_auto($conn, $uid, $act === 'auto_on');
                 $_SESSION['success'] = $act === 'auto_on' ? 'Auto-add is on. New payment messages are added from now on.' : 'Auto-add is off.';
+            } elseif ($act === 'since_days') {
+                quickadd_set_since_days($conn, $uid, (int) ($_POST['days'] ?? 3));
+                $_SESSION['success'] = 'Auto-add is on and will also look at messages of the last ' . max(1, min(30, (int) ($_POST['days'] ?? 3))) . ' days. Messages already handled are not added twice.';
             } elseif ($act === 'review_add') {
                 $_SESSION['success'] = quickadd_review_resolve($conn, $uid, $rid, 'add', (string) ($_POST['kind'] ?? '')) ? 'Added.' : 'That message was already handled.';
             } elseif ($act === 'review_ignore') {
@@ -113,6 +116,17 @@ ef_page_start(['title' => 'Quick add', 'sub' => 'Paste a bank or wallet SMS', 'm
             <?php else: ?>
               <button class="btn" type="submit" name="qa_action" value="auto_on" id="auto-on" style="width:100%">Turn auto-add on</button>
             <?php endif; ?>
+          </form>
+        </div>
+        <div id="sms-check" class="qsec">
+          <h3 class="qh"><?= ef_icon('phone') ?> Not working? Check my SMS setup</h3>
+          <p class="qp">Looks at this phone and the server and tells you exactly which step is missing.</p>
+          <button class="btn o" type="button" id="sms-check-btn" style="width:100%">Check my SMS setup</button>
+          <ul id="sms-check-list" class="qchk" aria-live="polite"></ul>
+          <form method="POST" id="sms-since" hidden><?= csrf_field() ?><input type="hidden" name="qa_action" value="since_days">
+            <p class="qp" style="margin:8px 0">Your recent payment messages are older than the moment auto-add was turned on. Also add the last</p>
+            <select class="inp" name="days" style="max-width:160px"><option value="1">1 day</option><option value="3" selected>3 days</option><option value="7">7 days</option><option value="14">14 days</option><option value="30">30 days</option></select>
+            <button class="btn" type="submit" style="margin-top:8px;width:100%">Turn on and include them</button>
           </form>
         </div>
       </div>
@@ -188,4 +202,4 @@ ef_page_start(['title' => 'Quick add', 'sub' => 'Paste a bank or wallet SMS', 'm
       </div>
       <?php endif; ?>
     </div>
-<?php ef_page_end(['active' => 'qadd', 'scripts' => '<script src="' . e(ef_asset('assets/quick-add.js')) . '" defer></script>']);
+<?php ef_page_end(['active' => 'qadd', 'scripts' => '<script src="' . e(ef_asset('assets/quick-add.js')) . '" defer></script><script src="' . e(ef_asset('assets/sms-check.js')) . '" defer></script>']);
