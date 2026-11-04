@@ -154,24 +154,34 @@ function personal_tx_page(string $kind, ?int $editId = null): void
             }
             // The PKR value is stored with the entry, so totals do not shift when rates change.
             $amount_pkr = round(CurrencyConverter::convert($amount, $currency, 'PKR'), 2);
-            $when = date('Y-m-d H:i:s');
-            $year_month = date('Y-m');
+            $cid = personal_client_id($_POST['cid'] ?? null);
+            $ts = personal_client_time($_POST['ts'] ?? null);
+            $when = date('Y-m-d H:i:s', $ts ?? time());
+            $year_month = date('Y-m', $ts ?? time());
+            $duplicate = false;
             try {
                 $conn->beginTransaction();
+                if ($cid !== null) { // the same offline entry sent twice is saved once
+                    $dup = $conn->prepare('INSERT IGNORE INTO `offline_imports` (`user_id`, `cid`) VALUES (?, ?)');
+                    $dup->execute([$user_id, $cid]);
+                    $duplicate = $dup->rowCount() === 0;
+                }
                 $stmt = $conn->prepare('SELECT `base_currency` FROM `user_monthly_currency` WHERE `user_id` = ? AND `year_month` = ?');
                 $stmt->execute([$user_id, $year_month]);
                 if (!$stmt->fetchColumn()) {
                     $conn->prepare('INSERT INTO `user_monthly_currency` (`user_id`, `year_month`, `base_currency`) VALUES (?, ?, ?)')
                         ->execute([$user_id, $year_month, $currency]);
                 }
-                if ($isExpense) {
+                if ($duplicate) {
+                    // already saved earlier: nothing more to insert
+                } elseif ($isExpense) {
                     $conn->prepare('INSERT INTO `expenses` (`user_id`,`title`,`amount`,`currency`,`amount_pkr`,`category`,`transaction_date`,`payment_method`,`note`,`tags`) VALUES (?,?,?,?,?,?,?,?,?,?)')
                         ->execute([$user_id, $title, $amount, $currency, $amount_pkr, $category, $when, $method, $note, $tags]);
                 } else {
                     $conn->prepare('INSERT INTO `income` (`user_id`,`title`,`amount`,`currency`,`amount_pkr`,`transaction_date`,`payment_method`,`note`,`tags`) VALUES (?,?,?,?,?,?,?,?,?)')
                         ->execute([$user_id, $title, $amount, $currency, $amount_pkr, $when, $method, $note, $tags]);
                 }
-                if ($old['repeat'] === '1') {
+                if (!$duplicate && $old['repeat'] === '1') {
                     personal_add_recurring($conn, $user_id, $kind, [
                         'title' => $title, 'amount' => $amount, 'currency' => $currency,
                         'category' => $isExpense ? $category : null, 'payment_method' => $method, 'note' => $note,
@@ -184,6 +194,11 @@ function personal_tx_page(string $kind, ?int $editId = null): void
                 }
                 error_log("ExpenseFlow add $kind failed: " . $e->getMessage());
                 $error = 'Something went wrong. Please try again.';
+            }
+            if ($error === '' && $duplicate) {
+                $_SESSION['success'] = 'This entry was already added.';
+                header('Location: ' . $base_url . '/dashboard.php');
+                exit();
             }
             if ($error === '') {
                 if ($isExpense && function_exists('budgets_check_alerts')) {
@@ -208,7 +223,7 @@ function personal_tx_page(string $kind, ?int $editId = null): void
     ?>
     <div class="g" style="max-width:640px;margin:0 auto;padding:22px">
       <?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e($error) ?></div><?php endif; ?>
-      <form method="POST" autocomplete="off" style="--t:<?= e($accent) ?>">
+      <form method="POST" autocomplete="off" style="--t:<?= e($accent) ?>"<?= $isEdit ? '' : ' data-offline-queue="' . e($kind) . '"' ?>>
         <?= csrf_field() ?>
         <div class="fl"><label for="amount"><?= e(t('Amount')) ?></label>
           <input class="inp amt" id="amount" type="number" inputmode="decimal" step="0.01" min="0.01" max="99999999.99" name="amount" value="<?= e($old['amount']) ?>" placeholder="0.00" required></div>

@@ -339,6 +339,15 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 54 — Offline expense queue
+
+- Add Expense / Add Income keep working without internet: if the device is offline when you press Save, the entry is stored on the phone (localStorage `ef_offq`, up to 50) and a note says so. It is sent automatically when the connection returns (on the `online` event and when any page loads).
+- Every save carries a one-time id (`cid`) and the phone time (`ts`). The server stores the id in `offline_imports` (30 tables now), so a retry or double send never creates a second entry; `ts` is used as the entry date if it is within the last 14 days and not in the future.
+- Entries the server refuses (invalid) are dropped with a message; when signed out the entries are kept until you sign in again.
+- Limits: the Add page must have been opened once while online (saved page). Only new entries are queued, not edits; the "repeat monthly" box is kept. A connection that dies in the middle of a normal save still shows the browser's own error.
+- Also fixed here: a schema check (`ef_schema_ok`) used to run its CREATE TABLE twice in one request, and the second run committed an open transaction, so deleting an account right after a deploy could fail with "no active transaction". It now runs once per request, and `shared_ensure_all_schemas()` covers every module.
+- Files: `assets/offline-queue.js`, `modules/personal/lib.php` (`personal_client_id`, `personal_client_time`), `modules/personal/tx-form.php`.
+
 ## Part 52b — Automatic daily backup
 
 - Free hosting has no cron, so when a staff member with the "backup" permission opens the admin overview and the newest backup is older than 24 hours (or none exists), one is created automatically (`backup_auto_maybe()` in `modules/backup/lib.php`). A lock file stops two requests doing it at once; failures are logged and never break the page. Ordinary users never trigger it.

@@ -61,7 +61,7 @@ function ef_schema_ok(string $name, string $file): bool
     }
     static $queued = [];
     if (isset($queued[$stamp])) {
-        return false;
+        return true; // already checked earlier in this request; running the DDL again would also commit an open transaction
     }
     $queued[$stamp] = true;
     register_shutdown_function(static function () use ($dirs, $stamp, $name) {
