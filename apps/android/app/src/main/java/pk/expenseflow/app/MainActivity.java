@@ -66,11 +66,25 @@ public class MainActivity extends Activity {
         } catch (Exception e) { return null; }
     }
 
+    /** Text shared to the app from another app (Share > ExpenseFlow): opens Quick add with the text filled in. */
+    private String shareUrl(Intent i) {
+        try {
+            if (i == null || !Intent.ACTION_SEND.equals(i.getAction()) || !"text/plain".equals(i.getType())) return null;
+            CharSequence t = i.getCharSequenceExtra(Intent.EXTRA_TEXT);
+            if (t == null) return null;
+            String s = t.toString().trim();
+            if (s.isEmpty()) return null;
+            if (s.length() > 600) s = s.substring(0, 600);
+            return "https://" + HOST + "/quick-add.php?sms=" + java.net.URLEncoder.encode(s, "UTF-8");
+        } catch (Exception e) { return null; }
+    }
+
     @Override
     protected void onNewIntent(Intent i) {
         super.onNewIntent(i);
         setIntent(i);
         String back = googleReturnUrl(i);
+        if (back == null) back = shareUrl(i);
         if (back != null && web != null) web.loadUrl(back);
     }
 
@@ -361,6 +375,7 @@ public class MainActivity extends Activity {
             }
         });
         String back = googleReturnUrl(getIntent());
+        if (back == null) back = shareUrl(getIntent());
         if (back != null) web.loadUrl(back); else if (b != null) web.restoreState(b); else web.loadUrl(HOME);
         checkForUpdate();
         web.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);

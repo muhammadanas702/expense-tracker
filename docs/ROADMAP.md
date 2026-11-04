@@ -339,6 +339,12 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 55 — Share to ExpenseFlow (Android)
+
+- In any app (Messages, WhatsApp, a bank app) choose Share > ExpenseFlow on a payment message: the app opens Quick add with the text already in the box. Press the button to parse it; nothing is saved until you confirm.
+- `quick-add.php?sms=<text>` only fills the box (cut at 600 characters, escaped). Android side: a `SEND text/plain` intent filter in `AndroidManifest.xml` and `shareUrl()` in `MainActivity.java`.
+- Needs a new APK (release v1.0.19 or later). If you are signed out, sign in first and share again.
+
 ## Part 54 — Offline expense queue
 
 - Add Expense / Add Income keep working without internet: if the device is offline when you press Save, the entry is stored on the phone (localStorage `ef_offq`, up to 50) and a note says so. It is sent automatically when the connection returns (on the `online` event and when any page loads).
