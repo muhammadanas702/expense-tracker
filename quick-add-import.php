@@ -42,7 +42,7 @@ try {
     $uid = (int) $_SESSION['user_id'];
     $prefs = quickadd_prefs($conn, $uid);
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        echo json_encode(['auto' => $prefs['auto'], 'since' => $prefs['since'] ? strtotime((string) $prefs['since']) * 1000 : 0, 'csrf' => csrf_token()]);
+        echo json_encode(['auto' => $prefs['auto'], 'since' => $prefs['since'] ? strtotime((string) $prefs['since']) * 1000 : 0, 'csrf' => csrf_token()] + quickadd_status_extra($conn, $uid));
         exit();
     }
     $tok = is_array($in) ? (string) ($in['csrf'] ?? '') : '';

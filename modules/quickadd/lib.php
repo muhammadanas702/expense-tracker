@@ -258,6 +258,32 @@ function quickadd_set_auto(PDO $conn, int $uid, bool $on): void
     }
 }
 
+/** Auto-add also reads messages of the last $days days (1-30) that were not handled yet. Turns auto-add on. Already handled messages are never added twice. */
+function quickadd_set_since_days(PDO $conn, int $uid, int $days): void
+{
+    quickadd_ensure_schema($conn);
+    $days = max(1, min(30, $days));
+    $conn->prepare('INSERT INTO sms_prefs (user_id, auto, since) VALUES (?, 1, NOW() - INTERVAL ' . $days . ' DAY) ON DUPLICATE KEY UPDATE auto = 1, since = NOW() - INTERVAL ' . $days . ' DAY')->execute([$uid]);
+}
+
+/** What the server knows, for the "Check my SMS setup" panel: phones that can send in the background, the last time one did, and the last 7 days of results. */
+function quickadd_status_extra(PDO $conn, int $uid): array
+{
+    quickadd_ensure_schema($conn);
+    $d = $conn->prepare('SELECT COUNT(*), MAX(last_used) FROM sms_devices WHERE user_id = ?');
+    $d->execute([$uid]);
+    [$n, $last] = $d->fetch(PDO::FETCH_NUM);
+    $c = $conn->prepare("SELECT status, COUNT(*) FROM sms_imports WHERE user_id = ? AND created_at > (NOW() - INTERVAL 7 DAY) GROUP BY status");
+    $c->execute([$uid]);
+    $counts = ['added' => 0, 'review' => 0, 'ignored' => 0];
+    foreach ($c->fetchAll(PDO::FETCH_NUM) as [$st, $k]) {
+        if (isset($counts[$st])) {
+            $counts[$st] = (int) $k;
+        }
+    }
+    return ['devices' => (int) $n, 'last_sync' => $last ? strtotime((string) $last) * 1000 : 0, 'counts' => $counts, 'now' => time() * 1000];
+}
+
 function quickadd_categories(PDO $conn): array
 {
     $cats = ['Food', 'Transport', 'Shopping', 'Entertainment', 'Bills', 'Healthcare', 'Education', 'Other'];

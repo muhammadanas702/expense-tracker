@@ -339,6 +339,13 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 56 — "Check my SMS setup" (why SMS are not read / added)
+
+- Quick add (Android app) has a new "Check my SMS setup" button. It lists each step as OK / needs attention with what to do: app version, auto-add on/off, read and receive permissions (with the "Allow restricted settings" steps), notifications, whether this phone is registered for background sending, the last background send, the results of the last 7 days (added / need check / ignored), and what the phone's inbox shows (how many messages, how many look like payments, from which senders).
+- Typical cause found by the panel: payment messages older than the moment auto-add was turned on. A new box then offers "also include the last 1-30 days" (`since_days` action, `quickadd_set_since_days()`); messages already handled are never added twice.
+- Server: `quick-add-import.php` status now also returns `devices`, `last_sync`, `counts`, `now`. Android: `smsProbe()` and `smsNotifGranted()` in the bridge (`SmsSync.probe()`); needs the new APK for the inbox counts, the other rows work with 1.0.18.
+- Files: `assets/sms-check.js`, `quick-add.php`, `modules/quickadd/lib.php`, `quick-add-import.php`.
+
 ## Part 55 — Share to ExpenseFlow (Android)
 
 - In any app (Messages, WhatsApp, a bank app) choose Share > ExpenseFlow on a payment message: the app opens Quick add with the text already in the box. Press the button to parse it; nothing is saved until you confirm.

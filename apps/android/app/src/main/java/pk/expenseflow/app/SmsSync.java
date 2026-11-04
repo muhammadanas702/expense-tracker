@@ -67,6 +67,42 @@ final class SmsSync {
         return out;
     }
 
+    /**
+     * Counts for the "Check my SMS setup" panel (nothing leaves the phone except what the page asks for):
+     * {total: inbox messages of the last {days} days, money: how many look like a payment, moneyNew: of those, newer than {sinceMs},
+     *  newest: date of the newest inbox message, senders: up to 5 sender names of payment-looking messages, error: text if the inbox could not be read}.
+     */
+    static JSONObject probe(Context c, int days, long sinceMs) {
+        JSONObject o = new JSONObject();
+        try {
+            o.put("total", 0); o.put("money", 0); o.put("moneyNew", 0); o.put("newest", 0);
+            JSONArray senders = new JSONArray();
+            o.put("senders", senders);
+            if (c.checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) { o.put("error", "no_permission"); return o; }
+            long since = System.currentTimeMillis() - days * 24L * 3600 * 1000;
+            try (Cursor cur = c.getContentResolver().query(Uri.parse("content://sms/inbox"), new String[]{"address", "body", "date"}, "date >= ?", new String[]{String.valueOf(since)}, "date DESC LIMIT 1000")) {
+                if (cur == null) { o.put("error", "no_cursor"); return o; }
+                int total = 0, money = 0, moneyNew = 0; long newest = 0;
+                Set<String> seen = new HashSet<>();
+                while (cur.moveToNext()) {
+                    total++;
+                    String body = cur.getString(1); long date = cur.getLong(2);
+                    if (date > newest) newest = date;
+                    if (body == null || body.length() > 600) continue;
+                    if (OTP.matcher(body).find() || !AMOUNT.matcher(body).find() || !MONEY.matcher(body).find()) continue;
+                    money++;
+                    if (date >= sinceMs - 60000) moneyNew++;
+                    String a = cur.getString(0);
+                    if (a != null && seen.size() < 5 && seen.add(a)) senders.put(a);
+                }
+                o.put("total", total); o.put("money", money); o.put("moneyNew", moneyNew); o.put("newest", newest);
+            }
+        } catch (Exception e) {
+            try { o.put("error", "exception"); } catch (Exception ignored) { }
+        }
+        return o;
+    }
+
     private static SharedPreferences prefs(Context c) { return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE); }
 
     static boolean hasToken(Context c) { return !prefs(c).getString("token", "").isEmpty(); }

@@ -192,6 +192,9 @@ public class MainActivity extends Activity {
         }
         @JavascriptInterface public void smsClearToken() { SmsSync.clearToken(MainActivity.this); }
         /** JSON array [{id, from, date, text}] of the newest money messages of the last {days} days (max 40); "[]" without permission. */
+        /** JSON counts for the "Check my SMS setup" panel (see SmsSync.probe). */
+        @JavascriptInterface public String smsProbe(int days, double sinceMs) { return SmsSync.probe(MainActivity.this, Math.max(1, Math.min(days, 90)), (long) sinceMs).toString(); }
+        @JavascriptInterface public boolean smsNotifGranted() { return Build.VERSION.SDK_INT < 33 || checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED; }
         @JavascriptInterface public String smsRead(int days) { return readMoneySms(Math.max(1, Math.min(days, 90))); }
     }
 
