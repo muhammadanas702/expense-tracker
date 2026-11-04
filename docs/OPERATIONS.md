@@ -38,7 +38,7 @@ Practical knowledge about the live site `https://expenseflow.rf.gd`, its hosting
 | Reset a user's password | Admin > Users > set temporary password (the user gets an e-mail) |
 | Post a notice to everyone | Admin > Announcements (optional start/end) |
 | Close sign-ups / maintenance | Admin > Settings |
-| Backup | Admin > Backups > create > download (keeps newest 10). Do it before big changes; also copy `storage/receipts/` |
+| Backup | Admin > Backups > create > download (keeps newest 10). Created automatically once a day when staff open the admin overview; also do one before big changes; also copy `storage/receipts/` |
 | Change expense categories / hide a currency | Admin > Categories / Currencies. If a currency (for example KRW) is missing from dropdowns, first check it is not hidden here |
 | Add a currency | `includes/currencies.php` (`'CODE' => [flag emoji, 'Name', group]`), and a fallback rate in `app_fallback_rates()` |
 | Look at errors | PHP `error_log` in the host panel; exports and mail failures log `ExpenseFlow ...` lines |

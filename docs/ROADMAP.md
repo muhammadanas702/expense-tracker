@@ -339,6 +339,13 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 52b — Automatic daily backup
+
+- Free hosting has no cron, so when a staff member with the "backup" permission opens the admin overview and the newest backup is older than 24 hours (or none exists), one is created automatically (`backup_auto_maybe()` in `modules/backup/lib.php`). A lock file stops two requests doing it at once; failures are logged and never break the page. Ordinary users never trigger it.
+- It is written to the audit log as "Automatic daily database backup". The newest 10 backups are kept, so daily automatic ones push out old ones after 10 days: download an encrypted copy now and then (Admin > Backups).
+- Off switch: environment variable `EXPENSEFLOW_AUTO_BACKUP_OFF=1`.
+- Still open in Part 52: Google re-link prompt, push notifications.
+
 ## Part 51 — Urdu language + right-to-left (first step)
 
 - Language switch: Settings > Preferences > Language, and a link on the login page (`?lang=ur|en`, remembered in the `ef_lang` cookie).
