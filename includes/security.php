@@ -14,6 +14,7 @@ define('APP_SECURITY_LOADED', true);
 require_once __DIR__ . '/../config/app.php';
 require_once __DIR__ . '/currencies.php';
 require_once __DIR__ . '/errors.php';
+require_once __DIR__ . '/i18n.php';
 ef_install_error_handlers(); // friendly page instead of a blank screen when something unexpected breaks
 
 /** Largest amount accepted for a single income/expense entry. */

@@ -200,7 +200,7 @@ function personal_tx_page(string $kind, ?int $editId = null): void
     $label = $isExpense ? 'Expense' : 'Income';
     $accent = $isExpense ? '#ea580c' : '#0d9f6e';
     ef_page_start([
-        'title' => ($isEdit ? 'Edit ' : 'Add ') . $label,
+        'title' => ($isEdit ? 'Edit ' : 'Add ') . $label, // translated by the layout
         'sub' => $isEdit ? 'Change this entry' : ($isExpense ? 'Record money going out' : 'Record money coming in'),
         'active' => $isEdit ? '' : ($isExpense ? 'exp' : 'inc'),
         'user' => $user,
@@ -210,40 +210,40 @@ function personal_tx_page(string $kind, ?int $editId = null): void
       <?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e($error) ?></div><?php endif; ?>
       <form method="POST" autocomplete="off" style="--t:<?= e($accent) ?>">
         <?= csrf_field() ?>
-        <div class="fl"><label for="amount">Amount</label>
+        <div class="fl"><label for="amount"><?= e(t('Amount')) ?></label>
           <input class="inp amt" id="amount" type="number" inputmode="decimal" step="0.01" min="0.01" max="99999999.99" name="amount" value="<?= e($old['amount']) ?>" placeholder="0.00" required></div>
-        <div class="fl"><label for="currency">Currency</label>
+        <div class="fl"><label for="currency"><?= e(t('Currency')) ?></label>
           <select class="inp" id="currency" name="currency" required><?= currency_select_options($old['currency']) ?></select></div>
-        <div class="fl"><label for="title">Title</label>
-          <input class="inp" id="title" type="text" name="title" maxlength="100" value="<?= e($old['title']) ?>" placeholder="<?= $isExpense ? 'e.g. Groceries, Rent' : 'e.g. Salary, Freelance' ?>" required></div>
+        <div class="fl"><label for="title"><?= e(t('Title')) ?></label>
+          <input class="inp" id="title" type="text" name="title" maxlength="100" value="<?= e($old['title']) ?>" placeholder="<?= e(t($isExpense ? 'e.g. Groceries, Rent' : 'e.g. Salary, Freelance')) ?>" required></div>
         <?php if ($isExpense): ?>
-        <div class="fl"><label>Category</label>
+        <div class="fl"><label><?= e(t('Category')) ?></label>
           <div class="chips">
             <?php foreach ($categories as $name => $icon): ?>
-              <label><input type="radio" name="category" value="<?= e($name) ?>"<?= $old['category'] === $name ? ' checked' : '' ?>><span class="chip"><?= ef_icon($icon) ?><?= e($name) ?></span></label>
+              <label><input type="radio" name="category" value="<?= e($name) ?>"<?= $old['category'] === $name ? ' checked' : '' ?>><span class="chip"><?= ef_icon($icon) ?><?= e(t($name)) ?></span></label>
             <?php endforeach; ?>
           </div></div>
-        <div class="fl" id="other-wrap" hidden><label for="other_category">Other category name</label>
-          <input class="inp" id="other_category" type="text" name="other_category" maxlength="50" value="<?= e($old['other_category']) ?>" placeholder="e.g. Gym, Subscription"></div>
+        <div class="fl" id="other-wrap" hidden><label for="other_category"><?= e(t('Other category name')) ?></label>
+          <input class="inp" id="other_category" type="text" name="other_category" maxlength="50" value="<?= e($old['other_category']) ?>" placeholder="<?= e(t('e.g. Gym, Subscription')) ?>"></div>
         <?php endif; ?>
-        <div class="fl"><label>Payment method</label>
+        <div class="fl"><label><?= e(t('Payment method')) ?></label>
           <div class="chips">
             <?php foreach (personal_payment_methods() as $m => $text): ?>
-              <label><input type="radio" name="payment_method" value="<?= e($m) ?>"<?= $old['payment_method'] === $m ? ' checked' : '' ?>><span class="chip"><?= e($text) ?></span></label>
+              <label><input type="radio" name="payment_method" value="<?= e($m) ?>"<?= $old['payment_method'] === $m ? ' checked' : '' ?>><span class="chip"><?= e(t($text)) ?></span></label>
             <?php endforeach; ?>
           </div></div>
-        <div class="fl"><label for="note">Note <span style="text-transform:none;font-weight:500">(optional)</span></label>
-          <input class="inp" id="note" type="text" name="note" maxlength="255" value="<?= e($old['note']) ?>" placeholder="Anything to remember"></div>
-        <div class="fl"><label for="tags">Tags <span style="text-transform:none;font-weight:500">(optional, separate with commas)</span></label>
-          <input class="inp" id="tags" type="text" name="tags" maxlength="100" value="<?= e($old['tags']) ?>" placeholder="e.g. trip, office"></div>
+        <div class="fl"><label for="note"><?= e(t('Note')) ?> <span style="text-transform:none;font-weight:500">(<?= e(t('optional')) ?>)</span></label>
+          <input class="inp" id="note" type="text" name="note" maxlength="255" value="<?= e($old['note']) ?>" placeholder="<?= e(t('Anything to remember')) ?>"></div>
+        <div class="fl"><label for="tags"><?= e(t('Tags')) ?> <span style="text-transform:none;font-weight:500">(<?= e(t('optional, separate with commas')) ?>)</span></label>
+          <input class="inp" id="tags" type="text" name="tags" maxlength="100" value="<?= e($old['tags']) ?>" placeholder="<?= e(t('e.g. trip, office')) ?>"></div>
         <?php if (!$isEdit): ?>
         <label class="row" style="cursor:pointer">
-          <span><?= ef_icon('rpt') ?> Repeat every month<small>Adds this <?= e(strtolower($label)) ?> automatically each month</small></span>
+          <span><?= ef_icon('rpt') ?> <?= e(t('Repeat every month')) ?><small><?= e(t($isExpense ? 'Adds this expense automatically each month' : 'Adds this income automatically each month')) ?></small></span>
           <b><input class="swc" type="checkbox" name="repeat" value="1"<?= $old['repeat'] === '1' ? ' checked' : '' ?>><i class="sw"></i></b>
         </label>
         <?php endif; ?>
-        <button class="btn" type="submit" style="width:100%;margin-top:14px;padding:14px"><?= $isEdit ? 'Save changes' : 'Save ' . e(strtolower($label)) ?></button>
-        <?php if ($isEdit): ?><a class="btn o" href="<?= e($base_url) ?>/dashboard.php" style="display:block;text-align:center;margin-top:10px">Cancel</a><?php endif; ?>
+        <button class="btn" type="submit" style="width:100%;margin-top:14px;padding:14px"><?= e(t($isEdit ? 'Save changes' : ($isExpense ? 'Save expense' : 'Save income'))) ?></button>
+        <?php if ($isEdit): ?><a class="btn o" href="<?= e($base_url) ?>/dashboard.php" style="display:block;text-align:center;margin-top:10px"><?= e(t('Cancel')) ?></a><?php endif; ?>
       </form>
     </div>
     <?php

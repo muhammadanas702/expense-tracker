@@ -32,7 +32,7 @@ function ef_public_start(array $o): void
         $crumbs, array_keys($crumbs)
     )];
     ?><!DOCTYPE html>
-<html lang="en">
+<html<?= ef_html_attrs() ?>>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">

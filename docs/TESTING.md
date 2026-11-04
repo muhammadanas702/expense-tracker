@@ -59,6 +59,8 @@ Mail is not sent locally. `signup_verify_http_test.py` and `staff_mail_http_test
 | `speed_check_test.py` | Python | Admin Speed check page: only super admin sees it, shows markers working, cold checks listed, marker folder fallback |
 | `mobile_nav_ui_test.py` | Python (browser) | Phone bottom bar: 4 main items + More sheet (light and dark), fits the screen, More opens/closes, desktop sidebar unchanged, Dashboard search box |
 | `currency_cache_test.php` | PHP | Exchange-rate cache with a dead service: one short wait, the attempt is remembered, stale cache still used, a good fetch refreshes it (`mock_rates.php` is the fake service) |
+| `i18n_test.php` | PHP | English default, Urdu placeholder consistency, every `t()` text in the checked pages has an Urdu entry |
+| `urdu_ui_test.py` | Python (Playwright) | `?lang=ur` gives `dir=rtl`, Urdu login/dashboard/add form, menu on the right, language card in Settings, back to English, no sideways scroll on a phone |
 | `resilience_ui_test.py` | Python (Playwright) | health.php, saved pages incl. admin, server down / slow (4 s) / device offline messages, auto-recovery, logout wipes saved pages, dead DB host gives a friendly 503 (`slow_router.php` simulates a slow server) |
 | `twofactor_http_test.py` | Python | Two-step sign-in: turn on/off with a mailed code, login needs the code, wrong/expired/used codes, resend cooldown, staff always asked and cannot opt out, emergency switch skips it, no code on a wrong password (starts its own servers, mail goes to a sink file) |
 | `quickadd_classify_test.php` | PHP | Which SMS is added, reviewed or ignored (codes, offers, failed, reminders, requests, friend numbers, mixed) |

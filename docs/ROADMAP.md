@@ -339,6 +339,15 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 51 — Urdu language + right-to-left (first step)
+
+- Language switch: Settings > Preferences > Language, and a link on the login page (`?lang=ur|en`, remembered in the `ef_lang` cookie).
+- `t('English text')` in `includes/i18n.php`; Urdu texts live in `includes/lang/ur.php`. A missing entry simply stays English, so nothing breaks.
+- `assets/rtl.css` mirrors the layout (menu on the right, chevrons, switches); numbers, money, e-mail and charts stay left-to-right.
+- Translated so far: menu and frame, dashboard, getting started, add/edit transaction form, categories, payment methods, login.
+- To add more: wrap the text in `t()` and add a line to `ur.php`; `tests/i18n_test.php` fails if a wrapped text has no Urdu entry in the checked files.
+- Not translated yet: admin panel, public pages, most settings pages, reports.
+
 ## Part 53 — Resilience (site keeps working when internet or server fails)
 - Cause of the "no internet / nothing loads for half an hour" outage: the database connection had no timeout (workers hung when the DB host was slow), the old service worker waited forever for the network and never saved admin pages, and the signed-in layout did not register it.
 - Service worker: waits at most 4 s for the server, then shows the last saved copy of the page with a yellow "saved copy" bar (admin pages included); never-seen pages get a smart offline page that says whether the DEVICE has no internet or the SERVER is not answering, retries every 10 s and offers the saved dashboard. Saved private pages are wiped on logout.

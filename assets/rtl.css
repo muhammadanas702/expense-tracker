@@ -1,0 +1,35 @@
+/* Right-to-left (Urdu). Loaded only when the page is Urdu. Flex/grid rows and text already follow dir="rtl";
+   this file mirrors the rules that were written with left/right. */
+html[dir=rtl] body{font-family:"Noto Nastaliq Urdu","Jameel Noori Nastaleeq","Noto Naskh Arabic","Segoe UI",Tahoma,system-ui,sans-serif;line-height:1.9}
+html[dir=rtl] .tt{margin-right:0;margin-left:auto}
+html[dir=rtl] .row>b{margin-left:0;margin-right:auto;text-align:left}
+html[dir=rtl] th{text-align:right;padding:0 0 8px 8px}
+html[dir=rtl] td:last-child,html[dir=rtl] th:last-child{text-align:left;padding-right:8px;padding-left:0}
+html[dir=rtl] .stk .av{margin-left:0;margin-right:-8px}
+html[dir=rtl] .stk .av:first-child{margin-right:0}
+html[dir=rtl] .dt{right:auto;left:6px}
+html[dir=rtl] .np{left:auto;right:auto}
+html[dir=rtl] .npop{right:auto;left:20px}
+html[dir=rtl] .fw>svg{left:auto;right:14px}
+html[dir=rtl] .fw .inp{padding-left:12px;padding-right:44px}
+html[dir=rtl] .ey{right:auto;left:14px}
+html[dir=rtl] .fw .inp.hasey{padding-right:44px;padding-left:44px}
+html[dir=rtl] .sbar>svg{left:auto;right:14px}
+html[dir=rtl] .sbar .sx{right:auto;left:8px}
+html[dir=rtl] .inl,html[dir=rtl] .nb .lnk,html[dir=rtl] .fo .lk2,html[dir=rtl] .phub .btn{margin-left:0;margin-right:auto}
+html[dir=rtl] .aft svg{margin-right:0;margin-left:2px}
+html[dir=rtl] .crumb span:before{margin-right:0;margin-left:8px}
+html[dir=rtl] .pub ul,html[dir=rtl] .pub ol,html[dir=rtl] .qhelp ol{padding-left:0;padding-right:22px}
+html[dir=rtl] .pub h2,html[dir=rtl] .ft2,html[dir=rtl] .sms-row{text-align:right}
+html[dir=rtl] .fabf{right:auto;left:18px}
+/* arrows and chevrons point the other way */
+html[dir=rtl] .nv svg.i[class~=chev],html[dir=rtl] .row>svg.i:last-child{transform:scaleX(-1)}
+/* the on/off switch knob */
+html[dir=rtl] .sw:after{left:auto;right:3px}
+html[dir=rtl] .swc:checked+.sw:after{right:21px;left:auto}
+/* numbers, e-mail addresses, codes and money stay left-to-right inside Urdu text */
+html[dir=rtl] input[type=email],html[dir=rtl] input[type=number],html[dir=rtl] input[type=tel],html[dir=rtl] input[type=url],html[dir=rtl] .amt,html[dir=rtl] .otp{direction:ltr;text-align:left}
+html[dir=rtl] .v,html[dir=rtl] .big2{unicode-bidi:plaintext}
+html[dir=rtl] canvas{direction:ltr}
+/* the language link */
+html[dir=rtl] .au-lang{right:auto;left:12px}
