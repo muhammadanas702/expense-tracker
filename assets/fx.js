@@ -40,8 +40,13 @@
       if (comma) { parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
       return parts.join('.');
     };
-    var start = null, dur = 900;
+    var start = null, dur = 900, finished = false;
+    function finish() { finished = true; el.textContent = text; } // never leave the number stuck at 0 if the animation is paused (app resumed, page opened in the background)
+    setTimeout(finish, dur + 600);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) { setTimeout(finish, dur + 300); } });
+    window.addEventListener('pageshow', function () { setTimeout(finish, dur + 300); });
     function step(t) {
+      if (finished) { return; }
       if (start === null) { start = t; }
       var p = Math.min(1, (t - start) / dur), e = 1 - Math.pow(1 - p, 3);
       el.textContent = text.replace(m[0], p === 1 ? m[0] : fmt(target * e));
@@ -54,22 +59,4 @@
   d.querySelectorAll('[data-flash].ok, .msg.ok[data-flash]').forEach(function (el) {
     setTimeout(function () { el.classList.add('gone'); setTimeout(function () { el.remove(); }, 450); }, 5000);
   });
-})();
-
-
-/* Offline notice: pages shown from the saved copy cannot save changes until the connection is back */
-(function () {
-  var bar;
-  function show(off) {
-    if (off && !bar) {
-      bar = document.createElement('div');
-      bar.setAttribute('role', 'status');
-      bar.textContent = 'You are offline - showing saved data. Changes cannot be saved until you are back online.';
-      bar.style.cssText = 'position:fixed;left:12px;right:12px;bottom:84px;z-index:80;background:#0b2545;color:#fff;padding:10px 14px;border-radius:12px;font:600 13px/1.3 system-ui,sans-serif;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.25)';
-      document.body.appendChild(bar);
-    } else if (!off && bar) { bar.remove(); bar = null; }
-  }
-  window.addEventListener('offline', function () { show(true); });
-  window.addEventListener('online', function () { show(false); });
-  if (!navigator.onLine) document.addEventListener('DOMContentLoaded', function () { show(true); });
 })();

@@ -1,4 +1,4 @@
-const CACHE_NAME = "expenseflow-static-v8";
+const CACHE_NAME = "expenseflow-static-v9";
 const PAGES = "expenseflow-pages-v1"; // signed-in pages kept for offline viewing; wiped on logout / when the login form is served
 const APP_SCOPE = self.registration.scope;
 const OFFLINE_URL = new URL("offline.html", APP_SCOPE).href;
@@ -89,6 +89,23 @@ async function pageRequest(request, url, event) {
   if (saved) return withStaleBar(saved);
   return offlinePage();
 }
+
+// The page asks (while online) to keep the Add Expense / Add Income pages, so they also open offline and the offline queue can take entries.
+self.addEventListener("message", (event) => {
+  const d = event.data;
+  if (!d || d.type !== "prewarm" || !Array.isArray(d.urls)) return;
+  event.waitUntil((async () => {
+    const cache = await caches.open(PAGES);
+    for (const u of d.urls.slice(0, 6)) {
+      try {
+        const url = new URL(u, APP_SCOPE);
+        if (url.origin !== self.location.origin || skipCache(url) || isLogin(url)) continue;
+        const res = await fetch(url.href, { credentials: "same-origin", cache: "no-store" });
+        if (res.ok && !res.redirected && (res.headers.get("content-type") || "").includes("text/html")) await cache.put(url.href, res);
+      } catch (e) { /* offline or slow: try again next time */ }
+    }
+  })());
+});
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;

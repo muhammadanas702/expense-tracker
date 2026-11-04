@@ -12,7 +12,7 @@
     var t = document.getElementById('ef-offq-toast');
     if (!t) {
       t = document.createElement('div'); t.id = 'ef-offq-toast'; t.setAttribute('role', 'status');
-      t.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:130px;z-index:99999;background:#0b2545;color:#fff;font:600 13px system-ui,sans-serif;padding:9px 16px;border-radius:99px;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:92vw;text-align:center';
+      t.style.cssText = 'pointer-events:none;position:fixed;left:50%;transform:translateX(-50%);bottom:130px;z-index:99999;background:#0b2545;color:#fff;font:600 13px system-ui,sans-serif;padding:9px 16px;border-radius:99px;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:92vw;text-align:center';
       document.body.appendChild(t);
     }
     t.textContent = text; clearTimeout(t._h); t._h = setTimeout(function () { t.remove(); }, ms || 4000);
@@ -76,5 +76,21 @@
   }
   window.addEventListener('online', function () { setTimeout(flush, 800); });
   document.addEventListener('DOMContentLoaded', function () { setTimeout(flush, 1500); });
+  // Keep the add pages (and the dashboard) saved for offline use: asked at most every 6 hours, only while online and signed in.
+  function prewarm() {
+    try {
+      if (navigator.onLine === false || !navigator.serviceWorker || !navigator.serviceWorker.controller) { return; }
+      var last = parseInt(localStorage.getItem('ef_prewarm') || '0', 10);
+      if (Date.now() - last < 6 * 3600 * 1000) { return; }
+      var urls = [];
+      document.querySelectorAll('a[href*="add-expense.php"], a[href*="add-income.php"], a[href*="dashboard.php"]').forEach(function (a) {
+        var h = a.href; if (h && urls.indexOf(h) === -1 && h.indexOf('?') === -1 && h.indexOf('#') === -1) { urls.push(h); }
+      });
+      if (!urls.length) { return; }
+      navigator.serviceWorker.controller.postMessage({ type: 'prewarm', urls: urls });
+      localStorage.setItem('ef_prewarm', String(Date.now()));
+    } catch (e) { }
+  }
+  document.addEventListener('DOMContentLoaded', function () { setTimeout(prewarm, 3000); });
   window.efOfflineQueue = { flush: flush, count: function () { return load().length; } };
 })();
