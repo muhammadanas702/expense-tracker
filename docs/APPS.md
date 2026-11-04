@@ -60,3 +60,6 @@ All apps are **thin shells around the live website**. They open `https://expense
 - Android 13+ blocks `READ_SMS`/`RECEIVE_SMS` for apps installed from outside Google Play ("restricted settings"): the permission is declined without any dialog until the person opens App info > three dots > "Allow restricted settings" and then allows Permissions > SMS. Quick add shows these steps (`#sms-help`) whenever the permission comes back denied.
 - This APK is installed from GitHub Releases. Google Play restricts `READ_SMS` heavily: if the app is ever published on Play, replace this with "Share to ExpenseFlow" or the notification listener.
 - Needs a new release: run the release workflow with a new version (after v1.0.17) and test on a phone.
+
+## Share to ExpenseFlow (Android)
+Select a message in any app > Share > ExpenseFlow. Quick add opens with the text filled in (Part 55). Needs the APK from release v1.0.19 or later.

@@ -24,7 +24,10 @@ if (!$user) {
     header('Location: ' . $base_url . '/auth/login.php');
     exit();
 }
-$sms = '';
+$sms = ''; // "Share to ExpenseFlow" (Android) opens this page with ?sms=<text>: only fills the box, nothing is saved or parsed until you press the button
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && is_string($_GET['sms'] ?? null)) {
+    $sms = mb_substr(trim((string) $_GET['sms']), 0, QUICKADD_MAX_LENGTH);
+}
 $res = null;
 $error = '';
 $prefs = quickadd_prefs($conn, $uid);

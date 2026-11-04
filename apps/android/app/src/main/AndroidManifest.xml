@@ -33,6 +33,12 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="expenseflow" android:host="auth" />
             </intent-filter>
+            <!-- "Share" a bank / wallet message from any app: opens Quick add with the text filled in -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
         </activity>
         <receiver
             android:name=".SmsReceiver"
