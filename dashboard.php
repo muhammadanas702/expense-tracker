@@ -176,18 +176,18 @@ if (!$use_date_range && !empty($_GET) && $month === (int) date('n') && $year ===
 
 $catIcons = ['Food' => 'food', 'Transport' => 'car', 'Shopping' => 'bag', 'Entertainment' => 'tag', 'Bills' => 'zap', 'Healthcare' => 'heart', 'Education' => 'book'];
 $fmt = static fn(float $n): string => number_format($n, 2);
-$tip = $savings_percent < $goal ? 'Below your ' . $goal . '% goal: try cutting one regular expense.' : 'You reached your savings goal, keep it up!';
+$tip = $savings_percent < $goal ? t('Below your %s%% goal: try cutting one regular expense.', (string) $goal) : t('You reached your savings goal, keep it up!');
 
 ef_page_start([
-    'title' => 'Welcome back, ' . (string) ($_SESSION['user_name'] ?? $user['name']),
-    'sub' => $use_date_range ? "$from_date to $to_date · $display_currency" : $period_start->format('F Y') . " · base $display_currency",
+    'title' => t('Welcome back, %s', (string) ($_SESSION['user_name'] ?? $user['name'])),
+    'sub' => $use_date_range ? t('%s to %s', $from_date, $to_date) . " · $display_currency" : $period_start->format('F Y') . ' · ' . t('base') . " $display_currency",
     'active' => 'dash',
     'user' => $user,
     'head' => '<script src="' . e(ef_url('assets/lib/chart.umd.min.js')) . '" defer></script>',
 ]);
 ?>
 <?php if ($needs_setup): ?>
-<div class="g card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><span><b>Welcome! Finish your quick setup</b><div class="k">Pick your main currency and savings goal (20 seconds).</div></span><a class="btn" style="margin-left:auto" href="<?= e($base_url) ?>/setup.php">Start</a></div>
+<div class="g card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><span><b><?= e(t('Welcome! Finish your quick setup')) ?></b><div class="k"><?= e(t('Pick your main currency and savings goal (20 seconds).')) ?></div></span><a class="btn" style="margin-inline-start:auto" href="<?= e($base_url) ?>/setup.php"><?= e(t('Start')) ?></a></div>
 <?php endif; ?>
 <?php
 // Optional Getting started module: a short checklist for new accounts (nothing is stored; hidden when done or dismissed).
@@ -203,46 +203,46 @@ if (isset(ef_modules()['gettingstarted']) && is_file(__DIR__ . '/modules/getting
 }
 if ($gsSteps): $gsDone = count(array_filter($gsSteps, fn($x) => $x['done'])); ?>
 <div class="g card" id="gs-card" hidden>
-    <div class="t">Getting started <span style="font-size:.78rem;color:var(--mu);font-weight:600"><?= (int) $gsDone ?> of <?= count($gsSteps) ?> done</span></div>
+    <div class="t"><?= e(t('Getting started')) ?> <span style="font-size:.78rem;color:var(--mu);font-weight:600"><?= e(t('%s of %s done', (string) (int) $gsDone, (string) count($gsSteps))) ?></span></div>
     <?php foreach ($gsSteps as $x): ?>
     <a class="row" href="<?= e($x['url']) ?>" style="display:flex;align-items:center;gap:10px;padding:8px 0;text-decoration:none;color:inherit;<?= $x['done'] ? 'opacity:.55' : '' ?>">
         <span aria-hidden="true" style="width:20px;height:20px;border-radius:50%;border:2px solid <?= $x['done'] ? '#16a34a' : 'var(--gb)' ?>;display:inline-flex;align-items:center;justify-content:center;color:#16a34a;font-size:.8rem;flex:none"><?= $x['done'] ? '✓' : '' ?></span>
-        <span style="flex:1<?= $x['done'] ? ';text-decoration:line-through' : '' ?>"><?= e($x['label']) ?></span><?= $x['done'] ? '' : ef_icon('chev') ?></a>
+        <span style="flex:1<?= $x['done'] ? ';text-decoration:line-through' : '' ?>"><?= e(t($x['label'])) ?></span><?= $x['done'] ? '' : ef_icon('chev') ?></a>
     <?php endforeach; ?>
-    <button class="btn sm o" type="button" id="gs-hide" style="margin-top:8px">Hide this</button>
+    <button class="btn sm o" type="button" id="gs-hide" style="margin-top:8px"><?= e(t('Hide this')) ?></button>
 </div>
 <script>(function(){var c=document.getElementById('gs-card');if(!c)return;var h=false;try{h=localStorage.getItem('ef_gs_hide')==='1'}catch(e){}if(!h){c.hidden=false}document.getElementById('gs-hide').addEventListener('click',function(){c.hidden=true;try{localStorage.setItem('ef_gs_hide','1')}catch(e){}})})();</script>
 <?php endif; ?>
 <?php if (isset(ef_modules()['search'])): ?>
 <form method="GET" action="<?= e($base_url) ?>/search.php" class="g card" id="dash-search" role="search" style="display:flex;gap:8px;align-items:center;padding:10px 12px">
     <?= ef_icon('search') ?>
-    <input class="inp" type="search" name="q" maxlength="60" aria-label="Search income and expenses" placeholder="Search entries, notes, #tags" style="flex:1;min-width:0;border:0;background:transparent">
-    <button class="btn sm" type="submit">Search</button>
+    <input class="inp" type="search" name="q" maxlength="60" aria-label="<?= e(t('Search income and expenses')) ?>" placeholder="<?= e(t('Search entries, notes, #tags')) ?>" style="flex:1;min-width:0;border:0;background:transparent">
+    <button class="btn sm" type="submit"><?= e(t('Search')) ?></button>
 </form>
 <?php endif; ?>
 <div class="chips" style="margin-bottom:2px">
 <?php foreach ($presets as $label => $q): ?>
-    <a class="chip<?= $activePreset === $label ? ' on' : '' ?>" href="<?= e($base_url . '/dashboard.php' . ($q ? '?' . http_build_query($q) : '')) ?>"><?= e($label) ?></a>
+    <a class="chip<?= $activePreset === $label ? ' on' : '' ?>" href="<?= e($base_url . '/dashboard.php' . ($q ? '?' . http_build_query($q) : '')) ?>"><?= e(t($label)) ?></a>
 <?php endforeach; ?>
-    <button type="button" class="chip<?= $activePreset === 'Custom' ? ' on' : '' ?>" id="custom-toggle" aria-expanded="<?= $activePreset === 'Custom' ? 'true' : 'false' ?>" aria-controls="custom-range"><?= ef_icon('cal') ?>Custom</button>
+    <button type="button" class="chip<?= $activePreset === 'Custom' ? ' on' : '' ?>" id="custom-toggle" aria-expanded="<?= $activePreset === 'Custom' ? 'true' : 'false' ?>" aria-controls="custom-range"><?= ef_icon('cal') ?><?= e(t('Custom')) ?></button>
 </div>
 <?php /* The date fields sit outside .chips on purpose: .chips hides every input inside it (for the radio chips). */ ?>
 <form method="GET" id="custom-range" class="g card" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end"<?= $activePreset === 'Custom' ? '' : ' hidden' ?>>
-    <div class="fl" style="margin:0"><label for="cr-from">From</label><input class="inp" id="cr-from" type="date" name="from_date" value="<?= e($from_date) ?>" required></div>
-    <div class="fl" style="margin:0"><label for="cr-to">To</label><input class="inp" id="cr-to" type="date" name="to_date" value="<?= e($to_date) ?>" required></div>
-    <button class="btn" type="submit">Apply</button>
+    <div class="fl" style="margin:0"><label for="cr-from"><?= e(t('From')) ?></label><input class="inp" id="cr-from" type="date" name="from_date" value="<?= e($from_date) ?>" required></div>
+    <div class="fl" style="margin:0"><label for="cr-to"><?= e(t('To')) ?></label><input class="inp" id="cr-to" type="date" name="to_date" value="<?= e($to_date) ?>" required></div>
+    <button class="btn" type="submit"><?= e(t('Apply')) ?></button>
 </form>
 
 <div class="pills">
-    <div class="pl g"><?= ef_icon('cal') ?>Avg daily spend <b><?= $fmt((float) $avgDailySpend) ?> <?= e($display_currency) ?></b></div>
-    <div class="pl g"><?= ef_icon('tgt') ?>Savings rate <b><?= round($savings_percent, 1) ?>%</b> of <?= $goal ?>% goal</div>
+    <div class="pl g"><?= ef_icon('cal') ?><?= e(t('Avg daily spend')) ?> <b><?= $fmt((float) $avgDailySpend) ?> <?= e($display_currency) ?></b></div>
+    <div class="pl g"><?= ef_icon('tgt') ?><?= e(t('Savings rate')) ?> <b><?= round($savings_percent, 1) ?>%</b> <?= e(t('of %s%% goal', (string) $goal)) ?></div>
     <div class="pl g"><?= ef_icon('bulb', '#d97706') ?><?= e($tip) ?></div>
 </div>
 
 <div class="G3">
-    <div class="g card hero"><div class="k">Net balance</div><div class="v" data-countup><?= $balance < 0 ? '−' : '' ?> <?= $fmt(abs($balance)) ?> <?= e($display_currency) ?></div><span class="badge"><?= $balance > 0 ? 'Surplus this period' : ($balance < 0 ? 'Deficit this period' : 'Break-even') ?></span></div>
-    <div class="g card"><div class="k">Total income</div><div class="v in"><?= $fmt($total_income) ?> <?= e($display_currency) ?></div></div>
-    <div class="g card"><div class="k">Total expense</div><div class="v ex"><?= $fmt($total_expense) ?> <?= e($display_currency) ?></div></div>
+    <div class="g card hero"><div class="k"><?= e(t('Net balance')) ?></div><div class="v" data-countup><?= $balance < 0 ? '−' : '' ?> <?= $fmt(abs($balance)) ?> <?= e($display_currency) ?></div><span class="badge"><?= e(t($balance > 0 ? 'Surplus this period' : ($balance < 0 ? 'Deficit this period' : 'Break-even'))) ?></span></div>
+    <div class="g card"><div class="k"><?= e(t('Total income')) ?></div><div class="v in"><?= $fmt($total_income) ?> <?= e($display_currency) ?></div></div>
+    <div class="g card"><div class="k"><?= e(t('Total expense')) ?></div><div class="v ex"><?= $fmt($total_expense) ?> <?= e($display_currency) ?></div></div>
 </div>
 
 <?php
@@ -261,7 +261,7 @@ if (isset(ef_modules()['reminders']) && is_file(__DIR__ . '/modules/reminders/li
 }
 if ($remindItems): ?>
 <div class="g card" id="reminder-card" style="margin-bottom:14px">
-    <div class="t">Due soon <a href="<?= e($base_url) ?>/reminders.php">All reminders →</a></div>
+    <div class="t"><?= e(t('Due soon')) ?> <a href="<?= e($base_url) ?>/reminders.php"><?= e(t('All reminders')) ?> →</a></div>
     <?php foreach ($remindItems as $r): ?>
     <div style="display:flex;justify-content:space-between;gap:10px;margin-top:8px;font-size:.9rem"><b><?= e($r['title']) ?></b>
         <span style="font-weight:700;color:<?= $r['state'] === 'late' ? '#dc2626' : '#f59e0b' ?>"><?= $r['days'] < 0 ? 'Overdue' : ($r['days'] === 0 ? 'Today' : 'In ' . (int) $r['days'] . ' d') ?></span></div>
@@ -284,7 +284,7 @@ if (!$use_date_range && isset(ef_modules()['budgets']) && is_file(__DIR__ . '/mo
 }
 if ($budgetItems): $bcol = ['ok' => '#0d9f6e', 'warn' => '#f59e0b', 'over' => '#dc2626']; ?>
 <div class="g card" id="budget-card" style="margin-bottom:14px">
-    <div class="t">Budgets <a href="<?= e($base_url) ?>/budgets.php">Manage →</a></div>
+    <div class="t"><?= e(t('Budgets')) ?> <a href="<?= e($base_url) ?>/budgets.php"><?= e(t('Manage')) ?> →</a></div>
     <?php foreach ($budgetItems as $b): ?>
     <div style="margin-top:8px"><div style="display:flex;justify-content:space-between;font-size:.88rem"><b><?= e($b['category']) ?></b><span style="color:<?= e($bcol[$b['level']]) ?>;font-weight:700"><?= e((string) round($b['pct'])) ?>%</span></div>
         <div class="bar"><i style="width:<?= e((string) min(100, $b['pct'])) ?>%;background:<?= e($bcol[$b['level']]) ?>"></i></div></div>
@@ -294,25 +294,25 @@ if ($budgetItems): $bcol = ['ok' => '#0d9f6e', 'warn' => '#f59e0b', 'over' => '#
 
 <div class="G2">
     <div class="g card">
-        <div class="t">Where your money goes</div>
-        <?php if ($categories): ?><div style="max-width:300px;margin:0 auto"><canvas id="categoryChart" aria-label="Expenses by category"></canvas></div>
-        <?php else: ?><p class="k" style="padding:20px 0;text-align:center">No expenses in this period.</p><?php endif; ?>
+        <div class="t"><?= e(t('Where your money goes')) ?></div>
+        <?php if ($categories): ?><div style="max-width:300px;margin:0 auto"><canvas id="categoryChart" aria-label="<?= e(t('Expenses by category')) ?>"></canvas></div>
+        <?php else: ?><p class="k" style="padding:20px 0;text-align:center"><?= e(t('No expenses in this period.')) ?></p><?php endif; ?>
     </div>
     <div class="g card">
-        <div class="t">Smart insights</div>
+        <div class="t"><?= e(t('Smart insights')) ?></div>
         <div class="ig">
-            <div class="ins"><b><?= $savings_percent >= 30 ? 'Excellent' : ($savings_percent >= 15 ? 'Good' : 'Needs control') ?></b>Financial health · <?= round($savings_percent, 1) ?>% saved</div>
-            <div class="ins"><b><?= (!$use_date_range && $trend != 0) ? ($trend > 0 ? '↑ +' . round($trend, 1) : '↓ ' . round(abs($trend), 1)) . '%' : 'N/A' ?></b><?= $use_date_range ? 'Custom range' : 'Spending vs last month' ?></div>
-            <div class="ins"><b><?= e($top_category['category'] ?? 'N/A') ?></b>Top expense category</div>
-            <div class="ins"><b><?= $balance > 0 ? 'Surplus' : ($balance < 0 ? 'Deficit' : 'Neutral') ?></b>Income vs expense</div>
+            <div class="ins"><b><?= e(t($savings_percent >= 30 ? 'Excellent' : ($savings_percent >= 15 ? 'Good' : 'Needs control'))) ?></b><?= e(t('Financial health')) ?> · <?= e(t('%s%% saved', (string) round($savings_percent, 1))) ?></div>
+            <div class="ins"><b><?= (!$use_date_range && $trend != 0) ? ($trend > 0 ? '↑ +' . round($trend, 1) : '↓ ' . round(abs($trend), 1)) . '%' : 'N/A' ?></b><?= e(t($use_date_range ? 'Custom range' : 'Spending vs last month')) ?></div>
+            <div class="ins"><b><?= e(t($top_category['category'] ?? 'N/A')) ?></b><?= e(t('Top expense category')) ?></div>
+            <div class="ins"><b><?= e(t($balance > 0 ? 'Surplus' : ($balance < 0 ? 'Deficit' : 'Neutral'))) ?></b><?= e(t('Income vs expense')) ?></div>
         </div>
-        <canvas id="flowChart" height="150" style="margin-top:14px" aria-label="Income versus expense"></canvas>
+        <canvas id="flowChart" height="150" style="margin-top:14px" aria-label="<?= e(t('Income versus expense')) ?>"></canvas>
     </div>
 </div>
 
 <div class="G2">
     <div class="g card">
-        <div class="t">Recent activity <a href="<?= e($base_url) ?>/reports/view-report.php">Full report →</a></div>
+        <div class="t"><?= e(t('Recent activity')) ?> <a href="<?= e($base_url) ?>/reports/view-report.php"><?= e(t('Full Report')) ?> →</a></div>
         <?php
         $all = [];
         foreach ($incomes as $r) { $r['kind'] = 'income'; $all[] = $r; }
@@ -321,44 +321,44 @@ if ($budgetItems): $bcol = ['ok' => '#0d9f6e', 'warn' => '#f59e0b', 'over' => '#
         foreach (array_slice($all, 0, 8) as $r):
             $isInc = $r['kind'] === 'income';
             $icon = $isInc ? 'inc' : ($catIcons[$r['category'] ?? ''] ?? 'more');
-            $meta = date('d M Y', strtotime($r['transaction_date'])) . (!$isInc ? ' · ' . $r['category'] : '') . (!empty($r['payment_method']) ? ' · ' . $r['payment_method'] : '');
+            $meta = date('d M Y', strtotime($r['transaction_date'])) . (!$isInc ? ' · ' . t((string) $r['category']) : '') . (!empty($r['payment_method']) ? ' · ' . t((string) $r['payment_method']) : '');
         ?>
         <div class="row">
             <i class="cat"><?= ef_icon($icon, $isInc ? '#0d9f6e' : '#ea580c') ?></i>
             <span><?= e($r['title']) ?><small><?= e($meta) ?><?= !empty($r['note']) ? ' · ' . e($r['note']) : '' ?></small></span>
             <b class="<?= $isInc ? 'in' : 'ex' ?>"><?= $isInc ? '+' : '−' ?> <?= $fmt((float) $r['amount']) ?> <?= e($r['currency']) ?></b>
             <span class="acts">
-                <a href="<?= e($base_url) ?>/<?= $isInc ? 'edit-income' : 'edit-expense' ?>.php?id=<?= (int) $r['id'] ?>" aria-label="Edit"><?= ef_icon('pen') ?></a>
-                <a class="del" href="<?= e($base_url) ?>/<?= $isInc ? 'delete-income' : 'delete-expense' ?>.php" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"id":<?= (int) $r['id'] ?>}' onclick="return confirm('Delete this entry?')" aria-label="Delete"><?= ef_icon('tr') ?></a>
+                <a href="<?= e($base_url) ?>/<?= $isInc ? 'edit-income' : 'edit-expense' ?>.php?id=<?= (int) $r['id'] ?>" aria-label="<?= e(t('Edit')) ?>"><?= ef_icon('pen') ?></a>
+                <a class="del" href="<?= e($base_url) ?>/<?= $isInc ? 'delete-income' : 'delete-expense' ?>.php" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"id":<?= (int) $r['id'] ?>}' onclick="return confirm(<?= e(json_encode(t('Delete this entry?'), JSON_UNESCAPED_UNICODE)) ?>)" aria-label="<?= e(t('Delete')) ?>"><?= ef_icon('tr') ?></a>
             </span>
         </div>
-        <?php endforeach; if (!$all): ?><p class="k" style="padding:16px 0">Nothing yet. Add your first income or expense.</p><?php endif; ?>
+        <?php endforeach; if (!$all): ?><p class="k" style="padding:16px 0"><?= e(t('Nothing yet. Add your first income or expense.')) ?></p><?php endif; ?>
     </div>
 
     <div style="display:flex;flex-direction:column;gap:14px">
         <div class="g card">
-            <div class="t">Repeating every month</div>
+            <div class="t"><?= e(t('Repeating every month')) ?></div>
             <?php foreach ($repeating as $r): ?>
             <div class="row">
                 <i class="cat"><?= ef_icon('rpt') ?></i>
-                <span><?= e($r['title']) ?><small>Next: <?= e(date('d M Y', strtotime($r['next_run']))) ?> · <?= e($r['kind']) ?></small></span>
+                <span><?= e($r['title']) ?><small><?= e(t('Next')) ?>: <?= e(date('d M Y', strtotime($r['next_run']))) ?> · <?= e(t((string) $r['kind'])) ?></small></span>
                 <b><?= $fmt((float) $r['amount']) ?> <?= e($r['currency']) ?></b>
-                <span class="acts"><a class="del" href="<?= e($base_url) ?>/stop-recurring.php" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"id":<?= (int) $r['id'] ?>}' onclick="return confirm('Stop repeating this item?')" aria-label="Stop repeating"><?= ef_icon('tr') ?></a></span>
+                <span class="acts"><a class="del" href="<?= e($base_url) ?>/stop-recurring.php" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"id":<?= (int) $r['id'] ?>}' onclick="return confirm(<?= e(json_encode(t('Stop repeating this item?'), JSON_UNESCAPED_UNICODE)) ?>)" aria-label="<?= e(t('Stop repeating')) ?>"><?= ef_icon('tr') ?></a></span>
             </div>
-            <?php endforeach; if (!$repeating): ?><p class="k">None. Turn on “Repeat every month” when adding an entry.</p><?php endif; ?>
+            <?php endforeach; if (!$repeating): ?><p class="k"><?= e(t('None. Turn on “Repeat every month” when adding an entry.')) ?></p><?php endif; ?>
         </div>
         <?php if (!$use_date_range): ?>
         <div class="g card" id="base">
-            <div class="t">Base currency for <?= e($period_start->format('F Y')) ?></div>
+            <div class="t"><?= e(t('Base currency for %s', $period_start->format('F Y'))) ?></div>
             <form method="POST" action="<?= e($base_url) ?>/change-base-currency.php" style="display:flex;gap:10px;flex-wrap:wrap">
                 <?= csrf_field() ?>
                 <input type="hidden" name="year_month" value="<?= e($year_month) ?>">
-                <select class="inp" name="new_base_currency" style="flex:1;min-width:150px" aria-label="Base currency"><?= currency_select_options($display_currency) ?></select>
-                <button class="btn" type="submit">Change</button>
+                <select class="inp" name="new_base_currency" style="flex:1;min-width:150px" aria-label="<?= e(t('Base currency')) ?>"><?= currency_select_options($display_currency) ?></select>
+                <button class="btn" type="submit"><?= e(t('Change')) ?></button>
             </form>
         </div>
         <?php endif; ?>
-        <div class="g card"><div class="row" style="border:0;padding:0"><span>Reset data or delete account<small>Now in Profile &amp; Settings</small></span><b><a class="lnk" href="<?= e($base_url) ?>/profile.php">Open</a></b></div></div>
+        <div class="g card"><div class="row" style="border:0;padding:0"><span><?= e(t('Reset data or delete account')) ?><small><?= e(t('Now in Profile & Settings')) ?></small></span><b><a class="lnk" href="<?= e($base_url) ?>/profile.php"><?= e(t('Open')) ?></a></b></div></div>
     </div>
 </div>
 <?php
@@ -374,7 +374,7 @@ window.addEventListener("load",function(){
   if (c1) new Chart(c1, {type:"doughnut", data:{labels:cats, datasets:[{data:vals, backgroundColor:palette, borderWidth:0}]},
     options:{cutout:"62%", maintainAspectRatio:true, aspectRatio:1.15, plugins:{legend:{position:"bottom"}, tooltip:{callbacks:{label:function(c){return " "+c.label+": "+Number(c.raw).toFixed(2)}}}}}});
   var c2 = document.getElementById("flowChart");
-  if (c2) new Chart(c2, {type:"bar", data:{labels:["Income","Expense"], datasets:[{data:[inc,exp], backgroundColor:["#10b981","#f97316"], borderRadius:8}]},
+  if (c2) new Chart(c2, {type:"bar", data:{labels:' . json_encode([t('Income'), t('Expense')], $json_flags | JSON_UNESCAPED_UNICODE) . ', datasets:[{data:[inc,exp], backgroundColor:["#10b981","#f97316"], borderRadius:8}]},
     options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}});
 });
 setTimeout(function(){document.querySelectorAll("[data-flash]").forEach(function(m){m.style.transition="opacity .5s";m.style.opacity="0";setTimeout(function(){m.remove()},500)})},4000);

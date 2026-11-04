@@ -60,11 +60,11 @@ function ef_page_start(array $o): void
 
     send_security_headers();
     ?><!DOCTYPE html>
-<html lang="en">
+<html<?= ef_html_attrs() ?>>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title><?= e($title) ?> · ExpenseFlow</title>
+<title><?= e(t($title)) ?> · ExpenseFlow</title>
 <meta name="theme-color" content="#0B2545">
 <link rel="manifest" href="<?= e(ef_url('manifest.json')) ?>">
 <?php require_once __DIR__ . '/favicons.php'; ?>
@@ -77,22 +77,22 @@ function ef_page_start(array $o): void
 <div class="ap">
   <aside class="g sb">
     <div class="logo"><img src="<?= e(ef_url('favicon.png')) ?>" alt=""><span class="wm">ExpenseFlow</span></div>
-    <div class="sl"><?= $mode === 's' ? 'Shared' : 'Personal' ?></div>
+    <div class="sl"><?= e(t($mode === 's' ? 'Shared' : 'Personal')) ?></div>
     <?php foreach ($nav as $n): ?>
-      <a class="nv<?= $n[3] === $active ? ' on' : '' ?>" href="<?= e(ef_url($n[0])) ?>"><?= ef_icon($n[1]) ?><?= e($n[2]) ?></a>
+      <a class="nv<?= $n[3] === $active ? ' on' : '' ?>" href="<?= e(ef_url($n[0])) ?>"><?= ef_icon($n[1]) ?><?= e(t($n[2])) ?></a>
     <?php endforeach; ?>
     <div class="sp"></div>
-    <?php if (!empty($user['is_admin'])): ?><a class="nv" href="<?= e(ef_url('admin/index.php')) ?>"><?= ef_icon('shield') ?>Admin</a><?php endif; ?>
-    <a class="nv<?= $active === 'profile' ? ' on' : '' ?>" href="<?= e(ef_url('profile.php')) ?>"><?= ef_icon('usr') ?>Profile</a>
-    <a class="nv" href="<?= e(ef_url('auth/logout.php')) ?>" data-post data-csrf="<?= e(csrf_token()) ?>"><?= ef_icon('out') ?>Logout</a>
+    <?php if (!empty($user['is_admin'])): ?><a class="nv" href="<?= e(ef_url('admin/index.php')) ?>"><?= ef_icon('shield') ?><?= e(t('Admin')) ?></a><?php endif; ?>
+    <a class="nv<?= $active === 'profile' ? ' on' : '' ?>" href="<?= e(ef_url('profile.php')) ?>"><?= ef_icon('usr') ?><?= e(t('Profile')) ?></a>
+    <a class="nv" href="<?= e(ef_url('auth/logout.php')) ?>" data-post data-csrf="<?= e(csrf_token()) ?>"><?= ef_icon('out') ?><?= e(t('Logout')) ?></a>
   </aside>
   <div class="mn">
     <div class="g tb">
-      <div class="tt"><h2><?= e($title) ?></h2><?php if ($sub !== ''): ?><small><?= e($sub) ?></small><?php endif; ?></div>
+      <div class="tt"><h2><?= e(t($title)) ?></h2><?php if ($sub !== ''): ?><small><?= e(t($sub)) ?></small><?php endif; ?></div>
       <?php if ($sharedHome && !$neutral): ?>
       <div class="seg">
-        <a class="<?= $mode === 'p' ? 'on' : '' ?>" href="<?= e(ef_url($home)) ?>"><?= ef_icon('wal') ?> Personal</a>
-        <a class="<?= $mode === 's' ? 'on' : '' ?>" href="<?= e(ef_url($sharedHome)) ?>"><?= ef_icon('users') ?> Shared</a>
+        <a class="<?= $mode === 'p' ? 'on' : '' ?>" href="<?= e(ef_url($home)) ?>"><?= ef_icon('wal') ?> <?= e(t('Personal')) ?></a>
+        <a class="<?= $mode === 's' ? 'on' : '' ?>" href="<?= e(ef_url($sharedHome)) ?>"><?= ef_icon('users') ?> <?= e(t('Shared')) ?></a>
       </div>
       <?php endif; ?>
       <?php if ($unread !== null): ?>
@@ -129,7 +129,7 @@ function ef_page_end(array $o = []): void
   </div>
 </div>
 <?php if ($mode === 's' && !$pg['neutral'] && ef_nav('s')): ?>
-<a class="fabf" href="<?= e(ef_url('shared/add.php')) ?>" aria-label="Add shared expense"><?= ef_icon('pl') ?></a>
+<a class="fabf" href="<?= e(ef_url('shared/add.php')) ?>" aria-label="<?= e(t('Add shared expense')) ?>"><?= ef_icon('pl') ?></a>
 <?php endif; ?>
 <?php
 // Phone bottom bar: at most 4 main items (entries flagged 'bar' in module.php, else the first 4) and a "More" sheet for the rest.
@@ -146,16 +146,16 @@ foreach ($moreItems as $n) { if ($n[3] === $active) { $moreActive = true; } }
 <?php if ($moreItems): ?>
 <div class="g msheet" id="more-sheet" hidden role="menu" aria-label="More">
 <?php foreach ($moreItems as $n): ?>
-  <a class="<?= $n[3] === $active ? 'on' : '' ?>" role="menuitem" href="<?= e(ef_url($n[0])) ?>"><?= ef_icon($n[1]) ?><span><?= e($n[2]) ?></span></a>
+  <a class="<?= $n[3] === $active ? 'on' : '' ?>" role="menuitem" href="<?= e(ef_url($n[0])) ?>"><?= ef_icon($n[1]) ?><span><?= e(t($n[2])) ?></span></a>
 <?php endforeach; ?>
 </div>
 <?php endif; ?>
 <nav class="g bn">
 <?php foreach ($barItems as $n): ?>
-  <a class="<?= $n[3] === $active ? 'on' : '' ?>" href="<?= e(ef_url($n[0])) ?>"><?= ef_icon($n[1]) ?><?= e(str_replace(['Add ', 'Full '], '', $n[2])) ?></a>
+  <a class="<?= $n[3] === $active ? 'on' : '' ?>" href="<?= e(ef_url($n[0])) ?>"><?= ef_icon($n[1]) ?><?= e(t(str_replace(['Add ', 'Full '], '', $n[2]))) ?></a>
 <?php endforeach; ?>
 <?php if ($moreItems): ?>
-  <button type="button" class="mbtn<?= $moreActive ? ' on' : '' ?>" id="more-btn" aria-haspopup="true" aria-expanded="false" aria-controls="more-sheet"><?= ef_icon('menu') ?>More</button>
+  <button type="button" class="mbtn<?= $moreActive ? ' on' : '' ?>" id="more-btn" aria-haspopup="true" aria-expanded="false" aria-controls="more-sheet"><?= ef_icon('menu') ?><?= e(t('More')) ?></button>
 <?php endif; ?>
 </nav>
 </div>

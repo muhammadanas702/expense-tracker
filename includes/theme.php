@@ -6,7 +6,7 @@
  */
 function ef_theme_head(): string
 {
-    return '<link rel="stylesheet" href="' . e(ef_asset('assets/theme-dark.css')) . '">'
+    return ef_rtl_link() . '<link rel="stylesheet" href="' . e(ef_asset('assets/theme-dark.css')) . '">'
         . '<script>(function(){try{var m=document.cookie.match(/(?:^|; )ef_theme=(auto|light|dark)/),t=m?m[1]:"auto",'
         . 'd=t==="dark"||(t==="auto"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);'
         . 'if(d){document.documentElement.setAttribute("data-theme","dark");}}catch(e){}})();</script>';

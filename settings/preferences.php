@@ -19,6 +19,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $settings = profile_settings($conn, $user_id);
 settings_page_start('preferences', $user);
 ?>
+    <div class="g card" id="lang-card">
+      <div class="t"><?= e(t('Language')) ?></div>
+      <p class="k" style="margin:-4px 0 12px"><?= e(t('English or Urdu (right-to-left). Saved on this device.')) ?></p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <a class="btn<?= ef_lang() === 'en' ? '' : ' o' ?>" href="<?= e(ef_lang_url('en')) ?>" hreflang="en" lang="en">English</a>
+        <a class="btn<?= ef_lang() === 'ur' ? '' : ' o' ?>" href="<?= e(ef_lang_url('ur')) ?>" hreflang="ur" lang="ur">اردو</a>
+      </div>
+    </div>
     <div class="g card">
       <div class="t">Appearance</div>
       <p class="k" style="margin:-4px 0 12px">Light, dark, or follow your device. Saved on this device.</p>

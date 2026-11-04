@@ -53,7 +53,7 @@ function ef_auth_start(array $o = []): void
     $split = $o['split'] ?? true;
     send_security_headers();
     ?><!DOCTYPE html>
-<html lang="en">
+<html<?= ef_html_attrs() ?>>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -64,6 +64,7 @@ function ef_auth_start(array $o = []): void
 <?php require_once __DIR__ . '/theme.php'; echo ef_theme_head(); ?>
 </head>
 <body>
+<?= ef_lang_switch('lang-sw au-lang') ?>
 <div class="fr" data-mode="p">
 <?php if ($split): ?>
 <div class="au">

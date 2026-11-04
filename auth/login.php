@@ -108,19 +108,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 require_once __DIR__ . '/../includes/auth-layout.php';
 ?>
-<?php ef_auth_start(['title' => 'Log in']); ?>
-<h2>Welcome back</h2>
-<p class="s3">Log in to continue to ExpenseFlow.</p>
+<?php ef_auth_start(['title' => t('Log in')]); ?>
+<h2><?= e(t('Welcome back')) ?></h2>
+<p class="s3"><?= e(t('Log in to continue to ExpenseFlow.')) ?></p>
 <?= ef_msg($notice, $noticeType === 'success' ? 'ok' : 'err') ?>
 <?= ef_msg($error) ?>
 <?= google_button('login') ?>
 <form method="POST" autocomplete="on">
     <?= csrf_field() ?>
-    <?= ef_field('EMAIL', 'email', 'mail', 'email', $email, ['placeholder' => 'you@example.com', 'required' => true, 'maxlength' => 190, 'autocomplete' => 'email']) ?>
-    <?= ef_field('PASSWORD', 'password', 'lock', 'password', '', ['placeholder' => 'Your password', 'required' => true, 'autocomplete' => 'current-password']) ?>
-    <div class="rw"><span></span><a class="lnk" href="forgot-password.php">Forgot password?</a></div>
-    <button class="btn lg" style="width:100%" type="submit">Log in</button>
+    <?= ef_field(t('EMAIL'), 'email', 'mail', 'email', $email, ['placeholder' => 'you@example.com', 'required' => true, 'maxlength' => 190, 'autocomplete' => 'email']) ?>
+    <?= ef_field(t('PASSWORD'), 'password', 'lock', 'password', '', ['placeholder' => 'Your password', 'required' => true, 'autocomplete' => 'current-password']) ?>
+    <div class="rw"><span></span><a class="lnk" href="forgot-password.php"><?= e(t('Forgot password?')) ?></a></div>
+    <button class="btn lg" style="width:100%" type="submit"><?= e(t('Log in')) ?></button>
 </form>
-<div class="aft">New to ExpenseFlow? <a class="lnk" href="register.php">Create account</a></div>
-<div class="aft q"><a class="lnk" href="<?= e(ef_url('index.php')) ?>"><?= ef_icon('bk') ?> Back to home</a></div>
+<div class="aft"><?= e(t('New to ExpenseFlow?')) ?> <a class="lnk" href="register.php"><?= e(t('Create account')) ?></a></div>
+<div class="aft q"><a class="lnk" href="<?= e(ef_url('index.php')) ?>"><?= ef_icon('bk') ?> <?= e(t('Back to home')) ?></a></div>
 <?php ef_auth_end(); ?>
