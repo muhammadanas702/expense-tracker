@@ -88,6 +88,14 @@ function personal_ensure_schema(PDO $conn): void
               KEY `idx_recurring_user` (`user_id`, `active`, `next_run`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
         );
+        $conn->exec(
+            "CREATE TABLE IF NOT EXISTS `offline_imports` (
+              `user_id` INT UNSIGNED NOT NULL,
+              `cid` VARCHAR(32) NOT NULL,
+              `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY (`user_id`, `cid`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+        );
     } catch (Throwable $e) {
         error_log('ExpenseFlow personal schema check failed: ' . $e->getMessage());
     }
@@ -158,4 +166,21 @@ function personal_run_recurring(PDO $conn, int $userId): int
         error_log('ExpenseFlow recurring run failed: ' . $e->getMessage());
     }
     return $created;
+}
+
+/** A client id sent by the offline queue / double-click protection: 16-32 hex characters, or null. */
+function personal_client_id($v): ?string
+{
+    return is_string($v) && preg_match('/^[a-f0-9]{16,32}$/', $v) ? $v : null;
+}
+
+/** The time an offline entry was made on the phone, accepted only if it is within the last 14 days and not in the future. */
+function personal_client_time($v, ?int $now = null): ?int
+{
+    $now = $now ?? time();
+    if (!is_string($v) && !is_int($v)) {
+        return null;
+    }
+    $t = (int) $v;
+    return ($t >= $now - 14 * 86400 && $t <= $now + 120) ? $t : null;
 }

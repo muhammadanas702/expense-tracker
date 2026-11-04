@@ -241,7 +241,7 @@ function shared_delete_group(PDO $conn, int $groupId): void
 function shared_ensure_all_schemas(PDO $conn): void
 {
     shared_ensure_schema($conn);
-    foreach (['activity_ensure_schema', 'comments_ensure_schema', 'receipts_ensure_schema', 'support_ensure_schema', 'announce_ensure_schema'] as $fn) {
+    foreach (['activity_ensure_schema', 'comments_ensure_schema', 'receipts_ensure_schema', 'support_ensure_schema', 'announce_ensure_schema', 'oauth_ensure_schema', 'budgets_ensure_schema', 'goals_ensure_schema', 'reminders_ensure_schema', 'twofa_ensure_schema', 'quickadd_ensure_schema', 'friends_ensure_schema', 'personal_ensure_schema'] as $fn) {
         if (function_exists($fn)) {
             $fn($conn);
         }
@@ -285,6 +285,11 @@ function shared_on_user_deleted(PDO $conn, int $userId): void
         }
     }
     $conn->prepare('DELETE FROM shared_members WHERE user_id = ?')->execute([$userId]);
+    try { // Part 54: ids kept for offline-entry duplicate protection
+        $conn->prepare('DELETE FROM `offline_imports` WHERE `user_id` = ?')->execute([$userId]);
+    } catch (Throwable $e) {
+        // table may not exist yet
+    }
     if (function_exists('friends_on_user_deleted')) {
         friends_on_user_deleted($conn, $userId);
     }
