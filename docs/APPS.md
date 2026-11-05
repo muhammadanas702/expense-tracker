@@ -63,3 +63,6 @@ All apps are **thin shells around the live website**. They open `https://expense
 
 ## Share to ExpenseFlow (Android)
 Select a message in any app > Share > ExpenseFlow. Quick add opens with the text filled in (Part 55). Needs the APK from release v1.0.19 or later.
+
+## Lite APK
+If Google Play Protect blocks `ExpenseFlow.apk` (SMS permission), install `ExpenseFlow-Lite.apk`: same app without SMS reading. Use Share > ExpenseFlow or paste. See Part 58 in the roadmap.

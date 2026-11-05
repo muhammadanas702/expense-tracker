@@ -199,3 +199,10 @@ function settings_enforce_maintenance(PDO $conn): void
         error_log('ExpenseFlow maintenance check failed: ' . $e->getMessage());
     }
 }
+
+/** Link of the Lite APK (no SMS permission): the Android link with the file name swapped; '' when the link is not a plain ExpenseFlow.apk link. */
+function settings_lite_link(): string
+{
+    $l = (string) settings_public('link_android');
+    return preg_match('~/ExpenseFlow\.apk$~', $l) ? preg_replace('~/ExpenseFlow\.apk$~', '/ExpenseFlow-Lite.apk', $l) : '';
+}

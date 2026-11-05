@@ -23,6 +23,7 @@
   function run() {
     list.textContent = ''; if (since) { since.hidden = true; }
     if (!app || !can('smsSupported')) { row('no', 'This is not the ExpenseFlow Android app', 'Automatic reading only works in the Android app. Install the newest ExpenseFlow.apk from the Releases page.'); return; }
+    if (can('smsSupported') && safe(function () { return app.smsSupported(); }, true) === false) { row('wn', 'This is the Lite app', 'It has no SMS permission on purpose, so Play Protect lets it install. Use Share > ExpenseFlow on a payment message, or paste it. For automatic reading install the full ExpenseFlow.apk (if Play Protect blocks it, install it from a PC with: adb install -r ExpenseFlow.apk).'); return; }
     var ver = safe(function () { return app.version(); }, '');
     var newApp = can('smsHasToken');
     row(newApp ? 'ok' : 'no', 'App version ' + (ver || '?') + (newApp ? '' : ' is too old'), newApp ? '' : 'Background reading needs app 1.0.18 or newer. Install the newest ExpenseFlow.apk (Releases page); your account and data stay.');

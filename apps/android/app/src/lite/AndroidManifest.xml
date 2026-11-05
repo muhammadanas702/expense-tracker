@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Lite build: no SMS permissions and no SMS receiver, so Google Play Protect does not block installing it.
+     SMS then go in through Share > ExpenseFlow or by pasting them into Quick add. Same package and signing key as the full app. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.READ_SMS" tools:node="remove" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" tools:node="remove" />
+    <application>
+        <receiver android:name=".SmsReceiver" tools:node="remove" />
+    </application>
+</manifest>

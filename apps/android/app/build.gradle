@@ -14,6 +14,12 @@ android {
         versionCode = Integer.parseInt((project.findProperty('vCode') ?: '1').toString())
         versionName = (project.findProperty('vName') ?: '1.0.0').toString()
     }
+    // "full" can read SMS (Quick add auto-add). "lite" declares no SMS permission, so Google Play Protect does not block its install.
+    flavorDimensions 'sms'
+    productFlavors {
+        full { dimension 'sms' }
+        lite { dimension 'sms' }
+    }
     signingConfigs {
         release {
             // Sideload key kept in the repo so every release is signed the same way and installs as an update.

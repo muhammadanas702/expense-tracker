@@ -92,6 +92,14 @@ public class MainActivity extends Activity {
     private String myVersion() {
         try { return getPackageManager().getPackageInfo(getPackageName(), 0).versionName; } catch (Exception e) { return "1.0.0"; }
     }
+    /** False in the Lite build, which declares no SMS permission (so Play Protect lets it install). */
+    private boolean declaresSms() {
+        try {
+            String[] r = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_PERMISSIONS).requestedPermissions;
+            if (r != null) for (String p : r) if (Manifest.permission.READ_SMS.equals(p)) return true;
+        } catch (Exception ignored) { }
+        return false;
+    }
     private static int[] parts(String v) {
         String[] p = v.replaceAll("[^0-9.]", "").split("\\.");
         int[] r = new int[3];
@@ -170,7 +178,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void checkUpdate() { runOnUiThread(() -> checkForUpdate(true)); }
 
         // ---- Quick add: "Read my messages" (asks Android for the SMS permission; the page shows only money messages) ----
-        @JavascriptInterface public boolean smsSupported() { return true; }
+        @JavascriptInterface public boolean smsSupported() { return declaresSms(); }
         @JavascriptInterface public boolean smsGranted() { return checkSelfPermission(Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED; }
         @JavascriptInterface public void smsAsk() {
             runOnUiThread(() -> {
@@ -227,7 +235,9 @@ public class MainActivity extends Activity {
                 org.json.JSONArray assets = j.getJSONArray("assets");
                 for (int i = 0; i < assets.length(); i++) {
                     JSONObject a = assets.getJSONObject(i);
-                    if (a.getString("name").endsWith(".apk")) { apk = a.getString("browser_download_url"); break; }
+                    String an = a.getString("name");
+                    // Lite and full installs update with their own file (the full one would be blocked by Play Protect on a Lite phone).
+                    if (an.endsWith(".apk") && an.toLowerCase().contains("lite") == !declaresSms()) { apk = a.getString("browser_download_url"); break; }
                 }
                 if (apk == null || !newer(tag, myVersion())) { if (manual) note("You have the latest version (" + myVersion() + ")."); return; }
                 SharedPreferences sp = getSharedPreferences("update", MODE_PRIVATE);
