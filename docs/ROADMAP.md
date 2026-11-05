@@ -339,6 +339,13 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 61 — Safe Browsing: "Social engineering content" warning
+
+- Google flagged `http://expenseflow.rf.gd/` (plain http) in Search Console (WNC-806900). Full explanation, the review text to send and the permanent fix (own domain) are in `docs/SAFE_BROWSING.md`.
+- Code: http -> https and one canonical host with a loop-proof 301 (`app_enforce_site()` / `app_redirect_target()` in `config/app.php`); landing page no longer coaches visitors past Android/Windows warnings (the Lite APK link stays in Settings > Apps); the Android web view continues past a Safe Browsing hit for our own address only (`onSafeBrowsingHit`, needs the next APK); `tools/change-domain.php` moves the project to a new domain.
+- Tests: `tests/redirect_test.php`, `tests/redirect_http_test.py` (uses the production Host header against the local server), `tests/change_domain_test.php`, and `tests/lite_apk_test.py` (landing page has no bypass advice).
+- Needs you: request the review in Search Console; buy and connect a domain for a lasting fix.
+
 ## Part 60 — Urdu on sign-up and password pages
 
 - Translated: Create account, Confirm your email, Forgot password, Check your email (reset code), Create new password, the sign-in/sign-up error and notice messages, field labels and placeholders, the password checklist and the footer of the sign-in pages (about 80 new entries in `includes/lang/ur.php`).

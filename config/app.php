@@ -42,3 +42,60 @@ if ($envBaseUrl) {
 } else {
     $base_url = 'https://expenseflow.rf.gd';
 }
+
+/*
+ * One address for the whole site (Part 61): the plain-http address and any other host name (www, a second domain) are sent
+ * to $base_url with a permanent redirect. Google Safe Browsing had flagged http://expenseflow.rf.gd/ (the unencrypted copy of a
+ * page with a sign-in form), so nothing is served over plain http any more.
+ *  - Only GET/HEAD from a browser on a real (non-local) host; never POST, CLI, health checks or tests on localhost.
+ *  - Loop-proof: a redirect to https adds ef_https=1 (and then a Secure cookie ef_s); a request that already has either is served as it
+ *    is, even if this host gives no sign that the connection is https.
+ *  - Switch off with EXPENSEFLOW_NO_REDIRECT=1.
+ */
+if (!function_exists('app_redirect_target')) {
+    /** The address a request should be sent to, or null when it can be served as it is. Pure, so it can be tested. */
+    function app_redirect_target(string $baseUrl, string $host, string $uri, bool $isHttps, bool $marked): ?string
+    {
+        $b = parse_url($baseUrl);
+        $wantHost = strtolower((string) ($b['host'] ?? ''));
+        $wantHttps = ($b['scheme'] ?? '') === 'https';
+        $host = preg_replace('/:\d+$/', '', strtolower($host));
+        if ($wantHost === '' || in_array($host, ['localhost', '127.0.0.1', '[::1]'], true)) {
+            return null;
+        }
+        $uri = preg_replace('/[\r\n]/', '', $uri);
+        if ($uri === '' || $uri[0] !== '/') {
+            $uri = '/';
+        }
+        if ($host !== $wantHost) {
+            return rtrim($baseUrl, '/') . $uri;
+        }
+        if ($wantHttps && !$isHttps && !$marked) {
+            return rtrim($baseUrl, '/') . $uri . (strpos($uri, '?') === false ? '?' : '&') . 'ef_https=1';
+        }
+        return null;
+    }
+
+    function app_enforce_site(string $baseUrl): void
+    {
+        if (PHP_SAPI === 'cli' || getenv('EXPENSEFLOW_NO_REDIRECT') || headers_sent() || !in_array($_SERVER['REQUEST_METHOD'] ?? '', ['GET', 'HEAD'], true)) {
+            return;
+        }
+        $https = (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off')
+            || (int) ($_SERVER['SERVER_PORT'] ?? 0) === 443
+            || strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https'
+            || (!empty($_SERVER['HTTP_CF_VISITOR']) && strpos((string) $_SERVER['HTTP_CF_VISITOR'], 'https') !== false);
+        // A browser that came back through our https redirect keeps a small Secure cookie: it is not redirected again on later pages,
+        // even if this host never tells PHP that the connection is https. A plain-http visit does not send it, so it is redirected.
+        if (isset($_GET['ef_https']) && !isset($_COOKIE['ef_s']) && !headers_sent()) {
+            header('Set-Cookie: ef_s=1; Max-Age=31536000; Path=/; Secure; HttpOnly; SameSite=Lax', false);
+        }
+        $to = app_redirect_target($baseUrl, (string) ($_SERVER['HTTP_HOST'] ?? ''), (string) ($_SERVER['REQUEST_URI'] ?? '/'), $https, isset($_GET['ef_https']) || isset($_COOKIE['ef_s']));
+        if ($to !== null) {
+            header('Location: ' . $to, true, 301);
+            header('Cache-Control: no-store');
+            exit();
+        }
+    }
+}
+app_enforce_site($base_url);
