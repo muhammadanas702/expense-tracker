@@ -39,17 +39,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_post_csrf();
     if (($_POST['do'] ?? '') === 'delete') {
         budgets_delete($conn, $uid, (int) ($_POST['id'] ?? 0));
-        $_SESSION['success'] = 'Budget removed.';
+        $_SESSION['success'] = t('Budget removed.');
         header('Location: ' . $base_url . '/budgets.php');
         exit();
     }
     [$v, $err] = budgets_validate($_POST, array_keys($cats));
     if ($v && !budgets_save($conn, $uid, $v)) {
-        $err = 'You can keep up to ' . BUDGET_MAX_PER_USER . ' budgets.';
+        $err = t('You can keep up to %s budgets.', (string) BUDGET_MAX_PER_USER);
     }
     if ($err === null) {
         budgets_check_alerts($conn, $uid, $v['category']);
-        $_SESSION['success'] = 'Budget saved for ' . $v['category'] . '.';
+        $_SESSION['success'] = t('Budget saved for %s.', (string) $v['category']);
         header('Location: ' . $base_url . '/budgets.php');
         exit();
     }
@@ -64,49 +64,49 @@ try {
     $loadError = $is_admin_user ? $e->getMessage() : 'unavailable';
 }
 $colors = ['ok' => '#0d9f6e', 'warn' => '#f59e0b', 'over' => '#dc2626'];
-$msg = ['ok' => 'On track', 'warn' => 'Close to the limit', 'over' => 'Over budget'];
-ef_page_start(['title' => 'Budgets', 'sub' => 'Monthly limits for ' . date('F Y'), 'mode' => 'p', 'active' => 'bud', 'user' => $user]);
+$msg = ['ok' => t('On track'), 'warn' => t('Close to the limit'), 'over' => t('Over budget')];
+ef_page_start(['title' => 'Budgets', 'sub' => t('Monthly limits for %s', date('F Y')), 'mode' => 'p', 'active' => 'bud', 'user' => $user]);
 ?>
     <div class="g" style="max-width:720px;margin:0 auto;padding:6px 0">
-      <?php if ($loadError !== ''): ?><div class="msg err" role="alert">Budgets could not load right now. Please try again in a moment.<?= $loadError !== 'unavailable' ? ' (Admin detail: ' . e($loadError) . ')' : '' ?></div><?php endif; ?>
+      <?php if ($loadError !== ''): ?><div class="msg err" role="alert"><?= e(t('Budgets could not load right now. Please try again in a moment.')) ?><?= $loadError !== 'unavailable' ? ' (Admin detail: ' . e($loadError) . ')' : '' ?></div><?php endif; ?>
       <?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e($error) ?></div><?php endif; ?>
       <div class="card">
-        <div class="t"><?= ef_icon('tgt') ?> This month</div>
+        <div class="t"><?= ef_icon('tgt') ?> <?= e(t('This month')) ?></div>
         <?php if (!$items): ?>
-          <p style="color:var(--mu)">No budgets yet. Pick a category below and set how much you want to spend on it each month. You will get a notification at 80% and again at 100%.</p>
+          <p style="color:var(--mu)"><?= e(t('No budgets yet. Pick a category below and set how much you want to spend on it each month. You will get a notification at 80% and again at 100%.')) ?></p>
         <?php endif; ?>
         <?php foreach ($items as $b): $w = min(100, $b['pct']); ?>
           <div class="bud-row" data-level="<?= e($b['level']) ?>" style="padding:12px 0;border-top:1px solid rgba(91,107,128,.15)">
             <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline">
-              <b><?= e($b['category']) ?></b>
+              <b><?= e(t((string) $b['category'])) ?></b>
               <span style="color:<?= e($colors[$b['level']]) ?>;font-weight:700"><?= e((string) round($b['pct'])) ?>% · <?= e($msg[$b['level']]) ?></span>
             </div>
             <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?= (int) $w ?>"><i style="width:<?= e((string) $w) ?>%;background:<?= e($colors[$b['level']]) ?>"></i></div>
             <div style="display:flex;justify-content:space-between;gap:10px;margin-top:6px;font-size:.85rem;color:var(--mu)">
-              <span><?= e($b['currency']) ?> <?= e(number_format($b['spent'], 2)) ?> of <?= e(number_format($b['amount'], 2)) ?></span>
-              <span><?= $b['left'] >= 0 ? e(number_format($b['left'], 2)) . ' left' : e(number_format(-$b['left'], 2)) . ' over' ?></span>
+              <span><?= e($b['currency']) ?> <?= e(number_format($b['spent'], 2)) ?> <?= e(t('of')) ?> <?= e(number_format($b['amount'], 2)) ?></span>
+              <span><?= $b['left'] >= 0 ? e(number_format($b['left'], 2)) . ' ' . e(t('left')) : e(number_format(-$b['left'], 2)) . ' ' . e(t('over')) ?></span>
             </div>
-            <form method="POST" style="margin-top:6px" onsubmit="return confirm('Remove this budget?')">
+            <form method="POST" style="margin-top:6px" onsubmit="return confirm(<?= e(json_encode(t('Remove this budget?'))) ?>)">
               <?= csrf_field() ?><input type="hidden" name="do" value="delete"><input type="hidden" name="id" value="<?= (int) $b['id'] ?>">
-              <button class="btn o sm" type="submit">Remove</button>
+              <button class="btn o sm" type="submit"><?= e(t('Remove')) ?></button>
             </form>
           </div>
         <?php endforeach; ?>
       </div>
       <div class="card" style="margin-top:14px">
-        <div class="t">Set a budget</div>
+        <div class="t"><?= e(t('Set a budget')) ?></div>
         <form method="POST" autocomplete="off">
           <?= csrf_field() ?>
-          <div class="fl"><label for="bcat">Category</label>
+          <div class="fl"><label for="bcat"><?= e(t('Category')) ?></label>
             <select class="inp" id="bcat" name="category" required>
-              <?php foreach (array_keys($cats) as $c): ?><option value="<?= e($c) ?>"><?= e($c) ?></option><?php endforeach; ?>
+              <?php foreach (array_keys($cats) as $c): ?><option value="<?= e($c) ?>"><?= e(t($c)) ?></option><?php endforeach; ?>
             </select></div>
-          <div class="fl"><label for="bamt">Monthly limit</label>
-            <input class="inp amt" id="bamt" type="number" inputmode="decimal" step="0.01" min="0.01" name="amount" placeholder="e.g. 20000" required></div>
-          <div class="fl"><label for="bcur">Currency</label>
+          <div class="fl"><label for="bamt"><?= e(t('Monthly limit')) ?></label>
+            <input class="inp amt" id="bamt" type="number" inputmode="decimal" step="0.01" min="0.01" name="amount" placeholder="<?= e(t('e.g. 20000')) ?>" required></div>
+          <div class="fl"><label for="bcur"><?= e(t('Currency')) ?></label>
             <select class="inp" id="bcur" name="currency" required><?= currency_select_options('PKR') ?></select></div>
-          <button class="btn" type="submit" style="width:100%;margin-top:10px;padding:14px">Save budget</button>
-          <p style="color:var(--mu);font-size:.82rem;margin-top:8px">Setting a budget for a category that already has one changes its limit.</p>
+          <button class="btn" type="submit" style="width:100%;margin-top:10px;padding:14px"><?= e(t('Save budget')) ?></button>
+          <p style="color:var(--mu);font-size:.82rem;margin-top:8px"><?= e(t('Setting a budget for a category that already has one changes its limit.')) ?></p>
         </form>
       </div>
     </div>

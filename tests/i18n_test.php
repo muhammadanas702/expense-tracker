@@ -16,7 +16,7 @@ foreach ($ur as $en => $u) {
     ok(trim($u) !== '', "not empty: $en");
 }
 // every literal t('...') in the translated pages has an Urdu text
-$files = ['dashboard.php', 'includes/layout.php', 'modules/personal/tx-form.php', 'auth/login.php', 'settings/preferences.php'];
+$files = ['dashboard.php', 'includes/layout.php', 'modules/personal/tx-form.php', 'auth/login.php', 'settings/preferences.php', 'budgets.php', 'goals.php', 'reminders.php'];
 $missing = [];
 foreach ($files as $f) {
     $src = file_get_contents(__DIR__ . '/../' . $f);

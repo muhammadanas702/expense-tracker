@@ -68,6 +68,7 @@ Mail is not sent locally. `signup_verify_http_test.py` and `staff_mail_http_test
 | `offline_queue_ui_test.py` | Python (Playwright) | Same id twice = one row, phone time kept, offline save is queued, sent after reconnect, invalid entry dropped, kept when signed out |
 | `backup_auto_http_test.py` | Python | Opening the admin overview creates a backup when none is under 24 h old, not repeated, audit-logged, never for ordinary users |
 | `i18n_test.php` | PHP | English default, Urdu placeholder consistency, every `t()` text in the checked pages has an Urdu entry |
+| `urdu_pages_ui_test.py` | Python (Playwright) | Budgets, Goals, Reminders in Urdu at phone width: right-to-left, Urdu words, no sideways scroll, number boxes stay left-to-right, English unchanged |
 | `urdu_ui_test.py` | Python (Playwright) | `?lang=ur` gives `dir=rtl`, Urdu login/dashboard/add form, menu on the right, language card in Settings, back to English, no sideways scroll on a phone |
 | `resilience_ui_test.py` | Python (Playwright) | health.php, saved pages incl. admin, server down / slow (4 s) / device offline messages, auto-recovery, logout wipes saved pages, dead DB host gives a friendly 503 (`slow_router.php` simulates a slow server) |
 | `twofactor_http_test.py` | Python | Two-step sign-in: turn on/off with a mailed code, login needs the code, wrong/expired/used codes, resend cooldown, staff always asked and cannot opt out, emergency switch skips it, no code on a wrong password (starts its own servers, mail goes to a sink file) |
