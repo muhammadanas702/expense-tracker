@@ -69,9 +69,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 require_once __DIR__ . '/../includes/auth-layout.php';
 ?>
-<?php ef_auth_start(['title' => 'New password']); ?>
-<h2>Create new password</h2>
-<p class="s3">Hello <?= e($user['name']) ?>, choose a strong password you have not used before.</p>
+<?php ef_auth_start(['title' => t('New password')]); ?>
+<h2><?= e(t('Create new password')) ?></h2>
+<p class="s3"><?= e(t('Hello %s, choose a strong password you have not used before.', (string) $user['name'])) ?></p>
 <?= ef_msg($error) ?>
 <form method="POST">
     <?= csrf_field() ?>
@@ -83,6 +83,6 @@ require_once __DIR__ . '/../includes/auth-layout.php';
         <?= ef_check('A number and a symbol') ?>
     </div>
     <?= ef_field('CONFIRM PASSWORD', 'confirm_password', 'lock', 'password', '', ['placeholder' => 'Repeat password', 'required' => true, 'autocomplete' => 'new-password']) ?>
-    <button class="btn lg" style="width:100%" type="submit">Reset password</button>
+    <button class="btn lg" style="width:100%" type="submit"><?= e(t('Reset password')) ?></button>
 </form>
 <?php ef_auth_end(); ?>

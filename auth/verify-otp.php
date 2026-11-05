@@ -47,17 +47,17 @@ require_once __DIR__ . '/../includes/auth-layout.php';
 $otpEmail = (string) $_SESSION['reset_email'];
 $at = strpos($otpEmail, '@');
 $masked = $at === false ? '' : substr($otpEmail, 0, min(2, $at)) . '•••' . substr($otpEmail, $at);
-ef_auth_start(['title' => 'Check your email']); ?>
+ef_auth_start(['title' => t('Check your email')]); ?>
 <div class="big"><?= ef_icon('mail') ?></div>
-<h2 class="c2">Check your email</h2>
-<p class="s3 c2">We sent a 6-digit code to <b><?= e($masked) ?></b></p>
+<h2 class="c2"><?= e(t('Check your email')) ?></h2>
+<p class="s3 c2"><?= e(t('We sent a 6-digit code to')) ?> <b dir="ltr"><?= e($masked) ?></b></p>
 <?= ef_msg($error === '' ? $notice : '', 'ok') ?>
 <?= ef_msg($error) ?>
 <form method="POST">
     <?= csrf_field() ?>
     <input class="inp otp" type="text" name="otp" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" required autofocus aria-label="6-digit code">
     <div style="height:16px"></div>
-    <button class="btn lg" style="width:100%" type="submit">Verify code</button>
+    <button class="btn lg" style="width:100%" type="submit"><?= e(t('Verify code')) ?></button>
 </form>
-<div class="aft">Did not get it? <a class="lnk" href="forgot-password.php">Request a new code</a></div>
+<div class="aft"><?= e(t('Did not get it?')) ?> <a class="lnk" href="forgot-password.php"><?= e(t('Request a new code')) ?></a></div>
 <?php ef_auth_end(); ?>

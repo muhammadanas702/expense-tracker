@@ -16,7 +16,8 @@ foreach ($ur as $en => $u) {
     ok(trim($u) !== '', "not empty: $en");
 }
 // every literal t('...') in the translated pages has an Urdu text
-$files = ['dashboard.php', 'includes/layout.php', 'modules/personal/tx-form.php', 'auth/login.php', 'settings/preferences.php', 'budgets.php', 'goals.php', 'reminders.php'];
+$files = ['dashboard.php', 'includes/layout.php', 'modules/personal/tx-form.php', 'auth/login.php', 'settings/preferences.php', 'budgets.php', 'goals.php', 'reminders.php',
+    'auth/register.php', 'auth/forgot-password.php', 'auth/set-new-password.php', 'auth/verify-otp.php', 'auth/verify-email.php', 'includes/auth-layout.php'];
 $missing = [];
 foreach ($files as $f) {
     $src = file_get_contents(__DIR__ . '/../' . $f);
@@ -27,6 +28,20 @@ foreach ($files as $f) {
     }
 }
 foreach ($missing as $k => $f) { ok(false, "no Urdu text for '$k' ($f)"); }
+// sign-in / sign-up pages: messages, field labels, placeholders and checklist lines go through ef_msg / ef_field / ef_check, which translate them
+$authFiles = ['auth/register.php', 'auth/forgot-password.php', 'auth/set-new-password.php', 'auth/verify-otp.php', 'auth/verify-email.php', 'auth/login.php', 'auth/login-code.php', 'auth/send-otp.php'];
+foreach ($authFiles as $f) {
+    $src = file_get_contents(__DIR__ . '/../' . $f);
+    $found = [];
+    preg_match_all("/\\\$(?:msg|error|err)\\s*=\\s*(['\"])((?:(?!\\1)[^\\\\]|\\\\.)*)\\1\\s*;/", $src, $m); foreach ($m[2] as $k) { $found[] = $k; }
+    preg_match_all("/_message'\\]\\s*=\\s*(['\"])((?:(?!\\1)[^\\\\]|\\\\.)*)\\1/", $src, $m); foreach ($m[2] as $k) { $found[] = $k; }
+    preg_match_all("/ef_field\\('([^']+)'.*?'placeholder' => '([^']*)'/", $src, $m); foreach (array_merge($m[1], $m[2]) as $k) { $found[] = $k; }
+    preg_match_all("/ef_check\\('([^']+)'/", $src, $m); foreach ($m[1] as $k) { $found[] = $k; }
+    foreach ($found as $k) {
+        $k = str_replace(["\\'", '\\"'], ["'", '"'], $k);
+        if ($k !== '' && strpos($k, '$') === false) { ok(isset($ur[$k]), "auth text has Urdu: '$k' ($f)"); }
+    }
+}
 // menu labels from the module manifests
 foreach (glob(__DIR__ . '/../modules/*/module.php') as $mf) {
     $m = require $mf;
