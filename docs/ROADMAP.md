@@ -339,6 +339,12 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 59 — Urdu on Budgets, Goals and Reminders
+
+- `budgets.php`, `goals.php`, `reminders.php` use `t()`: titles, forms, buttons, progress text, confirm boxes and success/error messages now show in Urdu when the language is Urdu (about 26 new entries in `includes/lang/ur.php`). Amounts, dates and category names that the person typed stay as they are; built-in category names are translated.
+- `tests/i18n_test.php` now also checks these three pages; `tests/urdu_pages_ui_test.py` opens them in Urdu at phone width (right-to-left, Urdu words, no sideways scroll, number boxes left-to-right) and checks English is unchanged.
+- Not translated yet: reports, history lists, the other settings pages, register / forgot password, admin panel, public pages.
+
 ## Part 58 — Lite Android app (installs even when Play Protect blocks the full one)
 
 - Problem: Google Play Protect blocks installing an APK from a browser / WhatsApp / file manager when it declares SMS permissions ("App blocked to protect your device"). Code cannot override that.

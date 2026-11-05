@@ -65,57 +65,58 @@ try {
 }
 $col = ['late' => '#dc2626', 'today' => '#f59e0b', 'soon' => '#f59e0b', 'later' => 'var(--mu)'];
 $when = function (array $r) {
-    if ($r['days'] < 0) { return 'Overdue by ' . -$r['days'] . ' day' . ($r['days'] === -1 ? '' : 's'); }
-    if ($r['days'] === 0) { return 'Due today'; }
-    if ($r['days'] === 1) { return 'Due tomorrow'; }
-    return 'Due in ' . $r['days'] . ' days';
+    if ($r['days'] === -1) { return t('Overdue by 1 day'); }
+    if ($r['days'] < 0) { return t('Overdue by %s days', (string) -$r['days']); }
+    if ($r['days'] === 0) { return t('Due today'); }
+    if ($r['days'] === 1) { return t('Due tomorrow'); }
+    return t('Due in %s days', (string) $r['days']);
 };
 ef_page_start(['title' => 'Reminders', 'sub' => 'Never miss a bill', 'mode' => 'p', 'active' => 'rem', 'user' => $user]);
 ?>
     <div class="g" style="max-width:720px;margin:0 auto;padding:6px 0">
-      <?php if ($loadError !== ''): ?><div class="msg err" role="alert">Reminders could not load right now. Please try again in a moment.<?= $loadError !== 'unavailable' ? ' (Admin detail: ' . e($loadError) . ')' : '' ?></div><?php endif; ?>
+      <?php if ($loadError !== ''): ?><div class="msg err" role="alert"><?= e(t('Reminders could not load right now. Please try again in a moment.')) ?><?= $loadError !== 'unavailable' ? ' (Admin detail: ' . e($loadError) . ')' : '' ?></div><?php endif; ?>
       <?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e($error) ?></div><?php endif; ?>
       <div class="card">
-        <div class="t"><?= ef_icon('bell') ?> Coming up</div>
-        <?php if (!$items && $loadError === ''): ?><p style="color:var(--mu)">No reminders yet. Add a bill below (rent, internet, a loan instalment) and you will get a notification 3 days before it is due.</p><?php endif; ?>
+        <div class="t"><?= ef_icon('bell') ?> <?= e(t('Coming up')) ?></div>
+        <?php if (!$items && $loadError === ''): ?><p style="color:var(--mu)"><?= e(t('No reminders yet. Add a bill below (rent, internet, a loan instalment) and you will get a notification 3 days before it is due.')) ?></p><?php endif; ?>
         <?php foreach ($items as $r): ?>
           <div class="rem-row" data-state="<?= e($r['state']) ?>" style="padding:12px 0;border-top:1px solid rgba(91,107,128,.15)">
             <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline">
-              <b><?= e($r['title']) ?><?= $r['monthly'] ? ' <small style="color:var(--mu);font-weight:500">· every month</small>' : '' ?></b>
+              <b><?= e($r['title']) ?><?= $r['monthly'] ? ' <small style="color:var(--mu);font-weight:500">· ' . e(t('every month')) . '</small>' : '' ?></b>
               <span style="font-weight:700;color:<?= e($col[$r['state']]) ?>"><?= e($when($r)) ?></span>
             </div>
             <div style="font-size:.85rem;color:var(--mu);margin-top:2px"><?= e(date('d M Y', strtotime($r['due_date']))) ?><?= $r['amount'] !== null ? ' · ' . e($r['currency']) . ' ' . e(number_format($r['amount'], 2)) : '' ?></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center">
               <form method="POST" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                 <?= csrf_field() ?><input type="hidden" name="do" value="paid"><input type="hidden" name="id" value="<?= (int) $r['id'] ?>">
-                <?php if ($r['amount'] !== null): ?><label style="font-size:.85rem"><input type="checkbox" name="record" value="1"> Also save as expense</label><?php endif; ?>
-                <button class="btn sm" type="submit">Paid</button>
+                <?php if ($r['amount'] !== null): ?><label style="font-size:.85rem"><input type="checkbox" name="record" value="1"> <?= e(t('Also save as expense')) ?></label><?php endif; ?>
+                <button class="btn sm" type="submit"><?= e(t('Paid')) ?></button>
               </form>
-              <form method="POST" onsubmit="return confirm('Remove this reminder?')">
+              <form method="POST" onsubmit="return confirm(<?= e(json_encode(t('Remove this reminder?'))) ?>)">
                 <?= csrf_field() ?><input type="hidden" name="do" value="delete"><input type="hidden" name="id" value="<?= (int) $r['id'] ?>">
-                <button class="btn o sm" type="submit">Remove</button>
+                <button class="btn o sm" type="submit"><?= e(t('Remove')) ?></button>
               </form>
             </div>
           </div>
         <?php endforeach; ?>
       </div>
       <div class="card" style="margin-top:14px">
-        <div class="t">New reminder</div>
+        <div class="t"><?= e(t('New reminder')) ?></div>
         <form method="POST" autocomplete="off">
           <?= csrf_field() ?><input type="hidden" name="do" value="create">
-          <div class="fl"><label for="rtitle">What is it for?</label>
-            <input class="inp" id="rtitle" type="text" name="title" maxlength="60" placeholder="e.g. Internet bill, Rent" required></div>
-          <div class="fl"><label for="rdue">Due date</label>
+          <div class="fl"><label for="rtitle"><?= e(t('What is it for?')) ?></label>
+            <input class="inp" id="rtitle" type="text" name="title" maxlength="60" placeholder="<?= e(t('e.g. Internet bill, Rent')) ?>" required></div>
+          <div class="fl"><label for="rdue"><?= e(t('Due date')) ?></label>
             <input class="inp" id="rdue" type="date" name="due_date" value="<?= e(date('Y-m-d', strtotime('+7 days'))) ?>" required></div>
-          <div class="fl"><label for="ramt">Amount <span style="text-transform:none;font-weight:500">(optional)</span></label>
-            <input class="inp amt" id="ramt" type="number" inputmode="decimal" step="0.01" min="0.01" name="amount" placeholder="e.g. 3500"></div>
-          <div class="fl"><label for="rcur">Currency</label>
+          <div class="fl"><label for="ramt"><?= e(t('Amount')) ?> <span style="text-transform:none;font-weight:500">(<?= e(t('optional')) ?>)</span></label>
+            <input class="inp amt" id="ramt" type="number" inputmode="decimal" step="0.01" min="0.01" name="amount" placeholder="<?= e(t('e.g. 3500')) ?>"></div>
+          <div class="fl"><label for="rcur"><?= e(t('Currency')) ?></label>
             <select class="inp" id="rcur" name="currency" required><?= currency_select_options('PKR') ?></select></div>
           <label class="row" style="cursor:pointer">
-            <span><?= ef_icon('rpt') ?> Repeat every month<small>After "Paid" the next date is set for you</small></span>
+            <span><?= ef_icon('rpt') ?> <?= e(t('Repeat every month')) ?><small><?= e(t('After "Paid" the next date is set for you')) ?></small></span>
             <b><input class="swc" type="checkbox" name="monthly" value="1"><i class="sw"></i></b>
           </label>
-          <button class="btn" type="submit" style="width:100%;margin-top:14px;padding:14px">Save reminder</button>
+          <button class="btn" type="submit" style="width:100%;margin-top:14px;padding:14px"><?= e(t('Save reminder')) ?></button>
         </form>
       </div>
     </div>
