@@ -342,6 +342,12 @@ public class MainActivity extends Activity {
                 try { startActivity(new Intent(Intent.ACTION_VIEW, u)); } catch (Exception ignored) { }
                 return true;
             }
+            // Safe Browsing can wrongly flag the free-host address of our own site; the app only ever shows this one site, so it goes on
+            // (no "Dangerous site" screen inside the app). Anything else that is flagged is stopped.
+            @Override
+            public void onSafeBrowsingHit(WebView v, WebResourceRequest r, int threatType, android.webkit.SafeBrowsingResponse cb) {
+                if (r != null && r.getUrl() != null && HOST.equals(r.getUrl().getHost())) cb.proceed(false); else cb.backToSafety(true);
+            }
             @Override
             public void onPageFinished(WebView v, String url) {
                 if (showingSnapshot || url == null || !url.contains(HOST)) { showingSnapshot = false; return; }

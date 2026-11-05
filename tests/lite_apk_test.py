@@ -25,7 +25,8 @@ for f in ('assets/quick-add.js', 'assets/sms-auto.js', 'assets/sms-check.js'):
 # links
 h = subprocess.run(['php', '-r', 'echo password_hash("Test#12345",PASSWORD_DEFAULT);'], capture_output=True, text=True).stdout
 sql("DELETE FROM users WHERE email='lt@lt.local'"); sql(f"INSERT INTO users(name,email,password) VALUES ('Lt','lt@lt.local','{h}')")
-ok('ExpenseFlow-Lite.apk' in requests.get(B + '/').text, 'landing page offers the Lite APK')
+land = requests.get(B + '/').text
+ok('ExpenseFlow-Lite.apk' not in land and 'Play Protect' not in land and 'unknown' not in land.lower(), 'the public landing page has no advice about getting around Android warnings (Safe Browsing)')
 s = requests.Session()
 t = re.search(r'name="csrf_token" value="([^"]+)"', s.get(B + '/auth/login.php').text).group(1)
 s.post(B + '/auth/login.php', data={'email': 'lt@lt.local', 'password': 'Test#12345', 'csrf_token': t})
