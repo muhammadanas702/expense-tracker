@@ -5,6 +5,9 @@
   var box = document.getElementById('sms-device');
   var app = window.EFApp;
   var none = document.getElementById('sms-nodevice'), noneText = document.getElementById('sms-nodevice-text');
+  var lite = !!app && typeof app.smsSupported === 'function' && app.smsSupported() === false;
+  if (lite && noneText) { noneText.textContent = 'This is the Lite app (it has no SMS permission, so Android and Play Protect let it install). Open a payment message, tap Share > ExpenseFlow, or paste it below. Automatic reading needs the full ExpenseFlow.apk.'; }
+  if (lite) { return; }
   if (!box || !app || typeof app.smsSupported !== 'function') { // website, Windows app or an older Android app: paste only, but say why
     if (app && noneText) { noneText.textContent = 'This version of the app cannot read messages yet. Install the latest ExpenseFlow.apk from the Releases page (Settings > Apps) and open Quick add again. You can still paste a message below.'; }
     return;

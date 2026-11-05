@@ -4,7 +4,7 @@
 (function () {
   'use strict';
   var app = window.EFApp;
-  if (!app || typeof app.smsSupported !== 'function') { return; }
+  if (!app || typeof app.smsSupported !== 'function' || app.smsSupported() === false) { return; }
   var me = document.currentScript, base = (me && me.getAttribute('data-base')) || '';
   var onQuick = !!document.getElementById('sms-auto');
   var T = 'ef_sms_auto_t', SEEN = 'ef_sms_seen';

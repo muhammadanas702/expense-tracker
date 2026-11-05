@@ -34,7 +34,7 @@ jobs:
         working-directory: apps/android
         run: |
           set +e
-          gradle --no-daemon --console=plain --stacktrace assembleRelease -PvName=${{ steps.v.outputs.name }} -PvCode=${{ github.run_number }} > build.log 2>&1
+          gradle --no-daemon --console=plain --stacktrace assembleFullRelease assembleLiteRelease -PvName=${{ steps.v.outputs.name }} -PvCode=${{ github.run_number }} > build.log 2>&1
           code=$?
           if [ $code -ne 0 ]; then
             # Put the reason in the run's annotations so it can be read without opening the log.
@@ -42,19 +42,25 @@ jobs:
             echo "::error title=Gradle build failed::$MSG"
           fi
           exit $code
-      - name: Name the file
-        run: cp apps/android/app/build/outputs/apk/release/app-release.apk ExpenseFlow.apk
+      - name: Name the files
+        run: |
+          cp apps/android/app/build/outputs/apk/full/release/app-full-release.apk ExpenseFlow.apk
+          cp apps/android/app/build/outputs/apk/lite/release/app-lite-release.apk ExpenseFlow-Lite.apk
       - uses: actions/upload-artifact@v4
-        with: { name: ExpenseFlow-apk, path: ExpenseFlow.apk }
+        with:
+          name: ExpenseFlow-apk
+          path: |
+            ExpenseFlow.apk
+            ExpenseFlow-Lite.apk
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="v${{ steps.v.outputs.name }}"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" ExpenseFlow.apk --clobber
+            gh release upload "$TAG" ExpenseFlow.apk ExpenseFlow-Lite.apk --clobber
           else
-            gh release create "$TAG" ExpenseFlow.apk --title "ExpenseFlow $TAG" --notes "Android app (APK). Download ExpenseFlow.apk on your phone, open it and allow 'Install unknown apps' when asked. The app opens https://expenseflow.rf.gd/."
+            gh release create "$TAG" ExpenseFlow.apk ExpenseFlow-Lite.apk --title "ExpenseFlow $TAG" --notes "Android app (APK). ExpenseFlow.apk reads payment SMS; if Google Play Protect blocks it, install ExpenseFlow-Lite.apk (no SMS permission; use Share or paste for SMS). Open the file on your phone and allow 'Install unknown apps' when asked. The app opens https://expenseflow.rf.gd/."
           fi
 
   windows:

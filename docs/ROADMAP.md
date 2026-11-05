@@ -339,6 +339,16 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 58 — Lite Android app (installs even when Play Protect blocks the full one)
+
+- Problem: Google Play Protect blocks installing an APK from a browser / WhatsApp / file manager when it declares SMS permissions ("App blocked to protect your device"). Code cannot override that.
+- Two builds from the same project (Gradle flavors, same package and signing key, so either updates the other): `ExpenseFlow.apk` (full, reads SMS) and `ExpenseFlow-Lite.apk` (no `READ_SMS`/`RECEIVE_SMS`, no SMS receiver: `src/lite/AndroidManifest.xml`). The release workflow builds and uploads both.
+- In the Lite app Quick add says so and points to Share > ExpenseFlow or paste; the SMS card, auto-add script and check panel stay off (`smsSupported()` is false when the permission is not declared). The in-app updater downloads the matching file.
+- The landing page and Settings > Apps show a "Blocked by Play Protect? Get the Lite APK" link (derived from the Android link when it ends in `/ExpenseFlow.apk`).
+- Full APK on a blocked phone: install from a PC with `adb install -r ExpenseFlow.apk` (installer is not a browser; reported to work, not documented by Google).
+- Could not be compiled here (no Android SDK): the first release build on GitHub is the real test. If it fails, the error is in the run's annotations.
+- Tests: `tests/lite_apk_test.py`.
+
 ## Part 57 — Fixes from phone testing (offline add, offline bars, net balance, SMS dates)
 
 - Offline add did not work because the Add Expense / Add Income pages had never been opened online, so no saved copy existed. Now the page asks the service worker (message `prewarm`, at most every 6 hours, only while online) to save the Add pages and the dashboard, so they open offline and entries are queued (Part 54). Service worker cache v9.
