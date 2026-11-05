@@ -109,3 +109,6 @@ Why: fixes Safe Browsing flags on a shared subdomain, lets mail pass SPF/DKIM, i
 6. Search Console: no new security or indexing issues.
 7. Microsoft Partner Center / GitHub Releases: nothing pending.
 8. Gmail app password still works (send yourself a "forgot password" code).
+
+## Browser says "Dangerous site" / Search Console shows a security issue
+See `docs/SAFE_BROWSING.md` (review request text, and moving to your own domain with `tools/change-domain.php`).
