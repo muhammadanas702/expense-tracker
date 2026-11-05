@@ -30,6 +30,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.SafeBrowsingResponse;
 import android.widget.Toast;
 
 import java.io.File;
@@ -342,11 +343,15 @@ public class MainActivity extends Activity {
                 try { startActivity(new Intent(Intent.ACTION_VIEW, u)); } catch (Exception ignored) { }
                 return true;
             }
-            // Safe Browsing can wrongly flag the free-host address of our own site; the app only ever shows this one site, so it goes on
-            // (no "Dangerous site" screen inside the app). Anything else that is flagged is stopped.
+            /**
+             * Google's Safe Browsing list sometimes flags free sub-domains like this one by mistake. This app only ever shows our own site
+             * (every other address opens in the normal browser), so for OUR host the warning page is skipped; anything else is stopped.
+             */
             @Override
-            public void onSafeBrowsingHit(WebView v, WebResourceRequest r, int threatType, android.webkit.SafeBrowsingResponse cb) {
-                if (r != null && r.getUrl() != null && HOST.equals(r.getUrl().getHost())) cb.proceed(false); else cb.backToSafety(true);
+            @android.annotation.TargetApi(27)
+            public void onSafeBrowsingHit(WebView v, WebResourceRequest r, int threatType, SafeBrowsingResponse cb) {
+                if (r != null && r.getUrl() != null && HOST.equals(r.getUrl().getHost())) cb.proceed(false);
+                else cb.backToSafety(true);
             }
             @Override
             public void onPageFinished(WebView v, String url) {

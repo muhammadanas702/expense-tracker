@@ -1,11 +1,16 @@
 # ExpenseFlow – Apache rules (InfinityFree / shared hosting friendly).
 #
-# HTTPS: once https://expenseflow.rf.gd is confirmed working, you can uncomment these
-# 4 lines to force it. They stay off by default because a wrong redirect on some free
-# hosts causes a redirect loop.
-# RewriteEngine On
-# RewriteCond %{HTTPS} off
-# RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+# HTTPS: every http:// address is sent to https:// (a login form served over plain http is a Safe Browsing warning trigger).
+# It is switched by Admin > Settings > Force HTTPS, which creates/removes storage/force-https.on, so a wrong guess about this host can be undone without FTP.
+# The X-Forwarded-Proto line stops a redirect loop when the host terminates TLS in front of PHP.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{DOCUMENT_ROOT}/storage/force-https.on -f
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+    RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:\d+)?$ [NC]
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+</IfModule>
 
 # Never serve logs, dumps, docs, dependency manifests or backups.
 <FilesMatch "\.(log|sql|md|lock|yml|yaml|bak|backup|dist|sh|ini)$|^(composer\.json|Dockerfile|Procfile|phpinfo\.php|fix-admin\.php|set-admin\.php)$">
@@ -33,6 +38,7 @@ ErrorDocument 503 /error.php?c=503
     Header always set X-Frame-Options "SAMEORIGIN"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
     Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    Header always set Strict-Transport-Security "max-age=15552000"
 </IfModule>
 
 # Speed: compress text files and let browsers keep static files (their URLs carry ?v=<timestamp>, so a deploy still refreshes them).

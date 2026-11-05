@@ -339,12 +339,15 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
-## Part 61 — Safe Browsing: "Social engineering content" warning
+## Part 61 — "Dangerous site" warnings (Safe Browsing)
 
-- Google flagged `http://expenseflow.rf.gd/` (plain http) in Search Console (WNC-806900). Full explanation, the review text to send and the permanent fix (own domain) are in `docs/SAFE_BROWSING.md`.
-- Code: http -> https and one canonical host with a loop-proof 301 (`app_enforce_site()` / `app_redirect_target()` in `config/app.php`); landing page no longer coaches visitors past Android/Windows warnings (the Lite APK link stays in Settings > Apps); the Android web view continues past a Safe Browsing hit for our own address only (`onSafeBrowsingHit`, needs the next APK); `tools/change-domain.php` moves the project to a new domain.
-- Tests: `tests/redirect_test.php`, `tests/redirect_http_test.py` (uses the production Host header against the local server), `tests/change_domain_test.php`, and `tests/lite_apk_test.py` (landing page has no bypass advice).
-- Needs you: request the review in Search Console; buy and connect a domain for a lasting fix.
+- Cause and plan: `docs/SAFE_BROWSING.md`. Google flagged `http://expenseflow.rf.gd/` as social engineering (free shared sub-domain, plain-http sign-in page, install-bypass wording on the landing page).
+- Admin > Settings > **Force HTTPS** (marker file `storage/force-https.on` read by `.htaccess`; refuses to turn on from plain http; easy undo). HSTS header added.
+- Landing page: install-bypass instructions moved to Settings > Apps > Install help; Lite link text shortened.
+- Android: `onSafeBrowsingHit` proceeds only for the app's own host (needs a new APK).
+- `tools/switch-domain.php old new [--apply]` for the move to a custom domain.
+- You still have to: turn on Force HTTPS, request a review in Search Console, and (lasting fix) get your own domain.
+- Tests: `tests/trust_test.py`.
 
 ## Part 60 — Urdu on sign-up and password pages
 
@@ -459,4 +462,3 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - More money words count as a payment (successful/successfully, transaction, txn, trx, transfer, top-up). A message that has an amount but no clear direction waits in "Needs your check" instead of being lost.
 - New "Skipped by the filter" list on Quick add: messages that looked like offers, failed payments, reminders, money requests or balance alerts keep their text for 7 days with the reason, and can be added with one tap (Expense / Income). One-time-code messages never keep their text.
 - Tests: `quickadd_classify_test.php` (short code, "Transaction successful", direction unknown, phone number), `quickadd_import_http_test.py` (skipped list).
-
