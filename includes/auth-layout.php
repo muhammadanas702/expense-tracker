@@ -21,7 +21,7 @@ function ef_auth_brand(): string
 
 function ef_check(string $text): string
 {
-    return '<div class="ck">' . ef_icon('ck') . '<span>' . e($text) . '</span></div>';
+    return '<div class="ck">' . ef_icon('ck') . '<span>' . e(t($text)) . '</span></div>';
 }
 
 /** One labelled input with a leading icon (and an eye button for passwords). */
@@ -29,10 +29,10 @@ function ef_field(string $label, string $name, string $icon, string $type = 'tex
 {
     $extra = '';
     foreach ($attrs as $k => $v) {
-        $extra .= ' ' . e($k) . ($v === true ? '' : '="' . e((string) $v) . '"');
+        $extra .= ' ' . e($k) . ($v === true ? '' : '="' . e($k === 'placeholder' ? t((string) $v) : (string) $v) . '"');
     }
     $isPw = $type === 'password';
-    return '<div class="fl"><label for="f_' . e($name) . '">' . e($label) . '</label><div class="fw">' . ef_icon($icon)
+    return '<div class="fl"><label for="f_' . e($name) . '">' . e(t($label)) . '</label><div class="fw">' . ef_icon($icon)
         . '<input class="inp' . ($isPw ? ' hasey' : '') . '" id="f_' . e($name) . '" type="' . e($type) . '" name="' . e($name)
         . '" value="' . e($value) . '"' . $extra . '>'
         . ($isPw ? '<button type="button" class="ey" data-eye aria-label="Show or hide password">' . ef_icon('eye') . '</button>' : '')
@@ -45,7 +45,7 @@ function ef_msg(string $text, string $type = 'err'): string
         return '';
     }
     $t = in_array($type, ['ok', 'err', 'info'], true) ? $type : 'err';
-    return '<div class="msg ' . $t . '" role="alert" style="margin-bottom:14px">' . e($text) . '</div>';
+    return '<div class="msg ' . $t . '" role="alert" style="margin-bottom:14px">' . e(t($text)) . '</div>';
 }
 
 function ef_auth_start(array $o = []): void
@@ -91,8 +91,8 @@ function ef_auth_end(array $o = []): void
     $split = $o['split'] ?? true;
     ?>
     <div class="atrust">
-      <p>ExpenseFlow is a free expense tracker. We will never ask for your bank or card details, and we never email you asking for your password.</p>
-      <p><a href="<?= e(ef_url('index.php')) ?>">Home</a> · <a href="<?= e(ef_url('about.php')) ?>">About</a> · <a href="<?= e(ef_url('privacy.php')) ?>">Privacy</a> · <a href="<?= e(ef_url('terms.php')) ?>">Terms</a> · <a href="<?= e(ef_url('contact.php')) ?>">Contact</a></p>
+      <p><?= e(t('ExpenseFlow is a free expense tracker. We will never ask for your bank or card details, and we never email you asking for your password.')) ?></p>
+      <p><a href="<?= e(ef_url('index.php')) ?>"><?= e(t('Home')) ?></a> · <a href="<?= e(ef_url('about.php')) ?>"><?= e(t('About')) ?></a> · <a href="<?= e(ef_url('privacy.php')) ?>"><?= e(t('Privacy')) ?></a> · <a href="<?= e(ef_url('terms.php')) ?>"><?= e(t('Terms')) ?></a> · <a href="<?= e(ef_url('contact.php')) ?>"><?= e(t('Contact')) ?></a></p>
     </div>
   </div><?= $split ? '</div>' : '' ?>
 </div>

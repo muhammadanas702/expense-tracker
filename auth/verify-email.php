@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($do === 'resend') {
         $ipKey = rl_key(client_ip());
         if (signup_resend_wait($pending) > 0) {
-            $error = 'Please wait ' . signup_resend_wait($pending) . ' seconds before asking for another code.';
+            $error = t('Please wait %s seconds before asking for another code.', (string) signup_resend_wait($pending));
         } elseif ((int) $pending['sends'] >= SIGNUP_MAX_SENDS) {
             $error = 'Too many codes were sent. Please start again with the correct address.';
         } elseif (rl_blocked($conn, 'signup_mail_email', rl_key($pending['email']), 5, 3600) || rl_blocked($conn, 'signup_mail_ip', $ipKey, 15, 3600)) {
@@ -90,10 +90,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 require_once __DIR__ . '/../includes/auth-layout.php';
-ef_auth_start(['title' => 'Confirm your email']); ?>
+ef_auth_start(['title' => t('Confirm your email')]); ?>
 <div class="big"><?= ef_icon('mail') ?></div>
-<h2 class="c2">Confirm your email</h2>
-<p class="s3 c2">We sent a 6-digit code to <b><?= e(signup_mask($pending['email'])) ?></b>. Your account is created after you enter it.</p>
+<h2 class="c2"><?= e(t('Confirm your email')) ?></h2>
+<p class="s3 c2"><?= e(t('We sent a 6-digit code to')) ?> <b dir="ltr"><?= e(signup_mask($pending['email'])) ?></b>. <?= e(t('Your account is created after you enter it.')) ?></p>
 <?= ef_msg($notice, 'ok') ?>
 <?= ef_msg($error) ?>
 <form method="POST">
@@ -101,12 +101,12 @@ ef_auth_start(['title' => 'Confirm your email']); ?>
     <input type="hidden" name="do" value="verify">
     <input class="inp otp" type="text" name="code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" required autofocus aria-label="6-digit code">
     <div style="height:16px"></div>
-    <button class="btn lg" style="width:100%" type="submit">Confirm and create account</button>
+    <button class="btn lg" style="width:100%" type="submit"><?= e(t('Confirm and create account')) ?></button>
 </form>
 <form method="POST" class="aft" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
     <?= csrf_field() ?>
-    <button class="lnk" type="submit" name="do" value="resend" style="background:none;border:0;cursor:pointer;font:inherit">Send a new code</button>
-    <button class="lnk" type="submit" name="do" value="cancel" style="background:none;border:0;cursor:pointer;font:inherit">Wrong address? Start again</button>
+    <button class="lnk" type="submit" name="do" value="resend" style="background:none;border:0;cursor:pointer;font:inherit"><?= e(t('Send a new code')) ?></button>
+    <button class="lnk" type="submit" name="do" value="cancel" style="background:none;border:0;cursor:pointer;font:inherit"><?= e(t('Wrong address? Start again')) ?></button>
 </form>
-<div class="aft">Nothing arrived? Check your spam folder.</div>
+<div class="aft"><?= e(t('Nothing arrived? Check your spam folder.')) ?></div>
 <?php ef_auth_end(); ?>

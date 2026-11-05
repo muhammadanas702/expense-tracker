@@ -339,6 +339,14 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 60 — Urdu on sign-up and password pages
+
+- Translated: Create account, Confirm your email, Forgot password, Check your email (reset code), Create new password, the sign-in/sign-up error and notice messages, field labels and placeholders, the password checklist and the footer of the sign-in pages (about 80 new entries in `includes/lang/ur.php`).
+- `ef_msg()`, `ef_field()` (label and placeholder) and `ef_check()` in `includes/auth-layout.php` run their text through `t()`, so any message set on those pages is translated when an Urdu text exists; texts without one stay English.
+- E-mail addresses and codes stay left-to-right inside Urdu sentences.
+- Not translated yet: the two-step login-code page headings, reports, history lists, other settings pages, admin panel, public pages.
+- Tests: `tests/i18n_test.php` also reads the messages, labels and placeholders of these pages and fails when one has no Urdu text; `tests/urdu_auth_ui_test.py` (real browser).
+
 ## Part 59 — Urdu on Budgets, Goals and Reminders
 
 - `budgets.php`, `goals.php`, `reminders.php` use `t()`: titles, forms, buttons, progress text, confirm boxes and success/error messages now show in Urdu when the language is Urdu (about 26 new entries in `includes/lang/ur.php`). Amounts, dates and category names that the person typed stay as they are; built-in category names are translated.
