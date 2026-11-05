@@ -11,6 +11,14 @@ settings_page_start('apps', $user);
       <div class="row" id="app-dl"><span><?= ef_icon('dl') ?> Android app<small>Download the ExpenseFlow APK</small></span><b><a class="lnk" href="<?= e(settings_public('link_android')) ?>" rel="noopener">Download</a></b></div>
       <?php if (settings_lite_link() !== ''): ?><div class="row" id="app-lite"><span><?= ef_icon('dl') ?> Android Lite app<small>If Google Play Protect blocks the APK. No SMS reading: use Share or paste.</small></span><b><a class="lnk" href="<?= e(settings_lite_link()) ?>" rel="noopener">Download</a></b></div><?php endif; ?>
       <div class="row" id="app-win"><span><?= ef_icon('lap') ?> Windows app<small>Download the ExpenseFlow installer (.exe)</small></span><b><a class="lnk" href="<?= e(settings_public('link_store') ?: settings_public('link_windows')) ?>" rel="noopener">Download</a></b></div>
+      <details class="qhelp" id="install-help" style="margin:12px 0 4px">
+        <summary>Install help (Android and Windows)</summary>
+        <ol>
+          <li><b>Android:</b> open the downloaded APK and allow installing from this source when Android asks. Updates then come inside the app.</li>
+          <li><b>Google Play Protect says "App blocked"?</b> It does this for apps that can read SMS when they are installed from outside the Play Store. Install the Lite app instead (no SMS permission), or install the full APK from a computer with <code>adb install -r ExpenseFlow.apk</code>.</li>
+          <li><b>Windows:</b> if it shows "protected your PC", choose More info, then Run anyway.</li>
+        </ol>
+      </details>
       <div class="row" id="app-upd" hidden><span><?= ef_icon('ref') ?> App updates<small id="app-ver">Check for a newer version</small></span><b><a class="lnk" href="#" id="app-upd-btn">Check</a></b></div>
     </div>
 <?php

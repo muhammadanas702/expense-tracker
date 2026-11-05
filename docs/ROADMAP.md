@@ -339,6 +339,16 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 61 — "Dangerous site" warnings (Safe Browsing)
+
+- Cause and plan: `docs/SAFE_BROWSING.md`. Google flagged `http://expenseflow.rf.gd/` as social engineering (free shared sub-domain, plain-http sign-in page, install-bypass wording on the landing page).
+- Admin > Settings > **Force HTTPS** (marker file `storage/force-https.on` read by `.htaccess`; refuses to turn on from plain http; easy undo). HSTS header added.
+- Landing page: install-bypass instructions moved to Settings > Apps > Install help; Lite link text shortened.
+- Android: `onSafeBrowsingHit` proceeds only for the app's own host (needs a new APK).
+- `tools/switch-domain.php old new [--apply]` for the move to a custom domain.
+- You still have to: turn on Force HTTPS, request a review in Search Console, and (lasting fix) get your own domain.
+- Tests: `tests/trust_test.py`.
+
 ## Part 60 — Urdu on sign-up and password pages
 
 - Translated: Create account, Confirm your email, Forgot password, Check your email (reset code), Create new password, the sign-in/sign-up error and notice messages, field labels and placeholders, the password checklist and the footer of the sign-in pages (about 80 new entries in `includes/lang/ur.php`).

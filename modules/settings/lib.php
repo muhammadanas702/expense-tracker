@@ -206,3 +206,38 @@ function settings_lite_link(): string
     $l = (string) settings_public('link_android');
     return preg_match('~/ExpenseFlow\.apk$~', $l) ? preg_replace('~/ExpenseFlow\.apk$~', '/ExpenseFlow-Lite.apk', $l) : '';
 }
+
+/* ---- Force HTTPS (Part 61). .htaccess redirects http:// to https:// only while storage/force-https.on exists. ---- */
+
+/** True when this request arrived over HTTPS (directly or through the host's proxy). */
+function settings_is_https(): bool
+{
+    return (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off')
+        || strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
+}
+
+function settings_force_https_file(): string
+{
+    return dirname(__DIR__, 2) . '/storage/force-https.on';
+}
+
+function settings_force_https_on(): bool
+{
+    return is_file(settings_force_https_file());
+}
+
+/** Turns the redirect on or off. Turning it on is only allowed from an https page (so you cannot lock yourself out). Returns an error text or null. */
+function settings_force_https_set(bool $on, ?bool $isHttps = null): ?string
+{
+    $f = settings_force_https_file();
+    if ($on) {
+        if (!($isHttps ?? settings_is_https())) {
+            return 'Open the admin panel through https:// first, then turn this on.';
+        }
+        if (!is_dir(dirname($f)) && !@mkdir(dirname($f), 0750, true)) {
+            return 'The storage folder cannot be written on this server.';
+        }
+        return @file_put_contents($f, "on\n") === false ? 'Could not save the setting.' : null;
+    }
+    return (!is_file($f) || @unlink($f)) ? null : 'Could not remove the setting file.';
+}

@@ -27,4 +27,12 @@ admin_page_start(['title' => 'Settings', 'sub' => $s['maintenance'] === '1' ? 'M
   <div class="fl"><label for="contact_email">Contact e-mail</label><input class="inp" id="contact_email" name="contact_email" type="email" maxlength="120" value="<?= e($s['contact_email']) ?>"></div>
   <button class="btn" type="submit">Save</button>
 </form>
+<div class="g card" id="https-card" style="margin-top:14px">
+  <b>Force HTTPS</b>
+  <small class="k" style="display:block;margin:4px 0 10px">Sends every <code>http://</code> address to <code>https://</code>. A sign-in page served over plain http is one of the things Google's Safe Browsing warning looks at, so turn this on once https works for you. <?= settings_force_https_on() ? 'It is <b>on</b> now.' : 'It is <b>off</b> now.' ?> If the site ever shows "too many redirects", delete <code>storage/force-https.on</code> with the host's file manager.</small>
+  <form method="post" action="https-action.php"><?= csrf_field() ?>
+    <?php if (settings_force_https_on()): ?><button class="btn o" type="submit" name="do" value="off">Turn off</button>
+    <?php else: ?><button class="btn" type="submit" name="do" value="on"<?= settings_is_https() ? '' : ' disabled' ?>>Turn on</button><?= settings_is_https() ? '' : ' <small class="k">Open this page through https:// to enable it.</small>' ?><?php endif; ?>
+  </form>
+</div>
 <?php admin_page_end();

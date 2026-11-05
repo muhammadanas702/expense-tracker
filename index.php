@@ -146,10 +146,10 @@ foreach ($ld as $block): ?>
   <h2 class="rv">Get the app</h2>
   <p class="sub2">Use ExpenseFlow on your phone or computer. Your account works everywhere.</p>
   <div class="F3">
-    <div class="g ft rv"><div class="sn"><?= ef_icon('phone') ?></div><b>Android</b><p>Download the APK, open it and allow installing from this source when Android asks. Updates come inside the app.</p>
+    <div class="g ft rv"><div class="sn"><?= ef_icon('phone') ?></div><b>Android</b><p>Get the Android app from our GitHub releases page. Updates come inside the app.</p>
       <a class="btn" style="margin-top:12px" href="<?= e(settings_public('link_android')) ?>" rel="noopener"><?= ef_icon('dl') ?> Download APK</a>
-      <?php if (settings_lite_link() !== ''): ?><a class="lnk" style="display:block;margin-top:8px;font-size:.85rem" href="<?= e(settings_lite_link()) ?>" rel="noopener">Blocked by Play Protect? Get the Lite APK (no SMS reading)</a><?php endif; ?></div>
-    <div class="g ft rv" style="--d:.1s"><div class="sn"><?= ef_icon('lap') ?></div><b>Windows</b><p>Download the installer and run it. If Windows shows "protected your PC", choose More info, then Run anyway.</p>
+      <?php if (settings_lite_link() !== ''): ?><a class="lnk" style="display:block;margin-top:8px;font-size:.85rem" href="<?= e(settings_lite_link()) ?>" rel="noopener">Lite version (no SMS permission)</a><?php endif; ?></div>
+    <div class="g ft rv" style="--d:.1s"><div class="sn"><?= ef_icon('lap') ?></div><b>Windows</b><p>Get the Windows app from our GitHub releases page, or from the Microsoft Store when it is listed.</p>
       <a class="btn" style="margin-top:12px" href="<?= e(settings_public('link_windows')) ?>" rel="noopener"><?= ef_icon('dl') ?> Download for Windows</a>
       <?php if (settings_public('link_store') !== ''): ?><a class="btn o" style="margin-top:8px" href="<?= e(settings_public('link_store')) ?>" rel="noopener"><?= ef_icon('dl') ?> Get it from Microsoft Store</a><?php endif; ?></div>
     <div class="g ft rv" style="--d:.2s"><div class="sn"><?= ef_icon('globe') ?></div><b>iPhone &amp; any browser</b><p>On iPhone open this site in Safari, tap Share, then "Add to Home Screen". Chrome and Edge also offer "Install app".</p>
