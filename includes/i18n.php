@@ -73,3 +73,91 @@ function ef_lang_switch(string $class = 'lang-sw'): string
         . '" hreflang="' . $to . '" lang="' . $to . '">' . ($to === 'ur' ? 'اردو' : 'English') . '</a>';
 }
 
+
+/** The Urdu dictionary (English text => Urdu), loaded once. */
+function ef_ur_dictionary(): array
+{
+    static $ur = null;
+    return $ur ??= require __DIR__ . '/lang/ur.php';
+}
+
+/** Looks one piece of visible text up. Whitespace is ignored when matching and kept around the result; "A · B" titles are translated part by part. */
+function ef_i18n_piece(string $raw): string
+{
+    $plain = html_entity_decode($raw, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $key = trim(preg_replace('/\s+/u', ' ', $plain) ?? $plain);
+    if ($key === '' || !preg_match('/[A-Za-z]{2}/', $key)) {
+        return $raw;
+    }
+    $ur = ef_ur_dictionary();
+    if (isset($ur[$key])) {
+        $lead = preg_match('/^\s*/u', $raw, $m) ? $m[0] : '';
+        $trail = preg_match('/\s*$/u', $raw, $m) ? $m[0] : '';
+        return $lead . htmlspecialchars($ur[$key], ENT_NOQUOTES, 'UTF-8') . $trail;
+    }
+    if (strpos($key, ' · ') !== false) {
+        $parts = explode(' · ', $key);
+        $out = [];
+        foreach ($parts as $part) {
+            $out[] = $ur[$part] ?? $part;
+        }
+        $lead = preg_match('/^\s*/u', $raw, $m) ? $m[0] : '';
+        $trail = preg_match('/\s*$/u', $raw, $m) ? $m[0] : '';
+        return $lead . htmlspecialchars(implode(' · ', $out), ENT_NOQUOTES, 'UTF-8') . $trail;
+    }
+    return $raw;
+}
+
+/**
+ * Output filter for Urdu pages: every visible text and the placeholder / title / aria-label / alt / button texts that match an entry of
+ * includes/lang/ur.php exactly are replaced, so pages do not need t() around every word. Scripts, styles, comments and non-HTML answers
+ * (JSON, files) are never touched.
+ */
+function ef_i18n_page(string $html): string
+{
+    if ($html === '' || strpos($html, '<') === false || $html[0] === '{' || $html[0] === '[') {
+        return $html;
+    }
+    foreach (headers_list() as $h) {
+        if (stripos($h, 'content-type:') === 0 && stripos($h, 'text/html') === false) {
+            return $html;
+        }
+    }
+    $parts = preg_split('/(<script\b.*?<\/script>|<style\b.*?<\/style>|<!--.*?-->|<[^>]+>)/is', $html, -1, PREG_SPLIT_DELIM_CAPTURE);
+    if ($parts === false) {
+        return $html;
+    }
+    foreach ($parts as $i => $seg) {
+        if ($seg === '') {
+            continue;
+        }
+        if ($seg[0] !== '<') {
+            $parts[$i] = ef_i18n_piece($seg);
+        } elseif (isset($seg[1]) && $seg[1] !== '/' && $seg[1] !== '!' && stripos($seg, '<script') !== 0 && stripos($seg, '<style') !== 0) {
+            $isButton = (bool) preg_match('/<input\b[^>]*\btype=["\']?(submit|button|reset)/i', $seg);
+            $parts[$i] = preg_replace_callback('/\b(placeholder|title|aria-label|alt|value)=("([^"]*)"|\'([^\']*)\')/i', function ($m) use ($isButton) {
+                if (strtolower($m[1]) === 'value' && !$isButton) {
+                    return $m[0];
+                }
+                $val = $m[3] !== '' ? $m[3] : ($m[4] ?? '');
+                $new = ef_i18n_piece($val);
+                return $new === $val ? $m[0] : $m[1] . '="' . str_replace('"', '&quot;', $new) . '"';
+            }, $seg);
+        }
+    }
+    return implode('', $parts);
+}
+
+if (PHP_SAPI !== 'cli' && ef_lang() === 'ur') {
+    ob_start('ef_i18n_page');
+}
+
+/** "November 2026" in the active language (Urdu month names in Urdu mode). */
+function ef_month_year(\DateTimeInterface $d): string
+{
+    if (ef_lang() !== 'ur') {
+        return $d->format('F Y');
+    }
+    $m = ['جنوری','فروری','مارچ','اپریل','مئی','جون','جولائی','اگست','ستمبر','اکتوبر','نومبر','دسمبر'];
+    return $m[(int)$d->format('n') - 1] . ' ' . $d->format('Y');
+}

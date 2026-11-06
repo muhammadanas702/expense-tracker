@@ -100,10 +100,10 @@ ef_page_start(['title' => 'Quick add', 'sub' => 'Paste a bank or wallet SMS', 'm
         <details id="sms-help" class="qhelp">
           <summary>Android keeps declining the permission?</summary>
           <ol>
-            <li>Press <b>Open settings</b> in the message above (or: phone Settings &gt; Apps &gt; ExpenseFlow).</li>
-            <li>Tap the <b>three dots</b> at the top right and choose <b>Allow restricted settings</b>. Android 13 and newer block SMS for apps installed from outside Google Play until you do this.</li>
-            <li>Open <b>Permissions &gt; SMS</b> and choose <b>Allow</b>. Also allow <b>Notifications</b>.</li>
-            <li>Come back here and press <b>Allow and read</b> again.</li>
+            <li><?= t('Press <b>Open settings</b> in the message above (or: phone Settings &gt; Apps &gt; ExpenseFlow).') ?></li>
+            <li><?= t('Tap the <b>three dots</b> at the top right and choose <b>Allow restricted settings</b>. Android 13 and newer block SMS for apps installed from outside Google Play until you do this.') ?></li>
+            <li><?= t('Open <b>Permissions &gt; SMS</b> and choose <b>Allow</b>. Also allow <b>Notifications</b>.') ?></li>
+            <li><?= t('Come back here and press <b>Allow and read</b> again.') ?></li>
           </ol>
         </details>
         <div id="sms-auto" class="qsec" data-on="<?= $prefs['auto'] ? '1' : '0' ?>">

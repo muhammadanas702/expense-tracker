@@ -34,20 +34,24 @@ function ef_error_page(int $code = 500, ?string $title = null, ?string $message 
         header('Cache-Control: no-store');
         header('X-Robots-Tag: noindex');
     }
+    $ur = (($_COOKIE['ef_lang'] ?? '') === 'ur' && is_file(__DIR__ . '/lang/ur.php')) ? (require __DIR__ . '/lang/ur.php') : null; // still Urdu when everything else is down
+    $tr = fn($s) => $ur[$s] ?? $s;
+    if ($ur) { $title = $tr($title); $message = $tr($message); }
     $h = fn($s) => htmlspecialchars((string) $s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     $home = '/';
     if (!empty($GLOBALS['base_url'])) {
         $home = rtrim((string) $GLOBALS['base_url'], '/') . '/';
     }
-    echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">'
-        . '<meta name="theme-color" content="#0B2545"><link rel="icon" href="' . $h($home) . 'favicon.ico"><title>' . $h($title) . ' · ExpenseFlow</title>'
+    echo '<!DOCTYPE html><html lang="' . ($ur ? 'ur" dir="rtl' : 'en') . '"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">'
+        . '<meta name="theme-color" content="#0B2545"><link rel="icon" href="' . $h($home) . 'favicon.ico"><title>' . $h($title) . ' · ExpenseFlow</title>' . ($ur ? '<link rel="stylesheet" href="' . $h($home) . 'assets/rtl.css">' : '')
         . '<style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:linear-gradient(135deg,#d9f7ef,#e6eefc 55%,#fde6cf);color:#0b2545}'
         . 'main{width:100%;max-width:440px;background:rgba(255,255,255,.82);border-radius:22px;padding:30px 26px;box-shadow:0 20px 50px rgba(11,37,69,.12);text-align:center}'
         . '.c{display:inline-block;font-weight:800;font-size:.8rem;letter-spacing:.12em;color:#0f766e;background:rgba(15,118,110,.1);padding:4px 12px;border-radius:99px;margin-bottom:12px}'
         . 'h1{margin:0 0 10px;font-size:1.35rem;line-height:1.3}p{margin:0 0 20px;color:#4a5b73;line-height:1.55}'
         . '.b{display:inline-block;margin:4px;padding:11px 20px;border-radius:12px;font-weight:700;text-decoration:none;background:#0f766e;color:#fff}.b.o{background:#fff;color:#0b2545;border:1px solid rgba(91,107,128,.35)}</style></head>'
-        . '<body><main><span class="c">' . ($code >= 400 ? 'ERROR ' . (int) $code : '') . '</span><h1>' . $h($title) . '</h1><p>' . $h($message) . '</p>'
-        . '<a class="b" href="' . $h($home) . '">Go to home</a><a class="b o" href="javascript:history.back()">Go back</a></main>'
+        . '<body><main><span class="c">' . ($code >= 400 ? ($ur ? 'خرابی ' : 'ERROR ') . (int) $code : '') . '</span><h1>' . $h($title) . '</h1><p>' . $h($message) . '</p>'
+        . '<a class="b" href="' . $h($home) . '">' . $h($tr('Go to home')) . '</a>'
+        . '<a class="b o" href="javascript:history.back()">' . $h($tr('Go back')) . '</a></main>'
         . ($code === 503 ? '<script>setTimeout(function(){location.reload()},15000)</script>' : '') . '</body></html>';
     exit();
 }

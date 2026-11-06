@@ -65,7 +65,7 @@ try {
 }
 $colors = ['ok' => '#0d9f6e', 'warn' => '#f59e0b', 'over' => '#dc2626'];
 $msg = ['ok' => t('On track'), 'warn' => t('Close to the limit'), 'over' => t('Over budget')];
-ef_page_start(['title' => 'Budgets', 'sub' => t('Monthly limits for %s', date('F Y')), 'mode' => 'p', 'active' => 'bud', 'user' => $user]);
+ef_page_start(['title' => 'Budgets', 'sub' => t('Monthly limits for %s', ef_month_year(new DateTime())), 'mode' => 'p', 'active' => 'bud', 'user' => $user]);
 ?>
     <div class="g" style="max-width:720px;margin:0 auto;padding:6px 0">
       <?php if ($loadError !== ''): ?><div class="msg err" role="alert"><?= e(t('Budgets could not load right now. Please try again in a moment.')) ?><?= $loadError !== 'unavailable' ? ' (Admin detail: ' . e($loadError) . ')' : '' ?></div><?php endif; ?>
