@@ -75,6 +75,8 @@ Mail is not sent locally. `signup_verify_http_test.py` and `staff_mail_http_test
 | `urdu_auth_ui_test.py` | Python (Playwright) | Register, forgot password and the wrong-sign-in message in Urdu at phone width (right-to-left, placeholders, no sideways scroll, e-mail box left-to-right), English unchanged |
 | `urdu_public_test.py` | Python (requests) | Landing, About, Contact, Guides and sign-in pages have no English left in Urdu mode, are right-to-left, the Nastaleeq font and size are served, English unchanged, offline page switches to Urdu |
 | `fonts_test.py` | Python (Playwright) | Fonts are served and preloaded, no Google Fonts call, Nastaleeq already loaded at first paint, one Urdu font on every element, English headings/text fonts |
+| `push_test.php` | PHP | Web Push: RFC 8291 test vector, subscriptions, encrypted delivery to a sink file, notifications-off users skipped, device removal |
+| `push_http_test.py` | Python (requests) | `push-subscribe.php` (login, CSRF, other users, bad endpoints), the Settings card, service-worker handlers, Urdu |
 | `urdu_coverage.py` | Python (tool) | Crawls the signed-in pages in Urdu and lists English text still showing (`--admin`, `--fail-over=N`) |
 | `urdu_pages_ui_test.py` | Python (Playwright) | Budgets, Goals, Reminders in Urdu at phone width: right-to-left, Urdu words, no sideways scroll, number boxes stay left-to-right, English unchanged |
 | `urdu_ui_test.py` | Python (Playwright) | `?lang=ur` gives `dir=rtl`, Urdu login/dashboard/add form, menu on the right, language card in Settings, back to English, no sideways scroll on a phone |

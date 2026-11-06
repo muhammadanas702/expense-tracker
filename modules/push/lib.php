@@ -242,3 +242,26 @@ function push_on_user_deleted(PDO $conn, int $userId): void
     push_ensure_schema($conn);
     $conn->prepare('DELETE FROM push_subscriptions WHERE user_id = ?')->execute([$userId]);
 }
+
+/** Runs $job after the page was sent (so a slow push service never slows a page); at once on the command line (tests). */
+function push_defer(callable $job): void
+{
+    if (PHP_SAPI === 'cli') {
+        $job();
+        return;
+    }
+    register_shutdown_function(function () use ($job) {
+        if (function_exists('fastcgi_finish_request')) {
+            fastcgi_finish_request();
+        }
+        $job();
+    });
+}
+
+/** Called by activity_record(): pushes the new event to the people who got a bell notification. Never throws. */
+function push_after_event(PDO $conn, int $eventId, array $users): void
+{
+    if ($users) {
+        push_defer(fn() => push_for_event($conn, $eventId, $users));
+    }
+}

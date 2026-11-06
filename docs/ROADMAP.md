@@ -339,6 +339,14 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 67 — Phone alerts (Web Push)
+
+- The `modules/push` server code was swept into the Part 63 commit by mistake (it was unfinished work, inert); this Part finishes and tests it. Roadmap line "push notifications still open" is now closed for browsers.
+- Flow: Settings > Notifications > **Phone alerts** > Turn on (browser asks permission) > `push-subscribe.php` stores the subscription (`push_subscriptions`, max 5 devices per person, https endpoints only, rate limited, CSRF) > every bell notification (`activity_record`: shared bills, settle-ups, reminders, budget alerts, nudges) is also pushed to people who have notifications on. Encrypted with RFC 8291 and signed with VAPID (key created on first use, stored in `push_vapid`), pure PHP openssl + curl. Sending runs after the page has been sent (`push_defer`), dead devices (404/410) are removed, account deletion (self or admin) removes devices.
+- `sw.js`: `push` shows the notification, `notificationclick` opens only pages of this app. Cache `v13`.
+- **Limits, honestly:** works in Chrome/Edge (Android and computer) and an installed web app; the Android/Windows app shells (WebView/Electron) cannot receive Web Push, so the card says so there and the bell list stays. The host must allow outgoing HTTPS from PHP (curl) to the browser push services; if it does not (some free hosts block it), "Send a test" says it could not be delivered.
+- Tests: `tests/push_test.php` (RFC 8291 test vector, subscriptions, delivery to a sink, opt-out, deletion), `tests/push_http_test.py` (endpoint, CSRF, other users, settings card, service worker, Urdu).
+
 ## Part 66 — Privacy and Terms in Urdu
 
 - `privacy.php` and `terms.php` now show Urdu in Urdu mode (about 40 entries). It is a plain translation for readability; the English text is the version to rely on if the two ever differ.
@@ -447,7 +455,7 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Free hosting has no cron, so when a staff member with the "backup" permission opens the admin overview and the newest backup is older than 24 hours (or none exists), one is created automatically (`backup_auto_maybe()` in `modules/backup/lib.php`). A lock file stops two requests doing it at once; failures are logged and never break the page. Ordinary users never trigger it.
 - It is written to the audit log as "Automatic daily database backup". The newest 10 backups are kept, so daily automatic ones push out old ones after 10 days: download an encrypted copy now and then (Admin > Backups).
 - Off switch: environment variable `EXPENSEFLOW_AUTO_BACKUP_OFF=1`.
-- Still open in Part 52: Google re-link prompt, push notifications.
+- Still open in Part 52: Google re-link prompt (push notifications: see Part 67).
 
 ## Part 51 — Urdu language + right-to-left (first step)
 
