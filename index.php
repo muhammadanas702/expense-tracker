@@ -2,6 +2,7 @@
 require_once __DIR__ . '/config/app.php';
 require_once __DIR__ . '/includes/security.php';
 require_once __DIR__ . '/includes/icons.php';
+require_once __DIR__ . '/includes/assets.php';
 require_once __DIR__ . '/modules/settings/lib.php';
 
 send_security_headers();
@@ -62,6 +63,7 @@ $logo = '<span class="logo"><img src="' . e($base) . '/assets/icons/icon-192.png
 <meta name="twitter:description" content="<?= e($desc) ?>">
 <link rel="stylesheet" href="<?= e($base) ?>/assets/app.css?v=<?= (int) @filemtime(__DIR__ . '/assets/app.css') ?>">
 <link rel="stylesheet" href="<?= e($base) ?>/assets/theme-dark.css?v=<?= (int) @filemtime(__DIR__ . '/assets/theme-dark.css') ?>">
+<?= ef_font_head() . ef_rtl_link() ?>
 <script>(function(){try{var m=document.cookie.match(/(?:^|; )ef_theme=(auto|light|dark)/),t=m?m[1]:"auto",d=t==="dark"||(t==="auto"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);if(d){document.documentElement.setAttribute("data-theme","dark");}}catch(e){}})();</script>
 <?php
 $ld = [

@@ -339,6 +339,13 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 65 — One Urdu font (no flash) and better English fonts
+
+- **Urdu flash fixed:** before, the browser first drew Urdu in another font and swapped to Nastaleeq when it finished downloading. Now the two Nastaleeq files are preloaded (`ef_font_head()` in `includes/i18n.php`, URL without `?v=` so the preload is really used), `font-display:block`, the files are kept by the service worker, and one stack (`--font-ur`) applies to every element (also beats rules that set a font on all elements). Latin letters and digits inside Urdu use Inter. The landing page was not loading `rtl.css` at all on a phone without a system Nastaleeq font; fixed.
+- **English fonts:** Inter (text) and Plus Jakarta Sans (headings, brand, big amounts), both self-hosted in `assets/fonts` (SIL OFL licences included) instead of the Google Fonts import. New `assets/fonts.css`: balanced headings, tidier letter spacing, tabular numbers for amounts, anti-aliasing, visible keyboard focus ring.
+- `offline.html` uses the same fonts. Service-worker cache `v12`.
+- Tests: `tests/fonts_test.py`.
+
 ## Part 64 — Urdu polish: size, public pages, offline page
 
 - Urdu text is scaled to 110% (`html[dir=rtl]{font-size:110%}` in `assets/rtl.css`) because Nastaleeq has a small x-height; bottom-menu labels are larger too.

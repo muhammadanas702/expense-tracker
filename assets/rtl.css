@@ -1,9 +1,12 @@
 /* Right-to-left (Urdu). Loaded only when the page is Urdu. Flex/grid rows and text already follow dir="rtl";
    this file mirrors the rules that were written with left/right. */
 /* Nastaleeq: Noto Nastaliq Urdu (SIL Open Font License), kept on our own server so it also works offline and on phones that lack it */
-@font-face{font-family:"Noto Nastaliq Urdu";font-style:normal;font-weight:400 500;font-display:swap;src:url(fonts/noto-nastaliq-urdu-400.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F,U+060C,U+061B,U+061F}
-@font-face{font-family:"Noto Nastaliq Urdu";font-style:normal;font-weight:600 800;font-display:swap;src:url(fonts/noto-nastaliq-urdu-700.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F,U+060C,U+061B,U+061F}
-html[dir=rtl] body,html[dir=rtl] button,html[dir=rtl] input,html[dir=rtl] select,html[dir=rtl] textarea{font-family:"Noto Nastaliq Urdu","Jameel Noori Nastaleeq","Noto Naskh Arabic","Segoe UI",Tahoma,system-ui,sans-serif}
+@font-face{font-family:"Noto Nastaliq Urdu";font-style:normal;font-weight:400 500;font-display:block;src:url(fonts/noto-nastaliq-urdu-400.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F,U+060C,U+061B,U+061F}
+@font-face{font-family:"Noto Nastaliq Urdu";font-style:normal;font-weight:600 800;font-display:block;src:url(fonts/noto-nastaliq-urdu-700.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F,U+060C,U+061B,U+061F}
+:root{--font-ur:"Noto Nastaliq Urdu","Jameel Noori Nastaleeq","Noto Naskh Arabic","Inter",system-ui,sans-serif}
+/* ONE Urdu font everywhere (also beats rules that set a font on every element). Latin letters and digits inside Urdu text use Inter. */
+html[dir=rtl],html[dir=rtl] body,html[dir=rtl] *:not(code):not(pre):not(kbd):not(samp){font-family:var(--font-ur)}
+html[dir=rtl] .logo,html[dir=rtl] .logo *,html[dir=rtl] .wm{font-family:var(--font-head)}
 html[dir=rtl] body{line-height:2.1}
 /* Nastaliq letters rise and fall far above and below the line: give boxes room so nothing is cut off */
 html[dir=rtl] h1,html[dir=rtl] h2,html[dir=rtl] h3,html[dir=rtl] h4{line-height:2.2}
