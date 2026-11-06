@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 require_once __DIR__ . '/../includes/auth-layout.php';
 ef_auth_start(['title' => 'Set a password']); ?>
 <div class="big"><?= ef_icon('lock') ?></div>
-<h2 class="c2">Set a password?</h2>
+<h1 class="c2">Set a password?</h1>
 <p class="s3 c2">You signed in with Google, so you do not have a password yet. You can set one now to also sign in with your e-mail, or skip and keep using Google. You can do this later from Profile.</p>
 <?= ef_msg($error) ?>
 <form method="POST" autocomplete="off">

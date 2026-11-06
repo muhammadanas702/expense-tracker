@@ -339,6 +339,14 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 68 — UI audit tool and the first global fixes
+
+- New `tests/ui_audit.py` (`--admin`, `--shots`, `--json=`, `--fail-over=N`): crawls the public pages and the signed-in app (and the admin panel) at phone and desktop width and reports page errors, failed requests, sideways scrolling, broken images, small tap targets, fields without a label, text under 11.5px, missing/double `h1`, fonts outside the design system. First run: 154 findings; after this Part: 4 (the offline page's own self-check request that the audit blocks on purpose).
+- `assets/polish.css` (loaded last through `ef_font_head()`): text never under 12px (bottom menu, section labels, badges, table heads), every link/button a thumb must hit is about 36px high or more (header Log in, footer links, breadcrumb, Open/Download/Change, password eye), steady press/disabled states.
+- Each page now has exactly one `h1` (top-bar title in the app, form title on sign-in pages); phone title size 1.25rem so long names do not wrap.
+- Test fix: `tests/urdu_ui_test.py` looks for `.fc h1`.
+- Known and unrelated: `tests/google_signin_test.php` is stateful (it drops `user_identities`); run it after `rm storage/schema/*` and an `oauth_ensure_schema` or it reports failures.
+
 ## Part 67 — Phone alerts (Web Push)
 
 - The `modules/push` server code was swept into the Part 63 commit by mistake (it was unfinished work, inert); this Part finishes and tests it. Roadmap line "push notifications still open" is now closed for browsers.

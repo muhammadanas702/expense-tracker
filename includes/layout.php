@@ -88,7 +88,7 @@ function ef_page_start(array $o): void
   </aside>
   <div class="mn">
     <div class="g tb">
-      <div class="tt"><h2><?= e(t($title)) ?></h2><?php if ($sub !== ''): ?><small><?= e(t($sub)) ?></small><?php endif; ?></div>
+      <div class="tt"><h1><?= e(t($title)) ?></h1><?php if ($sub !== ''): ?><small><?= e(t($sub)) ?></small><?php endif; ?></div>
       <?php if ($sharedHome && !$neutral): ?>
       <div class="seg">
         <a class="<?= $mode === 'p' ? 'on' : '' ?>" href="<?= e(ef_url($home)) ?>"><?= ef_icon('wal') ?> <?= e(t('Personal')) ?></a>

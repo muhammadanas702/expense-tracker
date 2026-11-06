@@ -94,7 +94,7 @@ require_once __DIR__ . '/../includes/auth-layout.php';
 ?>
 <?php ef_auth_start(['title' => 'Delete account', 'split' => false]); ?>
 <div class="big wr"><?= ef_icon('warn') ?></div>
-<h2 class="c2">Delete account permanently?</h2>
+<h1 class="c2">Delete account permanently?</h1>
 <p class="s3 c2">This cannot be undone. The following will be erased:</p>
 <div style="margin-bottom:16px">
     <?= ef_check('All income and expense records') ?>

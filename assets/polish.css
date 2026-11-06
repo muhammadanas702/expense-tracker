@@ -1,0 +1,29 @@
+/* UI polish layer (Part 68): comfortable tap targets, readable minimum text size, steady link/button states.
+   Loaded after every other style sheet (see ef_font_head) so it wins without !important. */
+/* text is never smaller than 12px */
+.bn a{font-size:.76rem}
+.sl{font-size:.75rem}
+.badge{font-size:.75rem}
+th{font-size:.75rem}
+small,.mu{font-size:max(.78rem,12px)}
+/* tap targets: at least ~36px high for every link/button a thumb has to hit */
+.lnk,.nb .lnk,.crumb a,.aft a,.t a,.rw a{display:inline-flex;align-items:center;min-height:36px;padding:0 6px}
+.nb .lnk{padding:0 12px}
+footer nav a,.ft a,footer a{display:inline-block;padding:9px 6px}
+.btn.sm,.btn.xs,button.sm{min-height:36px;padding-top:6px;padding-bottom:6px}
+.ey{min-width:40px;min-height:40px;margin-top:-20px;right:6px;display:inline-flex;align-items:center;justify-content:center}
+html[dir=rtl] .ey{right:auto;left:6px}
+b>a.lnk{display:inline-flex;align-items:center;min-height:36px}
+.aft{display:flex;flex-wrap:wrap;gap:2px 14px;justify-content:center}
+.aft a{min-height:36px}
+p>a[href]:not(.btn){padding:6px 2px}
+/* the same press/hover feel everywhere */
+a,button,.btn,.chip,.pill,.tab{-webkit-tap-highlight-color:transparent}
+.btn:active,button:active{transform:translateY(1px)}
+.btn:disabled,button:disabled{opacity:.6;cursor:not-allowed}
+.bn .mbtn,.bn button{font-size:.76rem}
+.fw p a,.fc p a,label a,.chk a{display:inline-block;padding:7px 2px}
+@media(max-width:560px){.tb h1{font-size:1.25rem}}
+.rw{margin:0 0 14px}
+.aft{margin-top:6px}
+.aft{align-items:center}

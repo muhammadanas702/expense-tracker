@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 require_once __DIR__ . '/../includes/auth-layout.php';
 ?>
 <?php ef_auth_start(['title' => t('New password')]); ?>
-<h2><?= e(t('Create new password')) ?></h2>
+<h1><?= e(t('Create new password')) ?></h1>
 <p class="s3"><?= e(t('Hello %s, choose a strong password you have not used before.', (string) $user['name'])) ?></p>
 <?= ef_msg($error) ?>
 <form method="POST">

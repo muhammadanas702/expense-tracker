@@ -10,7 +10,7 @@ $fpType = (($_SESSION['reset_type'] ?? '') === 'success') ? 'ok' : 'err';
 unset($_SESSION['reset_message'], $_SESSION['reset_type']);
 ef_auth_start(['title' => t('Forgot password')]); ?>
 <div class="big"><?= ef_icon('key') ?></div>
-<h2 class="c2"><?= e(t('Forgot password?')) ?></h2>
+<h1 class="c2"><?= e(t('Forgot password?')) ?></h1>
 <p class="s3 c2"><?= e(t('Enter your email and we will send you a 6-digit code to reset it.')) ?></p>
 <?= ef_msg($fpMsg, $fpType) ?>
 <form action="send-otp.php" method="POST">

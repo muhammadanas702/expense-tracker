@@ -49,7 +49,7 @@ $at = strpos($otpEmail, '@');
 $masked = $at === false ? '' : substr($otpEmail, 0, min(2, $at)) . '•••' . substr($otpEmail, $at);
 ef_auth_start(['title' => t('Check your email')]); ?>
 <div class="big"><?= ef_icon('mail') ?></div>
-<h2 class="c2"><?= e(t('Check your email')) ?></h2>
+<h1 class="c2"><?= e(t('Check your email')) ?></h1>
 <p class="s3 c2"><?= e(t('We sent a 6-digit code to')) ?> <b dir="ltr"><?= e($masked) ?></b></p>
 <?= ef_msg($error === '' ? $notice : '', 'ok') ?>
 <?= ef_msg($error) ?>

@@ -176,5 +176,5 @@ function ef_font_head(): string
     } else {
         $out .= $pre('assets/fonts/plus-jakarta-sans-latin.woff2');
     }
-    return $out . '<link rel="stylesheet" href="' . $h('assets/fonts.css') . '">';
+    return $out . '<link rel="stylesheet" href="' . $h('assets/fonts.css') . '"><link rel="stylesheet" href="' . $h('assets/polish.css') . '">';
 }

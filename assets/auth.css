@@ -69,7 +69,7 @@ body{
 }
 
 /* HEADING (GREEN REFINED) */
-.card h2{
+.card h1,.card h2{
     text-align:center;
     font-size:32px;
     font-weight:700;
@@ -212,7 +212,7 @@ body{
         padding:28px 20px;
     }
 
-    .card h2{
+    .card h1,.card h2{
         font-size:26px;
     }
 
