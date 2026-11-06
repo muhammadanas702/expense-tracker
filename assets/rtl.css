@@ -1,6 +1,14 @@
 /* Right-to-left (Urdu). Loaded only when the page is Urdu. Flex/grid rows and text already follow dir="rtl";
    this file mirrors the rules that were written with left/right. */
-html[dir=rtl] body{font-family:"Noto Nastaliq Urdu","Jameel Noori Nastaleeq","Noto Naskh Arabic","Segoe UI",Tahoma,system-ui,sans-serif;line-height:1.9}
+/* Nastaleeq: Noto Nastaliq Urdu (SIL Open Font License), kept on our own server so it also works offline and on phones that lack it */
+@font-face{font-family:"Noto Nastaliq Urdu";font-style:normal;font-weight:400 500;font-display:swap;src:url(fonts/noto-nastaliq-urdu-400.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F,U+060C,U+061B,U+061F}
+@font-face{font-family:"Noto Nastaliq Urdu";font-style:normal;font-weight:600 800;font-display:swap;src:url(fonts/noto-nastaliq-urdu-700.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F,U+060C,U+061B,U+061F}
+html[dir=rtl] body,html[dir=rtl] button,html[dir=rtl] input,html[dir=rtl] select,html[dir=rtl] textarea{font-family:"Noto Nastaliq Urdu","Jameel Noori Nastaleeq","Noto Naskh Arabic","Segoe UI",Tahoma,system-ui,sans-serif}
+html[dir=rtl] body{line-height:2.1}
+/* Nastaliq letters rise and fall far above and below the line: give boxes room so nothing is cut off */
+html[dir=rtl] h1,html[dir=rtl] h2,html[dir=rtl] h3,html[dir=rtl] h4{line-height:2.2}
+html[dir=rtl] .btn,html[dir=rtl] button,html[dir=rtl] .inp,html[dir=rtl] select,html[dir=rtl] .chip,html[dir=rtl] .pill,html[dir=rtl] .tab{line-height:2;padding-top:.45em;padding-bottom:.45em}
+html[dir=rtl] .bn a span,html[dir=rtl] .bn a b{line-height:1.7}
 html[dir=rtl] .tt{margin-right:0;margin-left:auto}
 html[dir=rtl] .row>b{margin-left:0;margin-right:auto;text-align:left}
 html[dir=rtl] th{text-align:right;padding:0 0 8px 8px}

@@ -180,7 +180,7 @@ $tip = $savings_percent < $goal ? t('Below your %s%% goal: try cutting one regul
 
 ef_page_start([
     'title' => t('Welcome back, %s', (string) ($_SESSION['user_name'] ?? $user['name'])),
-    'sub' => $use_date_range ? t('%s to %s', $from_date, $to_date) . " · $display_currency" : $period_start->format('F Y') . ' · ' . t('base') . " $display_currency",
+    'sub' => $use_date_range ? t('%s to %s', $from_date, $to_date) . " · $display_currency" : ef_month_year($period_start) . ' · ' . t('base') . " $display_currency",
     'active' => 'dash',
     'user' => $user,
     'head' => '<script src="' . e(ef_url('assets/lib/chart.umd.min.js')) . '" defer></script>',
@@ -349,7 +349,7 @@ if ($budgetItems): $bcol = ['ok' => '#0d9f6e', 'warn' => '#f59e0b', 'over' => '#
         </div>
         <?php if (!$use_date_range): ?>
         <div class="g card" id="base">
-            <div class="t"><?= e(t('Base currency for %s', $period_start->format('F Y'))) ?></div>
+            <div class="t"><?= e(t('Base currency for %s', ef_month_year($period_start))) ?></div>
             <form method="POST" action="<?= e($base_url) ?>/change-base-currency.php" style="display:flex;gap:10px;flex-wrap:wrap">
                 <?= csrf_field() ?>
                 <input type="hidden" name="year_month" value="<?= e($year_month) ?>">

@@ -14,9 +14,9 @@ settings_page_start('apps', $user);
       <details class="qhelp" id="install-help" style="margin:12px 0 4px">
         <summary>Install help (Android and Windows)</summary>
         <ol>
-          <li><b>Android:</b> open the downloaded APK and allow installing from this source when Android asks. Updates then come inside the app.</li>
-          <li><b>Google Play Protect says "App blocked"?</b> It does this for apps that can read SMS when they are installed from outside the Play Store. Install the Lite app instead (no SMS permission), or install the full APK from a computer with <code>adb install -r ExpenseFlow.apk</code>.</li>
-          <li><b>Windows:</b> if it shows "protected your PC", choose More info, then Run anyway.</li>
+          <li><?= t('<b>Android:</b> open the downloaded APK and allow installing from this source when Android asks. Updates then come inside the app.') ?></li>
+          <li><?= t('<b>Google Play Protect says "App blocked"?</b> It does this for apps that can read SMS when they are installed from outside the Play Store. Install the Lite app instead (no SMS permission), or install the full APK from a computer with <code>adb install -r ExpenseFlow.apk</code>.') ?></li>
+          <li><?= t('<b>Windows:</b> if it shows "protected your PC", choose More info, then Run anyway.') ?></li>
         </ol>
       </details>
       <div class="row" id="app-upd" hidden><span><?= ef_icon('ref') ?> App updates<small id="app-ver">Check for a newer version</small></span><b><a class="lnk" href="#" id="app-upd-btn">Check</a></b></div>

@@ -50,5 +50,14 @@ foreach (glob(__DIR__ . '/../modules/*/module.php') as $mf) {
         if (!in_array($m['id'], ['admin'], true)) { ok(isset($ur[$n[2]]) || str_starts_with($n[2], 'Add '), "menu label has Urdu text: {$n[2]}"); }
     }
 }
+// Part 62: the output filter translates exact dictionary hits in text, placeholders and titles, and leaves scripts/JSON alone
+$_COOKIE['ef_lang'] = 'ur';
+$out = ef_i18n_page('<html><body><h1>Budgets</h1><input placeholder="Search friends" title="Save"><script>var a="Budgets";</script><p>Unknown words here</p></body></html>');
+ok(strpos($out, '<h1>' . $ur['Budgets'] . '</h1>') !== false, 'filter translates text nodes');
+ok(strpos($out, 'placeholder="' . $ur['Search friends'] . '"') !== false, 'filter translates placeholders');
+ok(strpos($out, 'var a="Budgets";') !== false, 'filter leaves scripts alone');
+ok(strpos($out, 'Unknown words here') !== false, 'filter keeps unknown English');
+ok(ef_i18n_page('{"a":"Budgets"}') === '{"a":"Budgets"}', 'filter leaves JSON alone');
+ok(trim((string) shell_exec('EF_X=1 php -r ' . escapeshellarg('$_GET["lang"]="ur"; require "' . __DIR__ . '/../includes/i18n.php"; echo ef_month_year(new DateTime("2026-11-06"));'))) === 'نومبر 2026', 'month name in Urdu');
 echo $fails ? "i18n tests: $fails FAILED\n" : "i18n tests: ALL PASSED\n";
 exit($fails ? 1 : 0);

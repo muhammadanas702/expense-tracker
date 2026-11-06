@@ -339,6 +339,16 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 62 — Urdu everywhere, in Nastaleeq
+
+- Urdu pages now use **Noto Nastaliq Urdu** (SIL OFL, self-hosted in `assets/fonts`, loaded by `assets/rtl.css`) with taller line-heights so the tall letters are not clipped.
+- Output filter `ef_i18n_page()` (`includes/i18n.php`): in Urdu mode it exact-matches page text, placeholders, titles and button values against `includes/lang/ur.php`, so pages need no per-string edits. Scripts, JSON and unknown text are left alone.
+- About 200 new Urdu entries: Reports, Quick add (SMS help), Profile & Settings (all sub-pages), Shared overview, Groups, Friends, Activity, Support, currency names, month names (`ef_month_year()`), error pages (404 etc.).
+- Left in English on purpose: the admin panel (staff only), and literal names such as `adb install`, "Allow restricted settings", "Play Protect" labels the phone shows in English.
+- Tool: `python3 tests/urdu_coverage.py [--admin]` crawls the pages in Urdu and lists English text still showing.
+- Tests: `tests/i18n_test.php` (filter, month names, more files checked).
+- After deploy: fully close and reopen the app once (new service-worker cache `v10`) to get the font.
+
 ## Part 61 — "Dangerous site" warnings (Safe Browsing)
 
 - Cause and plan: `docs/SAFE_BROWSING.md`. Google flagged `http://expenseflow.rf.gd/` as social engineering (free shared sub-domain, plain-http sign-in page, install-bypass wording on the landing page).

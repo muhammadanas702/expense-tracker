@@ -94,14 +94,14 @@ function currency_select_options(?string $selected = null): string
             htmlspecialchars($code, ENT_QUOTES, 'UTF-8'),
             $isSelected,
             $flag,
-            htmlspecialchars($name, ENT_QUOTES, 'UTF-8'),
+            htmlspecialchars(t($name), ENT_QUOTES, 'UTF-8'),
             htmlspecialchars($code, ENT_QUOTES, 'UTF-8')
         );
     }
 
     $html = '';
     foreach ($groups as $label => $options) {
-        $html .= '<optgroup label="' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '">'
+        $html .= '<optgroup label="' . htmlspecialchars(t($label), ENT_QUOTES, 'UTF-8') . '">'
             . implode('', $options)
             . '</optgroup>';
     }
