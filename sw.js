@@ -1,4 +1,4 @@
-const CACHE_NAME = "expenseflow-static-v12";
+const CACHE_NAME = "expenseflow-static-v13";
 const PAGES = "expenseflow-pages-v1"; // signed-in pages kept for offline viewing; wiped on logout / when the login form is served
 const APP_SCOPE = self.registration.scope;
 const OFFLINE_URL = new URL("offline.html", APP_SCOPE).href;
@@ -163,4 +163,33 @@ self.addEventListener("fetch", (event) => {
       caches.match(request).then((response) => response || fetch(request))
     );
   }
+});
+
+// Phone alerts (Web Push): show the notification the server sent, and open the right page when it is tapped.
+self.addEventListener("push", (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch (e) { data = { body: event.data ? event.data.text() : "" }; }
+  const title = String(data.title || "ExpenseFlow").slice(0, 80);
+  event.waitUntil(self.registration.showNotification(title, {
+    body: String(data.body || "").slice(0, 200),
+    icon: new URL("assets/icons/icon-192.png", APP_SCOPE).href,
+    badge: new URL("assets/icons/favicon-32.png", APP_SCOPE).href,
+    data: { url: typeof data.url === "string" ? data.url : "" },
+    tag: "expenseflow"
+  }));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  let target = new URL("dashboard.php", APP_SCOPE);
+  try {
+    const wanted = new URL(event.notification.data && event.notification.data.url || "", APP_SCOPE);
+    if (wanted.origin === target.origin && wanted.href.startsWith(APP_SCOPE)) { target = wanted; } // only pages of this app
+  } catch (e) { /* keep the dashboard */ }
+  event.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+    for (const c of list) {
+      if (c.url.startsWith(APP_SCOPE) && "focus" in c) { c.navigate(target.href).catch(() => {}); return c.focus(); }
+    }
+    return self.clients.openWindow(target.href);
+  }));
 });

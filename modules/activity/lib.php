@@ -66,6 +66,9 @@ function activity_record(PDO $conn, int $groupId, int $actorId, string $kind, ar
         return 0;
     }
     try {
+        if (!function_exists('push_after_event') && function_exists('ef_modules') && isset(ef_modules()['push']) && is_file(__DIR__ . '/../push/lib.php')) {
+            require_once __DIR__ . '/../push/lib.php';
+        }
         activity_ensure_schema($conn);
         $title = isset($d['title']) ? mb_substr((string) $d['title'], 0, 100) : null;
         $conn->prepare('INSERT INTO activity_events (group_id,actor_id,kind,title,amount_minor,currency,target_id) VALUES (?,?,?,?,?,?,?)')
@@ -83,6 +86,9 @@ function activity_record(PDO $conn, int $groupId, int $actorId, string $kind, ar
             $ins = $conn->prepare('INSERT IGNORE INTO activity_notifications (user_id, event_id) VALUES (?, ?)');
             foreach (array_diff($users, $off) as $u) {
                 $ins->execute([$u, $eid]);
+            }
+            if (function_exists('push_after_event') && ($on = array_values(array_diff($users, $off)))) {
+                push_after_event($conn, $eid, $on); // optional Phone alerts (Web Push) module
             }
         }
         return $eid;

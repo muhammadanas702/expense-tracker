@@ -592,4 +592,18 @@ return [
     'Changes' => 'تبدیلیاں',
     'We may update these terms; the date above shows the latest version. Continuing to use ExpenseFlow means you accept the update.' => 'ہم یہ شرائط اپڈیٹ کر سکتے ہیں؛ اوپر کی تاریخ تازہ ترین ورژن بتاتی ہے۔ ایکسپینس فلو استعمال جاری رکھنے کا مطلب ہے کہ آپ اپڈیٹ قبول کرتے ہیں۔',
     'See also the' => 'یہ بھی دیکھیں',
+    // Part 67: phone alerts
+    'Phone alerts' => 'فون الرٹس',
+    'Turn on phone alerts' => 'فون الرٹس آن کریں',
+    'Turn off on this device' => 'اس ڈیوائس پر بند کریں',
+    'Send a test' => 'ٹیسٹ بھیجیں',
+    'Checking…' => 'چیک ہو رہا ہے…',
+    'Off on this device. Turn it on to get shared bills, reminders and budget alerts even when ExpenseFlow is closed.' => 'اس ڈیوائس پر بند ہے۔ آن کریں تاکہ ایکسپینس فلو بند ہونے پر بھی مشترکہ بل، یاد دہانیاں اور بجٹ الرٹس ملیں۔',
+    'On for this device. You will get shared bills, reminders and budget alerts here.' => 'اس ڈیوائس پر آن ہے۔ مشترکہ بل، یاد دہانیاں اور بجٹ الرٹس یہاں ملیں گے۔',
+    'Notifications are blocked for this site. Allow them in the browser or phone settings, then try again.' => 'اس سائٹ کے لیے اطلاعات بلاک ہیں۔ براؤزر یا فون کی سیٹنگز میں اجازت دیں، پھر دوبارہ کوشش کریں۔',
+    'This browser cannot show phone alerts. Use Chrome or Edge on Android or a computer.' => 'یہ براؤزر فون الرٹس نہیں دکھا سکتا۔ اینڈرائیڈ یا کمپیوٹر پر Chrome یا Edge استعمال کریں۔',
+    'Phone alerts work in the browser (Chrome or Edge). The installed Android and Windows apps show the bell list instead.' => 'فون الرٹس براؤزر (Chrome یا Edge) میں چلتے ہیں۔ انسٹال کی ہوئی اینڈرائیڈ اور ونڈوز ایپس میں اس کی جگہ گھنٹی والی فہرست نظر آتی ہے۔',
+    'Test sent. It should appear in a few seconds.' => 'ٹیسٹ بھیج دیا۔ چند سیکنڈ میں نظر آنا چاہیے۔',
+    'The test could not be delivered. Turn alerts off and on again.' => 'ٹیسٹ پہنچ نہیں سکا۔ الرٹس بند کر کے دوبارہ آن کریں۔',
+    'Something went wrong. Please try again.' => 'کچھ خرابی ہو گئی۔ براہ کرم دوبارہ کوشش کریں۔',
 ];

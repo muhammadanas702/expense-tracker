@@ -40,10 +40,17 @@ require_once __DIR__ . '/../modules/profile/lib.php';
 profile_ensure_schema($conn); // makes sure the extra tables exist before they are cleaned
 require_once __DIR__ . '/../modules/shared/lib.php';
 shared_ensure_all_schemas($conn);
+if (is_file(__DIR__ . '/../modules/push/lib.php')) {
+    require_once __DIR__ . '/../modules/push/lib.php';
+    push_ensure_schema($conn);
+}
 $conn->beginTransaction();
 try {
     foreach (['income', 'expenses', 'user_monthly_currency', 'user_logs', 'recurring_items', 'user_settings'] as $table) {
         $conn->prepare("DELETE FROM `$table` WHERE user_id = ?")->execute([$id]);
+    }
+    if (function_exists('push_on_user_deleted')) {
+        push_on_user_deleted($conn, (int) $id);
     }
     shared_on_user_deleted($conn, (int) $id);
     $conn->prepare("DELETE FROM users WHERE id = ?")->execute([$id]);
