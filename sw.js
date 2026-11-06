@@ -1,4 +1,4 @@
-const CACHE_NAME = "expenseflow-static-v10";
+const CACHE_NAME = "expenseflow-static-v11";
 const PAGES = "expenseflow-pages-v1"; // signed-in pages kept for offline viewing; wiped on logout / when the login form is served
 const APP_SCOPE = self.registration.scope;
 const OFFLINE_URL = new URL("offline.html", APP_SCOPE).href;

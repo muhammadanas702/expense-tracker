@@ -41,3 +41,8 @@ html[dir=rtl] .v,html[dir=rtl] .big2{unicode-bidi:plaintext}
 html[dir=rtl] canvas{direction:ltr}
 /* the language link */
 html[dir=rtl] .au-lang{right:auto;left:12px}
+
+/* Part 64: Nastaleeq has a small x-height, so Urdu text is scaled up a little to read as comfortably as English */
+html[dir=rtl]{font-size:110%}
+html[dir=rtl] .bn a{font-size:.72rem}
+html[dir=rtl] input,html[dir=rtl] select,html[dir=rtl] textarea{font-size:max(1rem,16px)}
