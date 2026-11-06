@@ -339,6 +339,12 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 66 — Privacy and Terms in Urdu
+
+- `privacy.php` and `terms.php` now show Urdu in Urdu mode (about 40 entries). It is a plain translation for readability; the English text is the version to rely on if the two ever differ.
+- Now the only English left for a signed-in or public visitor in Urdu mode is the admin panel (staff), the Roman-Urdu guide articles and literal names (`adb install`, button names the phone shows).
+- Tests: `tests/urdu_public_test.py` also checks both pages.
+
 ## Part 65 — One Urdu font (no flash) and better English fonts
 
 - **Urdu flash fixed:** before, the browser first drew Urdu in another font and swapped to Nastaleeq when it finished downloading. Now the two Nastaleeq files are preloaded (`ef_font_head()` in `includes/i18n.php`, URL without `?v=` so the preload is really used), `font-display:block`, the files are kept by the service worker, and one stack (`--font-ur`) applies to every element (also beats rules that set a font on all elements). Latin letters and digits inside Urdu use Inter. The landing page was not loading `rtl.css` at all on a phone without a system Nastaleeq font; fixed.
