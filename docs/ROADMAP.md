@@ -339,6 +339,15 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 64 — Urdu polish: size, public pages, offline page
+
+- Urdu text is scaled to 110% (`html[dir=rtl]{font-size:110%}` in `assets/rtl.css`) because Nastaleeq has a small x-height; bottom-menu labels are larger too.
+- Public pages are fully Urdu: landing page (now `<html lang=ur dir=rtl>` so the layout flips), About, Contact, Guides index, sign-in side text (about 130 new entries). Privacy and Terms (legal text) and the guide articles themselves stay as written.
+- `offline.html` (static) switches to Urdu from the `ef_lang` cookie and loads `rtl.css`.
+- Removed the Lite APK link from the landing page (it stays in Settings > Apps) so the public page has no install-workaround wording, as Part 61 intended; `tests/lite_apk_test.py` passes again.
+- Service worker cache `v11` (restart the app once).
+- Tests: `tests/urdu_public_test.py` (no English left on public pages, RTL, font and size, offline page).
+
 ## Part 63 — SMS accuracy (opt-out footers, amount titles)
 
 - `quickadd_strip_footer()` cuts "To stop receiving messages dial 930" style endings (stop receiving / unsubscribe / opt out / to stop / to deactivate) before the SMS is parsed or classified, so a footer can no longer turn into a title ("Stop Receiving Messages 930") or a money word.

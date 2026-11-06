@@ -40,7 +40,7 @@ $faq = [
 $logo = '<span class="logo"><img src="' . e($base) . '/assets/icons/icon-192.png" alt=""><span class="wm">ExpenseFlow</span></span>';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html<?= ef_html_attrs() ?>>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -148,7 +148,6 @@ foreach ($ld as $block): ?>
   <div class="F3">
     <div class="g ft rv"><div class="sn"><?= ef_icon('phone') ?></div><b>Android</b><p>Get the Android app from our GitHub releases page. Updates come inside the app.</p>
       <a class="btn" style="margin-top:12px" href="<?= e(settings_public('link_android')) ?>" rel="noopener"><?= ef_icon('dl') ?> Download APK</a>
-      <?php if (settings_lite_link() !== ''): ?><a class="lnk" style="display:block;margin-top:8px;font-size:.85rem" href="<?= e(settings_lite_link()) ?>" rel="noopener">Lite version (no SMS permission)</a><?php endif; ?></div>
     <div class="g ft rv" style="--d:.1s"><div class="sn"><?= ef_icon('lap') ?></div><b>Windows</b><p>Get the Windows app from our GitHub releases page, or from the Microsoft Store when it is listed.</p>
       <a class="btn" style="margin-top:12px" href="<?= e(settings_public('link_windows')) ?>" rel="noopener"><?= ef_icon('dl') ?> Download for Windows</a>
       <?php if (settings_public('link_store') !== ''): ?><a class="btn o" style="margin-top:8px" href="<?= e(settings_public('link_store')) ?>" rel="noopener"><?= ef_icon('dl') ?> Get it from Microsoft Store</a><?php endif; ?></div>

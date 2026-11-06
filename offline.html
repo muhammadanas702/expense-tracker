@@ -34,12 +34,34 @@
   </main>
   <script>
   (function () {
+    // Urdu (Nastaleeq) when the person picked it: the cookie is readable from this static page
+    var ur = /(?:^|; )ef_lang=ur/.test(document.cookie), D = {
+      'ExpenseFlow is offline': 'ایکسپینس فلو آف لائن ہے',
+      'Cannot reach ExpenseFlow': 'ایکسپینس فلو تک رسائی نہیں',
+      'Checking the connection\u2026': 'کنکشن چیک ہو رہا ہے\u2026',
+      'Try again': 'دوبارہ کوشش کریں',
+      'Open my saved dashboard': 'میرا محفوظ ڈیش بورڈ کھولیں',
+      'This page tries again by itself.': 'یہ صفحہ خود دوبارہ کوشش کرتا ہے۔',
+      'No internet connection': 'انٹرنیٹ کنکشن نہیں ہے',
+      'This device is offline. Turn on Wi-Fi or mobile data. Nothing is lost; your data is safe on the server.': 'یہ ڈیوائس آف لائن ہے۔ وائی فائی یا موبائل ڈیٹا آن کریں۔ کچھ ضائع نہیں ہوا؛ آپ کا ڈیٹا سرور پر محفوظ ہے۔',
+      'ExpenseFlow is not answering': 'ایکسپینس فلو جواب نہیں دے رہا',
+      'Your internet looks fine, but the ExpenseFlow server is slow or down right now. This is not your fault and your data is safe. We keep trying.': 'آپ کا انٹرنیٹ ٹھیک لگتا ہے، لیکن ایکسپینس فلو کا سرور ابھی سست ہے یا بند ہے۔ یہ آپ کی غلطی نہیں اور آپ کا ڈیٹا محفوظ ہے۔ ہم کوشش کرتے رہتے ہیں۔'
+    };
+    window.efT = function (x) { return ur && D[x] ? D[x] : x; };
+    if (ur) {
+      document.documentElement.lang = 'ur'; document.documentElement.dir = 'rtl';
+      var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'assets/rtl.css'; document.head.appendChild(l);
+      document.title = D['ExpenseFlow is offline'];
+      ['oh', 'om', 'retry', 'saved', 'auto'].forEach(function (id) { var e = document.getElementById(id); e.textContent = efT(e.textContent.replace('\u2026', '\u2026').trim()); });
+    }
+  })();
+  (function () {
     var oh = document.getElementById('oh'), om = document.getElementById('om'), saved = document.getElementById('saved');
     // Is it the phone's internet or ExpenseFlow's server? A tiny request to health.php (never saved) tells the two apart.
     function check() {
       if (navigator.onLine === false) {
-        oh.textContent = 'No internet connection';
-        om.textContent = 'This device is offline. Turn on Wi-Fi or mobile data. Nothing is lost; your data is safe on the server.';
+        oh.textContent = efT('No internet connection');
+        om.textContent = efT('This device is offline. Turn on Wi-Fi or mobile data. Nothing is lost; your data is safe on the server.');
         return;
       }
       var c = new AbortController(), t = setTimeout(function () { c.abort(); }, 6000);
@@ -49,8 +71,8 @@
         throw new Error('bad');
       }).catch(function () {
         clearTimeout(t);
-        oh.textContent = 'ExpenseFlow is not answering';
-        om.textContent = 'Your internet looks fine, but the ExpenseFlow server is slow or down right now. This is not your fault and your data is safe. We keep trying.';
+        oh.textContent = efT('ExpenseFlow is not answering');
+        om.textContent = efT('Your internet looks fine, but the ExpenseFlow server is slow or down right now. This is not your fault and your data is safe. We keep trying.');
       });
     }
     document.getElementById('retry').addEventListener('click', function () { location.reload(); });
