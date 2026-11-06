@@ -27,10 +27,16 @@ function quickadd_category_hints(): array
  *   'amount' => '1500.00'|'', 'currency' => 'PKR', 'title' => string, 'category' => string|'' (a guess, may be empty)
  * ]
  */
+/** Removes the "To stop receiving messages dial 930" footer many senders add: it can contain money words but is not a payment. */
+function quickadd_strip_footer(string $text): string
+{
+    return trim(preg_replace('/\s*\b(?:to\s+)?(?:stop receiving|unsubscribe|opt[- ]?out|to stop|to deactivate|to cancel (?:this )?service)\b.*$/isu', '', $text));
+}
+
 function quickadd_parse(string $sms): array
 {
     $out = ['ok' => false, 'type' => null, 'amount' => '', 'currency' => 'PKR', 'title' => '', 'category' => '', 'mixed' => false];
-    $text = trim(preg_replace('/\s+/u', ' ', mb_substr($sms, 0, QUICKADD_MAX_LENGTH)));
+    $text = quickadd_strip_footer(trim(preg_replace('/\s+/u', ' ', mb_substr($sms, 0, QUICKADD_MAX_LENGTH))));
     if ($text === '') {
         return $out;
     }
@@ -84,7 +90,7 @@ function quickadd_parse(string $sms): array
         }
         foreach ($ms[1] as $cand) {
             $cand = trim($cand, " .-/'");
-            if ($cand === '' || preg_match('/^(your|you|a\/c|acct|account|card|ac|bank|a|the)\b/i', $cand) || preg_match('/^\d+$/', $cand)) {
+            if ($cand === '' || preg_match('/^(your|you|a\/c|acct|account|card|ac|bank|a|the)\b/i', $cand) || preg_match('/^\d+$/', $cand) || preg_match('/^(?:pkr|rs|usd|eur|gbp|aed|sar|inr)\b\.?\s*[\d,.]*$/i', $cand) || preg_match('/^[\d,.\s]+$/', $cand)) {
                 continue;
             }
             $who = $cand;
@@ -202,7 +208,7 @@ function quickadd_classify(string $text, string $sender = '', bool $senderIgnore
     if (!$p['ok']) {
         return $r;
     }
-    $l = mb_strtolower(preg_replace('/\s+/u', ' ', $text));
+    $l = mb_strtolower(quickadd_strip_footer(preg_replace('/\s+/u', ' ', $text)));
     $strong = (bool) preg_match('/\b(debited|credited|deducted|withdrawn|charged|spent|purchased?|paid|received|deposited|sent|transferred|transfer|refund(?:ed)?|salary|successful(?:ly)?|transaction|txn|trx|top-?up)\b/', $l);
     // Banks write from a name ("HBL", "JazzCash") or a short code ("8258"); a friend writes from a long phone number (+92300..., 0300...).
     $bank = $sender === '' || preg_match('/[a-z]/i', $sender) || preg_match('/^\d{3,6}$/', preg_replace('/\D/', '', $sender)) && !preg_match('/^\+/', $sender) && strlen(preg_replace('/\D/', '', $sender)) <= 6;

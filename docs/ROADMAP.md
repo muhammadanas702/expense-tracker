@@ -339,6 +339,13 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 63 — SMS accuracy (opt-out footers, amount titles)
+
+- `quickadd_strip_footer()` cuts "To stop receiving messages dial 930" style endings (stop receiving / unsubscribe / opt out / to stop / to deactivate) before the SMS is parsed or classified, so a footer can no longer turn into a title ("Stop Receiving Messages 930") or a money word.
+- A title can no longer be just an amount ("Pkr 55.00") or only digits; the next candidate or "Money received / Bank payment" is used.
+- Tests: new cases in `tests/quickadd_classify_test.php`.
+- Still helpful: send the original text of the SMS that was wrongly added as income, to add it as an exact case.
+
 ## Part 62 — Urdu everywhere, in Nastaleeq
 
 - Urdu pages now use **Noto Nastaliq Urdu** (SIL OFL, self-hosted in `assets/fonts`, loaded by `assets/rtl.css`) with taller line-heights so the tall letters are not clipped.

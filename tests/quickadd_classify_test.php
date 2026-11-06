@@ -28,6 +28,9 @@ $cases = [
     ['Easypaisa', 'Transaction successful. Rs 500 sent to 03001234567. TID 123', 'add', 'expense'],
     ['HBL', 'Transaction alert: Rs 750 at KFC', 'review', 'direction'],
     ['03001234567', 'Rs 500 received from Ali', 'review', 'person'],
+    // Part 63: opt-out footers are not payments
+    ['Jazz', 'Aap ka Rs 50 ka offer active ho gaya. To Stop Receiving Messages dial 930', 'ignore', 'promo'],
+    ['HBL', 'Rs 700 debited at DARAZ. To stop receiving alerts dial 930', 'add', 'expense'],
 ];
 foreach ($cases as [$from, $text, $verdict, $x]) {
     $c = quickadd_classify($text, $from);
@@ -39,6 +42,9 @@ foreach ($cases as [$from, $text, $verdict, $x]) {
         ok($c['reason'] === $x, "reason $tag => {$c['reason']}");
     }
 }
+ok(quickadd_parse('Rs 700 debited at DARAZ. To stop receiving alerts dial 930')['title'] === 'Daraz', 'footer is not part of the title');
+ok(quickadd_parse('Payment of Rs 55 to Pkr 55.00 done')['title'] !== 'Pkr 55.00', 'an amount is never the title');
+ok(quickadd_parse('Rs 500 sent to 03001234567 via Easypaisa')['title'] !== '', 'phone-number titles still get a title');
 $c = quickadd_classify('Rs 500 debited at SHOP', 'HBL', true);
 ok($c['verdict'] === 'ignore' && $c['reason'] === 'sender', 'a sender the person ignores is ignored');
 ok(quickadd_classify('Rs 500 debited at SHOP', '')['verdict'] === 'add', 'no sender (pasted text) is treated like a bank');
