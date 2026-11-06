@@ -1,4 +1,4 @@
-const CACHE_NAME = "expenseflow-static-v11";
+const CACHE_NAME = "expenseflow-static-v12";
 const PAGES = "expenseflow-pages-v1"; // signed-in pages kept for offline viewing; wiped on logout / when the login form is served
 const APP_SCOPE = self.registration.scope;
 const OFFLINE_URL = new URL("offline.html", APP_SCOPE).href;
@@ -10,7 +10,11 @@ const STATIC_URLS = [
   "assets/icons/icon-512.png",
   "assets/icons/favicon-32.png",
   "assets/icons/apple-touch-icon.png",
-  "favicon.ico"
+  "favicon.ico",
+  "assets/fonts/inter-latin.woff2",
+  "assets/fonts/plus-jakarta-sans-latin.woff2",
+  "assets/fonts/noto-nastaliq-urdu-400.woff2",
+  "assets/fonts/noto-nastaliq-urdu-700.woff2"
 ].map((path) => new URL(path, APP_SCOPE).href);
 
 self.addEventListener("install", (event) => {

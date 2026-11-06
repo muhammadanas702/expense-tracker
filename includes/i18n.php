@@ -161,3 +161,20 @@ function ef_month_year(\DateTimeInterface $d): string
     $m = ['جنوری','فروری','مارچ','اپریل','مئی','جون','جولائی','اگست','ستمبر','اکتوبر','نومبر','دسمبر'];
     return $m[(int)$d->format('n') - 1] . ' ' . $d->format('Y');
 }
+
+/** Font style sheet + preloads, first in <head> so the right font is there before the first paint (no swap from another font). */
+function ef_font_head(): string
+{
+    if (!function_exists('ef_asset')) {
+        return '';
+    }
+    $h = fn(string $p) => htmlspecialchars(ef_asset($p), ENT_QUOTES, 'UTF-8');
+    $pre = fn(string $p) => '<link rel="preload" href="' . htmlspecialchars((string) strtok(ef_asset($p), '?'), ENT_QUOTES, 'UTF-8') . '" as="font" type="font/woff2" crossorigin>';
+    $out = $pre('assets/fonts/inter-latin.woff2');
+    if (ef_dir() === 'rtl') {
+        $out .= $pre('assets/fonts/noto-nastaliq-urdu-400.woff2') . $pre('assets/fonts/noto-nastaliq-urdu-700.woff2');
+    } else {
+        $out .= $pre('assets/fonts/plus-jakarta-sans-latin.woff2');
+    }
+    return $out . '<link rel="stylesheet" href="' . $h('assets/fonts.css') . '">';
+}
