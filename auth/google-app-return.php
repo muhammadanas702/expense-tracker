@@ -15,13 +15,13 @@ $okUrl = (bool) preg_match('#^(expenseflow://auth\?|http://127\.0\.0\.1:[0-9]{4,
 ef_auth_start(['title' => 'Back to the app']); ?>
 <?php if ($okUrl): ?>
 <div class="big"><?= ef_icon('check') ?></div>
-<h2 class="c2">You are signed in with Google</h2>
+<h1 class="c2">You are signed in with Google</h1>
 <p class="s3 c2">Taking you back to the ExpenseFlow app…</p>
 <a class="btn lg" style="width:100%" id="back" href="<?= e($url) ?>">Open ExpenseFlow app</a>
 <p class="gnote">If nothing happens, tap the button. You can close this tab afterwards.</p>
 <script>setTimeout(function () { location.href = document.getElementById('back').href; }, 150);</script>
 <?php else: ?>
-<h2 class="c2">This link has expired</h2>
+<h1 class="c2">This link has expired</h1>
 <p class="s3 c2">Go back to the ExpenseFlow app and press "Continue with Google" again.</p>
 <?php endif; ?>
 <?php ef_auth_end();

@@ -109,7 +109,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 require_once __DIR__ . '/../includes/auth-layout.php';
 ?>
 <?php ef_auth_start(['title' => t('Log in')]); ?>
-<h2><?= e(t('Welcome back')) ?></h2>
+<h1><?= e(t('Welcome back')) ?></h1>
 <p class="s3"><?= e(t('Log in to continue to ExpenseFlow.')) ?></p>
 <?= ef_msg($notice, $noticeType === 'success' ? 'ok' : 'err') ?>
 <?= ef_msg($error) ?>

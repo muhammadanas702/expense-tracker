@@ -75,7 +75,7 @@ $at = strpos($mailTo, '@');
 $masked = $at === false ? '' : substr($mailTo, 0, min(2, $at)) . '•••' . substr($mailTo, $at);
 ef_auth_start(['title' => 'Two-step sign-in']); ?>
 <div class="big"><?= ef_icon('shield') ?></div>
-<h2 class="c2">Enter your code</h2>
+<h1 class="c2">Enter your code</h1>
 <p class="s3 c2">We sent a 6-digit code to <b><?= e($masked) ?></b> to finish signing in.</p>
 <?= ef_msg($notice, 'ok') ?>
 <?= ef_msg($error) ?>
