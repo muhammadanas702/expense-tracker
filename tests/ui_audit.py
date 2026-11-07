@@ -2,7 +2,7 @@
 Part 68: UI audit. Crawls the signed-in app (and the admin panel with --admin) plus the public pages in a real browser at phone and desktop width and reports
 what looks or behaves wrong: page errors, failed requests, sideways scrolling, broken images, small tap targets, fields without a label, tiny text, a missing or
 double h1, fonts outside the design system. Screenshots go to /tmp/audit (or --out=DIR).
-Usage: (EXPENSEFLOW_2FA_OFF=1 php -S 127.0.0.1:8080 -t . router.php)  python3 tests/ui_audit.py [--admin] [--max=80] [--json=file] [--shots] [--fail-over=N]
+Usage: (EXPENSEFLOW_2FA_OFF=1 php -S 127.0.0.1:8080 -t . router.php)  python3 tests/ui_audit.py [--admin] [--max=80] [--json=file] [--shots] [--fail-over=N] [--dark] [--urdu]
 Uses the TEST database; creates and removes one audit user.
 """
 import re, subprocess, sys, json, os
@@ -12,6 +12,7 @@ admin = '--admin' in sys.argv; shots = '--shots' in sys.argv
 maxp = next((int(a[6:]) for a in sys.argv if a.startswith('--max=')), 80)
 out = next((a[6:] for a in sys.argv if a.startswith('--out=')), '/tmp/audit')
 jf = next((a[7:] for a in sys.argv if a.startswith('--json=')), None)
+dark = '--dark' in sys.argv; urdu = '--urdu' in sys.argv
 limit = next((int(a[12:]) for a in sys.argv if a.startswith('--fail-over=')), None)
 def sql(q): return subprocess.run(['mysql', '--socket=/run/mysqld/mysqld.sock', '-uroot', 'expenseflow_test', '-N', '-e', q], capture_output=True, text=True).stdout.strip()
 h = subprocess.run(['php', '-r', 'echo password_hash("Test#12345",PASSWORD_DEFAULT);'], capture_output=True, text=True).stdout
@@ -48,7 +49,10 @@ def slug(p): return re.sub(r'[^a-z0-9]+', '-', p.lower()).strip('-') or 'home'
 with sync_playwright() as pw:
     br = pw.chromium.launch()
     for vp, (w, hh) in (('m', (390, 800)), ('d', (1280, 800))):
-        ctx = br.new_context(viewport={'width': w, 'height': hh}, service_workers='block', is_mobile=(vp == 'm'), device_scale_factor=1); p = ctx.new_page()
+        ctx = br.new_context(viewport={'width': w, 'height': hh}, service_workers='block', is_mobile=(vp == 'm'), device_scale_factor=1)
+        if dark: ctx.add_cookies([{'name': 'ef_theme', 'value': 'dark', 'url': B}])
+        if urdu: ctx.add_cookies([{'name': 'ef_lang', 'value': 'ur', 'url': B}])
+        p = ctx.new_page()
         errs = []
         p.route('**/health.php*', lambda r: r.abort())  # keeps offline.html from reloading itself
         p.on('pageerror', lambda e: errs.append('js: ' + str(e)[:120]))

@@ -32,3 +32,7 @@ html[data-theme=dark] hr,html[data-theme=dark] .row{border-color:rgba(255,255,25
 .thm{display:flex;gap:8px;flex-wrap:wrap}.thm button{flex:1;min-width:92px;padding:12px 10px;border-radius:12px;border:1px solid rgba(91,107,128,.3);background:rgba(255,255,255,.7);font:inherit;font-weight:700;font-size:.86rem;color:var(--tx);cursor:pointer}
 .thm button[aria-pressed=true]{background:linear-gradient(135deg,var(--a1),var(--a2));color:#fff;border-color:transparent}
 html[data-theme=dark] .thm button{background:rgba(255,255,255,.07)}html[data-theme=dark] .thm button[aria-pressed=true]{background:linear-gradient(135deg,var(--a1),var(--a2))}
+/* Part 72: public content pages stay readable in dark mode */
+html[data-theme=dark] .pub p,html[data-theme=dark] .pub li{color:#c3d0e0}
+html[data-theme=dark] .pub h1,html[data-theme=dark] .pub h2,html[data-theme=dark] .pub .gc b{color:#e6edf6}
+html[data-theme=dark] .pub a:not(.btn){color:#5eead4}
