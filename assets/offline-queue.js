@@ -81,9 +81,9 @@
     try {
       if (navigator.onLine === false || !navigator.serviceWorker || !navigator.serviceWorker.controller) { return; }
       var last = parseInt(localStorage.getItem('ef_prewarm') || '0', 10);
-      if (Date.now() - last < 6 * 3600 * 1000) { return; }
+      if (Date.now() - last < 2 * 3600 * 1000) { return; }
       var urls = [];
-      document.querySelectorAll('a[href*="add-expense.php"], a[href*="add-income.php"], a[href*="dashboard.php"]').forEach(function (a) {
+      document.querySelectorAll('a[href*="add-expense.php"], a[href*="add-income.php"], a[href*="dashboard.php"], a[href*="view-report.php"], a[href*="budgets.php"], a[href*="goals.php"], a[href*="reminders.php"], a[href*="search.php"]').forEach(function (a) {
         var h = a.href; if (h && urls.indexOf(h) === -1 && h.indexOf('?') === -1 && h.indexOf('#') === -1) { urls.push(h); }
       });
       if (!urls.length) { return; }
@@ -92,5 +92,6 @@
     } catch (e) { }
   }
   document.addEventListener('DOMContentLoaded', function () { setTimeout(prewarm, 3000); });
+  window.addEventListener('online', function () { setTimeout(prewarm, 2000); });
   window.efOfflineQueue = { flush: flush, count: function () { return load().length; } };
 })();

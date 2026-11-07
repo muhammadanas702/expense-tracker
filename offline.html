@@ -17,6 +17,8 @@
     .big svg { width: 32px; height: 32px; }
     h1 { margin: 0 0 8px; font-size: 1.5rem; letter-spacing: -.4px; }
     p { margin: 0 0 22px; color: #5F6C7D; line-height: 1.55; }
+    .sl{margin-top:16px;text-align:left}.sl .sh{margin:0 0 8px;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#5F6C7D}html[dir=rtl] .sl{text-align:right}
+    .sl a{display:block;margin-top:8px;padding:13px 16px;border-radius:14px;background:#fff;border:1px solid rgba(11,37,69,.14);color:#0B2545;font-weight:600;text-decoration:none}
     .small { font-size: .8rem; margin: 14px 0 0; }
     button.sec { margin-top: 10px; background: #fff; color: #0B2545; border: 1px solid rgba(11,37,69,.25); }
     button { width: 100%; border: 0; border-radius: 14px; padding: 14px; font-size: 1rem; font-weight: 700; color: #fff; cursor: pointer;
@@ -29,7 +31,7 @@
     <h1 id="oh">Cannot reach ExpenseFlow</h1>
     <p id="om">Checking the connection&hellip;</p>
     <button type="button" id="retry">Try again</button>
-    <button type="button" id="saved" class="sec" hidden>Open my saved dashboard</button>
+    <div id="savedlist" class="sl" hidden><p class="sh" id="sh">Saved on this phone</p></div>
     <p class="small" id="auto">This page tries again by itself.</p>
   </main>
   <script>
@@ -40,7 +42,8 @@
       'Cannot reach ExpenseFlow': 'ایکسپینس فلو تک رسائی نہیں',
       'Checking the connection\u2026': 'کنکشن چیک ہو رہا ہے\u2026',
       'Try again': 'دوبارہ کوشش کریں',
-      'Open my saved dashboard': 'میرا محفوظ ڈیش بورڈ کھولیں',
+      'Saved on this phone': 'اس فون پر محفوظ',
+      'Dashboard': 'ڈیش بورڈ', 'Add Income': 'آمدنی شامل کریں', 'Add Expense': 'خرچ شامل کریں', 'Full Report': 'مکمل رپورٹ',
       'This page tries again by itself.': 'یہ صفحہ خود دوبارہ کوشش کرتا ہے۔',
       'No internet connection': 'انٹرنیٹ کنکشن نہیں ہے',
       'This device is offline. Turn on Wi-Fi or mobile data. Nothing is lost; your data is safe on the server.': 'یہ ڈیوائس آف لائن ہے۔ وائی فائی یا موبائل ڈیٹا آن کریں۔ کچھ ضائع نہیں ہوا؛ آپ کا ڈیٹا سرور پر محفوظ ہے۔',
@@ -52,11 +55,11 @@
       document.documentElement.lang = 'ur'; document.documentElement.dir = 'rtl';
       var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'assets/rtl.css'; document.head.appendChild(l);
       document.title = D['ExpenseFlow is offline'];
-      ['oh', 'om', 'retry', 'saved', 'auto'].forEach(function (id) { var e = document.getElementById(id); e.textContent = efT(e.textContent.replace('\u2026', '\u2026').trim()); });
+      ['oh', 'om', 'retry', 'auto'].forEach(function (id) { var e = document.getElementById(id); e.textContent = efT(e.textContent.replace('\u2026', '\u2026').trim()); });
     }
   })();
   (function () {
-    var oh = document.getElementById('oh'), om = document.getElementById('om'), saved = document.getElementById('saved');
+    var oh = document.getElementById('oh'), om = document.getElementById('om');
     // Is it the phone's internet or ExpenseFlow's server? A tiny request to health.php (never saved) tells the two apart.
     function check() {
       if (navigator.onLine === false) {
@@ -80,11 +83,13 @@
     check();
     setInterval(check, 10000);
     if (window.caches) {
-      caches.open('expenseflow-pages-v1').then(function (c) { return c.match(new URL('dashboard.php', location.href).href); }).then(function (hit) {
-        if (hit) {
-          saved.hidden = false;
-          saved.addEventListener('click', function () { location.href = 'dashboard.php'; });
-        }
+      var pages = [['dashboard.php', 'Dashboard'], ['income/add-income.php', 'Add Income'], ['expense/add-expense.php', 'Add Expense'], ['reports/view-report.php', 'Full Report']];
+      caches.open('expenseflow-pages-v1').then(function (c) {
+        return Promise.all(pages.map(function (p) { return c.match(new URL(p[0], location.href).href).then(function (hit) { return hit ? p : null; }); }));
+      }).then(function (found) {
+        var list = document.getElementById('savedlist'), n = 0;
+        found.forEach(function (p) { if (!p) return; n++; var a = document.createElement('a'); a.href = p[0]; a.textContent = efT(p[1]); list.appendChild(a); });
+        if (n) { list.hidden = false; document.getElementById('sh').textContent = efT('Saved on this phone'); }
       }).catch(function () {});
     }
   })();
