@@ -339,6 +339,12 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 80 — Empty states, Shared Add, Profile tiles
+- Every "nothing here yet" message (Activity, Notifications, Groups, Friends, Shared overview, Add shared expense) now has the same look: centred, a soft inbox icon, readable text, instead of one tiny grey line.
+- "Add shared expense" with no group shows that message inside a proper full-width card (it was a bare strip with no padding).
+- Profile & Settings: the odd last tile (Help & support, or Admin panel) spans the full row instead of leaving a gap.
+- Web only: no Android/Windows rebuild needed.
+
 ## Part 79 — Add/Edit Income and Expense in two columns
 - On screens 1000px and wider the form is 920px wide: Amount next to Currency, Title full width, category and payment chips full width, Note next to Tags. The whole Add Expense form now fits one screen without scrolling. Phones keep one column.
 - Web only: no Android/Windows rebuild needed for Parts 74-79.
