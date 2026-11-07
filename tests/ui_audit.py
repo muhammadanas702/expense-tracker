@@ -22,9 +22,10 @@ role = "'super',1" if admin else "'user',0"
 sql(f"INSERT INTO users(name,email,password,role,is_admin) VALUES ('Audit User','{email}','{h}',{role})")
 uid = sql(f"SELECT id FROM users WHERE email='{email}'")
 sql(f"INSERT INTO user_settings (user_id, savings_goal, notifications, setup_done) VALUES ({uid}, 20, 1, 1)")
+subprocess.run(['php', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ui_seed_shared.php'), uid], capture_output=True)  # a group, friends and shared expenses so those pages are audited with data
 sql(f"INSERT INTO income (user_id,title,amount,currency,amount_pkr,payment_method,transaction_date) VALUES ({uid},'Salary',50000,'PKR',50000,'Bank',NOW())")
 sql(f"INSERT INTO expenses (user_id,title,amount,currency,amount_pkr,category,payment_method,transaction_date) VALUES ({uid},'Lunch',450,'PKR',450,'Food','Cash',NOW())")
-SKIP = re.compile(r'logout|delete|export|download|-action|remove|\.pdf|\.csv|\.apk|\.exe|mailto:|tel:|^#|javascript:|github\.com|google|login-code|backup|reset|stop-recurring|https-action', re.I)
+SKIP = re.compile(r'logout|delete|export|download|-action|remove|\.pdf|\.csv|\.apk|\.exe|mailto:|tel:|^#|javascript:|github\.com|google|login-code|backup|reset|stop-recurring|https-action|\/action\.php|settle-confirm', re.I)
 PUBLIC = ['/', '/about.php', '/contact.php', '/privacy.php', '/terms.php', '/guides/', '/auth/login.php', '/auth/register.php', '/auth/forgot-password.php', '/offline.html']
 CHECK = """() => {
   const r = {};
@@ -119,7 +120,7 @@ with sync_playwright() as pw:
                 queue.append(t)
         ctx.close()
     br.close()
-sql(f"DELETE FROM users WHERE email='{email}'")
+sql("DELETE FROM users WHERE email LIKE 'seed%@shot.local'"); sql(f"DELETE FROM users WHERE email='{email}'")
 total = 0
 for path, vs in rep.items():
     for vp, d in vs.items():
