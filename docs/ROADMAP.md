@@ -339,6 +339,11 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 78 — Budgets, Goals, Reminders use the width
+- On screens 1000px and wider these three pages put the list ("This month" / goals / "Coming up") and the "new" form side by side instead of one 720px column with empty sides. Phones are unchanged (one column).
+- Card titles are left aligned (the icon and the title were pushed to opposite ends).
+- Still single column by design: Add/Edit Income and Expense and Quick add (640px forms); a two-column field layout for them is a separate Part.
+
 ## Part 77 — Search spacing, full width, layout checks
 - Owner report: dead space between Filters and the list, wide empty side margins, search bar not reaching the edges.
 - Cause: the global `details{padding:16px 18px;margin-bottom:10px}` rule made the closed Filters fold-out 62px tall, and the Search column was capped at 1000px and centred.
