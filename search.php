@@ -80,7 +80,7 @@ ef_page_start(['title' => 'Search', 'sub' => 'Find any income or expense', 'mode
       </div>
       <?php elseif ($searched): ?><div class="chips sp-tags"><a class="chip" href="<?= e($base_url) ?>/search.php">Clear</a></div><?php endif; ?>
       <?php if ($loadError === ''): ?>
-      <div class="card" id="results" style="margin-top:14px">
+      <div class="card" id="results">
         <div class="t"><?php if ($searched): ?><?= (int) $res['count'] ?> result<?= $res['count'] === 1 ? '' : 's' ?><?php else: ?>Latest entries<?php endif; ?>
           <?php if ($res['count']): ?><small style="font-weight:500;color:var(--mu)">income PKR <?= e(number_format($res['income_pkr'], 2)) ?> · expenses PKR <?= e(number_format($res['expense_pkr'], 2)) ?></small><?php endif; ?></div>
         <?php if (!$res['rows']): ?><p style="color:var(--mu)"><?= $searched ? 'Nothing matches. Try fewer filters or a shorter word.' : 'No entries yet. Add an income or expense and it will show up here.' ?></p><?php endif; ?>
