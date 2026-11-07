@@ -1,4 +1,5 @@
 <?php
+define('EF_LANG_DEFAULT_EN', true); // the public landing page opens in English; Urdu only through its language switch (?lang=ur)
 require_once __DIR__ . '/config/app.php';
 require_once __DIR__ . '/includes/security.php';
 require_once __DIR__ . '/includes/icons.php';
@@ -85,7 +86,8 @@ foreach ($ld as $block): ?>
 <header class="nav" id="nav">
   <a class="brand" href="<?= e($base) ?>/"><img src="<?= e($base) ?>/assets/icons/icon-192.png" alt=""><span>ExpenseFlow</span></a>
   <nav class="nl" aria-label="Sections"><a href="#features">Features</a><a href="#modes">Personal &amp; Shared</a><a href="#how">How it works</a><a href="#apps">Get the app</a><a href="#resources">Resources</a><a href="#faq">FAQ</a></nav>
-  <a class="pill" href="<?= e($base) ?>/auth/login.php">Log in</a>
+  <?= ef_lang_switch('lsw') ?>
+  <a class="pill lg-only" href="<?= e($base) ?>/auth/login.php">Log in</a>
   <a class="pill pr" href="<?= e($base) ?>/auth/register.php">Get started</a>
   <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menu"><span></span><span></span><span></span></button>
 </header>
@@ -94,6 +96,7 @@ foreach ($ld as $block): ?>
   <a class="mi" href="<?= e($m[0]) ?>"><small>0<?= $i + 1 ?></small><?= e($m[1]) ?></a>
 <?php endforeach; ?>
   <div class="mc"><a class="pill" href="<?= e($base) ?>/auth/login.php">Log in</a><a class="pill pr" href="<?= e($base) ?>/auth/register.php">Get started</a></div>
+  <div class="ml"><?= ef_lang_switch('lsw') ?></div>
 </div>
 
 <main id="main">

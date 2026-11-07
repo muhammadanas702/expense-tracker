@@ -16,7 +16,7 @@ for f in ('assets/theme.css', 'assets/app.css', 'assets/fonts.css', 'assets/rtl.
 sw = open('sw.js').read()
 ok(all(x in sw for x in ('inter-latin.woff2', 'noto-nastaliq-urdu-400.woff2', 'plus-jakarta-sans-latin.woff2')), 'service worker keeps the fonts for offline use')
 for lang, must, must_not in (('en', ('plus-jakarta-sans-latin.woff2',), ('noto-nastaliq',)), ('ur', ('noto-nastaliq-urdu-400.woff2',), ('plus-jakarta',))):
-    for u in ('/', '/auth/login.php'):
+    for u in ('/?lang=' + lang, '/auth/login.php'):
         t = requests.get(B + u, cookies={'ef_lang': lang}).text
         pre = re.findall(r'<link rel="preload" href="([^"]+)" as="font"', t)
         ok(all(any(m in p for p in pre) for m in must), f'{u} ({lang}) preloads {must}')

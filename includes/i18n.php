@@ -21,7 +21,7 @@ function ef_lang(): string
         if (PHP_SAPI !== 'cli' && !headers_sent()) {
             setcookie('ef_lang', $pick, ['expires' => time() + 31536000, 'path' => '/', 'samesite' => 'Lax']);
         }
-    } elseif (isset($_COOKIE['ef_lang']) && $_COOKIE['ef_lang'] === 'ur') {
+    } elseif (isset($_COOKIE['ef_lang']) && $_COOKIE['ef_lang'] === 'ur' && !defined('EF_LANG_DEFAULT_EN')) {
         $lang = 'ur';
     }
     return $lang;
