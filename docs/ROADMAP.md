@@ -339,6 +339,14 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 75 — Offline: more saved pages, calmer notices
+- Owner report: on the phone, offline pages (Income especially) did not open and the offline pop-up looked bad.
+- Saved pages: the page script now keeps 8 pages ready for offline use (Dashboard, Add Income, Add Expense, Full Report, Budgets, Goals, Reminders, Search; was 3), refreshed every 2 hours and again when the phone comes back online. A link with a query string (`?month=..`) now falls back to the saved copy of the same page.
+- A page with no saved copy gives up after 8 s (was 20 s) and shows the offline page.
+- "Saved copy" notice is now a small dark pill above the bottom bar ("Offline · saved copy" + Retry) instead of an amber banner that pushed the page down and covered the title.
+- Offline page lists the saved pages as buttons (Dashboard, Add Income, Add Expense, Full Report; Urdu supported) instead of one dashboard button.
+- Checked by really stopping the server in a phone-size browser with the service worker active (Playwright's own "offline" switch does not affect service-worker requests, so it cannot be used for this). Service worker cache is now v14.
+
 ## Part 74 — Search bar and Search page redo
 - Problem (reported by the owner): the dashboard search bar was far too tall (Part 71's 46px field inside a padded card) and the Search page was a narrow centred card with an empty screen below it.
 - Dashboard bar is now a slim pill (icon, field, Search button). The Search page uses the full width: pill bar on top, "Filters" fold-out as a responsive grid, tag chips, and results. With no filter it shows "Latest entries", so the page is never blank.

@@ -1,9 +1,9 @@
-const CACHE_NAME = "expenseflow-static-v13";
+const CACHE_NAME = "expenseflow-static-v14";
 const PAGES = "expenseflow-pages-v1"; // signed-in pages kept for offline viewing; wiped on logout / when the login form is served
 const APP_SCOPE = self.registration.scope;
 const OFFLINE_URL = new URL("offline.html", APP_SCOPE).href;
 const NAV_WAIT = 4000;   // a page that has a saved copy waits at most this long for the server, then shows the saved copy
-const NAV_GIVE_UP = 20000; // a page without a saved copy waits this long, then shows the offline page (which keeps retrying)
+const NAV_GIVE_UP = 8000;  // a page without a saved copy waits this long, then shows the offline page (which keeps retrying)
 const STATIC_URLS = [
   "offline.html",
   "assets/icons/icon-192.png",
@@ -59,8 +59,10 @@ async function fromNetwork(request, url) {
 async function withStaleBar(saved) {
   try {
     const html = await saved.clone().text();
-    const bar = '<div id="ef-stale" role="status" style="position:sticky;top:0;z-index:99999;background:#f59e0b;color:#1f1300;font:600 13px system-ui,sans-serif;padding:8px 12px;text-align:center">'
-      + 'Showing a saved copy because the connection or server is slow. It will refresh by itself when it is back. <a href="" style="color:inherit;text-decoration:underline" onclick="location.reload();return false">Reload now</a></div>';
+    const bar = '<style>@media(min-width:900px){#ef-stale{bottom:22px!important}}#ef-stale{position:fixed;bottom:calc(96px + env(safe-area-inset-bottom));left:50%;white-space:nowrap;transform:translateX(-50%);z-index:99999;display:flex;align-items:center;gap:8px;max-width:calc(100vw - 24px);'
+      + 'padding:7px 8px 7px 14px;border-radius:999px;background:rgba(11,37,69,.92);color:#fff;font:600 12px/1.2 Inter,system-ui,sans-serif;box-shadow:0 6px 22px rgba(0,0,0,.25)}'
+      + '#ef-stale i{width:8px;height:8px;border-radius:50%;background:#f59e0b;flex:0 0 auto}#ef-stale a{color:#5eead4;text-decoration:none;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.12)}</style>'
+      + '<div id="ef-stale" role="status"><i></i><span>Offline · saved copy</span><a href="" onclick="location.reload();return false">Retry</a></div>';
     const body = html.replace(/<body[^>]*>/i, (m) => m + bar);
     const headers = new Headers(saved.headers);
     headers.delete("content-length");
@@ -77,7 +79,7 @@ async function offlinePage() {
 
 async function pageRequest(request, url, event) {
   const cache = await caches.open(PAGES);
-  let saved = await cache.match(request.url);
+  let saved = await cache.match(request.url) || await cache.match(request.url, { ignoreSearch: true });
   if (!saved && isLogin(url)) saved = await cache.match(dash()); // already signed in: open on the saved dashboard
 
   const net = fromNetwork(request, url);
@@ -100,7 +102,7 @@ self.addEventListener("message", (event) => {
   if (!d || d.type !== "prewarm" || !Array.isArray(d.urls)) return;
   event.waitUntil((async () => {
     const cache = await caches.open(PAGES);
-    for (const u of d.urls.slice(0, 6)) {
+    for (const u of d.urls.slice(0, 10)) {
       try {
         const url = new URL(u, APP_SCOPE);
         if (url.origin !== self.location.origin || skipCache(url) || isLogin(url)) continue;

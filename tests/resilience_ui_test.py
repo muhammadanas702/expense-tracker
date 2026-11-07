@@ -60,7 +60,7 @@ with sync_playwright() as pw:
     p.goto(APP + '/quick-add.php'); p.wait_for_timeout(1500)
     ok(p.locator('#oh').count() == 1, 'a page never saved shows the offline page')
     p.wait_for_function("document.getElementById('oh').textContent.indexOf('not answering') >= 0", timeout=15000)
-    ok(p.locator('#saved').is_visible(), 'offline page: says the SERVER is the problem and offers the saved dashboard')
+    ok(p.locator('#savedlist a').count() >= 1, 'offline page: says the SERVER is the problem and lists the saved pages')
     # the same page when the DEVICE is offline
     p3 = ctx.new_page(); p3.add_init_script("Object.defineProperty(navigator, 'onLine', {get: () => false})")
     p3.goto(APP + '/offline.html'); p3.wait_for_timeout(500)
