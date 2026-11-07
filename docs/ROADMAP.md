@@ -339,6 +339,10 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 79 — Add/Edit Income and Expense in two columns
+- On screens 1000px and wider the form is 920px wide: Amount next to Currency, Title full width, category and payment chips full width, Note next to Tags. The whole Add Expense form now fits one screen without scrolling. Phones keep one column.
+- Web only: no Android/Windows rebuild needed for Parts 74-79.
+
 ## Part 78 — Budgets, Goals, Reminders use the width
 - On screens 1000px and wider these three pages put the list ("This month" / goals / "Coming up") and the "new" form side by side instead of one 720px column with empty sides. Phones are unchanged (one column).
 - Card titles are left aligned (the icon and the title were pushed to opposite ends).

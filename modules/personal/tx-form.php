@@ -223,7 +223,7 @@ function personal_tx_page(string $kind, ?int $editId = null): void
     ?>
     <div class="g" style="max-width:640px;margin:0 auto;padding:22px">
       <?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e($error) ?></div><?php endif; ?>
-      <form method="POST" autocomplete="off" style="--t:<?= e($accent) ?>"<?= $isEdit ? '' : ' data-offline-queue="' . e($kind) . '"' ?>>
+      <form class="txf" method="POST" autocomplete="off" style="--t:<?= e($accent) ?>"<?= $isEdit ? '' : ' data-offline-queue="' . e($kind) . '"' ?>>
         <?= csrf_field() ?>
         <div class="fl"><label for="amount"><?= e(t('Amount')) ?></label>
           <input class="inp amt" id="amount" type="number" inputmode="decimal" step="0.01" min="0.01" max="99999999.99" name="amount" value="<?= e($old['amount']) ?>" placeholder="0.00" required></div>
