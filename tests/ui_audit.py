@@ -22,8 +22,8 @@ role = "'super',1" if admin else "'user',0"
 sql(f"INSERT INTO users(name,email,password,role,is_admin) VALUES ('Audit User','{email}','{h}',{role})")
 uid = sql(f"SELECT id FROM users WHERE email='{email}'")
 sql(f"INSERT INTO user_settings (user_id, savings_goal, notifications, setup_done) VALUES ({uid}, 20, 1, 1)")
-sql(f"INSERT INTO incomes (user_id,title,amount,currency,category,payment_method,transaction_date,year_month) VALUES ({uid},'Salary',50000,'PKR','Salary','Bank',NOW(),DATE_FORMAT(NOW(),'%Y-%m'))")
-sql(f"INSERT INTO expenses (user_id,title,amount,currency,category,payment_method,transaction_date,year_month) VALUES ({uid},'Lunch',450,'PKR','Food','Cash',NOW(),DATE_FORMAT(NOW(),'%Y-%m'))")
+sql(f"INSERT INTO income (user_id,title,amount,currency,amount_pkr,payment_method,transaction_date) VALUES ({uid},'Salary',50000,'PKR',50000,'Bank',NOW())")
+sql(f"INSERT INTO expenses (user_id,title,amount,currency,amount_pkr,category,payment_method,transaction_date) VALUES ({uid},'Lunch',450,'PKR',450,'Food','Cash',NOW())")
 SKIP = re.compile(r'logout|delete|export|download|-action|remove|\.pdf|\.csv|\.apk|\.exe|mailto:|tel:|^#|javascript:|github\.com|google|login-code|backup|reset|stop-recurring|https-action', re.I)
 PUBLIC = ['/', '/about.php', '/contact.php', '/privacy.php', '/terms.php', '/guides/', '/auth/login.php', '/auth/register.php', '/auth/forgot-password.php', '/offline.html']
 CHECK = """() => {
