@@ -339,6 +339,10 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 71 — Form controls consistency
+- `assets/polish.css`: every input, select, date picker and textarea is 46px high with one border/placeholder style; selects get the same custom chevron (mirrored in Urdu/RTL); form submit buttons match the field height (e.g. Full Report "Apply" next to the Type select).
+- Checked with `tests/ui_audit.py` (37 pages) plus fonts, urdu_public and lite_apk tests.
+
 ## Part 70 — Public pages UI consistency
 - About / Contact / Privacy / Terms / Guides content now sits on the same glass card as the app (`.pubc` in `includes/public-layout.php`), inline links and button spacing fixed.
 - Landing hero mock cards overlap by a controlled margin instead of colliding.
