@@ -69,7 +69,7 @@ admin_page_start(['title' => 'User logs', 'sub' => 'Everything users did · ' . 
     <button class="btn sm" type="submit">Filter</button>
     <a class="btn sm o" href="logs.php">Clear</a>
   </form>
-  <div class="tbl-wrap"><table class="tbl fixm">
+  <div class="tbl-wrap"><table class="tbl fixm wide">
     <tr><th>Time</th><th>User</th><th>Action</th><th class="hm">Details</th><th class="hm">IP</th></tr>
     <?php foreach ($logs as $log): ?>
     <tr>
