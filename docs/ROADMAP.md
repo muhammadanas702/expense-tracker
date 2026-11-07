@@ -339,6 +339,11 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 72 — Dark mode and Urdu UI check
+- `tests/ui_audit.py` gets `--dark` (ef_theme cookie) and `--urdu` (ef_lang cookie) so the same 24-page sweep and screenshots run in each mode.
+- Fixed: public pages (Privacy, Terms, About, Contact, Guides) had faint body text in dark mode; they now use light text and teal links (`assets/theme-dark.css`).
+- Urdu sweep: no layout or font problems found. `offline.html` stays light in dark mode by design (self-contained page).
+
 ## Part 71 — Form controls consistency
 - `assets/polish.css`: every input, select, date picker and textarea is 46px high with one border/placeholder style; selects get the same custom chevron (mirrored in Urdu/RTL); form submit buttons match the field height (e.g. Full Report "Apply" next to the Type select).
 - Checked with `tests/ui_audit.py` (37 pages) plus fonts, urdu_public and lite_apk tests.
