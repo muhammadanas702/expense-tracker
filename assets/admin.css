@@ -40,3 +40,6 @@ table.tbl td small{display:block;color:var(--mu);font-size:.75rem}
 .tb-search{display:flex;gap:10px;flex:1 1 100%;flex-wrap:nowrap;align-items:center}.tb-search .inp{flex:1;min-width:0}.tb-search .btn{flex:none}
 .toolbar .btn.sm,.tb-search .btn{min-height:40px}
 @media(min-width:701px){.tb-search{flex:1 1 320px}.G4a:has(>:nth-child(6)):not(:has(>:nth-child(7))){grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* Part 73: phone log rows wrap instead of clipping; helper paragraphs read as helper text */
+@media(max-width:700px){table.tbl.wide td{min-width:0;max-width:100%;overflow-wrap:anywhere}table.tbl.wide td:nth-child(3){flex:1 1 100%}}
+.card p.mut{font-size:.85rem;color:var(--mu);line-height:1.5}

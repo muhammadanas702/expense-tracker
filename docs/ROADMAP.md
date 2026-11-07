@@ -339,6 +339,11 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 73 — Admin panel in dark mode
+- Swept all admin pages at phone and desktop width in dark theme (`ui_audit.py --admin --dark`, 45 pages).
+- Fixed: User logs rows clipped the Action column on phones (rows now wrap, Time/User/Action/Details stack); Settings "Apps & contact" heading and helper paragraph now match the other cards; helper paragraphs inside admin cards use the muted small style.
+- The admin dashboard bar chart animates for about a second, so screenshots must wait before judging it.
+
 ## Part 72 — Dark mode and Urdu UI check
 - `tests/ui_audit.py` gets `--dark` (ef_theme cookie) and `--urdu` (ef_lang cookie) so the same 24-page sweep and screenshots run in each mode.
 - Fixed: public pages (Privacy, Terms, About, Contact, Guides) had faint body text in dark mode; they now use light text and teal links (`assets/theme-dark.css`).
