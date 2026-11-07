@@ -10,7 +10,7 @@ def ok(c, m):
     if not c: fails += 1; print('FAIL', m)
 ALLOWED = re.compile(r'^(ExpenseFlow|English|expenseflowteam@gmail\.com|you@example\.com)$|^[A-Za-z]+ (ka|ke|ko|se|mein|kaise)\b|\bjo har mahine\b|^[A-Za-z ,.]*\b(kaise|baantein|bachayein|tareeqa|hisab|asaan|jo|karte)\b', re.I)  # brand, e-mail, and the Roman-Urdu guide titles
 s = requests.Session(); s.cookies.set('ef_lang', 'ur')
-for u in ['/', '/about.php', '/contact.php', '/guides/', '/auth/login.php', '/privacy.php', '/terms.php']:
+for u in ['/?lang=ur', '/about.php', '/contact.php', '/guides/', '/auth/login.php', '/privacy.php', '/terms.php']:
     r = s.get(B + u); ok(r.status_code == 200, u + ' loads')
     t = re.sub(r'<(script|style)[^>]*>.*?</\1>', '', r.text, flags=re.S)
     parts = re.split(r'(<[^>]+>)', t); texts = []

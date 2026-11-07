@@ -339,6 +339,12 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 83 — Landing: English by default, steadier navbar
+- Owner report: the landing page opened in Urdu (a saved Urdu cookie from using the app) and the phone navbar was poor.
+- The landing page now always opens in English (`EF_LANG_DEFAULT_EN`); Urdu is chosen with the new language switch in the navbar/menu (`/?lang=ur`). The app itself still remembers the chosen language.
+- Phone navbar: a full-width solid bar (logo, Get started, menu button) instead of a floating pill over the text; the menu button is a clean hamburger that turns into a real X; Get started has a 40px touch height; the menu has Log in, Get started and the language switch.
+- Tests that read the Urdu landing page now ask for `/?lang=ur`.
+
 ## Part 82 — Landing page redesign (dark cinematic)
 - Owner asked for a landing page in the style of tieropdigital.com. That site could not be fetched from here (only its text came through: dark editorial look, huge all-caps headlines, numbered sections, ticker strip, full-screen menu, "pause motion" control), so the style was rebuilt from that structure with ExpenseFlow's own teal/blue colours. Colours and fonts of that site were NOT copied.
 - New `assets/landing2.css` + `assets/landing.js`; `index.php` body rewritten (SEO tags, structured data, links and all texts kept). The landing page is now always dark and no longer loads app.css.
