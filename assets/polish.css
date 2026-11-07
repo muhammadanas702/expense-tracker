@@ -87,3 +87,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
  .g[style*="max-width:720px"]>.card{margin-top:0!important}
 }
 .g[style*="max-width:720px"] .t{justify-content:flex-start;gap:8px}
+/* Part 79: Add/Edit Income and Expense use two columns on wide screens (short fields side by side, chip groups full width) */
+@media(min-width:1000px){
+ .g[style*="max-width:640px"]:has(>form.txf){max-width:920px!important}
+ form.txf{display:grid;grid-template-columns:1fr 1fr;column-gap:20px;align-items:start}
+ form.txf>*{grid-column:1/-1}
+ form.txf>.fl:has(#amount),form.txf>.fl:has(#currency),form.txf>.fl:has(#note),form.txf>.fl:has(#tags){grid-column:auto}
+ form.txf>.msg{grid-column:1/-1}
+}
