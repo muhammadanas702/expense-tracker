@@ -339,6 +339,11 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 70 — Public pages UI consistency
+- About / Contact / Privacy / Terms / Guides content now sits on the same glass card as the app (`.pubc` in `includes/public-layout.php`), inline links and button spacing fixed.
+- Landing hero mock cards overlap by a controlled margin instead of colliding.
+- Verified with `tests/ui_audit.py` (37 pages), urdu_public, fonts, lite_apk, trust tests.
+
 ## Part 69 — Admin panel polish
 
 - The staff panel is English only (`EF_ADMIN_PAGE` in `admin/auth.php` makes `ef_lang()` ignore the Urdu cookie there), so it is never half Urdu, half English.
