@@ -2,14 +2,14 @@
 .tag.rs{background:rgba(245,158,11,.18);color:#b45309}.tag.tb2{background:rgba(29,78,216,.12);color:#1d4ed8}.tag.tu{background:rgba(91,107,128,.14);color:var(--mu)}
 .tbl-wrap{overflow-x:auto;border-radius:14px}
 table.tbl{width:100%;border-collapse:collapse;font-size:.84rem}
-table.tbl th{text-align:left;font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mu);padding:10px 12px;white-space:nowrap}
+table.tbl th{text-align:left;font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mu);padding:10px 12px;white-space:nowrap}
 table.tbl td{padding:11px 12px;border-top:1px solid rgba(91,107,128,.14);vertical-align:middle}
 table.tbl tr:hover td{background:rgba(255,255,255,.45)}
-table.tbl td small{display:block;color:var(--mu);font-size:.72rem}
+table.tbl td small{display:block;color:var(--mu);font-size:.75rem}
 .who{display:flex;align-items:center;gap:10px;min-width:0}.who b{display:block}
 .acts-r{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
 .G4a{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.G4a>*{min-width:0}
-.stat .k{font-size:.72rem;line-height:1.25;color:var(--mu);font-weight:600}.stat .big2{font-size:1.45rem;font-weight:800;letter-spacing:-.5px;margin-top:0}
+.stat .k,.k{font-size:.75rem;line-height:1.25;color:var(--mu);font-weight:600}.stat .big2{font-size:1.45rem;font-weight:800;letter-spacing:-.5px;margin-top:0}
 .stat .ibx{width:30px;height:30px;border-radius:10px;flex:none;display:grid;place-items:center;background:rgba(255,255,255,.7);color:var(--a1)}.stat .ibx svg{width:16px;height:16px}
 .stat{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:12px}
 .barchart{width:100%;max-height:260px}
@@ -32,3 +32,11 @@ table.tbl td small{display:block;color:var(--mu);font-size:.72rem}
 .sb .sbs .nv,.sb .sbs .sl{flex:none}
 /* Phones are the base style above (6 numbers in 2 columns = 3 rows); wider screens get bigger cards in as many columns as fit */
 @media(min-width:701px){.G4a{grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}.stat{padding:16px;gap:10px;align-items:flex-start}.stat .k{font-size:.74rem}.stat .big2{font-size:1.9rem;margin-top:2px}.stat .ibx{width:38px;height:38px;border-radius:12px}.stat .ibx svg{width:20px;height:20px}}
+
+/* Part 69: tables on a phone: the first column wraps instead of pushing the others out of view */
+@media(max-width:700px){table.tbl td:first-child,table.tbl th:first-child{max-width:48vw;overflow-wrap:anywhere}table.tbl td,table.tbl th{padding:10px 6px}table.tbl .tag{white-space:nowrap}}
+
+/* Part 69: users toolbar (search row never breaks, buttons line up) and a 3x2 grid for six stat cards */
+.tb-search{display:flex;gap:10px;flex:1 1 100%;flex-wrap:nowrap;align-items:center}.tb-search .inp{flex:1;min-width:0}.tb-search .btn{flex:none}
+.toolbar .btn.sm,.tb-search .btn{min-height:40px}
+@media(min-width:701px){.tb-search{flex:1 1 320px}.G4a:has(>:nth-child(6)):not(:has(>:nth-child(7))){grid-template-columns:repeat(3,minmax(0,1fr))}}

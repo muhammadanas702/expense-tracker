@@ -339,6 +339,14 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 69 — Admin panel polish
+
+- The staff panel is English only (`EF_ADMIN_PAGE` in `admin/auth.php` makes `ef_lang()` ignore the Urdu cookie there), so it is never half Urdu, half English.
+- Settings switches are whole-row labels (a tap anywhere on the row flips the switch); table heads and small captions are 12px; on a phone the first column of tables wraps and role tags never break into two lines.
+- Overview: six stat cards are 3 x 2 on desktop (was 4 + 2), the bar chart has a baseline and empty months show a faint stub; Users: the search row stays on one line with the Search button, the buttons line up.
+- `tests/ui_audit.py --admin`: 4 findings left, all the offline page's own connectivity check that the audit blocks on purpose.
+- Run after merging Part 68 (PR #105): this branch is based on it.
+
 ## Part 68 — UI audit tool and the first global fixes
 
 - New `tests/ui_audit.py` (`--admin`, `--shots`, `--json=`, `--fail-over=N`): crawls the public pages and the signed-in app (and the admin panel) at phone and desktop width and reports page errors, failed requests, sideways scrolling, broken images, small tap targets, fields without a label, text under 11.5px, missing/double `h1`, fonts outside the design system. First run: 154 findings; after this Part: 4 (the offline page's own self-check request that the audit blocks on purpose).
