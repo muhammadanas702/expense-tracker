@@ -1,4 +1,5 @@
 """Screenshot chosen signed-in pages so a person can LOOK at them (the audit tool only checks rules).
+Add --shared to seed a group with friends and shared expenses (use {gid} in a path).
 Usage: python3 tests/ui_shot.py /search.php /dashboard.php [--dark] [--urdu] [--widths=1280,390] [--out=/tmp/shots]
 Needs the same local server and test database as ui_audit.py."""
 import subprocess, sys, os, re
@@ -18,6 +19,10 @@ sql(f"INSERT INTO user_settings (user_id, savings_goal, notifications, setup_don
 sql(f"INSERT INTO income (user_id,title,amount,currency,amount_pkr,payment_method,transaction_date) VALUES ({uid},'Salary',50000,'PKR',50000,'Bank',NOW())")
 for t, a, c in (('Lunch', 450, 'Food'), ('Uber', 900, 'Transport')):
     sql(f"INSERT INTO expenses (user_id,title,amount,currency,amount_pkr,category,payment_method,transaction_date) VALUES ({uid},'{t}',{a},'PKR',{a},'{c}','Cash',NOW())")
+gid = ''
+if '--shared' in sys.argv:
+    r = subprocess.run(['php', 'tests/ui_seed_shared.php', uid], capture_output=True, text=True); gid = r.stdout.strip(); print('seeded group', gid, r.stderr[-200:])
+paths = [p.replace('{gid}', gid) for p in paths]
 os.makedirs(out, exist_ok=True)
 with sync_playwright() as p:
     br = p.chromium.launch()
@@ -32,5 +37,5 @@ with sync_playwright() as p:
             if '--boxes' in sys.argv: print(path, pg.evaluate("[...document.querySelectorAll('.sp > *, .sp-bar, .sp-more, #results')].map(e=>{const r=e.getBoundingClientRect();return e.className.slice(0,14)+' y'+Math.round(r.top)+' h'+Math.round(r.height)+' x'+Math.round(r.left)+' w'+Math.round(r.width)})"))
             pg.screenshot(path=f"{out}/{re.sub(r'[^a-z0-9]+', '-', path.lower()).strip('-')}-{w}.png")
     br.close()
-sql(f"DELETE FROM users WHERE email='{email}'")
+sql("DELETE FROM users WHERE email LIKE 'seed%@shot.local'"); sql(f"DELETE FROM users WHERE email='{email}'")
 print('saved to', out)
