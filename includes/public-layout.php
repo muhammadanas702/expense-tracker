@@ -67,13 +67,15 @@ function ef_public_start(array $o): void
 </header>
 <main class="sec pub">
 <h1><?= e((string) ($o['h1'] ?? $title)) ?></h1>
+<div class="g pubc">
 <?php
 }
 
 function ef_public_end(): void
 {
     $base = $GLOBALS['__ef_pub']['base'] ?? '';
-    ?></main>
+    ?></div>
+</main>
 <footer class="fo"><span class="logo"><img src="<?= e($base) ?>/assets/icons/icon-192.png" alt="" width="38" height="38"><span class="wm">ExpenseFlow</span></span><span>© <?= date('Y') ?> ExpenseFlow</span>
   <span class="lk2"><a href="<?= e($base) ?>/about.php">About</a><a href="<?= e($base) ?>/guides/">Guides</a><a href="<?= e($base) ?>/privacy.php">Privacy</a><a href="<?= e($base) ?>/terms.php">Terms</a><a href="<?= e($base) ?>/contact.php">Contact</a><a href="<?= e($base) ?>/auth/login.php">Log in</a></span></footer>
 </div>
