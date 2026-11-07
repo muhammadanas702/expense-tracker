@@ -339,6 +339,12 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 74 — Search bar and Search page redo
+- Problem (reported by the owner): the dashboard search bar was far too tall (Part 71's 46px field inside a padded card) and the Search page was a narrow centred card with an empty screen below it.
+- Dashboard bar is now a slim pill (icon, field, Search button). The Search page uses the full width: pill bar on top, "Filters" fold-out as a responsive grid, tag chips, and results. With no filter it shows "Latest entries", so the page is never blank.
+- New `tests/ui_shot.py` takes screenshots of chosen signed-in pages (desktop and phone, `--dark`, `--urdu`) so pages are looked at, not only rule-checked.
+- Found while doing this: `ui_audit.py` inserted its sample income/expense rows into wrong columns, so the audit ran on an empty account. Fixed; the audit now has real data on every page.
+
 ## Part 73 — Admin panel in dark mode
 - Swept all admin pages at phone and desktop width in dark theme (`ui_audit.py --admin --dark`, 45 pages).
 - Fixed: User logs rows clipped the Action column on phones (rows now wrap, Time/User/Action/Details stack); Settings "Apps & contact" heading and helper paragraph now match the other cards; helper paragraphs inside admin cards use the muted small style.
