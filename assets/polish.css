@@ -67,3 +67,16 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .acts{gap:2px}.acts a,.acts button{width:40px;height:40px;border-radius:12px}
 .acts a:hover,.acts button:hover{background:rgba(91,107,128,.12)}
 .acts svg{width:17px;height:17px}
+/* Part 77: Search uses the whole width and no dead gaps */
+.sp{max-width:none;gap:8px}
+.sp-more{margin-top:2px}
+.sp-more>summary{padding:4px 6px}
+.sp-grid{margin-top:4px}
+.sp-tags:empty{display:none}
+#results.card{padding:16px 22px}
+#results .t{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:6px;grid-column:1/-1}
+#results>p{grid-column:1/-1;margin:6px 0}
+@media(min-width:1000px){#results.card{display:grid;grid-template-columns:1fr 1fr;column-gap:36px;align-content:start}}
+.sp-more{padding:0;margin:0}
+.sp-more>summary{display:inline-flex}
+.sp-more[open]>summary{margin-bottom:2px}

@@ -29,6 +29,7 @@ with sync_playwright() as p:
         pg.goto(B + '/auth/login.php'); pg.fill('input[name=email]', email); pg.fill('input[name=password]', 'Test#12345'); pg.click('button[type=submit]'); pg.wait_for_load_state()
         for path in paths:
             pg.goto(B + path); pg.wait_for_timeout(1500)
+            if '--boxes' in sys.argv: print(path, pg.evaluate("[...document.querySelectorAll('.sp > *, .sp-bar, .sp-more, #results')].map(e=>{const r=e.getBoundingClientRect();return e.className.slice(0,14)+' y'+Math.round(r.top)+' h'+Math.round(r.height)+' x'+Math.round(r.left)+' w'+Math.round(r.width)})"))
             pg.screenshot(path=f"{out}/{re.sub(r'[^a-z0-9]+', '-', path.lower()).strip('-')}-{w}.png")
     br.close()
 sql(f"DELETE FROM users WHERE email='{email}'")

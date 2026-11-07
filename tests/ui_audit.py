@@ -32,6 +32,14 @@ CHECK = """() => {
   r.overflowX = document.documentElement.scrollWidth - innerWidth;
   r.overflowEls = [];
   if (r.overflowX > 1) document.querySelectorAll('body *').forEach(e => { const b = e.getBoundingClientRect(); if (vis(e) && b.right > innerWidth + 1 && r.overflowEls.length < 4) r.overflowEls.push(e.tagName.toLowerCase() + (e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/\\s+/)[0] : '')); });
+  r.gaps = []; r.narrow = [];
+  const main = document.querySelector('.view, .mn');
+  if (main) {
+    const kids = [...main.children].filter(vis), mb = main.getBoundingClientRect();
+    const nm = e => e.tagName.toLowerCase() + (e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(" ")[0] : '');
+    for (let i = 1; i < kids.length; i++) { const g = Math.round(kids[i].getBoundingClientRect().top - kids[i - 1].getBoundingClientRect().bottom); if (g > 48) r.gaps.push(nm(kids[i - 1]) + '->' + nm(kids[i]) + ' ' + g + 'px'); }
+    if (innerWidth >= 1000) kids.forEach(k => { const b = k.getBoundingClientRect(); if (b.height > 120 && b.width < mb.width * 0.55) r.narrow.push(nm(k) + ' ' + Math.round(b.width) + 'px of ' + Math.round(mb.width)); });
+  }
   r.brokenImg = [...document.images].filter(i => i.complete && i.naturalWidth === 0 && vis(i)).map(i => i.getAttribute('src')).slice(0, 5);
   r.small = [...document.querySelectorAll('a[href],button,input:not([type=hidden]):not([type=checkbox]):not([type=radio]),select,textarea,[role=button]')].filter(e => { if (!vis(e)) return false; const b = e.getBoundingClientRect(); return (b.height < 32 || b.width < 32) && !(e.closest('p,li,small,td,.mu,footer') && e.tagName === 'A' && b.height >= 18); }).map(e => (e.tagName.toLowerCase() + ':' + ((e.innerText || e.getAttribute('aria-label') || e.getAttribute('name') || '').trim().slice(0, 18)) + ' ' + Math.round(e.getBoundingClientRect().width) + 'x' + Math.round(e.getBoundingClientRect().height))).slice(0, 6);
   r.unlabeled = [...document.querySelectorAll('input:not([type=hidden]):not([type=submit]):not([type=button]),select,textarea')].filter(e => { if (!vis(e) && !e.classList.contains('swc')) return false; const id = e.id; return !(e.getAttribute('aria-label') || e.getAttribute('aria-labelledby') || e.getAttribute('title') || (id && document.querySelector('label[for="' + id + '"]')) || e.closest('label') || e.getAttribute('placeholder')); }).map(e => e.tagName.toLowerCase() + '[' + (e.name || e.type) + ']').slice(0, 5);
@@ -76,6 +84,8 @@ with sync_playwright() as pw:
                 except Exception: p.wait_for_timeout(600)
             if c is None: rep.setdefault(path, {})[vp] = {'issues': ['page keeps reloading or navigating']}; return None
             if c['overflowX'] > 1: issues.append(f"sideways scroll +{c['overflowX']}px ({', '.join(c['overflowEls'])})")
+            if c['gaps']: issues.append('empty gap: ' + '; '.join(c['gaps'][:3]))
+            if c['narrow']: issues.append('narrow column: ' + '; '.join(c['narrow'][:3]))
             if c['brokenImg']: issues.append('broken image ' + ', '.join(c['brokenImg']))
             if vp == 'm' and c['small']: issues.append('small tap targets: ' + '; '.join(c['small']))
             if c['unlabeled']: issues.append('field without label: ' + ', '.join(c['unlabeled']))

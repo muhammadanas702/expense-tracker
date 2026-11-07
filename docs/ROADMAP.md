@@ -339,6 +339,12 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 77 — Search spacing, full width, layout checks
+- Owner report: dead space between Filters and the list, wide empty side margins, search bar not reaching the edges.
+- Cause: the global `details{padding:16px 18px;margin-bottom:10px}` rule made the closed Filters fold-out 62px tall, and the Search column was capped at 1000px and centred.
+- Search page now uses the whole content width (bar edge to edge like the header), Filters is a 30px line, and on wide screens the result list flows in two columns so the width is used.
+- `tests/ui_audit.py` now also flags **empty gaps** (more than 48px between two stacked blocks) and **narrow columns** (content under 55% of the width on desktop). `tests/ui_shot.py --boxes` prints block positions for debugging spacing.
+
 ## Part 76 — Page widths, Amount fields, tap targets
 - Pages with a centred column (Add/Edit Income and Expense, Budgets, Goals, Reminders, Quick add) were shrunk by their flex parent to 300-450px, each a different width; they now keep their full intended width (640px forms, 720px lists), the same on every page.
 - Only the main Amount field of the Add/Edit forms is the big one; Budget limit, Goal target and Reminder amount are normal inputs. Number spinners are hidden everywhere.
