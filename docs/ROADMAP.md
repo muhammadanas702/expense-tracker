@@ -339,6 +339,11 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 76 — Page widths, Amount fields, tap targets
+- Pages with a centred column (Add/Edit Income and Expense, Budgets, Goals, Reminders, Quick add) were shrunk by their flex parent to 300-450px, each a different width; they now keep their full intended width (640px forms, 720px lists), the same on every page.
+- Only the main Amount field of the Add/Edit forms is the big one; Budget limit, Goal target and Reminder amount are normal inputs. Number spinners are hidden everywhere.
+- Edit/Delete icons on entry rows had a 15x15px touch area; they are now 40x40px (audit findings went from 8 to the 4 known `offline.html` ones).
+
 ## Part 75 — Offline: more saved pages, calmer notices
 - Owner report: on the phone, offline pages (Income especially) did not open and the offline pop-up looked bad.
 - Saved pages: the page script now keeps 8 pages ready for offline use (Dashboard, Add Income, Add Expense, Full Report, Budgets, Goals, Reminders, Search; was 3), refreshed every 2 hours and again when the phone comes back online. A link with a query string (`?month=..`) now falls back to the saved copy of the same page.

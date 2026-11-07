@@ -57,3 +57,13 @@ form button.btn[type=submit]{min-height:46px}
 .sp-tags{margin:0}
 .sp .card{margin:0}
 @media(max-width:560px){.sp-bar .btn{padding:0 14px}}
+/* Part 76: centred content columns keep their full width (flex parents shrank them to 300-450px), one column width per kind of page */
+.g[style*="margin:0 auto"]{width:100%;box-sizing:border-box}
+/* only the main Amount field of the add/edit forms is big; limit/target fields are normal inputs */
+#bamt,#gtarget,#ramt{font-size:1rem!important;font-weight:500!important;letter-spacing:0!important;padding:0 14px!important;color:var(--tx)!important}
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+/* row Edit/Delete icons: 15px glyph, 40px touch area */
+.acts{gap:2px}.acts a,.acts button{width:40px;height:40px;border-radius:12px}
+.acts a:hover,.acts button:hover{background:rgba(91,107,128,.12)}
+.acts svg{width:17px;height:17px}
