@@ -81,7 +81,6 @@ foreach ($ld as $block): ?>
 </head>
 <body class="lp">
 <a class="skip" href="#main">Skip to content</a>
-<div class="ld" aria-hidden="true"><div class="ld-in"><img src="<?= e($base) ?>/assets/icons/icon-192.png" alt=""><div class="ld-bar"><i></i></div><div class="ld-t">ExpenseFlow</div></div></div>
 
 <header class="nav" id="nav">
   <a class="brand" href="<?= e($base) ?>/"><img src="<?= e($base) ?>/assets/icons/icon-192.png" alt=""><span>ExpenseFlow</span></a>
