@@ -48,8 +48,9 @@ $stat = fn($label, $n, $icon) => '<div class="g card stat"><div><div class="k">'
   <div class="g card">
     <div class="t">New users per month</div>
     <svg class="barchart" viewBox="0 0 300 130" role="img" aria-label="New users per month">
+      <line x1="6" y1="110.5" x2="294" y2="110.5" stroke="var(--mu)" stroke-opacity=".25" stroke-width="1"/>
       <?php $i = 0; foreach ($months as $m): $h = $m['n'] / $mx * 92; ?>
-        <rect x="<?= 14 + $i * 48 ?>" y="<?= round(110 - $h, 1) ?>" width="30" height="<?= round($h, 1) ?>" rx="8" fill="var(--a1)" style="animation-delay:<?= $i * .08 ?>s"/>
+        <rect x="<?= 14 + $i * 48 ?>" y="<?= round(110 - max($h, 3), 1) ?>" width="30" height="<?= round(max($h, 3), 1) ?>" rx="<?= $h < 8 ? 1.5 : 8 ?>" fill="var(--a1)" fill-opacity="<?= $m['n'] > 0 ? 1 : .28 ?>" style="animation-delay:<?= $i * .08 ?>s"/>
         <text x="<?= 29 + $i * 48 ?>" y="<?= round(104 - $h, 1) ?>" text-anchor="middle"><?= (int) $m['n'] ?></text>
         <text class="m" x="<?= 29 + $i * 48 ?>" y="125" text-anchor="middle"><?= e($m['label']) ?></text>
       <?php $i++; endforeach; ?>

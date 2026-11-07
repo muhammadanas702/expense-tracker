@@ -47,7 +47,7 @@ admin_page_start(['title' => 'Users', 'sub' => $total . ' account' . ($total ===
 ?>
 <div class="g card">
   <div class="toolbar">
-    <form method="get" style="display:flex;gap:10px;flex:1;min-width:200px;flex-wrap:wrap">
+    <form method="get" class="tb-search">
       <?php if ($filter !== 'all'): ?><input type="hidden" name="f" value="<?= e($filter) ?>"><?php endif; ?>
       <?php if ($sortKey !== 'new'): ?><input type="hidden" name="s" value="<?= e($sortKey) ?>"><?php endif; ?>
       <input class="inp" type="search" name="q" value="<?= e($q) ?>" placeholder="Search name or email" maxlength="60">

@@ -12,6 +12,9 @@ function ef_lang(): string
         return $lang;
     }
     $lang = 'en';
+    if (defined('EF_ADMIN_PAGE')) {
+        return $lang; // the staff panel is English only (nothing there is translated, so never half and half)
+    }
     $pick = $_GET['lang'] ?? null;
     if (is_string($pick) && in_array($pick, ['en', 'ur'], true)) {
         $lang = $pick;

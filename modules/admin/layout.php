@@ -94,7 +94,7 @@ function admin_page_start(array $o): void
   </aside>
   <div class="mn">
     <div class="g tb">
-      <div class="tt"><h2><?= e($title) ?></h2><?php if ($sub !== ''): ?><small><?= e($sub) ?></small><?php endif; ?></div>
+      <div class="tt"><h1><?= e($title) ?></h1><?php if ($sub !== ''): ?><small><?= e($sub) ?></small><?php endif; ?></div>
       <span class="tag <?= $admin['role'] === 'super' ? 'rs' : 'tb2' ?>"><?= e(admin_role_label($admin['role'])) ?></span>
       <a class="me" href="<?= e(ef_url('profile.php')) ?>"><i class="av"><?= e(ef_initials((string) $admin['name'])) ?></i><span><?= e($admin['name']) ?></span></a>
     </div>

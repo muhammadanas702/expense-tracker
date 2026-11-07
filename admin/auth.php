@@ -4,6 +4,7 @@
  * request, never trusted from the session), helpers.
  * After including this file: $conn (PDO), $admin = ['id','name','role'], $is_admin (bool, legacy).
  */
+define('EF_ADMIN_PAGE', true); // English only (see ef_lang())
 require_once __DIR__ . '/../includes/security.php';
 secure_session_start();
 
