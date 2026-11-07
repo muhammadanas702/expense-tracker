@@ -82,11 +82,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .sp-more[open]>summary{margin-bottom:2px}
 /* Part 78: list + "new" form pages (Budgets, Goals, Reminders) sit side by side on wide screens instead of one narrow column */
 @media(min-width:1000px){
- .g[style*="max-width:720px"]{max-width:none!important;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start;padding:0!important}
- .g[style*="max-width:720px"]>.msg{grid-column:1/-1}
- .g[style*="max-width:720px"]>.card{margin-top:0!important}
+ .g[style*="max-width:720px"][style*="padding:6px 0"]{max-width:none!important;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start;padding:0!important}
+ .g[style*="max-width:720px"][style*="padding:6px 0"]>.msg{grid-column:1/-1}
+ .g[style*="max-width:720px"][style*="padding:6px 0"]>.card{margin-top:0!important}
 }
-.g[style*="max-width:720px"] .t{justify-content:flex-start;gap:8px}
+.g[style*="max-width:720px"][style*="padding:6px 0"] .t{justify-content:flex-start;gap:8px}
 /* Part 79: Add/Edit Income and Expense use two columns on wide screens (short fields side by side, chip groups full width) */
 @media(min-width:1000px){
  .g[style*="max-width:640px"]:has(>form.txf){max-width:920px!important}
@@ -101,3 +101,11 @@ p.k[style*="padding:12px 0"]::before,.np-e::before{content:"";display:block;widt
  background:rgba(15,118,110,.10) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%230f766e' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 12h-6l-2 3h-4l-2-3H2'/%3E%3Cpath d='M5.5 5.1L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.5-6.9A2 2 0 0016.8 4H7.2a2 2 0 00-1.7 1.1z'/%3E%3C/svg%3E") center/26px no-repeat}
 .shub>a:last-child:nth-child(odd){grid-column:1/-1}
 .view>.g.card{align-self:stretch;width:auto}
+/* Part 81: Add shared expense is a proper padded card, two columns on wide screens */
+@media(min-width:1000px){.g[style*="max-width:720px"]:has(>form#sx){max-width:920px!important}}
+@media(min-width:1000px){
+ form#sx{display:grid;grid-template-columns:1fr 1fr;column-gap:20px;align-items:start}
+ form#sx>*{grid-column:1/-1}
+ form#sx>.fl:has(#amount),form#sx>.fl:has(#currency),form#sx>.fl:has(#paid_by),form#sx>.fl:has(#expense_date),form#sx>.fl:has(#note),form#sx>.fl:has(#receipt){grid-column:auto}
+}
+.view>.fl{width:100%}

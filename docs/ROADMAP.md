@@ -339,6 +339,13 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 82 — Landing page redesign (dark cinematic)
+- Owner asked for a landing page in the style of tieropdigital.com. That site could not be fetched from here (only its text came through: dark editorial look, huge all-caps headlines, numbered sections, ticker strip, full-screen menu, "pause motion" control), so the style was rebuilt from that structure with ExpenseFlow's own teal/blue colours. Colours and fonts of that site were NOT copied.
+- New `assets/landing2.css` + `assets/landing.js`; `index.php` body rewritten (SEO tags, structured data, links and all texts kept). The landing page is now always dark and no longer loads app.css.
+- Pieces: CSS-only brand loader, glass pill navbar, full-screen numbered menu on phones, huge uppercase chrome/gradient headline, floating product mock with tilt and count-up, scrolling ticker, numbered 01-06 sections, feature cards with a pointer spotlight, Personal/Shared panels, outlined step numbers, app cards, FAQ, closing call to action, giant outlined footer wordmark, "Pause motion" button (remembered; also follows the phone's reduce-motion setting).
+- Urdu: headlines are not uppercased or tightly tracked, line heights suit Nastaleeq, arrows and floating chips mirror. 32 new Urdu strings.
+- Checked at desktop and phone width in English and Urdu (no sideways scroll, no console errors); seo, trust, lite_apk, urdu_public, fonts tests pass.
+
 ## Part 80 — Empty states, Shared Add, Profile tiles
 - Every "nothing here yet" message (Activity, Notifications, Groups, Friends, Shared overview, Add shared expense) now has the same look: centred, a soft inbox icon, readable text, instead of one tiny grey line.
 - "Add shared expense" with no group shows that message inside a proper full-width card (it was a bare strip with no padding).
