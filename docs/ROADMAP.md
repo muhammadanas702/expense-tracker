@@ -339,6 +339,12 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search is no longer a menu entry: the Dashboard has a search box at the top that opens the Search page (`search.php`, still the full search with tags and filters).
 - Tests: `mobile_nav_ui_test.py`; `search_http_test.py` updated.
 
+## Part 84 — Landing page never blank
+- Owner report (screenshot): on the phone the landing page stayed on the loader screen ("not loading").
+- The brand loader (Part 82) is removed: it depended on a CSS animation to hide itself, and on some phones the animations did not run, leaving a black screen. Scroll-reveal blocks now also show themselves after 2 s through a CSS fallback, so a slow or blocked script can no longer leave sections invisible.
+- Phones skip the heavy blur effects (navbar, chips, menu) and use solid backgrounds.
+- Verified in a phone-size browser with JavaScript on, completely off, and with `landing.js` blocked: hero and cards are visible in all three.
+
 ## Part 83 — Landing: English by default, steadier navbar
 - Owner report: the landing page opened in Urdu (a saved Urdu cookie from using the app) and the phone navbar was poor.
 - The landing page now always opens in English (`EF_LANG_DEFAULT_EN`); Urdu is chosen with the new language switch in the navbar/menu (`/?lang=ur`). The app itself still remembers the chosen language.
