@@ -637,6 +637,7 @@ return [
     'Any currency' => 'کوئی بھی کرنسی',
     'Budget on track' => 'بجٹ درست چل رہا ہے',
     'Back to top' => 'اوپر جائیں',
+    'Scroll down' => 'نیچے جائیں',
     'Contact' => 'رابطہ',
     'Terms' => 'شرائط',
     'Up and running in three steps' => 'تین آسان مراحل میں شروع کریں',

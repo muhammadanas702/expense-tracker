@@ -644,3 +644,7 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 ## Part 93 – Real app screenshots on the landing
 - The hero phones now show real app screens (Personal dashboard, shared "Murree Trip" group) instead of hand-built HTML mocks. Images are 480px webp (~25 KB each) with width/height set, so there is no layout shift.
 - Back phone moved slightly out so both screens are visible. Web-only change, no APK/exe build needed.
+
+## Part 94 – Landing scroll experience
+- Thin progress bar at the top, side dots (desktop ≥1280px) to jump section to section with a label on hover, active link highlighted in the top bar, "Scroll down" cue under the hero, round "Back to top" button after scrolling. RTL-aware, no effect without JavaScript (links still work).
+- New `assets/landing.js` (about 40 lines, only on the landing). Web-only, no APK/exe build needed.
