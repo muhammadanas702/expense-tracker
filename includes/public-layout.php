@@ -60,7 +60,7 @@ function ef_public_start(array $o): void
 <body>
 <div class="fr" data-mode="p">
 <header class="g nb">
-  <a class="logo" href="<?= e($base) ?>/" style="padding:0"><span class="logo"><img src="<?= e($base) ?>/assets/icons/icon-192.png" alt="" width="38" height="38"><span class="wm">ExpenseFlow</span></span></a>
+  <a class="logo" href="<?= e($base) ?>/" style="padding:0"><span class="logo"><img src="<?= e($base) ?>/favicon.png" alt="" width="38" height="38"><span class="wm">ExpenseFlow</span></span></a>
   <nav class="lk" aria-label="Main"><a href="<?= e($base) ?>/#features">Features</a><a href="<?= e($base) ?>/guides/">Guides</a><a href="<?= e($base) ?>/about.php">About</a><a href="<?= e($base) ?>/#apps">Get the app</a></nav>
   <a class="lnk" href="<?= e($base) ?>/auth/login.php">Log in</a>
   <a class="btn" href="<?= e($base) ?>/auth/register.php">Get started</a>
@@ -76,7 +76,7 @@ function ef_public_end(): void
     $base = $GLOBALS['__ef_pub']['base'] ?? '';
     ?></div>
 </main>
-<footer class="fo"><span class="logo"><img src="<?= e($base) ?>/assets/icons/icon-192.png" alt="" width="38" height="38"><span class="wm">ExpenseFlow</span></span><span>© <?= date('Y') ?> ExpenseFlow</span>
+<footer class="fo"><span class="logo"><img src="<?= e($base) ?>/favicon.png" alt="" width="38" height="38"><span class="wm">ExpenseFlow</span></span><span>© <?= date('Y') ?> ExpenseFlow</span>
   <span class="lk2"><a href="<?= e($base) ?>/about.php">About</a><a href="<?= e($base) ?>/guides/">Guides</a><a href="<?= e($base) ?>/privacy.php">Privacy</a><a href="<?= e($base) ?>/terms.php">Terms</a><a href="<?= e($base) ?>/contact.php">Contact</a><a href="<?= e($base) ?>/auth/login.php">Log in</a></span></footer>
 </div>
 </body>

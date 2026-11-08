@@ -39,7 +39,7 @@ $faq = [
     ['Is my financial data safe?', 'ExpenseFlow never asks for bank or card details. You only type in your own records, passwords are stored as one-way hashes, and you can export or delete your data at any time.'],
     ['Is there an Android or Windows app?', 'Yes. Download the Android APK or the Windows installer from the Get the app section. On iPhone, add the site to your home screen from Safari.'],
 ];
-$logo = '<span class="logo"><img src="' . e($base) . '/assets/icons/icon-192.png" alt=""><span class="wm">ExpenseFlow</span></span>';
+$logo = '<span class="logo"><img src="' . e($base) . '/assets/icons/logo-96.webp" alt="" width="38" height="38"><span class="wm">ExpenseFlow</span></span>';
 ?>
 <!DOCTYPE html>
 <html<?= ef_html_attrs() ?>>
@@ -62,9 +62,11 @@ $logo = '<span class="logo"><img src="' . e($base) . '/assets/icons/icon-192.png
 <meta name="twitter:image" content="<?= e($base) ?>/assets/og-image.png">
 <meta name="twitter:title" content="<?= e($title) ?>">
 <meta name="twitter:description" content="<?= e($desc) ?>">
-<link rel="stylesheet" href="<?= e($base) ?>/assets/landing2.css?v=<?= (int) @filemtime(__DIR__ . '/assets/landing2.css') ?>">
-<meta name="theme-color" content="#04070d">
+<link rel="stylesheet" href="<?= e($base) ?>/assets/app.css?v=<?= (int) @filemtime(__DIR__ . '/assets/app.css') ?>">
+<link rel="stylesheet" href="<?= e($base) ?>/assets/theme-dark.css?v=<?= (int) @filemtime(__DIR__ . '/assets/theme-dark.css') ?>">
+<link rel="stylesheet" href="<?= e($base) ?>/assets/landing3.css?v=<?= (int) @filemtime(__DIR__ . '/assets/landing3.css') ?>">
 <?= ef_font_head() . ef_rtl_link() ?>
+<script>(function(){try{var m=document.cookie.match(/(?:^|; )ef_theme=(auto|light|dark)/),t=m?m[1]:"auto",d=t==="dark"||(t==="auto"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);if(d){document.documentElement.setAttribute("data-theme","dark");}}catch(e){}})();</script>
 <?php
 $ld = [
   ['@context' => 'https://schema.org', '@type' => 'WebSite', 'name' => 'ExpenseFlow', 'url' => $canonical, 'description' => $desc, 'inLanguage' => 'en'],
@@ -81,157 +83,123 @@ foreach ($ld as $block): ?>
 </head>
 <body class="lp">
 <a class="skip" href="#main">Skip to content</a>
-
-<header class="nav" id="nav">
-  <a class="brand" href="<?= e($base) ?>/"><img src="<?= e($base) ?>/assets/icons/icon-192.png" alt=""><span>ExpenseFlow</span></a>
-  <nav class="nl" aria-label="Sections"><a href="#features">Features</a><a href="#modes">Personal &amp; Shared</a><a href="#how">How it works</a><a href="#apps">Get the app</a><a href="#resources">Resources</a><a href="#faq">FAQ</a></nav>
-  <?= ef_lang_switch('lsw') ?>
-  <a class="pill lg-only" href="<?= e($base) ?>/auth/login.php">Log in</a>
-  <a class="pill pr" href="<?= e($base) ?>/auth/register.php">Get started</a>
-  <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menu"><span></span><span></span><span></span></button>
+<div class="fr lpf" data-mode="p">
+<header class="z-lt g" id="nav">
+  <a class="z-lg" href="<?= e($base) ?>/" aria-label="ExpenseFlow"><?= $logo ?></a>
+  <nav class="z-ll" aria-label="Sections"><a href="#features">Features</a><a href="#modes">Personal &amp; Shared</a><a href="#how">How it works</a><a href="#apps">Get the app</a><a href="#faq">FAQ</a></nav>
+  <div class="z-lr">
+    <?= ef_lang_switch('chip lsw') ?>
+    <a class="btn o lhide" href="<?= e($base) ?>/auth/login.php">Log in</a>
+    <a class="btn" href="<?= e($base) ?>/auth/register.php">Get started</a>
+    <button class="z-bg" id="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menu"><i></i><i></i><i></i></button>
+  </div>
+  <div class="z-mn g" id="menu" hidden>
+    <a href="#features">Features</a><a href="#modes">Personal &amp; Shared</a><a href="#how">How it works</a><a href="#apps">Get the app</a><a href="#resources">Resources</a><a href="#faq">FAQ</a>
+    <div class="z-mrow"><a class="btn o" href="<?= e($base) ?>/auth/login.php">Log in</a><?= ef_lang_switch('chip lsw') ?></div>
+  </div>
 </header>
-<div class="menu" id="menu" aria-label="Menu">
-<?php foreach ([['#features', 'Features'], ['#modes', 'Personal & Shared'], ['#how', 'How it works'], ['#apps', 'Get the app'], ['#resources', 'Resources'], ['#faq', 'FAQ']] as $i => $m): ?>
-  <a class="mi" href="<?= e($m[0]) ?>"><small>0<?= $i + 1 ?></small><?= e($m[1]) ?></a>
+
+<main id="main" class="z-lm">
+<section class="z-hero">
+  <div class="z-hx">
+    <span class="chip on z-eb">Free · No ads · Works offline</span>
+    <h1>Track every rupee.<br><span class="z-grad">Know every month.</span></h1>
+    <p class="z-lead">ExpenseFlow keeps your income, expenses and reports organised in one clean place, in any currency.</p>
+    <div class="z-cta">
+      <a class="btn z-lg" href="<?= e($base) ?>/auth/register.php">Get started <?= ef_icon('arr') ?></a>
+      <a class="btn z-lg o" href="<?= e($base) ?>/auth/login.php">Log in</a>
+    </div>
+    <ul class="z-tk"><li><?= ef_icon('ck') ?>Works offline</li><li><?= ef_icon('ck') ?>Multi-currency</li><li><?= ef_icon('ck') ?>PDF reports</li></ul>
+  </div>
+  <div class="z-hm" aria-hidden="true">
+    <div class="z-mb"><div class="z-k">Net Balance</div><div class="z-v">Rs 42,500</div><span class="z-bd">▲ 12% vs last month</span>
+      <svg viewBox="0 0 300 40" preserveAspectRatio="none"><polyline fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="0,32 30,28 60,31 90,20 120,24 150,14 180,18 210,9 240,13 270,5 300,8"/></svg></div>
+    <div class="g z-ml2">
+      <div class="z-mr"><span class="z-ci"><?= ef_icon('food') ?></span><span>Food<small>Today</small></span><b class="z-ex">− 850</b></div>
+      <div class="z-mr"><span class="z-ci"><?= ef_icon('case') ?></span><span>Salary<small>Oct 1</small></span><b class="z-in">+ 60,000</b></div>
+    </div>
+  </div>
+</section>
+
+<section class="z-sc" id="features">
+  <div class="z-sht"><span class="chip">Features</span><h2>Everything you need to stay on top</h2><p>Simple tools that make tracking money a habit instead of a chore.</p></div>
+  <div class="z-fg">
+<?php foreach ($features as $f): ?>
+    <article class="g z-fc"><span class="z-ib"><?= ef_icon($f[0]) ?></span><h3><?= e($f[2]) ?></h3><p><?= e($f[3]) ?></p></article>
 <?php endforeach; ?>
-  <div class="mc"><a class="pill" href="<?= e($base) ?>/auth/login.php">Log in</a><a class="pill pr" href="<?= e($base) ?>/auth/register.php">Get started</a></div>
-  <div class="ml"><?= ef_lang_switch('lsw') ?></div>
-</div>
-
-<main id="main">
-<section class="hero">
-  <div class="w hg">
-    <div>
-      <span class="eyebrow"><i></i>Free · No ads · Works offline</span>
-      <h1><span class="ch">Track every rupee.</span><span class="gr">Know every month.</span></h1>
-      <p class="lead">ExpenseFlow keeps your income, expenses and reports organised in one clean place, in any currency.</p>
-      <div class="cta">
-        <a class="pill pr lg" href="<?= e($base) ?>/auth/register.php">Get started <?= ef_icon('arr') ?></a>
-        <a class="pill lg" href="<?= e($base) ?>/auth/login.php">Log in</a>
-      </div>
-      <div class="tr"><span><?= ef_icon('ck') ?>Works offline</span><span><?= ef_icon('ck') ?>Multi-currency</span><span><?= ef_icon('ck') ?>PDF reports</span></div>
-    </div>
-    <div class="mock" id="mock" aria-hidden="true">
-      <div class="fl1"><?= ef_icon('inc') ?>Salary received</div>
-      <div class="mk">
-        <div class="mc1">
-          <div class="k">Net Balance</div><div class="v" data-countup>Rs 42,500</div><span class="bd">▲ 12% vs last month</span>
-          <svg class="sp" viewBox="0 0 300 40" preserveAspectRatio="none"><polyline pathLength="1" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="0,32 30,28 60,31 90,20 120,24 150,14 180,18 210,9 240,13 270,5 300,8"/></svg>
-        </div>
-        <div class="mc2">
-          <div class="mr"><span class="ci"><?= ef_icon('food') ?></span><span>Food<small>Today</small></span><b class="ex">− 850</b></div>
-          <div class="mr"><span class="ci"><?= ef_icon('case') ?></span><span>Salary<small>Oct 1</small></span><b class="in">+ 60,000</b></div>
-        </div>
-      </div>
-      <div class="fl2"><?= ef_icon('spark') ?>Budget on track</div>
-    </div>
-  </div>
-  <div class="scrollcue" aria-hidden="true"><span>Scroll to explore</span><i></i></div>
-</section>
-
-<div class="mq" aria-hidden="true"><div class="mqt">
-<?php $tick = ['Track income', 'Split bills', 'Set budgets', 'Export PDF', 'Works offline', 'Any currency'];
-for ($k = 0; $k < 2; $k++): ?><span><?= implode('</span><span>', array_map('e', $tick)) ?></span><?php endfor; ?>
-</div></div>
-
-<section class="sec" id="features">
-  <div class="w">
-    <div class="sh rv"><span class="no">01 / What you get</span><h2>Everything you need to stay on top</h2><p>Simple tools that make tracking money a habit instead of a chore.</p></div>
-    <div class="fg">
-<?php foreach ($features as $i => $f): ?>
-      <article class="cd rv" style="--d:<?= ($i % 3) * .08 ?>s"><div class="tp"><span class="n">0<?= $i + 1 ?></span><span class="ib"><?= ef_icon($f[0]) ?></span></div><div class="cat"><?= e($f[1]) ?></div><h3><?= e($f[2]) ?></h3><p><?= e($f[3]) ?></p></article>
-<?php endforeach; ?>
-    </div>
   </div>
 </section>
 
-<section class="sec" id="modes">
-  <div class="w">
-    <div class="sh rv"><span class="no">02 / Two ways</span><h2>Your money, clearly organised</h2><p>Track your own money, or share expenses with friends. Switch between the two in one tap.</p></div>
-    <div class="pn">
-      <article class="cd rv"><span class="ib"><?= ef_icon('wal') ?></span><h3>Personal</h3>
-        <?php foreach (['Track income and expenses', 'Category insights', 'Monthly reports with PDF export'] as $t) { echo '<div class="ck">' . ef_icon('ck') . '<span>' . e($t) . '</span></div>'; } ?>
-      </article>
-      <article class="cd rv" style="--d:.1s"><span class="ib"><?= ef_icon('users') ?></span><h3>Shared</h3>
-        <?php foreach (['Groups and friends in one place', 'Equal, exact, percent and share splits', 'Person-by-person balances and easy settle up', 'Receipts, comments and an activity feed'] as $t) { echo '<div class="ck">' . ef_icon('ck') . '<span>' . e($t) . '</span></div>'; } ?>
-      </article>
-    </div>
+<section class="z-sc" id="modes">
+  <div class="z-sht"><span class="chip">Personal &amp; Shared</span><h2>Your money, clearly organised</h2><p>Track your own money, or share expenses with friends. Switch between the two in one tap.</p></div>
+  <div class="z-pn">
+    <article class="g z-fc"><span class="z-ib"><?= ef_icon('wal') ?></span><h3>Personal</h3>
+      <?php foreach (['Track income and expenses', 'Category insights', 'Monthly reports with PDF export'] as $t) { echo '<div class="z-ck">' . ef_icon('ck') . '<span>' . e($t) . '</span></div>'; } ?>
+    </article>
+    <article class="g z-fc"><span class="z-ib"><?= ef_icon('users') ?></span><h3>Shared</h3>
+      <?php foreach (['Groups and friends in one place', 'Equal, exact, percent and share splits', 'Person-by-person balances and easy settle up', 'Receipts, comments and an activity feed'] as $t) { echo '<div class="z-ck">' . ef_icon('ck') . '<span>' . e($t) . '</span></div>'; } ?>
+    </article>
   </div>
 </section>
 
-<section class="sec" id="how">
-  <div class="w">
-    <div class="sh rv"><span class="no">03 / Three steps</span><h2>How it works</h2><p>Up and running in three steps.</p></div>
-    <div class="st">
+<section class="z-sc" id="how">
+  <div class="z-sht"><span class="chip">How it works</span><h2>Up and running in three steps</h2></div>
+  <div class="z-st">
 <?php foreach ($steps as $i => $s2): ?>
-      <article class="cd rv" style="--d:<?= $i * .1 ?>s"><div class="big">0<?= $i + 1 ?></div><h3><?= e($s2[0]) ?></h3><p><?= e($s2[1]) ?></p></article>
+    <article class="g z-fc"><span class="z-num"><?= $i + 1 ?></span><h3><?= e($s2[0]) ?></h3><p><?= e($s2[1]) ?></p></article>
 <?php endforeach; ?>
-    </div>
   </div>
 </section>
 
-<section class="sec ap" id="apps">
-  <div class="w">
-    <div class="sh rv"><span class="no">04 / Install it</span><h2>Get the app</h2><p>Use ExpenseFlow on your phone or computer. Your account works everywhere.</p></div>
-    <div class="fg">
-      <article class="cd rv"><div class="tp"><span class="n">Android</span><span class="ib"><?= ef_icon('phone') ?></span></div><h3>Android</h3><p>Get the Android app from our GitHub releases page. Updates come inside the app.</p>
-        <a class="pill pr" href="<?= e(settings_public('link_android')) ?>" rel="noopener"><?= ef_icon('dl') ?> Download APK</a></article>
-      <article class="cd rv" style="--d:.1s"><div class="tp"><span class="n">Windows</span><span class="ib"><?= ef_icon('lap') ?></span></div><h3>Windows</h3><p>Get the Windows app from our GitHub releases page, or from the Microsoft Store when it is listed.</p>
-        <a class="pill pr" href="<?= e(settings_public('link_windows')) ?>" rel="noopener"><?= ef_icon('dl') ?> Download for Windows</a>
-        <?php if (settings_public('link_store') !== ''): ?><a class="pill" href="<?= e(settings_public('link_store')) ?>" rel="noopener"><?= ef_icon('dl') ?> Get it from Microsoft Store</a><?php endif; ?></article>
-      <article class="cd rv" style="--d:.2s"><div class="tp"><span class="n">Web</span><span class="ib"><?= ef_icon('globe') ?></span></div><h3>iPhone &amp; any browser</h3><p>On iPhone open this site in Safari, tap Share, then "Add to Home Screen". Chrome and Edge also offer "Install app".</p>
-        <a class="pill" href="<?= e($base) ?>/auth/login.php">Open in browser</a></article>
-    </div>
+<section class="z-sc" id="apps">
+  <div class="z-sht"><span class="chip">Get the app</span><h2>Use it on your phone or computer</h2><p>Your account works everywhere.</p></div>
+  <div class="z-fg z-ap">
+    <article class="g z-fc"><span class="z-ib"><?= ef_icon('phone') ?></span><h3>Android</h3><p>Get the Android app from our GitHub releases page. Updates come inside the app.</p>
+      <a class="btn" href="<?= e(settings_public('link_android')) ?>" rel="noopener"><?= ef_icon('dl') ?> Download APK</a></article>
+    <article class="g z-fc"><span class="z-ib"><?= ef_icon('lap') ?></span><h3>Windows</h3><p>Get the Windows app from our GitHub releases page, or from the Microsoft Store when it is listed.</p>
+      <a class="btn" href="<?= e(settings_public('link_windows')) ?>" rel="noopener"><?= ef_icon('dl') ?> Download for Windows</a>
+      <?php if (settings_public('link_store') !== ''): ?><a class="btn o" href="<?= e(settings_public('link_store')) ?>" rel="noopener"><?= ef_icon('dl') ?> Get it from Microsoft Store</a><?php endif; ?></article>
+    <article class="g z-fc"><span class="z-ib"><?= ef_icon('globe') ?></span><h3>iPhone &amp; any browser</h3><p>On iPhone open this site in Safari, tap Share, then "Add to Home Screen". Chrome and Edge also offer "Install app".</p>
+      <a class="btn o" href="<?= e($base) ?>/auth/login.php">Open in browser</a></article>
   </div>
 </section>
 
-<section class="sec" id="faq">
-  <div class="w">
-    <div class="sh rv"><span class="no">05 / FAQ</span><h2>Questions, answered</h2></div>
-    <div class="fq">
+<section class="z-sc" id="faq">
+  <div class="z-sht"><span class="chip">FAQ</span><h2>Questions, answered</h2></div>
+  <div class="g z-fq">
 <?php foreach ($faq as $i => $f): ?>
-      <details class="rv" style="--d:<?= $i * .05 ?>s"<?= $i === 0 ? ' open' : '' ?>><summary><?= e($f[0]) ?><?= ef_icon('chev') ?></summary><p><?= e($f[1]) ?></p></details>
+    <details<?= $i === 0 ? ' open' : '' ?>><summary><?= e($f[0]) ?><?= ef_icon('chev') ?></summary><p><?= e($f[1]) ?></p></details>
 <?php endforeach; ?>
-    </div>
   </div>
 </section>
 
-<section class="sec" id="resources">
-  <div class="w">
-    <div class="sh rv"><span class="no">06 / Learn more</span><h2>Guides, privacy &amp; help</h2><p>Everything you need to use ExpenseFlow with confidence.</p></div>
-    <div class="rg">
-      <a class="cd rv" href="<?= e($base) ?>/guides/"><span class="ib"><?= ef_icon('globe') ?></span><h3>Money guides</h3><p>Practical articles on budgeting, saving and splitting expenses.</p><span class="go">Read guides <?= ef_icon('arr') ?></span></a>
-      <a class="cd rv" style="--d:.06s" href="<?= e($base) ?>/privacy.php"><span class="ib"><?= ef_icon('lock') ?></span><h3>Privacy Policy</h3><p>What we store, how we protect it and how you can delete it.</p><span class="go">Read policy <?= ef_icon('arr') ?></span></a>
-      <a class="cd rv" style="--d:.12s" href="<?= e($base) ?>/terms.php"><span class="ib"><?= ef_icon('doc') ?></span><h3>Terms of Use</h3><p>The simple rules for using ExpenseFlow fairly and safely.</p><span class="go">Read terms <?= ef_icon('arr') ?></span></a>
-      <a class="cd rv" style="--d:.18s" href="<?= e($base) ?>/contact.php"><span class="ib"><?= ef_icon('phone') ?></span><h3>Contact &amp; support</h3><p>Questions or feedback? Send us a message and we will reply.</p><span class="go">Get in touch <?= ef_icon('arr') ?></span></a>
-    </div>
+<section class="z-sc" id="resources">
+  <div class="z-sht"><span class="chip">Resources</span><h2>Guides, privacy &amp; help</h2></div>
+  <div class="z-rg">
+    <a class="g z-fc" href="<?= e($base) ?>/guides/"><span class="z-ib"><?= ef_icon('globe') ?></span><h3>Money guides</h3><p>Practical articles on budgeting, saving and splitting expenses.</p></a>
+    <a class="g z-fc" href="<?= e($base) ?>/privacy.php"><span class="z-ib"><?= ef_icon('lock') ?></span><h3>Privacy Policy</h3><p>What we store, how we protect it and how you can delete it.</p></a>
+    <a class="g z-fc" href="<?= e($base) ?>/terms.php"><span class="z-ib"><?= ef_icon('doc') ?></span><h3>Terms of Use</h3><p>The simple rules for using ExpenseFlow fairly and safely.</p></a>
+    <a class="g z-fc" href="<?= e($base) ?>/contact.php"><span class="z-ib"><?= ef_icon('phone') ?></span><h3>Contact &amp; support</h3><p>Questions or feedback? Send us a message and we will reply.</p></a>
   </div>
 </section>
 
-<section class="fin">
-  <div class="w rv">
-    <span class="no">Your next move</span>
-    <h2>Ready to take control?</h2>
-    <p>Create your account in under a minute.</p>
-    <a class="pill pr lg" href="<?= e($base) ?>/auth/register.php">Get started <?= ef_icon('arr') ?></a>
-  </div>
+<section class="z-fin">
+  <h2>Ready to take control?</h2>
+  <p>Create your account in under a minute.</p>
+  <a class="btn z-lg" href="<?= e($base) ?>/auth/register.php">Get started <?= ef_icon('arr') ?></a>
 </section>
 </main>
 
-<footer class="ftr">
-  <div class="w">
-    <div class="fgd">
-      <div><a class="brand" href="<?= e($base) ?>/"><img src="<?= e($base) ?>/assets/icons/icon-192.png" alt=""><span>ExpenseFlow</span></a><p>A simple, private way to track spending, set budgets and share expenses with friends. ExpenseFlow never asks for your bank or card details.</p></div>
-      <nav aria-label="Product"><h3>Product</h3><a href="#features">Features</a><a href="#modes">Personal &amp; Shared</a><a href="#how">How it works</a><a href="#apps">Get the app</a><a href="#faq">FAQ</a></nav>
-      <nav aria-label="Learn"><h3>Learn</h3><a href="<?= e($base) ?>/guides/">All guides</a><a href="<?= e($base) ?>/guides/track-monthly-expenses.php">Track monthly expenses</a><a href="<?= e($base) ?>/guides/budget-50-30-20-rule.php">The 50/30/20 budget rule</a></nav>
-      <nav aria-label="Company"><h3>Company</h3><a href="<?= e($base) ?>/about.php">About</a><a href="<?= e($base) ?>/contact.php">Contact &amp; support</a><a href="<?= e($base) ?>/privacy.php">Privacy Policy</a><a href="<?= e($base) ?>/terms.php">Terms of Use</a></nav>
-      <nav aria-label="Account"><h3>Account</h3><a href="<?= e($base) ?>/auth/login.php">Log in</a><a href="<?= e($base) ?>/auth/register.php">Create account</a></nav>
-    </div>
-    <div class="wmk" aria-hidden="true">ExpenseFlow</div>
-    <div class="fb"><span>© <?= date('Y') ?> ExpenseFlow. All rights reserved.</span><span><a href="<?= e($base) ?>/privacy.php">Privacy</a> · <a href="<?= e($base) ?>/terms.php">Terms</a> · <a href="<?= e($base) ?>/contact.php">Contact</a> · <a href="#main">Back to top</a></span></div>
+<footer class="z-lf">
+  <div class="z-fgd">
+    <div><?= $logo ?><p>A simple, private way to track spending, set budgets and share expenses with friends. ExpenseFlow never asks for your bank or card details.</p></div>
+    <nav aria-label="Product"><h3>Product</h3><a href="#features">Features</a><a href="#modes">Personal &amp; Shared</a><a href="#how">How it works</a><a href="#apps">Get the app</a><a href="#faq">FAQ</a></nav>
+    <nav aria-label="Learn"><h3>Learn</h3><a href="<?= e($base) ?>/guides/">All guides</a><a href="<?= e($base) ?>/guides/track-monthly-expenses.php">Track monthly expenses</a><a href="<?= e($base) ?>/guides/budget-50-30-20-rule.php">The 50/30/20 budget rule</a></nav>
+    <nav aria-label="Company"><h3>Company</h3><a href="<?= e($base) ?>/about.php">About</a><a href="<?= e($base) ?>/contact.php">Contact &amp; support</a><a href="<?= e($base) ?>/privacy.php">Privacy Policy</a><a href="<?= e($base) ?>/terms.php">Terms of Use</a></nav>
   </div>
+  <div class="z-fb"><span>© <?= date('Y') ?> ExpenseFlow. All rights reserved.</span><a href="#main">Back to top</a></div>
 </footer>
-<button class="mo" id="mo" type="button" aria-pressed="false" data-pause="Pause motion" data-play="Play motion"><?= ef_icon('spark') ?><span>Pause motion</span></button>
+</div>
 <script src="<?= e($base) ?>/assets/landing.js?v=<?= (int) @filemtime(__DIR__ . '/assets/landing.js') ?>" defer></script>
 </body>
 </html>

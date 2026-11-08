@@ -603,3 +603,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - More money words count as a payment (successful/successfully, transaction, txn, trx, transfer, top-up). A message that has an amount but no clear direction waits in "Needs your check" instead of being lost.
 - New "Skipped by the filter" list on Quick add: messages that looked like offers, failed payments, reminders, money requests or balance alerts keep their text for 7 days with the reason, and can be added with one tap (Expense / Income). One-time-code messages never keep their text.
 - Tests: `quickadd_classify_test.php` (short code, "Transaction successful", direction unknown, phone number), `quickadd_import_http_test.py` (skipped list).
+
+## Part 85 – Landing matches the app + real logo + faster
+- Landing rebuilt in the app's own look (`app.css`, `theme-dark.css`, glass cards, gradient buttons, `.wm` wordmark); dark theme follows the app.
+- Logo: the transparent mark (`favicon.png`, `assets/icons/logo-96.webp`) is used everywhere without the white box (landing, public pages, login/register). PWA/launcher icons keep the box.
+- Mobile: smaller type, two-column feature cards, compact steps, simple dropdown menu; no loader, marquee or heavy effects.
+- Speed: dark cinematic CSS (20 KB) and effects JS removed; new `landing3.css` + 0.5 KB menu script.
