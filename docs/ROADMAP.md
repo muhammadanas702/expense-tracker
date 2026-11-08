@@ -609,3 +609,7 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Logo: the transparent mark (`favicon.png`, `assets/icons/logo-96.webp`) is used everywhere without the white box (landing, public pages, login/register). PWA/launcher icons keep the box.
 - Mobile: smaller type, two-column feature cards, compact steps, simple dropdown menu; no loader, marquee or heavy effects.
 - Speed: dark cinematic CSS (20 KB) and effects JS removed; new `landing3.css` + 0.5 KB menu script.
+
+## Part 86 – Landing back to the pre-redesign version
+- Landing restored to its pre-Part 82 design (`app.css` look, `fx.js`); `landing3.css` and landing JS removed.
+- Kept: opens in English by default, and the transparent logo (no white box).
