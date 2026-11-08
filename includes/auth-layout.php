@@ -16,7 +16,7 @@ require_once __DIR__ . '/assets.php';
 
 function ef_auth_brand(): string
 {
-    return '<span class="logo"><img src="' . e(ef_url('assets/icons/icon-192.png')) . '" alt=""><span class="wm">ExpenseFlow</span></span>';
+    return '<span class="logo"><img src="' . e(ef_url('favicon.png')) . '" alt=""><span class="wm">ExpenseFlow</span></span>';
 }
 
 function ef_check(string $text): string

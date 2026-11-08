@@ -639,4 +639,7 @@ return [
     'Back to top' => 'اوپر جائیں',
     'Contact' => 'رابطہ',
     'Terms' => 'شرائط',
+    'Up and running in three steps' => 'تین آسان مراحل میں شروع کریں',
+    'Use it on your phone or computer' => 'اسے فون یا کمپیوٹر پر استعمال کریں',
+    'Your account works everywhere.' => 'آپ کا اکاؤنٹ ہر جگہ چلتا ہے۔',
 ];
