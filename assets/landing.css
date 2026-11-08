@@ -179,3 +179,14 @@ body.s-body{overflow-x:hidden}
 html[dir=rtl] .l-p2{transform:rotate(8deg) scale(.8)}
 @media (max-width:960px){.l-p2{inset-inline-start:2%}}
 @media (max-width:640px){.l-p2{inset-inline-start:-6%;transform:rotate(-8deg) scale(.72)}.l-stage .l-phone:not(.l-p2){transform:translateX(18%)}}
+
+/* Part 93: real app screenshots inside the phone frames */
+.l-scr.l-img{padding:0;min-height:0;overflow:hidden;background:#fff;line-height:0}
+.l-scr.l-img img{display:block;width:100%;height:auto;aspect-ratio:1/2;object-fit:cover;object-position:top}
+.l-p2 .l-scr.l-img{min-height:0;display:block}
+.l-p2{inset-inline-start:2%;top:10%;transform:rotate(-6deg) scale(.88)}
+.l-stage .l-phone:not(.l-p2){transform:translateX(24%)}
+html[dir=rtl] .l-stage .l-phone:not(.l-p2){transform:translateX(-24%)}
+html[dir=rtl] .l-p2{transform:rotate(6deg) scale(.88)}
+@media (max-width:960px){.l-p2{inset-inline-start:0;transform:rotate(-6deg) scale(.8)}.l-stage .l-phone:not(.l-p2){transform:translateX(22%)}}
+@media (max-width:640px){.l-p2{inset-inline-start:-8%;transform:rotate(-6deg) scale(.7)}.l-stage .l-phone:not(.l-p2){transform:translateX(26%)}}

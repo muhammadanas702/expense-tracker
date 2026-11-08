@@ -640,3 +640,7 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 
 ## Part 92 – Landing looks richer (still calm)
 - Hero: dotted backdrop, bigger headline, a second phone behind the first (shared trip balances). Gradient icons, thin gradient line on card hover, soft tinted band behind Personal/Shared, dark "Get the app" section for contrast. No new motion.
+
+## Part 93 – Real app screenshots on the landing
+- The hero phones now show real app screens (Personal dashboard, shared "Murree Trip" group) instead of hand-built HTML mocks. Images are 480px webp (~25 KB each) with width/height set, so there is no layout shift.
+- Back phone moved slightly out so both screens are visible. Web-only change, no APK/exe build needed.

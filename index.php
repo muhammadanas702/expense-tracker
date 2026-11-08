@@ -92,20 +92,8 @@ foreach ($ld as $block): ?>
     <p class="l-trust"><?= ef_icon('shield') ?>We never ask for your bank or card details.</p>
   </div>
   <div class="l-stage" aria-hidden="true">
-    <div class="l-phone l-p2"><div class="l-scr">
-      <div class="l-top"><span>Trip to Murree<br><b>4 people</b></span><span class="l-av">G</span></div>
-      <div class="l-who"><span class="l-av">A</span>Ali<b class="l-pos">+ 1,200</b></div>
-      <div class="l-who"><span class="l-av">S</span>Sara<b class="l-neg">− 400</b></div>
-      <div class="l-who"><span class="l-av">Z</span>Zain<b class="l-neg">− 800</b></div>
-    </div></div>
-    <div class="l-phone"><div class="l-scr">
-      <div class="l-top"><span>Good morning<br><b>Ali</b></span><span class="l-av">A</span></div>
-      <div class="l-bal"><small>▲ 12% vs last month</small><strong>Rs 42,500</strong><div class="l-bars"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
-      <div class="l-lh"><span>Food</span><span>Today</span></div>
-      <div class="l-tx"><span class="l-ic"><?= ef_icon('food') ?></span><span>Food<small>Today</small></span><b class="l-neg">− 850</b></div>
-      <div class="l-tx"><span class="l-ic"><?= ef_icon('case') ?></span><span>Salary<small>Oct 1</small></span><b class="l-pos">+ 60,000</b></div>
-      <div class="l-tx"><span class="l-ic"><?= ef_icon('users') ?></span><span>Trip<small>Shared</small></span><b class="l-neg">− 2,400</b></div>
-    </div></div>
+    <div class="l-phone l-p2"><div class="l-scr l-img"><img src="<?= e($base) ?>/assets/landing/app-group.webp" width="480" height="960" alt="" decoding="async"></div></div>
+    <div class="l-phone"><div class="l-scr l-img"><img src="<?= e($base) ?>/assets/landing/app-dashboard.webp" width="480" height="960" alt="" decoding="async"></div></div>
   </div>
 </div></section>
 
