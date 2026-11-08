@@ -23,3 +23,76 @@
   .sec>.sub2{margin:8px 0 22px}
   .F3,.GE{gap:12px}
 }
+
+/* Part 88: make the 4 fixes clearly visible. */
+/* 1 Hierarchy: one dominant headline, everything else quiet */
+.h2s h1{font-weight:800;font-size:4.4rem;line-height:1;letter-spacing:-3px}
+.h2s .lead{font-size:1.05rem;color:var(--mu);opacity:.9}
+.h2s .btn.lg{min-height:56px;font-size:1.05rem;padding-left:36px;padding-right:36px}
+/* 2 Kill the noise: no ticks row, flat feature list instead of nine boxes */
+.trust{display:none}
+.F3 .g.ft{background:none;border:0;border-top:1px solid rgba(15,118,110,.22);border-radius:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:22px 4px 0;align-items:flex-start}
+.F3{gap:36px 40px}
+.F3 .ft b{font-size:1.05rem}
+.F3 .ft p{margin-top:6px}
+.GE .g.md{padding:28px}
+.sec{padding:96px 56px}
+.sec>h2{font-size:2.6rem;font-weight:800;letter-spacing:-1.4px}
+/* 3 One left edge: footer, FAQ and resources follow the same edge */
+.hv{justify-self:end;width:100%;max-width:440px}
+html[data-theme=dark] .F3 .g.ft{border-top-color:rgba(255,255,255,.14)}
+@media (max-width:760px){
+  .h2s h1{font-size:3rem;letter-spacing:-1.8px}
+  .h2s{padding:32px 20px 8px;gap:32px}
+  .h2s .btn.lg{min-height:52px}
+  /* compact hero mock on phones: one card, no second row */
+  .hv .m2{display:none}
+  .hv .card.hero{padding:18px 18px 26px!important}
+  .hv .card.hero .v{font-size:1.7rem}
+  .hv{max-width:none}
+  .sec{padding:56px 20px}
+  .sec>h2{font-size:1.9rem;letter-spacing:-1px}
+  .F3{gap:22px}
+  .F3 .g.ft{padding-top:18px}
+}
+.h2s{grid-template-columns:1.25fr 1fr}
+.h2s h1{font-size:3.9rem}
+@media (max-width:760px){
+  .h2s{grid-template-columns:1fr}
+  .h2s h1{font-size:2.8rem}
+  .F3 .g.ft{flex-direction:row;gap:14px;align-items:flex-start}
+  .F3 .ft .ib{flex:none;width:40px;height:40px}
+  .F3{gap:0}
+  .F3 .g.ft{padding:16px 0}
+}
+
+/* Part 88: bolder, clearly visible version of the same fixes */
+.nb{background:transparent!important;border-width:0!important;box-shadow:none!important;backdrop-filter:none}
+.nb.sc{background:rgba(255,255,255,.92)!important;box-shadow:0 6px 20px rgba(11,37,69,.08)!important}
+html[data-theme=dark] .nb.sc{background:rgba(11,20,35,.92)!important}
+.h2s{min-height:calc(100vh - 80px);align-content:center}
+.h2s h1{font-size:clamp(2.6rem,4.3vw,4rem);font-weight:800;line-height:1;letter-spacing:-.045em}
+.h2s .lead{font-size:1.2rem;max-width:460px}
+.h2s .btn.lg{min-height:58px;font-size:1.05rem;padding-left:38px;padding-right:38px;box-shadow:0 14px 30px rgba(29,78,216,.28)}
+.hv{transform:scale(1.08);transform-origin:center}
+.hv .card.hero{transform:rotate(-3deg);box-shadow:0 30px 60px rgba(11,37,69,.28);padding:30px 28px 56px!important}
+.hv .card.hero .v{font-size:2.7rem}
+.hv .m2{transform:rotate(2.5deg) translateX(18px);box-shadow:0 22px 44px rgba(11,37,69,.2)}
+.sec{padding:96px 56px}
+.sec>h2{font-size:clamp(2rem,4.6vw,3.2rem);font-weight:800;letter-spacing:-.04em;line-height:1.05}
+.sec>.sub2{font-size:1.1rem;margin-bottom:52px}
+.F3,.GE{gap:24px}
+.ft,.md{padding:28px!important;border-radius:24px}
+.ft .ib,.md .ib{width:52px;height:52px;border-radius:15px}
+@media (max-width:760px){
+  .h2s{min-height:0;padding:20px 20px 28px}
+  .h2s h1{font-size:2.6rem}
+  .h2s .lead{font-size:1.05rem}
+  .hv{transform:none;padding:6px 0 24px}
+  .hv .card.hero{transform:rotate(-2deg)}
+  .hv .m2{transform:rotate(2deg);margin:-26px 6px 0}
+  .sec{padding:56px 20px}
+  .sec>h2{font-size:2.1rem}
+  .sec>.sub2{font-size:1rem;margin-bottom:28px}
+  .ft,.md{padding:22px!important}
+}

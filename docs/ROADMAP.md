@@ -619,3 +619,6 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Spacing and noise: more room around the hero and sections; floating "Salary received" chip and idle animations removed.
 - Alignment: one left edge (start edge, so Urdu still flows right-to-left) for hero and section headings.
 - One button: hero keeps a single "Get started"; Log in stays in the nav. Colours unchanged. New `assets/landing-ux.css`.
+
+## Part 88 – Landing bolder (clearly visible)
+- Huge heavy headline, tilted overlapping balance cards, transparent top bar, bigger spacing between sections, larger cards and main button; hero trust row removed (noise). Colours unchanged.

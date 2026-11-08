@@ -97,7 +97,6 @@ foreach ($ld as $block): ?>
     <div class="cta">
       <a class="btn lg" href="<?= e($base) ?>/auth/register.php">Get started <?= ef_icon('arr') ?></a>
     </div>
-    <div class="trust"><span><?= ef_icon('ck') ?>Works offline</span><span><?= ef_icon('ck') ?>Multi-currency</span><span><?= ef_icon('ck') ?>PDF reports</span></div>
   </div>
   <div class="hv" aria-hidden="true">
     <div class="g card hero" style="padding:22px 22px 44px">
