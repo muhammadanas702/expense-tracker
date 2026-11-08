@@ -1,0 +1,41 @@
+/* Sign-in pages in the same look as the landing page (Part 95). Loaded after app.css; only restyles the shared auth shell. */
+.au{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)}
+.br{background:linear-gradient(160deg,#0B2545,#0c4a52 75%,#0f3a7a);padding:40px clamp(32px,4.5vw,64px) 0;gap:28px;justify-content:flex-start}
+.br:before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.09) 1px,transparent 1.2px);background-size:22px 22px;-webkit-mask-image:linear-gradient(#000,transparent 80%);mask-image:linear-gradient(#000,transparent 80%);pointer-events:none}
+.br:after{width:420px;height:420px;right:-120px;bottom:-140px;opacity:.22}
+.alogo{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font:800 20px/1 var(--font-head,"Plus Jakarta Sans",system-ui,sans-serif);letter-spacing:-.02em;color:var(--a1)}
+.alogo img{width:36px;height:36px;object-fit:contain;display:block}
+.alogo .wm{background:linear-gradient(135deg,#0f766e,#1d4ed8);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+html[data-theme=dark] .alogo img{filter:brightness(1.7) saturate(1.15)}
+html[data-theme=dark] .alogo .wm{background:linear-gradient(90deg,#5eead4,#7aa7ff);-webkit-background-clip:text;background-clip:text}
+.br .alogo .wm{background:linear-gradient(90deg,#5eead4,#9ec1ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.br .alogo img{filter:brightness(1.7) saturate(1.15)}
+.br h2{font-size:clamp(2rem,3.2vw,2.8rem);line-height:1.1;letter-spacing:-.03em;margin-bottom:22px}
+.agr{background:linear-gradient(90deg,#5eead4,#9ec1ff);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.br .ck{font-size:.95rem;margin-bottom:12px}
+.aboutln{max-width:46ch;color:rgba(255,255,255,.72);margin-top:20px;font-size:.84rem}
+.brp{position:relative;z-index:1;flex:1;min-height:260px;display:flex;justify-content:center;align-items:flex-end;margin-top:auto}
+.brph{width:min(340px,72%);aspect-ratio:1/1.05;overflow:hidden;border-radius:34px 34px 0 0;padding:10px 10px 0;background:#0b1a33;box-shadow:0 -10px 60px rgba(94,234,212,.22),inset 0 0 0 2px rgba(255,255,255,.1)}
+.brph img{display:block;width:100%;height:auto;border-radius:25px 25px 0 0}
+.fm{background:radial-gradient(rgba(11,37,69,.07) 1px,transparent 1.2px) 0 0/22px 22px}
+html[data-theme=dark] .fm{background-image:radial-gradient(rgba(255,255,255,.06) 1px,transparent 1.2px)}
+.fc{max-width:440px;padding:34px 32px;border-radius:24px}
+.fc h1,.fc h2{font-family:var(--font-head,"Plus Jakarta Sans",system-ui,sans-serif);font-size:1.75rem;letter-spacing:-.03em}
+.fc .btn.lg{border-radius:14px;font-family:var(--font-head,"Plus Jakarta Sans",system-ui,sans-serif);font-weight:700}
+.ml{justify-content:center}
+.au-lang{top:16px;right:20px}
+.ctr2 .fc{max-width:480px}
+.ctr2:before{content:"";position:fixed;inset:0;background:radial-gradient(rgba(11,37,69,.06) 1px,transparent 1.2px) 0 0/22px 22px;pointer-events:none}
+@media (max-width:1100px) and (min-width:769px){.brph{width:min(260px,70%)}.br{padding-inline:32px}}
+@media (max-height:700px) and (min-width:769px){.brp{display:none}}
+@media (max-width:768px){.fm{background-size:22px 22px}.ml{margin-bottom:22px}}
+html[data-theme=dark] .atrust a,html[data-theme=dark] .lnk{color:#5eead4}
+@media (min-width:769px){.br{position:sticky;top:0;height:100vh;align-self:start}}
+.agr{display:inline-block;padding-block:.06em}
+html[dir=rtl] .br h2{line-height:1.65}
+html[dir=rtl] .agr{padding-block:.18em}
+@media (max-width:768px){.fm,.ctr2{padding-top:60px}.au-lang{top:12px;right:16px}}
+html[dir=rtl] .au-lang{right:auto;left:20px}
+@media (max-width:768px){html[dir=rtl] .au-lang{left:16px}}
+html[dir=rtl] .alogo{direction:ltr}
+html[dir=rtl] .aft.q svg{transform:scaleX(-1)}
