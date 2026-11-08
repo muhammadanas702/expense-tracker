@@ -80,7 +80,8 @@ foreach ($ld as $block): ?>
 <?= ef_site_nav($base, true) ?>
 <main id="main">
 
-<section class="l-hero"><div class="s-wrap l-hgrid">
+<div class="l-prog" id="prog" aria-hidden="true"></div>
+<section class="l-hero" id="home"><div class="s-wrap l-hgrid">
   <div>
     <span class="l-eye"><?= ef_icon('ck') ?>Free · No ads · Works offline</span>
     <h1>Track every rupee.<span class="l-grad">Know every month.</span></h1>
@@ -95,9 +96,12 @@ foreach ($ld as $block): ?>
     <div class="l-phone l-p2"><div class="l-scr l-img"><img src="<?= e($base) ?>/assets/landing/app-group.webp" width="480" height="960" alt="" decoding="async"></div></div>
     <div class="l-phone"><div class="l-scr l-img"><img src="<?= e($base) ?>/assets/landing/app-dashboard.webp" width="480" height="960" alt="" decoding="async"></div></div>
   </div>
-</div></section>
+</div>
+<a class="l-down" href="#features"><span>Scroll down</span><?= ef_icon('chev') ?></a></section>
 
-
+<nav class="l-rail" id="rail" aria-label="Sections">
+  <a href="#home"><span>Home</span></a><a href="#features"><span>Features</span></a><a href="#modes"><span>Personal &amp; Shared</span></a><a href="#how"><span>How it works</span></a><a href="#apps"><span>Get the app</span></a><a href="#faq"><span>FAQ</span></a>
+</nav>
 
 <section class="l-sec" id="features"><div class="s-wrap">
   <div class="l-head"><span class="l-eye">Features</span><h2>Everything you need to stay on top</h2><p>Simple tools that make tracking money a habit instead of a chore.</p></div>
@@ -169,7 +173,9 @@ foreach ($ld as $block): ?>
 </div></div></section>
 
 </main>
+<a class="l-totop" id="totop" href="#top" aria-label="Back to top"><?= ef_icon('chev') ?></a>
 <?= ef_site_footer($base) ?>
 <script src="<?= e($base) ?>/assets/site.js?v=<?= (int) @filemtime(__DIR__ . '/assets/site.js') ?>" defer></script>
+<script src="<?= e($base) ?>/assets/landing.js?v=<?= (int) @filemtime(__DIR__ . '/assets/landing.js') ?>" defer></script>
 </body>
 </html>
