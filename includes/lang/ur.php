@@ -660,4 +660,5 @@ return [
     'Read more' => 'مزید پڑھیں',
     'Create free account' => 'مفت اکاؤنٹ بنائیں',
     'We never ask for your bank or card details.' => 'ہم آپ سے بینک یا کارڈ کی تفصیلات کبھی نہیں مانگتے۔',
+    'Built by Muhammad Anas, a student in Lahore.' => 'محمد انس نے بنایا، لاہور کے ایک طالب علم۔',
 ];

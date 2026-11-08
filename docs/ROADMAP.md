@@ -632,3 +632,8 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Landing: trust line next to the main button ("We never ask for your bank or card details"), clearer button label ("Create free account"), shorter top bar (4 links), duplicate Resources section removed (it is in the footer), hover polish on icons and buttons, animated link underline.
 - Privacy, Terms, About, Contact and all Guides now use the landing top bar, footer, fonts and colours (`includes/public-layout.php`, `assets/public.css`): breadcrumb, large title, centred readable card, closing call to action. Guides index cards in a 2-column grid. Dark mode and Urdu/RTL supported.
 - Still to do: login, register, forgot password and the other sign-in pages (Part 91).
+
+## Part 91 – Landing simplified
+- Removed: floating cards, numbers strip, scroll/hover/shine animations, 3 duplicate feature cards (they live in the Shared panel), 3 less useful FAQ items, extra section padding.
+- Added: "Built by Muhammad Anas, a student in Lahore" under the final button (honest trust line).
+- Kept: one hero animation (balance bars) and the entrance fade. Login/register/forgot password still to do (Part 92).

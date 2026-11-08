@@ -1,5 +1,5 @@
 /* Landing page (Part 89). Uses site.css tokens. Layout rule: 1160px container, 8px spacing, equal-height cards, one left edge. */
-.l-sec{padding-block:clamp(64px,9vw,112px)}
+.l-sec{padding-block:clamp(48px,7vw,88px)}
 .l-sec.l-tight{padding-block:clamp(40px,6vw,64px)}
 .l-head{max-width:640px;margin-bottom:clamp(32px,5vw,56px)}
 .l-head.c{margin-inline:auto;text-align:center}
@@ -45,13 +45,6 @@ html[data-theme=dark] .l-grad{background-image:linear-gradient(90deg,#5eead4,#7a
 .l-tx>span small{display:block;color:#5b6b80;font-weight:500;font-size:11px}
 .l-tx b{font-size:13px}
 .l-pos{color:#059669}.l-neg{color:#dc2626}
-.l-chip{position:absolute;display:flex;align-items:center;gap:10px;padding:10px 14px 10px 10px;border-radius:16px;background:var(--card);border:1px solid var(--line);box-shadow:0 18px 40px rgba(11,37,69,.18);font-size:13px;font-weight:700;color:var(--ink);animation:l-float 6s ease-in-out infinite}
-.l-chip .l-ic{width:34px;height:34px;border-radius:10px}
-.l-chip .l-ic svg{width:18px;height:18px}
-.l-chip small{display:block;color:var(--mu);font-weight:500;font-size:11px}
-.l-chip{z-index:2}
-.l-chip.a{inset-inline-start:-12%;top:-3%}
-.l-chip.b{inset-inline-end:-6%;bottom:8%;animation-delay:-3s}
 /* stats */
 .l-stats{display:grid;grid-template-columns:repeat(4,1fr);background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh)}
 .l-stat{padding:28px 24px;text-align:center}
@@ -108,15 +101,12 @@ html[data-theme=dark] .l-grad{background-image:linear-gradient(90deg,#5eead4,#7a
 /* motion */
 @keyframes l-up{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
 @keyframes l-grow{from{transform:scaleY(0)}to{transform:none}}
-@keyframes l-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 @keyframes l-rev{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:none}}
 .l-hero .l-hgrid>div:first-child>*{animation:l-up .7s both cubic-bezier(.2,.8,.2,1)}
 .l-hero .l-hgrid>div:first-child>*:nth-child(2){animation-delay:.08s}
 .l-hero .l-hgrid>div:first-child>*:nth-child(3){animation-delay:.16s}
 .l-hero .l-hgrid>div:first-child>*:nth-child(4){animation-delay:.24s}
-@supports (animation-timeline:view()){
-  .l-rv{animation:l-rev linear both;animation-timeline:view();animation-range:entry 0% entry 40%}
-}
+
 /* responsive */
 @media (max-width:960px){
   .l-hgrid,.l-faq{grid-template-columns:1fr}
@@ -136,8 +126,7 @@ html[data-theme=dark] .l-grad{background-image:linear-gradient(90deg,#5eead4,#7a
   .l-cta .s-btn{width:100%}
   .l-phone{width:min(292px,100%)}
   .l-scr{min-height:0}
-  .l-chip.a{inset-inline-start:-4px;top:6%}.l-chip.b{inset-inline-end:-4px;bottom:4%}
-  .l-stat{padding:20px 12px}
+    .l-stat{padding:20px 12px}
   .l-acc details{padding:0 18px}
   .l-fin{border-radius:24px}
 }
@@ -145,12 +134,8 @@ html[data-theme=dark] .l-grad{background-image:linear-gradient(90deg,#5eead4,#7a
 
 .s-body .l-trust{display:flex;align-items:center;gap:8px;margin-top:20px;color:var(--mu);font-size:14px;font-weight:600}
 .l-trust svg{width:18px;height:18px;color:var(--a1)}
-.l-card .l-ic{transition:background .25s,color .25s,transform .25s}
-.l-card:hover .l-ic{background:var(--grad);color:#fff;transform:rotate(-6deg) scale(1.06)}
-.s-btn{position:relative;overflow:hidden}
-.s-btn:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(-120%);transition:transform .6s}
-.s-btn:hover:before{transform:translateX(120%)}
 .s-links a{position:relative}
 .s-links a:after{content:"";position:absolute;inset-inline:14px;bottom:4px;height:2px;border-radius:2px;background:var(--a1);transform:scaleX(0);transition:transform .25s}
 .s-links a:hover:after{transform:scaleX(1)}
 @media (max-width:640px){.l-trust{justify-content:flex-start}}
+.l-by{display:block;margin-top:24px;color:rgba(255,255,255,.7);font-size:14px}
