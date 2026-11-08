@@ -67,21 +67,39 @@ function ef_auth_start(array $o = []): void
 <body>
 <?= ef_lang_switch('lang-sw au-lang') ?>
 <div class="fr" data-mode="p">
-<?php if ($split): ?>
-<div class="au">
+<?php if ($split):
+    $mode = $o['mode'] ?? '';
+    $reg = $mode === 'register' || ($o['side'] ?? '') === 'right'; // register side: form on the right; everything else (login, forgot password, codes): form on the left
+?>
+<div class="au<?= $reg ? '' : ' au-rev' ?>">
   <div class="br">
     <div style="position:relative;z-index:1"><?= ef_auth_brand() ?></div>
     <div style="position:relative;z-index:1">
+<?php if ($mode === 'recover'): ?>
+      <h2>Locked out?<br><span class="agr">Back in a minute.</span></h2>
+      <?= ef_check('We email you a 6-digit code') ?>
+      <?= ef_check('The code works once and expires soon') ?>
+      <?= ef_check('We never email you asking for your password') ?>
+<?php elseif ($reg): ?>
+      <h2>Start in a minute.<br><span class="agr">Stay on top for good.</span></h2>
+      <?= ef_check('Free, with no ads and no card needed') ?>
+      <?= ef_check('Personal money and shared bills in one app') ?>
+      <?= ef_check('Works offline as an installed app') ?>
+<?php else: ?>
       <h2>Your money,<br><span class="agr">clearly organised.</span></h2>
       <?= ef_check('Track personal income and expenses') ?>
       <?= ef_check('Reports, insights and PDF export') ?>
       <?= ef_check('Works offline as an installed app') ?>
+<?php endif; ?>
       <p class="aboutln">ExpenseFlow is a free personal expense tracker and bill splitter, made by <b>Muhammad Anas</b> in Pakistan. It never asks for your bank or card details.</p>
     </div>
-    <div class="brp" aria-hidden="true"><div class="brph"><img src="<?= e(ef_url('assets/landing/app-dashboard.webp')) ?>" width="480" height="960" alt="" decoding="async"></div></div>
+    <div class="brp" aria-hidden="true"><div class="brph"><img src="<?= e(ef_url($reg ? 'assets/landing/app-group.webp' : 'assets/landing/app-dashboard.webp')) ?>" width="480" height="960" alt="" decoding="async"></div></div>
   </div>
   <div class="fm"><div class="g fc">
     <div class="ml"><?= ef_auth_brand() ?></div>
+<?php if ($mode === 'login' || $mode === 'register'): ?>
+    <nav class="atab<?= $reg ? ' r' : '' ?>" aria-label="<?= e(t('Account')) ?>"><a href="<?= e(ef_url('auth/login.php')) ?>"<?= $reg ? '' : ' class="on" aria-current="page"' ?>><?= e(t('Log in')) ?></a><a href="<?= e(ef_url('auth/register.php')) ?>"<?= $reg ? ' class="on" aria-current="page"' : '' ?>><?= e(t('Create account')) ?></a><i aria-hidden="true"></i></nav>
+<?php endif; ?>
 <?php else: ?>
 <div class="ctr2"><div class="g fc">
 <?php endif;

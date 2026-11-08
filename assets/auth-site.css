@@ -39,3 +39,34 @@ html[dir=rtl] .au-lang{right:auto;left:20px}
 @media (max-width:768px){html[dir=rtl] .au-lang{left:16px}}
 html[dir=rtl] .alogo{direction:ltr}
 html[dir=rtl] .aft.q svg{transform:scaleX(-1)}
+
+/* Part 96: login <-> register slide, tabs, busy button */
+.au-rev{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr)}
+.au-rev .br{order:2}
+.atab{position:relative;display:grid;grid-template-columns:1fr 1fr;padding:4px;margin-bottom:22px;border-radius:14px;background:rgba(11,37,69,.06);isolation:isolate}
+html[data-theme=dark] .atab{background:rgba(255,255,255,.07)}
+.atab a{position:relative;z-index:1;text-align:center;padding:10px 8px;border-radius:11px;font:700 .88rem/1.2 var(--font-head,"Plus Jakarta Sans",system-ui,sans-serif);color:var(--mu);text-decoration:none;transition:color .25s}
+.atab a:hover{color:var(--tx)}
+.atab a.on,.atab a.on:hover{color:#fff}
+.atab i{position:absolute;z-index:0;top:4px;bottom:4px;inset-inline-start:4px;width:calc(50% - 4px);border-radius:11px;background:linear-gradient(135deg,#0f766e,#1d4ed8);box-shadow:0 6px 16px rgba(29,78,216,.28);view-transition-name:atabi}
+.atab.r i{inset-inline-start:50%}
+@view-transition{navigation:auto}
+::view-transition-group(abrand),::view-transition-group(aform),::view-transition-group(atabi){animation-duration:.65s;animation-timing-function:cubic-bezier(.65,0,.2,1)}
+::view-transition-old(abrand),::view-transition-new(abrand){height:100%;object-fit:cover}
+@media (min-width:769px){.br{view-transition-name:abrand}.fm{view-transition-name:aform}}
+@supports (view-transition-name:none){.au .fc{animation:none}}
+@media (prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation-duration:.01s!important}}
+.btn.busy{position:relative;pointer-events:none;color:transparent!important}
+.btn.busy:after{content:"";position:absolute;inset:0;margin:auto;width:20px;height:20px;border-radius:50%;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;animation:ef-spin .7s linear infinite}
+@keyframes ef-spin{to{transform:rotate(360deg)}}
+.fc .fl{animation:rise .5s both cubic-bezier(.2,.8,.2,1)}
+.fc .fl:nth-of-type(2){animation-delay:.06s}.fc .fl:nth-of-type(3){animation-delay:.12s}.fc .fl:nth-of-type(4){animation-delay:.18s}
+@media (prefers-reduced-motion:reduce){.fc .fl{animation:none}}
+@media (min-width:769px) and (max-height:860px){.aboutln{display:none}}
+html[dir=rtl] .br .ck{line-height:1.7}
+/* the new page slides in from the old position; the old snapshot fades away at once so headlines never overlap */
+@keyframes ef-vt-out{to{opacity:0}}
+@keyframes ef-vt-in{from{opacity:0}to{opacity:1}}
+::view-transition-old(abrand),::view-transition-old(aform){animation:ef-vt-out .18s both;mix-blend-mode:normal}
+::view-transition-new(abrand),::view-transition-new(aform){animation:ef-vt-in .22s both;mix-blend-mode:normal}
+@media (prefers-reduced-motion:reduce){::view-transition-old(abrand),::view-transition-old(aform),::view-transition-new(abrand),::view-transition-new(aform){animation-duration:.01s!important}}

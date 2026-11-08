@@ -47,7 +47,7 @@ require_once __DIR__ . '/../includes/auth-layout.php';
 $otpEmail = (string) $_SESSION['reset_email'];
 $at = strpos($otpEmail, '@');
 $masked = $at === false ? '' : substr($otpEmail, 0, min(2, $at)) . '•••' . substr($otpEmail, $at);
-ef_auth_start(['title' => t('Check your email')]); ?>
+ef_auth_start(['title' => t('Check your email'), 'mode' => 'recover']); ?>
 <div class="big"><?= ef_icon('mail') ?></div>
 <h1 class="c2"><?= e(t('Check your email')) ?></h1>
 <p class="s3 c2"><?= e(t('We sent a 6-digit code to')) ?> <b dir="ltr"><?= e($masked) ?></b></p>

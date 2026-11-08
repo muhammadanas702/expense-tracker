@@ -25,3 +25,15 @@
     otp.addEventListener('input', function () { otp.value = otp.value.replace(/\D/g, '').slice(0, 6); });
   }
 })();
+/* Part 96: show a spinner on the submit button while the page is sending (still a normal form post). */
+(function () {
+  document.querySelectorAll('form').forEach(function (f) {
+    f.addEventListener('submit', function () {
+      var b = f.querySelector('button.btn[type=submit], button.btn:not([type])');
+      if (b && (!f.checkValidity || f.checkValidity())) b.classList.add('busy');
+    });
+  });
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) document.querySelectorAll('.btn.busy').forEach(function (b) { b.classList.remove('busy'); });
+  });
+})();
