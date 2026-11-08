@@ -82,6 +82,7 @@ ef_auth_start(['title' => 'Two-step sign-in']); ?>
 <form method="POST">
     <?= csrf_field() ?>
     <input class="inp otp" type="text" name="code" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code" required autofocus aria-label="6-digit code">
+    <?= ef_otp_texts() ?>
     <div style="height:16px"></div>
     <button class="btn lg" style="width:100%" type="submit">Sign in</button>
 </form>
