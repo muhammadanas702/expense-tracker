@@ -622,3 +622,8 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 
 ## Part 88 – Landing bolder (clearly visible)
 - Huge heavy headline, tilted overlapping balance cards, transparent top bar, bigger spacing between sections, larger cards and main button; hero trust row removed (noise). Colours unchanged.
+
+## Part 89 – Landing page v2 (new shared site look)
+- New shared look in `assets/site.css` + `includes/site-chrome.php` (top bar, footer, buttons, tokens: 1160px container, 8px spacing, one type scale) and `assets/site.js` (menu only). Public pages and auth pages move to it in Part 90 and 91.
+- Landing rebuilt: hero with app mock and two floating cards, stats strip, 3x3 feature grid, Personal/Shared panels with mini visuals, 3 steps, 3 equal app cards (buttons aligned to the bottom), FAQ in two columns, resources, big final call. Scroll reveal is CSS-only (no JavaScript; content stays visible where unsupported). Dark mode and Urdu/RTL supported (arrows flip).
+- Removed the old landing CSS/JS (`landing-ux.css`, old `landing.css`).

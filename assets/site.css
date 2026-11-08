@@ -1,0 +1,76 @@
+/* ExpenseFlow site look (Part 89): shared by the landing page and the public pages. One grid, one spacing scale (8px), one type scale. */
+:root{--bg:#f3f8f7;--bg2:#e8f1fb;--card:#fff;--ink:#0B2545;--mu:#5b6b80;--line:rgba(11,37,69,.1);--a1:#0f766e;--a2:#1d4ed8;--tint:#e3f4f0;--tint2:#e6eefb;--ok:#059669;--bad:#dc2626;
+  --grad:linear-gradient(135deg,#0f766e,#1d4ed8);--r:20px;--sh:0 1px 2px rgba(11,37,69,.04),0 8px 28px rgba(11,37,69,.07);--w:1160px;--navh:72px;
+  --fh:var(--font-head,"Plus Jakarta Sans",system-ui,sans-serif)}
+html[data-theme=dark]{--bg:#08121f;--bg2:#0b1830;--card:#101c2e;--ink:#e8eef8;--mu:#9fb0c6;--line:rgba(255,255,255,.1);--a1:#2dd4bf;--a2:#6ea0ff;--tint:rgba(45,212,191,.12);--tint2:rgba(110,160,255,.12);--sh:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--navh) + 8px)}
+body.s-body{margin:0;color:var(--ink);background:var(--bg);background-image:radial-gradient(900px 520px at 8% -6%,rgba(94,234,212,.35),transparent 70%),radial-gradient(800px 520px at 100% 4%,rgba(96,165,250,.28),transparent 70%);background-repeat:no-repeat;overflow-x:hidden}
+html[data-theme=dark] body.s-body{background-image:radial-gradient(900px 520px at 8% -6%,rgba(45,212,191,.14),transparent 70%),radial-gradient(800px 520px at 100% 4%,rgba(110,160,255,.12),transparent 70%)}
+.s-body h1,.s-body h2,.s-body h3{font-family:var(--fh);margin:0;color:var(--ink)}
+.s-body p{margin:0}
+.s-wrap{max-width:var(--w);margin-inline:auto;padding-inline:clamp(16px,4vw,40px)}
+.s-skip{position:absolute;inset-inline-start:12px;top:-80px;background:var(--a1);color:#fff;padding:8px 14px;border-radius:10px;z-index:99}
+.s-skip:focus{top:10px}
+/* buttons */
+.s-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 22px;border-radius:14px;border:1px solid transparent;background:var(--grad);color:#fff;font:700 15px/1 var(--fh);text-decoration:none;cursor:pointer;transition:transform .2s,box-shadow .2s,background .2s;box-shadow:0 8px 20px rgba(29,78,216,.22)}
+.s-btn:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(29,78,216,.3)}
+.s-btn svg{width:18px;height:18px;flex:none}
+.s-btn.s-ghost{background:transparent;color:var(--ink);border-color:var(--line);box-shadow:none}
+.s-btn.s-ghost:hover{background:var(--tint);border-color:transparent}
+.s-btn.s-lg{min-height:56px;padding:0 32px;font-size:16px;border-radius:16px}
+.s-btn.s-white{background:#fff;color:#0b2545;box-shadow:0 10px 24px rgba(0,0,0,.2)}
+.s-link{display:inline-flex;align-items:center;gap:6px;color:var(--a1);font-weight:700;text-decoration:none}
+.s-link:hover{text-decoration:underline}
+.s-link svg{width:16px;height:16px}
+/* top bar */
+.s-nav{position:sticky;top:0;z-index:50;transition:background .25s,box-shadow .25s,backdrop-filter .25s}
+.s-nav.on,.s-nav.open{background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 1px 0 var(--line)}
+.s-navin{display:flex;align-items:center;gap:24px;height:var(--navh)}
+.s-logo{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:var(--a1);font:800 20px/1 var(--fh);letter-spacing:-.02em}
+.s-logo img{width:36px;height:36px;object-fit:contain;display:block}
+html[data-theme=dark] .s-logo img{filter:brightness(1.7) saturate(1.15)}
+.s-logo span{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+html[data-theme=dark] .s-logo span{background:linear-gradient(90deg,#5eead4,#7aa7ff);-webkit-background-clip:text;background-clip:text}
+.s-links{display:flex;gap:4px;margin-inline:auto}
+.s-links a,.s-menu a{color:var(--mu);font-weight:600;font-size:15px;text-decoration:none;padding:10px 14px;border-radius:12px;transition:color .2s,background .2s}
+.s-links a:hover,.s-menu a:hover{color:var(--ink);background:var(--tint)}
+.s-act{display:flex;align-items:center;gap:8px}
+.s-act .s-btn{min-height:40px;padding:0 18px;font-size:14px;border-radius:12px}
+.s-lang{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--line);color:var(--ink);font-weight:700;font-size:13px;text-decoration:none}
+.s-lang:hover{background:var(--tint)}
+.s-burger{display:none;width:40px;height:40px;border:1px solid var(--line);border-radius:12px;background:transparent;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0;cursor:pointer}
+.s-burger i{display:block;width:18px;height:2px;border-radius:2px;background:var(--ink);transition:transform .2s,opacity .2s}
+.s-nav.open .s-burger i:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.s-nav.open .s-burger i:nth-child(2){opacity:0}
+.s-nav.open .s-burger i:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.s-menu{padding:0 0 16px}
+.s-menu[hidden]{display:none}
+.s-menu .s-wrap{display:flex;flex-direction:column;gap:2px}
+.s-menu a{padding:14px 12px;font-size:16px}
+/* footer */
+.s-foot{border-top:1px solid var(--line);padding:56px 0 32px;margin-top:0}
+.s-fgrid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:40px}
+.s-fbrand p{color:var(--mu);font-size:14px;line-height:1.65;margin-top:16px;max-width:340px}
+.s-foot h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);margin-bottom:16px}
+.s-foot nav a{display:block;color:var(--mu);text-decoration:none;font-size:14px;padding:6px 0}
+.s-foot nav a:hover{color:var(--a1)}
+.s-fbar{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:40px;padding-top:24px;border-top:1px solid var(--line);color:var(--mu);font-size:13px}
+.s-fbar a{color:var(--a1);font-weight:700;text-decoration:none}
+@media (max-width:960px){
+  .s-links,.s-hide{display:none}
+  .s-burger{display:flex}
+  .s-act{margin-inline-start:auto}
+  .s-navin{gap:12px}
+  .s-fgrid{grid-template-columns:1fr 1fr;gap:32px}
+  .s-fbrand{grid-column:1/-1}
+}
+@media (max-width:420px){.s-lang{display:none}.s-act .s-btn{padding:0 14px}.s-logo{font-size:18px}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+/* right-to-left (Urdu) */
+html[dir=rtl] .s-links a,html[dir=rtl] .s-menu a,html[dir=rtl] .s-btn,html[dir=rtl] .s-lang{white-space:nowrap;line-height:1.5}
+html[dir=rtl] .s-btn{padding-top:.2em;padding-bottom:.2em}
+html[dir=rtl] .s-btn svg,html[dir=rtl] .s-link svg,html[dir=rtl] .l-more svg{transform:scaleX(-1)}
+html[dir=rtl] .s-links a{padding-inline:10px;font-size:14px}
+html[dir=rtl] .s-logo{direction:ltr}
