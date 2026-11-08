@@ -613,3 +613,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 ## Part 86 – Landing back to the pre-redesign version
 - Landing restored to its pre-Part 82 design (`app.css` look, `fx.js`); `landing3.css` and landing JS removed.
 - Kept: opens in English by default, and the transparent logo (no white box).
+
+## Part 87 – Landing UX fixes (from the "AI site is a disaster" video)
+- Hierarchy: bigger headline, quieter body text and trust row.
+- Spacing and noise: more room around the hero and sections; floating "Salary received" chip and idle animations removed.
+- Alignment: one left edge (start edge, so Urdu still flows right-to-left) for hero and section headings.
+- One button: hero keeps a single "Get started"; Log in stays in the nav. Colours unchanged. New `assets/landing-ux.css`.

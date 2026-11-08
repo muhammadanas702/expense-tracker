@@ -1,0 +1,25 @@
+/* Landing UX fixes (Part 87): 1 hierarchy, 2 spacing and less noise, 3 one left edge, 4 one main button. Colours unchanged. */
+.h2s{gap:56px;padding:72px 56px 56px}
+.h2s h1{font-size:3.7rem;line-height:1.04;letter-spacing:-2px}
+.h2s .lead{font-size:1.1rem;margin:20px 0 32px;max-width:480px}
+.h2s .cta{gap:0}
+.h2s .btn.lg{padding-left:30px;padding-right:30px}
+.trust{margin-top:32px;font-weight:500;opacity:.85}
+.hv{padding:0 0 30px}
+.hv .m2,.hv .card.hero,.hv svg polyline{animation:none}
+.hv svg polyline{stroke-dasharray:none}
+.sec{padding:72px 56px}
+.sec>h2{text-align:start;font-size:2.2rem;letter-spacing:-1px;max-width:640px}
+.sec>.sub2{text-align:start;margin:12px 0 40px;max-width:560px;font-size:1rem}
+.F3,.GE{gap:20px}
+@media (max-width:760px){
+  .h2s{padding:28px 20px 20px;gap:28px;text-align:start}
+  .h2s h1{font-size:2.3rem;letter-spacing:-1px}
+  .h2s .lead{margin:14px 0 22px}
+  .h2s .cta .btn{width:100%}
+  .trust{justify-content:flex-start;margin-top:22px}
+  .sec{padding:36px 20px}
+  .sec>h2{font-size:1.55rem}
+  .sec>.sub2{margin:8px 0 22px}
+  .F3,.GE{gap:12px}
+}
