@@ -637,3 +637,6 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Removed: floating cards, numbers strip, scroll/hover/shine animations, 3 duplicate feature cards (they live in the Shared panel), 3 less useful FAQ items, extra section padding.
 - Added: "Built by Muhammad Anas, a student in Lahore" under the final button (honest trust line).
 - Kept: one hero animation (balance bars) and the entrance fade. Login/register/forgot password still to do (Part 92).
+
+## Part 92 – Landing looks richer (still calm)
+- Hero: dotted backdrop, bigger headline, a second phone behind the first (shared trip balances). Gradient icons, thin gradient line on card hover, soft tinted band behind Personal/Shared, dark "Get the app" section for contrast. No new motion.
