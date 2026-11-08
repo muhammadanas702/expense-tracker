@@ -70,3 +70,70 @@ html[dir=rtl] .br .ck{line-height:1.7}
 ::view-transition-old(abrand),::view-transition-old(aform){animation:ef-vt-out .18s both;mix-blend-mode:normal}
 ::view-transition-new(abrand),::view-transition-new(aform){animation:ef-vt-in .22s both;mix-blend-mode:normal}
 @media (prefers-reduced-motion:reduce){::view-transition-old(abrand),::view-transition-old(aform),::view-transition-new(abrand),::view-transition-new(aform){animation-duration:.01s!important}}
+
+/* Part 97: login and register fit on one screen (no scrolling) on desktop */
+@media (min-width:769px){
+  .au{height:100vh;min-height:0}
+  .fm{padding:20px 28px;overflow:hidden}
+  .fc{padding:24px 30px;max-height:calc(100vh - 40px)}
+  .fc h1,.fc h2{font-size:1.6rem;margin-bottom:4px}
+  .fc .s3{margin-bottom:14px}
+  .atab{margin-bottom:16px}
+  .atab a{padding:9px 8px}
+  .fl{margin-bottom:10px}
+  .fl label{margin-bottom:5px}
+  .fw .inp{height:44px}
+  .rw{margin:0 0 14px}
+  .fc .btn.lg{min-height:46px;padding-block:0}
+  .gor{margin:12px 0 12px}
+  .gbtn{min-height:44px;padding:9px 16px}
+  .aft{margin-top:12px}
+  .aft.q{margin-top:6px}
+  .atrust{margin-top:12px;padding-top:12px}
+  .atrust p:first-child{display:none}
+  .atrust p+p{margin:0}
+  .ctr2{min-height:100vh;display:grid;place-items:center;padding:20px}
+  .ctr2 .atrust p:first-child{display:block}
+  /* register: two columns, name | email and password | confirm */
+  .au .fm:has(.rform) .fc{max-width:540px}
+  .rform{display:grid;grid-template-columns:1fr 1fr;column-gap:14px}
+  .rform>*{grid-column:1/-1}
+  .rform>.fl{grid-column:auto;min-width:0}
+  .rform .rh1{margin:-4px 0 10px!important}
+  .rform .rh2{margin:6px 0 10px!important;font-size:.74rem!important}
+  .rform .agree{margin:2px 0 12px}
+}
+@media (min-width:769px) and (max-height:900px){.gnote:not(#gapp-note){display:none}}
+@media (min-width:769px) and (max-height:700px){
+  .fc{padding:18px 26px}
+  .fc .s3{display:none}
+  .atab{margin-bottom:12px}
+  .fc h1,.fc h2{font-size:1.45rem;margin-bottom:10px}
+  .fw .inp{height:40px}
+  .fl{margin-bottom:8px}
+  .atrust{display:none}
+  .aft.q{display:none}
+  .aft{margin-top:10px}
+}
+
+/* Part 97: code check states */
+.otps{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;min-height:38px;font:700 .92rem/1.35 var(--font-head,"Plus Jakarta Sans",system-ui,sans-serif);text-align:center}
+.otps[hidden]{display:none}
+.otps.chk{color:var(--mu)}.otps.ok{color:#059669}.otps.bad{color:#dc2626}
+html[data-theme=dark] .otps.ok{color:#34d399}html[data-theme=dark] .otps.bad{color:#f87171}
+.otpi{width:34px;height:34px;flex:none}
+.otpi .c{stroke-dasharray:145;stroke-dashoffset:145;animation:otp-draw .5s ease-out forwards}
+.otpi .k{stroke-dasharray:44;stroke-dashoffset:44;animation:otp-draw .35s .35s ease-out forwards}
+.otps.ok .otpi{animation:otp-pop .5s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes otp-draw{to{stroke-dashoffset:0}}
+@keyframes otp-pop{0%{transform:scale(.6)}100%{transform:scale(1)}}
+.otpd{display:inline-flex;gap:5px}.otpd i{width:8px;height:8px;border-radius:50%;background:var(--a1);animation:otp-b .9s ease-in-out infinite}
+.otpd i:nth-child(2){animation-delay:.15s}.otpd i:nth-child(3){animation-delay:.3s}
+@keyframes otp-b{0%,80%,100%{transform:translateY(0);opacity:.45}40%{transform:translateY(-6px);opacity:1}}
+.otp.chk{border-color:var(--a1);box-shadow:0 0 0 4px color-mix(in srgb,var(--a1) 18%,transparent);animation:otp-glow 1s ease-in-out infinite}
+@keyframes otp-glow{50%{box-shadow:0 0 0 7px color-mix(in srgb,var(--a1) 6%,transparent)}}
+.otp.ok{border-color:#059669;box-shadow:0 0 0 4px rgba(5,150,105,.2);color:#059669}
+.otp.bad{border-color:#dc2626;box-shadow:0 0 0 4px rgba(220,38,38,.16);animation:otp-shake .45s}
+@keyframes otp-shake{15%,55%,90%{transform:translateX(-7px)}35%,75%{transform:translateX(7px)}}
+.fc .big.ok{background:linear-gradient(135deg,#10b981,#0d9f6e);animation:otp-pop .5s cubic-bezier(.2,.9,.3,1.4)}
+@media (prefers-reduced-motion:reduce){.otpi .c,.otpi .k{animation:none;stroke-dashoffset:0}.otp.bad,.otp.chk,.otpd i,.otps.ok .otpi,.fc .big.ok{animation:none}}

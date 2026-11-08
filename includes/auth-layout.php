@@ -48,6 +48,12 @@ function ef_msg(string $text, string $type = 'err'): string
     return '<div class="msg ' . $t . '" role="alert" style="margin-bottom:14px">' . e(t($text)) . '</div>';
 }
 
+/** Hidden labels for the code-check animation (auth-ui.js reads them, so they are translated with the page). */
+function ef_otp_texts(): string
+{
+    return '<div class="otps-t" hidden><span data-k="chk">' . e(t('Checking code…')) . '</span><span data-k="ok">' . e(t('Code verified')) . '</span><span data-k="bad">' . e(t('Wrong code')) . '</span></div>';
+}
+
 function ef_auth_start(array $o = []): void
 {
     $split = $o['split'] ?? true;

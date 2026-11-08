@@ -148,15 +148,15 @@ require_once __DIR__ . '/../includes/auth-layout.php';
 <p class="s3"><?= e(t('Start tracking in under a minute.')) ?></p>
 <?= ef_msg($msg) ?>
 <?= google_button('signup') ?>
-<form method="POST">
+<form method="POST" class="rform">
     <?= csrf_field() ?>
     <?= ef_field('FULL NAME', 'name', 'usr', 'text', $name, ['placeholder' => 'Your name', 'required' => true, 'maxlength' => 100, 'autocomplete' => 'name']) ?>
     <?= ef_field('EMAIL', 'email', 'mail', 'email', $email, ['placeholder' => 'you@example.com', 'required' => true, 'maxlength' => 190, 'autocomplete' => 'email']) ?>
-    <p class="s3" style="margin:-6px 0 12px;font-size:.78rem"><?= e(t('We will email you a 6-digit code to confirm it is yours.')) ?></p>
+    <p class="s3 rh1" style="margin:-6px 0 12px;font-size:.78rem"><?= e(t('We will email you a 6-digit code to confirm it is yours.')) ?></p>
     <?= ef_field('PASSWORD', 'password', 'lock', 'password', '', ['placeholder' => 'Min. 8 characters', 'required' => true, 'autocomplete' => 'new-password', 'data-strength' => true]) ?>
-    <div class="mt"><i></i><i></i><i></i><i></i></div>
-    <p class="s3" style="margin:8px 0 14px;font-size:.78rem"><?= e(t('Use 8+ characters with upper and lower case letters, a number and a symbol.')) ?></p>
     <?= ef_field('CONFIRM PASSWORD', 'confirm_password', 'lock', 'password', '', ['placeholder' => 'Repeat password', 'required' => true, 'autocomplete' => 'new-password']) ?>
+    <div class="mt"><i></i><i></i><i></i><i></i></div>
+    <p class="s3 rh2" style="margin:8px 0 14px;font-size:.78rem"><?= e(t('Use 8+ characters with upper and lower case letters, a number and a symbol.')) ?></p>
     <label class="agree"><input type="checkbox" name="agree" value="1" required<?= !empty($_POST['agree']) ? ' checked' : '' ?>> <span><?= e(t('I agree to the')) ?> <a href="../terms.php" target="_blank" rel="noopener"><?= e(t('Terms of Use')) ?></a> <?= e(t('and the')) ?> <a href="../privacy.php" target="_blank" rel="noopener"><?= e(t('Privacy Policy')) ?></a>.</span></label>
     <button class="btn lg" style="width:100%" type="submit"><?= e(t('Send confirmation code')) ?></button>
 </form>
