@@ -652,3 +652,8 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 ## Part 95 – Sign-in pages in the landing look
 - Login, register, forgot password, OTP, new password, 2-step, Google password and delete-account now share the landing look: same logo (links home), gradient headline, dotted backdrop, and a real app screenshot phone that fills the left panel (sticky on tall pages, hidden on short screens). Form side uses the landing fonts, dark-mode link colours, a clear spot for the language button on phones, RTL logo/arrow fixes.
 - New `assets/auth-site.css` (loaded after `app.css`); markup change is only in `includes/auth-layout.php`. No form logic touched. Web-only, no APK/exe build.
+
+## Part 96 – Login/Register slide, tabs and calmer motion
+- Login (and forgot password, code, new password) show the form on the left; Create account (and confirm email) show it on the right. Switching between Log in and Create account slides the two panels past each other (browser view transitions; browsers without support just switch pages; reduced-motion users get no slide).
+- "Log in | Create account" tab switch on both cards, different headline and app screenshot per page (dashboard for login, shared group for register), its own headline for the password-recovery pages, spinner on the submit button while the form is sending, soft field stagger.
+- Web-only, no APK/exe build. Note: `tests/google_signin_test.php` rewrites the `user_identities` table; if later Google tests fail, drop that table and delete `storage/schema/oauth_ensure_schema-*.ok`.

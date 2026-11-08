@@ -143,7 +143,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
 require_once __DIR__ . '/../includes/auth-layout.php';
 ?>
-<?php ef_auth_start(['title' => t('Create account')]); ?>
+<?php ef_auth_start(['title' => t('Create account'), 'mode' => 'register']); ?>
 <h1><?= e(t('Create your account')) ?></h1>
 <p class="s3"><?= e(t('Start tracking in under a minute.')) ?></p>
 <?= ef_msg($msg) ?>

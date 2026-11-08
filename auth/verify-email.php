@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 require_once __DIR__ . '/../includes/auth-layout.php';
-ef_auth_start(['title' => t('Confirm your email')]); ?>
+ef_auth_start(['title' => t('Confirm your email'), 'side' => 'right']); ?>
 <div class="big"><?= ef_icon('mail') ?></div>
 <h1 class="c2"><?= e(t('Confirm your email')) ?></h1>
 <p class="s3 c2"><?= e(t('We sent a 6-digit code to')) ?> <b dir="ltr"><?= e(signup_mask($pending['email'])) ?></b>. <?= e(t('Your account is created after you enter it.')) ?></p>
