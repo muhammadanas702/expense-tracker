@@ -627,3 +627,8 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - New shared look in `assets/site.css` + `includes/site-chrome.php` (top bar, footer, buttons, tokens: 1160px container, 8px spacing, one type scale) and `assets/site.js` (menu only). Public pages and auth pages move to it in Part 90 and 91.
 - Landing rebuilt: hero with app mock and two floating cards, stats strip, 3x3 feature grid, Personal/Shared panels with mini visuals, 3 steps, 3 equal app cards (buttons aligned to the bottom), FAQ in two columns, resources, big final call. Scroll reveal is CSS-only (no JavaScript; content stays visible where unsupported). Dark mode and Urdu/RTL supported (arrows flip).
 - Removed the old landing CSS/JS (`landing-ux.css`, old `landing.css`).
+
+## Part 90 – Landing polish (research based) + public pages on the same look
+- Landing: trust line next to the main button ("We never ask for your bank or card details"), clearer button label ("Create free account"), shorter top bar (4 links), duplicate Resources section removed (it is in the footer), hover polish on icons and buttons, animated link underline.
+- Privacy, Terms, About, Contact and all Guides now use the landing top bar, footer, fonts and colours (`includes/public-layout.php`, `assets/public.css`): breadcrumb, large title, centred readable card, closing call to action. Guides index cards in a 2-column grid. Dark mode and Urdu/RTL supported.
+- Still to do: login, register, forgot password and the other sign-in pages (Part 91).

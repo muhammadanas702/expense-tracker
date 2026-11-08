@@ -11,7 +11,7 @@ function ef_site_logo(string $base): string
 function ef_site_nav(string $base, bool $home = false): string
 {
     $h = $home ? '' : e($base) . '/';
-    $links = [['features', 'Features'], ['modes', 'Personal & Shared'], ['how', 'How it works'], ['apps', 'Get the app'], ['faq', 'FAQ']];
+    $links = [['features', 'Features'], ['how', 'How it works'], ['apps', 'Get the app'], ['faq', 'FAQ']];
     $l = '';
     foreach ($links as $k) {
         $l .= '<a href="' . $h . '#' . $k[0] . '">' . e($k[1]) . '</a>';

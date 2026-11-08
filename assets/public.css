@@ -1,0 +1,36 @@
+/* Public information pages (Part 90): privacy, terms, about, contact, guides. Same top bar/footer/tokens as the landing page. */
+.p-top{padding-top:clamp(24px,4vw,48px);max-width:calc(860px + 2*clamp(16px,4vw,40px))}
+.p-crumbs{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--mu);margin-bottom:16px}
+.p-crumbs a{color:var(--mu);text-decoration:none}.p-crumbs a:hover{color:var(--a1)}
+.s-body .p-h1{font-size:clamp(32px,5vw,52px);line-height:1.08;letter-spacing:-.035em;font-weight:800;max-width:820px;margin-bottom:32px}
+.p-doc{background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--sh);padding:clamp(24px,5vw,56px);max-width:860px;margin-inline:auto;color:var(--ink);font-size:16.5px;line-height:1.75}
+.p-doc>*:first-child{margin-top:0}
+.p-article-wrap{max-width:860px}
+.p-doc .lead{font-size:clamp(18px,2vw,21px);line-height:1.6;color:var(--mu);margin:0 0 32px;max-width:none}
+.p-doc .meta{font-size:14px;color:var(--mu);margin:0 0 16px}
+.p-doc .meta a{color:var(--a1)}
+.p-doc h2{font-size:clamp(21px,2.4vw,26px);line-height:1.25;letter-spacing:-.02em;margin:40px 0 12px;padding-top:24px;border-top:1px solid var(--line)}
+.p-doc .lead+h2,.p-doc .meta+h2{border-top:0;padding-top:0}
+.p-doc h3{font-size:18px;margin:28px 0 8px}
+.p-doc p{margin:0 0 16px;color:var(--ink)}
+.p-doc ul,.p-doc ol{margin:0 0 20px;padding-inline-start:24px;display:grid;gap:8px}
+.p-doc li::marker{color:var(--a1)}
+.p-doc a:not(.btn):not(.s-btn):not(.g){color:var(--a1);font-weight:600;text-underline-offset:3px}
+.p-doc b,.p-doc strong{font-weight:700}
+.p-doc table{width:100%;border-collapse:collapse;margin:0 0 20px;font-size:15px}
+.p-doc th,.p-doc td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:start}
+.p-doc .btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;border-radius:14px;background:var(--grad);color:#fff!important;font:700 15px var(--fh);text-decoration:none!important;box-shadow:0 8px 20px rgba(29,78,216,.22);transition:transform .2s,box-shadow .2s}
+.p-doc .btn:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(29,78,216,.3)}
+/* guides index cards */
+.p-doc .gc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.p-doc .gc a.g{display:flex;flex-direction:column;gap:6px;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--bg);text-decoration:none;color:var(--ink);transition:transform .2s,box-shadow .2s,border-color .2s;position:relative}
+.p-doc .gc a.g:hover{transform:translateY(-3px);box-shadow:var(--sh);border-color:var(--a1)}
+.p-doc .gc a.g b{font:700 17px/1.35 var(--fh)}
+.p-doc .gc a.g span{color:var(--mu);font-size:14.5px;line-height:1.55}
+.p-doc .gc a.g:after{content:"→";margin-top:auto;padding-top:10px;color:var(--a1);font-weight:800}
+html[dir=rtl] .p-doc .gc a.g:after{content:"←"}
+/* closing call */
+.p-cta{margin:clamp(48px,7vw,88px) 0;border-radius:28px;padding:clamp(40px,6vw,72px) clamp(24px,5vw,56px);text-align:center;color:#fff;background:linear-gradient(135deg,#0B2545,#0f766e 70%,#1d4ed8)}
+.p-cta h2{color:#fff;font-size:clamp(26px,4vw,40px);letter-spacing:-.03em;font-weight:800}
+.p-cta p{color:rgba(255,255,255,.82);margin:12px 0 28px;font-size:17px}
+@media (max-width:640px){.p-doc .gc{grid-template-columns:1fr}.p-doc{border-radius:20px;font-size:16px}.p-cta{border-radius:22px}}

@@ -10,6 +10,7 @@ require_once __DIR__ . '/../config/app.php';
 require_once __DIR__ . '/security.php';
 require_once __DIR__ . '/icons.php';
 require_once __DIR__ . '/assets.php';
+require_once __DIR__ . '/site-chrome.php';
 
 function ef_public_start(array $o): void
 {
@@ -51,34 +52,38 @@ function ef_public_start(array $o): void
 <meta name="twitter:title" content="<?= e($title) ?>">
 <meta name="twitter:description" content="<?= e($desc) ?>">
 <meta name="twitter:image" content="<?= e($img) ?>">
-<link rel="stylesheet" href="<?= e(ef_asset('assets/app.css')) ?>">
+<meta name="theme-color" content="#0f766e">
+<link rel="stylesheet" href="<?= e(ef_asset('assets/site.css')) ?>">
+<link rel="stylesheet" href="<?= e(ef_asset('assets/public.css')) ?>">
+<?= ef_font_head() . ef_rtl_link() ?>
 <?php require_once __DIR__ . '/theme.php'; echo ef_theme_head(); ?>
 <?php foreach ($schemas as $s): ?>
 <script type="application/ld+json"><?= json_encode($s, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?></script>
 <?php endforeach; ?>
 </head>
-<body>
-<div class="fr" data-mode="p">
-<header class="g nb">
-  <a class="logo" href="<?= e($base) ?>/" style="padding:0"><span class="logo"><img src="<?= e($base) ?>/favicon.png" alt="" width="38" height="38"><span class="wm">ExpenseFlow</span></span></a>
-  <nav class="lk" aria-label="Main"><a href="<?= e($base) ?>/#features">Features</a><a href="<?= e($base) ?>/guides/">Guides</a><a href="<?= e($base) ?>/about.php">About</a><a href="<?= e($base) ?>/#apps">Get the app</a></nav>
-  <a class="lnk" href="<?= e($base) ?>/auth/login.php">Log in</a>
-  <a class="btn" href="<?= e($base) ?>/auth/register.php">Get started</a>
-</header>
-<main class="sec pub">
-<h1><?= e((string) ($o['h1'] ?? $title)) ?></h1>
-<div class="g pubc">
+<body class="s-body">
+<?= ef_site_nav($base, false) ?>
+<main id="main">
+<div class="s-wrap p-top">
+<nav class="p-crumbs" aria-label="Breadcrumb"><a href="<?= e($base) ?>/">Home</a><?php foreach (($o['crumbs'] ?? []) as $c): ?><span>/</span><a href="<?= e($base . '/' . ltrim($c[1], '/')) ?>"><?= e($c[0]) ?></a><?php endforeach; ?></nav>
+<h1 class="p-h1"><?= e((string) ($o['h1'] ?? $title)) ?></h1>
+</div>
+<div class="s-wrap"><article class="p-doc">
 <?php
 }
 
 function ef_public_end(): void
 {
     $base = $GLOBALS['__ef_pub']['base'] ?? '';
-    ?></div>
+    ?></article></div>
+<div class="s-wrap"><section class="p-cta">
+  <h2>Ready to take control?</h2>
+  <p>Create your account in under a minute.</p>
+  <a class="s-btn s-white s-lg" href="<?= e($base) ?>/auth/register.php">Get started <?= ef_icon('arr') ?></a>
+</section></div>
 </main>
-<footer class="fo"><span class="logo"><img src="<?= e($base) ?>/favicon.png" alt="" width="38" height="38"><span class="wm">ExpenseFlow</span></span><span>© <?= date('Y') ?> ExpenseFlow</span>
-  <span class="lk2"><a href="<?= e($base) ?>/about.php">About</a><a href="<?= e($base) ?>/guides/">Guides</a><a href="<?= e($base) ?>/privacy.php">Privacy</a><a href="<?= e($base) ?>/terms.php">Terms</a><a href="<?= e($base) ?>/contact.php">Contact</a><a href="<?= e($base) ?>/auth/login.php">Log in</a></span></footer>
-</div>
+<?= ef_site_footer($base) ?>
+<script src="<?= e($base) ?>/assets/site.js" defer></script>
 </body>
 </html>
 <?php
