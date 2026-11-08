@@ -92,6 +92,12 @@ foreach ($ld as $block): ?>
     <p class="l-trust"><?= ef_icon('shield') ?>We never ask for your bank or card details.</p>
   </div>
   <div class="l-stage" aria-hidden="true">
+    <div class="l-phone l-p2"><div class="l-scr">
+      <div class="l-top"><span>Trip to Murree<br><b>4 people</b></span><span class="l-av">G</span></div>
+      <div class="l-who"><span class="l-av">A</span>Ali<b class="l-pos">+ 1,200</b></div>
+      <div class="l-who"><span class="l-av">S</span>Sara<b class="l-neg">− 400</b></div>
+      <div class="l-who"><span class="l-av">Z</span>Zain<b class="l-neg">− 800</b></div>
+    </div></div>
     <div class="l-phone"><div class="l-scr">
       <div class="l-top"><span>Good morning<br><b>Ali</b></span><span class="l-av">A</span></div>
       <div class="l-bal"><small>▲ 12% vs last month</small><strong>Rs 42,500</strong><div class="l-bars"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
@@ -114,7 +120,7 @@ foreach ($ld as $block): ?>
   </div>
 </div></section>
 
-<section class="l-sec" id="modes"><div class="s-wrap">
+<section class="l-sec l-band" id="modes"><div class="s-wrap">
   <div class="l-head"><span class="l-eye">Personal &amp; Shared</span><h2>Your money, clearly organised</h2><p>Track your own money, or share expenses with friends. Switch between the two in one tap.</p></div>
   <div class="l-grid2">
     <article class="l-card l-mode"><span class="l-ic"><?= ef_icon('wal') ?></span><h3>Personal</h3>
@@ -145,7 +151,7 @@ foreach ($ld as $block): ?>
   </div>
 </div></section>
 
-<section class="l-sec" id="apps"><div class="s-wrap">
+<section class="l-sec l-dark" id="apps"><div class="s-wrap">
   <div class="l-head"><span class="l-eye">Get the app</span><h2>Use it on your phone or computer</h2><p>Your account works everywhere.</p></div>
   <div class="l-grid3">
     <article class="l-card l-app"><span class="l-ic"><?= ef_icon('phone') ?></span><h3>Android</h3><p>Get the Android app from our GitHub releases page. Updates come inside the app.</p>
