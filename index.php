@@ -64,6 +64,7 @@ $logo = '<span class="logo"><img src="' . e($base) . '/assets/icons/logo-96.webp
 <meta name="twitter:description" content="<?= e($desc) ?>">
 <link rel="stylesheet" href="<?= e($base) ?>/assets/app.css?v=<?= (int) @filemtime(__DIR__ . '/assets/app.css') ?>">
 <link rel="stylesheet" href="<?= e($base) ?>/assets/theme-dark.css?v=<?= (int) @filemtime(__DIR__ . '/assets/theme-dark.css') ?>">
+<link rel="stylesheet" href="<?= e($base) ?>/assets/landing-ux.css?v=<?= (int) @filemtime(__DIR__ . '/assets/landing-ux.css') ?>">
 <?= ef_font_head() . ef_rtl_link() ?>
 <script>(function(){try{var m=document.cookie.match(/(?:^|; )ef_theme=(auto|light|dark)/),t=m?m[1]:"auto",d=t==="dark"||(t==="auto"&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);if(d){document.documentElement.setAttribute("data-theme","dark");}}catch(e){}})();</script>
 <?php
@@ -95,12 +96,10 @@ foreach ($ld as $block): ?>
     <p class="lead">ExpenseFlow keeps your income, expenses and reports organised in one clean place, in any currency.</p>
     <div class="cta">
       <a class="btn lg" href="<?= e($base) ?>/auth/register.php">Get started <?= ef_icon('arr') ?></a>
-      <a class="btn lg o" href="<?= e($base) ?>/auth/login.php">Log in</a>
     </div>
     <div class="trust"><span><?= ef_icon('ck') ?>Works offline</span><span><?= ef_icon('ck') ?>Multi-currency</span><span><?= ef_icon('ck') ?>PDF reports</span></div>
   </div>
   <div class="hv" aria-hidden="true">
-    <div class="g chp"><?= ef_icon('inc') ?>Salary received</div>
     <div class="g card hero" style="padding:22px 22px 44px">
       <div class="k">Net Balance</div><div class="v" data-countup>Rs 42,500</div><span class="badge">▲ 12% vs last month</span>
       <svg viewBox="0 0 300 40" width="100%" height="40" preserveAspectRatio="none" style="margin-top:12px"><polyline pathLength="1" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.5" stroke-linecap="round" points="0,30 40,26 80,28 120,16 170,20 220,8 300,4"/></svg>
