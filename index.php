@@ -92,9 +92,10 @@ foreach ($ld as $block): ?>
     <h1>Track every rupee.<span class="l-grad">Know every month.</span></h1>
     <p class="l-lead">ExpenseFlow keeps your income, expenses and reports organised in one clean place, in any currency.</p>
     <div class="l-cta">
-      <a class="s-btn s-lg" href="<?= e($base) ?>/auth/register.php">Get started <?= ef_icon('arr') ?></a>
+      <a class="s-btn s-lg" href="<?= e($base) ?>/auth/register.php">Create free account <?= ef_icon('arr') ?></a>
       <a class="s-link" href="#features">See what's inside <?= ef_icon('chev') ?></a>
     </div>
+    <p class="l-trust"><?= ef_icon('shield') ?>We never ask for your bank or card details.</p>
   </div>
   <div class="l-stage" aria-hidden="true">
     <div class="l-chip a"><span class="l-ic"><?= ef_icon('inc') ?></span><span>Salary received<small>+ 60,000</small></span></div>
@@ -179,20 +180,10 @@ foreach ($ld as $block): ?>
   </div>
 </div></section>
 
-<section class="l-sec" id="resources"><div class="s-wrap">
-  <div class="l-head"><span class="l-eye">Resources</span><h2>Guides, privacy &amp; help</h2></div>
-  <div class="l-grid4">
-    <a class="l-card l-res l-rv" href="<?= e($base) ?>/guides/"><span class="l-ic"><?= ef_icon('globe') ?></span><h3>Money guides</h3><p>Practical articles on budgeting, saving and splitting expenses.</p><span class="l-more">Read more <?= ef_icon('arr') ?></span></a>
-    <a class="l-card l-res l-rv" href="<?= e($base) ?>/privacy.php"><span class="l-ic"><?= ef_icon('lock') ?></span><h3>Privacy Policy</h3><p>What we store, how we protect it and how you can delete it.</p><span class="l-more">Read more <?= ef_icon('arr') ?></span></a>
-    <a class="l-card l-res l-rv" href="<?= e($base) ?>/terms.php"><span class="l-ic"><?= ef_icon('doc') ?></span><h3>Terms of Use</h3><p>The simple rules for using ExpenseFlow fairly and safely.</p><span class="l-more">Read more <?= ef_icon('arr') ?></span></a>
-    <a class="l-card l-res l-rv" href="<?= e($base) ?>/contact.php"><span class="l-ic"><?= ef_icon('phone') ?></span><h3>Contact &amp; support</h3><p>Questions or feedback? Send us a message and we will reply.</p><span class="l-more">Read more <?= ef_icon('arr') ?></span></a>
-  </div>
-</div></section>
-
 <section class="l-sec l-tight"><div class="s-wrap"><div class="l-fin l-rv">
   <h2>Ready to take control?</h2>
   <p>Create your account in under a minute.</p>
-  <a class="s-btn s-white s-lg" href="<?= e($base) ?>/auth/register.php">Get started <?= ef_icon('arr') ?></a>
+  <a class="s-btn s-white s-lg" href="<?= e($base) ?>/auth/register.php">Create free account <?= ef_icon('arr') ?></a>
 </div></div></section>
 
 </main>

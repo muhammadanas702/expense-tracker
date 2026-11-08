@@ -142,3 +142,15 @@ html[data-theme=dark] .l-grad{background-image:linear-gradient(90deg,#5eead4,#7a
   .l-fin{border-radius:24px}
 }
 .l-eye svg{width:16px;height:16px}
+
+.s-body .l-trust{display:flex;align-items:center;gap:8px;margin-top:20px;color:var(--mu);font-size:14px;font-weight:600}
+.l-trust svg{width:18px;height:18px;color:var(--a1)}
+.l-card .l-ic{transition:background .25s,color .25s,transform .25s}
+.l-card:hover .l-ic{background:var(--grad);color:#fff;transform:rotate(-6deg) scale(1.06)}
+.s-btn{position:relative;overflow:hidden}
+.s-btn:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(-120%);transition:transform .6s}
+.s-btn:hover:before{transform:translateX(120%)}
+.s-links a{position:relative}
+.s-links a:after{content:"";position:absolute;inset-inline:14px;bottom:4px;height:2px;border-radius:2px;background:var(--a1);transform:scaleX(0);transition:transform .25s}
+.s-links a:hover:after{transform:scaleX(1)}
+@media (max-width:640px){.l-trust{justify-content:flex-start}}

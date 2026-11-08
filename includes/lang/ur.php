@@ -658,4 +658,6 @@ return [
     'Zain' => 'زین',
     'Still stuck?' => 'اب بھی مسئلہ ہے؟',
     'Read more' => 'مزید پڑھیں',
+    'Create free account' => 'مفت اکاؤنٹ بنائیں',
+    'We never ask for your bank or card details.' => 'ہم آپ سے بینک یا کارڈ کی تفصیلات کبھی نہیں مانگتے۔',
 ];
