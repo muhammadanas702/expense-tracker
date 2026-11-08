@@ -16,7 +16,7 @@ require_once __DIR__ . '/assets.php';
 
 function ef_auth_brand(): string
 {
-    return '<span class="logo"><img src="' . e(ef_url('favicon.png')) . '" alt=""><span class="wm">ExpenseFlow</span></span>';
+    return '<a class="logo alogo" href="' . e(ef_url('index.php')) . '" aria-label="ExpenseFlow"><img src="' . e(ef_url('assets/icons/logo-96.webp')) . '" alt="" width="36" height="36"><span class="wm">ExpenseFlow</span></a>';
 }
 
 function ef_check(string $text): string
@@ -61,6 +61,7 @@ function ef_auth_start(array $o = []): void
 <meta name="robots" content="noindex">
 <?php require __DIR__ . '/pwa-head.php'; ?>
 <link rel="stylesheet" href="<?= e(ef_asset('assets/app.css')) ?>">
+<link rel="stylesheet" href="<?= e(ef_asset('assets/auth-site.css')) ?>">
 <?php require_once __DIR__ . '/theme.php'; echo ef_theme_head(); ?>
 </head>
 <body>
@@ -71,13 +72,13 @@ function ef_auth_start(array $o = []): void
   <div class="br">
     <div style="position:relative;z-index:1"><?= ef_auth_brand() ?></div>
     <div style="position:relative;z-index:1">
-      <h2>Your money,<br>clearly organised.</h2>
+      <h2>Your money,<br><span class="agr">clearly organised.</span></h2>
       <?= ef_check('Track personal income and expenses') ?>
       <?= ef_check('Reports, insights and PDF export') ?>
       <?= ef_check('Works offline as an installed app') ?>
       <p class="aboutln">ExpenseFlow is a free personal expense tracker and bill splitter, made by <b>Muhammad Anas</b> in Pakistan. It never asks for your bank or card details.</p>
     </div>
-    <div></div>
+    <div class="brp" aria-hidden="true"><div class="brph"><img src="<?= e(ef_url('assets/landing/app-dashboard.webp')) ?>" width="480" height="960" alt="" decoding="async"></div></div>
   </div>
   <div class="fm"><div class="g fc">
     <div class="ml"><?= ef_auth_brand() ?></div>

@@ -648,3 +648,7 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 ## Part 94 – Landing scroll experience
 - Thin progress bar at the top, side dots (desktop ≥1280px) to jump section to section with a label on hover, active link highlighted in the top bar, "Scroll down" cue under the hero, round "Back to top" button after scrolling. RTL-aware, no effect without JavaScript (links still work).
 - New `assets/landing.js` (about 40 lines, only on the landing). Web-only, no APK/exe build needed.
+
+## Part 95 – Sign-in pages in the landing look
+- Login, register, forgot password, OTP, new password, 2-step, Google password and delete-account now share the landing look: same logo (links home), gradient headline, dotted backdrop, and a real app screenshot phone that fills the left panel (sticky on tall pages, hidden on short screens). Form side uses the landing fonts, dark-mode link colours, a clear spot for the language button on phones, RTL logo/arrow fixes.
+- New `assets/auth-site.css` (loaded after `app.css`); markup change is only in `includes/auth-layout.php`. No form logic touched. Web-only, no APK/exe build.
