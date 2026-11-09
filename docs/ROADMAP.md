@@ -672,3 +672,7 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - A reset request for an address that has no account is logged as "Not sent: no account uses this e-mail" (visitors still get the same neutral answer). This is the most common reason a code "never arrives": the address typed is not the one the account was made with (for example a Google sign-in account on another address).
 - Tests: `tests/mail_log_http_test.py`. No build needed (web-only).
 - Still to do after looking at the log on the live site: if it says the server cannot connect, the host blocks outgoing SMTP and we switch to an e-mail service that works over HTTPS.
+
+## Part 98b – Email log hint for refused sign-in
+- First live look at the Email log: "SMTP Error: Could not authenticate" (Gmail refused the user name or App Password), 4 failures, 0 sent. The page now explains this case and the fix (new Gmail App Password in the GitHub secret, then deploy and "Send test").
+- Note: while mail cannot be sent, staff and users with two-step sign-in cannot sign in ("we could not send your sign-in code"), so fix the App Password before the admin session ends.
