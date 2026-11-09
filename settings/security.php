@@ -6,7 +6,7 @@ if (is_file(__DIR__ . '/../modules/twofactor/lib.php')) {
     require_once __DIR__ . '/../modules/twofactor/lib.php';
 }
 $tf = function_exists('twofa_available'); // module present
-$tfStaff = $tf && twofa_staff_role(twofa_role($conn, $user_id));
+$tfStaff = $tf && twofa_mandatory($conn, $user_id);
 $tfOn = $tf && twofa_enabled($conn, $user_id);
 $tfPending = (string) ($_SESSION['twofa_ui'] ?? ''); // 'on' or 'off' while a code is awaited
 $gpw = oauth_pw_state($conn, $user_id) !== 0; // signed up with Google and no password of their own yet
@@ -22,7 +22,7 @@ if ($tf && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['twofa_action']
     if ($act === 'start_on' || $act === 'start_off') {
         $purpose = $act === 'start_on' ? 'on' : 'off';
         if ($purpose === 'off' && $tfStaff) {
-            settings_done('', 'Two-step sign-in is required for staff accounts.');
+            settings_done('', 'Two-step sign-in is required for your account.');
         }
         if (($purpose === 'on') === $tfOn) {
             settings_done('', $tfOn ? 'Two-step sign-in is already on.' : 'Two-step sign-in is already off.');
@@ -116,7 +116,7 @@ settings_page_start('security', $user);
 <?php if (!twofa_available()): ?>
       <p class="k" style="margin:-4px 0 0">Not available right now: the server cannot send e-mail.</p>
 <?php elseif ($tfStaff): ?>
-      <p class="k" style="margin:-4px 0 0"><?= ef_icon('ok', '#16a34a') ?> Required for your staff account. After your password you enter a 6-digit code we e-mail you.</p>
+      <p class="k" style="margin:-4px 0 0"><?= ef_icon('ok', '#16a34a') ?> Required for your account (set by the site admin). After your password you enter a 6-digit code we e-mail you.</p>
 <?php elseif (in_array($tfPending, ['on', 'off'], true)): ?>
       <p class="k" style="margin:-4px 0 12px">Enter the 6-digit code we sent to your e-mail to turn two-step sign-in <b><?= e($tfPending) ?></b>.</p>
       <form method="POST" autocomplete="off">

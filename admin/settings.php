@@ -15,7 +15,10 @@ admin_page_start(['title' => 'Settings', 'sub' => $s['maintenance'] === '1' ? 'M
   <?= csrf_field() ?>
   <label class="row" style="cursor:pointer"><span>Open for new sign-ups<small>Turn off to stop new accounts. People who already have an account are not affected.</small></span>
     <b><input class="swc" type="checkbox" name="signups" value="1"<?= $s['signups'] !== '0' ? ' checked' : '' ?>><i class="sw"></i></b></label>
-  <label class="row" style="cursor:pointer"><span>Maintenance mode<small>Everyone except signed-in staff sees a "be right back" page. Use it while you restore a backup or fix something.</small></span>
+  <div class="fl" style="margin-top:12px"><label for="login_code">E-mailed code when signing in</label>
+    <select class="inp" id="login_code" name="login_code"><?php foreach (SETTINGS_LOGIN_CODE as $k => $l): ?><option value="<?= e($k) ?>"<?= ($s['login_code'] ?? 'off') === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select>
+    <small class="k" style="display:block;margin-top:6px">Off: people sign in with their password only (the e-mail code is still used once when an account is created, and for forgotten passwords). Staff only or Everyone: after the password they must also enter a 6-digit code we e-mail them. People can also switch it on for themselves in Settings &gt; Security. If the server cannot send e-mail, nobody is asked, so no one is locked out. Check Admin &gt; Email log first.</small></div>
+  <label class="row" style="cursor:pointer;margin-top:10px"><span>Maintenance mode<small>Everyone except signed-in staff sees a "be right back" page. Use it while you restore a backup or fix something.</small></span>
     <b><input class="swc" type="checkbox" name="maintenance" value="1"<?= $s['maintenance'] === '1' ? ' checked' : '' ?>><i class="sw"></i></b></label>
   <div class="fl" style="margin-top:12px"><label for="maintenance_msg">Maintenance message</label>
     <textarea class="inp" id="maintenance_msg" name="maintenance_msg" rows="3" maxlength="<?= SETTINGS_MESSAGE_MAX ?>"><?= e($s['maintenance_msg']) ?></textarea></div>

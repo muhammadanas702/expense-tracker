@@ -9,6 +9,7 @@ require_once __DIR__ . '/../modules/settings/lib.php';
 if ($err) {
     $_SESSION['error'] = $err;
     $_SESSION['settings_old'] = ['maintenance' => !empty($_POST['maintenance']) ? '1' : '0', 'signups' => !empty($_POST['signups']) ? '1' : '0', 'maintenance_msg' => mb_substr((string) ($_POST['maintenance_msg'] ?? ''), 0, 400)];
+    $_SESSION['settings_old']['login_code'] = isset(SETTINGS_LOGIN_CODE[(string) ($_POST['login_code'] ?? '')]) ? (string) $_POST['login_code'] : 'off';
     foreach (['link_android', 'link_windows', 'link_store', 'contact_email'] as $k) {
         $_SESSION['settings_old'][$k] = mb_substr(trim((string) ($_POST[$k] ?? '')), 0, 255);
     }

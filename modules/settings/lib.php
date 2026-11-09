@@ -9,12 +9,15 @@ const SETTINGS_DEFAULTS = [
     'maintenance' => '0',
     'maintenance_msg' => 'ExpenseFlow is being updated. Please try again in a few minutes.',
     'signups' => '1',
+    // E-mailed code after the password at sign-in: off (nobody is asked), staff (support/admin/super), all (everyone).
+    'login_code' => 'off',
     // "Apps & contact": edited by staff in Admin > Settings, used by the landing page, profile and contact page.
     'link_android' => 'https://github.com/muhammadanas702/expense-tracker/releases/latest/download/ExpenseFlow.apk',
     'link_windows' => 'https://github.com/muhammadanas702/expense-tracker/releases/latest/download/ExpenseFlow-Setup.exe',
     'link_store' => '',
     'contact_email' => 'expenseflowteam@gmail.com',
 ];
+const SETTINGS_LOGIN_CODE = ['off' => 'Off', 'staff' => 'Staff only (support, admin, super admin)', 'all' => 'Everyone'];
 const SETTINGS_LINK_KEYS = ['link_android' => 'Android download link', 'link_windows' => 'Windows download link', 'link_store' => 'Microsoft Store link'];
 
 function settings_ensure_schema(PDO $conn): void
@@ -110,6 +113,13 @@ function settings_validate(array $in): array
         return [null, 'The maintenance message can be up to ' . SETTINGS_MESSAGE_MAX . ' characters.'];
     }
     $vals = ['maintenance' => !empty($in['maintenance']) ? '1' : '0', 'maintenance_msg' => $msg, 'signups' => !empty($in['signups']) ? '1' : '0'];
+    if (array_key_exists('login_code', $in)) { // absent = keep what is saved
+        $lc = (string) $in['login_code'];
+        if (!isset(SETTINGS_LOGIN_CODE[$lc])) {
+            return [null, 'Choose who is asked for a sign-in code.'];
+        }
+        $vals['login_code'] = $lc;
+    }
     foreach (SETTINGS_LINK_KEYS as $k => $label) {
         $u = trim((string) ($in[$k] ?? ''));
         if ($u === '') {
@@ -148,6 +158,7 @@ function settings_save(PDO $conn, array $values): array
             'signups' => 'sign-ups ' . ($v === '1' ? 'open' : 'closed'),
             'link_android', 'link_windows', 'link_store' => (SETTINGS_LINK_KEYS[$k] ?? $k) . ' changed',
             'contact_email' => 'contact e-mail changed',
+            'login_code' => 'sign-in code for ' . match ($v) { 'all' => 'everyone', 'staff' => 'staff only', default => 'nobody (off)' },
             default => 'maintenance message changed',
         };
     }

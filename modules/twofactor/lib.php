@@ -3,7 +3,8 @@ require_once __DIR__ . '/../../includes/schema.php';
 /**
  * Two-step sign-in (table `user_2fa`). The second step is a 6-digit code sent to the account e-mail.
  * - Users can turn it on in Settings > Security (the code is checked first, so a wrong address cannot lock them out).
- * - Staff (support, admin, super) always need the code.
+ * - Admin > Settings decides who is asked besides people who turned it on themselves: nobody (default), staff only
+ *   (support, admin, super) or everyone. Registration always uses an e-mailed code to confirm the address (not this module).
  * - It is skipped (never blocks anybody) when the server cannot send e-mail at all, or when EXPENSEFLOW_2FA_OFF=1 is set
  *   (the emergency switch for the host owner). Google sign-in is not asked again: Google already verified the person.
  * Codes live in the session only (hashed), valid 10 minutes, 5 tries, at most 10 mails per hour per account.
@@ -79,7 +80,15 @@ function twofa_required(PDO $conn, int $uid): bool
     if (!twofa_available()) {
         return false;
     }
-    return twofa_staff_role(twofa_role($conn, $uid)) || twofa_enabled($conn, $uid);
+    return twofa_mandatory($conn, $uid) || twofa_enabled($conn, $uid);
+}
+
+/** Admin setting "E-mailed code when signing in": is this account asked whether or not it opted in? */
+function twofa_mandatory(PDO $conn, int $uid): bool
+{
+    require_once __DIR__ . '/../settings/lib.php';
+    $mode = settings_all($conn)['login_code'] ?? 'off';
+    return $mode === 'all' || ($mode === 'staff' && twofa_staff_role(twofa_role($conn, $uid)));
 }
 
 function twofa_set(PDO $conn, int $uid, bool $on): void
