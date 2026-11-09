@@ -31,6 +31,7 @@ function admin_menu(): array
             ['set', 'admin/settings.php', 'set', 'Settings', 'set'],
             ['spd', 'admin/speed.php', 'zap', 'Speed check', 'set'],
             ['mail', 'admin/mail.php', 'mail', 'Email log', 'set'],
+            ['hlth', 'admin/health.php', 'heart', 'Website health', 'set'],
         ],
     ];
 }
