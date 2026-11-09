@@ -216,3 +216,10 @@ html[dir=rtl] .l-rail a span{transform:translateX(-6px)}
 .l-totop svg{width:20px;height:20px;transform:rotate(-90deg)}
 .l-totop:hover{background:var(--a1);color:#fff}
 @media (max-width:640px){.l-down{display:none}.l-totop{bottom:14px;inset-inline-end:14px}}
+
+/* Part 98e: on phones the hero shows one centred phone (the second one was cut off at the edge) */
+@media (max-width:480px){
+  .l-p2{display:none}
+  .l-stage{min-height:0;justify-content:center}
+  .l-stage .l-phone:not(.l-p2),html[dir=rtl] .l-stage .l-phone:not(.l-p2){transform:none;margin-inline:auto}
+}
