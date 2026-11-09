@@ -30,7 +30,7 @@ def last_code():
     m = mails()[-1]; return re.search(r'is: (\d{6})', m['text']).group(1)
 try:
     h = subprocess.run(['php', '-r', 'echo password_hash("Test#12345",PASSWORD_DEFAULT);'], capture_output=True, text=True).stdout
-    sql("DELETE FROM users WHERE email LIKE '%@tf.local'"); sql("DELETE FROM rate_limit_hits")
+    sql("DELETE FROM users WHERE email LIKE '%@tf.local'"); sql("DELETE FROM rate_limit_hits"); sql("DELETE FROM app_settings WHERE k='login_code'")
     sql(f"INSERT INTO users(name,email,password) VALUES ('Tf User','u@tf.local','{h}')")
     sql(f"INSERT INTO users(name,email,password,role,is_admin) VALUES ('Tf Staff','s@tf.local','{h}','admin',1)")
     for e in ('u@tf.local', 's@tf.local'):
@@ -97,15 +97,22 @@ try:
     s6, r = pw_login(B, 'u@tf.local')
     ok('dashboard.php' in r.headers['Location'], 'after turning off: password only again')
 
-    # 6. staff always need the code and cannot turn it off
+    # 6. staff need the code (admin setting) and cannot turn it off
+    s_off, r = pw_login(B, 's@tf.local')
+    ok('dashboard.php' in r.headers['Location'], 'default (sign-in code off): staff sign in with the password only')
+    sql("INSERT INTO app_settings (k, v) VALUES ('login_code','staff') ON DUPLICATE KEY UPDATE v='staff'")
     s7, r = pw_login(B, 's@tf.local')
     ok('login-code.php' in r.headers['Location'], 'staff account is asked for the code without opting in')
     s7.post(B + '/auth/login-code.php', data={'csrf_token': token(s7.get(B + '/auth/login-code.php').text), 'code': last_code()})
     ok(signed_in(B, s7), 'staff signs in with the code')
     page = s7.get(B + '/settings/security.php').text
-    ok('Required for your staff account' in page and 'Turn off' not in page, 'staff sees "required", no Turn off')
+    ok('Required for your account' in page and 'Turn off' not in page, 'staff sees "required", no Turn off')
     r = s7.post(B + '/settings/security.php', data={'csrf_token': token(page), 'twofa_action': 'start_off'})
     ok(sql("SELECT COUNT(*) FROM user_2fa") == '0', 'staff cannot opt out')
+    sql("INSERT INTO app_settings (k, v) VALUES ('login_code','all') ON DUPLICATE KEY UPDATE v='all'")
+    s_all, r = pw_login(B, 'u@tf.local')
+    ok('login-code.php' in r.headers['Location'], 'setting "everyone": a normal user is asked for the code too')
+    sql("UPDATE app_settings SET v='staff' WHERE k='login_code'")
 
     # 7. server that cannot send e-mail: nobody is locked out
     s8, r = pw_login(B2, 's@tf.local')
@@ -120,7 +127,7 @@ try:
 finally:
     srv.terminate(); srv2.terminate()
     sql("DELETE FROM user_2fa WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@tf.local')")
-    sql("DELETE FROM users WHERE email LIKE '%@tf.local'"); sql("DELETE FROM rate_limit_hits")
+    sql("DELETE FROM users WHERE email LIKE '%@tf.local'"); sql("DELETE FROM rate_limit_hits"); sql("DELETE FROM app_settings WHERE k='login_code'")
     try: os.remove(SINK)
     except OSError: pass
 print('twofactor tests:', 'ALL PASSED' if not fails else f'{fails} FAILED')

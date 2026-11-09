@@ -37,6 +37,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 11f | Security (failed logins, blocked IPs), Backups, System settings, scrollable admin menu | done (SQL: database/part-11f.sql) |
 | 12 | Email confirmation at sign-up + website polish and animations (design: docs/design/v8-complete-website.html) | done (no SQL) |
 | 98 | Email log in admin (System > Email log): every e-mail tried, sent or not, with the reason, plus "Send test e-mail" – to find why reset codes do not arrive | done (no SQL, table self-creates) |
+| 98c | Admin setting "E-mailed code when signing in": Off (default) / Staff only / Everyone. Registration keeps its e-mail code | done (no SQL) |
 | 99 | **Planned:** Website health monitor page in admin (site up/down checks, slow pages, PHP/DB errors, disk and mail status, history) | todo |
 | 100 | **Planned:** Branding page in admin (logo, name, colours, landing text and social image editable without code) | todo |
 
@@ -672,3 +673,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - A reset request for an address that has no account is logged as "Not sent: no account uses this e-mail" (visitors still get the same neutral answer). This is the most common reason a code "never arrives": the address typed is not the one the account was made with (for example a Google sign-in account on another address).
 - Tests: `tests/mail_log_http_test.py`. No build needed (web-only).
 - Still to do after looking at the log on the live site: if it says the server cannot connect, the host blocks outgoing SMTP and we switch to an e-mail service that works over HTTPS.
+
+## Part 98c – Sign-in code is a switch (default off)
+- Wanted: the e-mailed code only at registration (to confirm the address), not at every sign-in, but switchable later from the admin panel.
+- Admin > Settings now has **E-mailed code when signing in**: Off (default), Staff only (support, admin, super admin), or Everyone. It is saved in `app_settings` (`login_code`), logged in the audit log, and ignored when the server cannot send e-mail (nobody is locked out). People can still switch it on for themselves in Settings > Security.
+- Before this, staff were always asked for a code, so with broken e-mail (Gmail refusing the App Password) staff sign-in would fail with "could not send your sign-in code". Now the default is off.
+- Tests: `tests/login_code_setting_test.php`, `tests/twofactor_http_test.py` updated. Web-only, no build.
