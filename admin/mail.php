@@ -19,7 +19,11 @@ $meSt->execute([$admin['id']]);
 $myEmail = (string) $meSt->fetchColumn();
 $when = fn(?string $t) => $t ? date('d M, H:i', strtotime($t)) : '–';
 $blocked = false;
+$authBad = false;
 foreach ($rows as $r) {
+    if (!$r['ok'] && preg_match('/authenticate|Username and Password|535|534/i', $r['error'])) {
+        $authBad = true;
+    }
     if (!$r['ok'] && preg_match('/connect\(\) failed|Could not connect|Failed to connect|timed out|Connection (refused|timed)/i', $r['error'])) {
         $blocked = true;
         break;
@@ -40,6 +44,8 @@ admin_page_start(['title' => 'Email log', 'sub' => (int) ($st['ok24'] ?? 0) . ' 
   <small class="k" style="display:block;margin-top:10px">Every e-mail the site tries to send is listed here with the reason when it fails. Addresses are partly hidden and codes are never stored.</small>
 <?php if (!$configured): ?>
   <div class="msg err" style="margin-top:12px">No e-mail account is set up on this server, so no e-mail can be sent. Add the SMTP secrets in GitHub and deploy again.</div>
+<?php elseif ($authBad): ?>
+  <div class="msg err" style="margin-top:12px"><b>The mail server refused the sign-in.</b> For Gmail this almost always means the App Password is wrong, was removed, or 2-Step Verification is off on that Google account. Make a new App Password (Google Account &gt; Security &gt; 2-Step Verification &gt; App passwords), paste the 16 letters without spaces into the GitHub secret <code>EXPENSEFLOW_SMTP_PASSWORD</code>, check that <code>EXPENSEFLOW_SMTP_USERNAME</code> is the full Gmail address, then deploy again and press "Send test".</div>
 <?php elseif ($blocked): ?>
   <div class="msg err" style="margin-top:12px">The server could not reach the mail server (connect failed or timed out). Some free hosts block outgoing mail ports. Ask the host, or switch to a mail service that works over the normal web port.</div>
 <?php endif; ?>
