@@ -38,6 +38,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 12 | Email confirmation at sign-up + website polish and animations (design: docs/design/v8-complete-website.html) | done (no SQL) |
 | 98 | Email log in admin (System > Email log): every e-mail tried, sent or not, with the reason, plus "Send test e-mail" – to find why reset codes do not arrive | done (no SQL, table self-creates) |
 | 98c | Admin setting "E-mailed code when signing in": Off (default) / Staff only / Everyone. Registration keeps its e-mail code | done (no SQL) |
+| 98d | Auth round 3: no repeated links, 6 code boxes, fully responsive login/register/forgot | done |
 | 99 | **Planned:** Website health monitor page in admin (site up/down checks, slow pages, PHP/DB errors, disk and mail status, history) | todo |
 | 100 | **Planned:** Branding page in admin (logo, name, colours, landing text and social image editable without code) | todo |
 
@@ -683,3 +684,13 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 ## Part 98b – Email log hint for refused sign-in
 - First live look at the Email log: "SMTP Error: Could not authenticate" (Gmail refused the user name or App Password), 4 failures, 0 sent. The page now explains this case and the fix (new Gmail App Password in the GitHub secret, then deploy and "Send test").
 - Note: while mail cannot be sent, staff and users with two-step sign-in cannot sign in ("we could not send your sign-in code"), so fix the App Password before the admin session ends.
+
+
+## Part 98d - Auth round 3: no repeats, code boxes, responsive
+
+- Removed repeated links: the bottom "Create account" / "Log in" lines (the tabs on top already do this) and the "Back to home" / "Home" links (the logo goes home).
+- Code pages (forgot password, confirm email, login code) now show six separate boxes. The 6th digit or Enter sends the code: the boxes flip one after another while it checks, then turn green with a tick, or turn red, shake and clear. Paste, one-time-code autofill, Backspace and arrow keys work; without JavaScript the single input is used.
+- Phones: one compact column, flat form below 520px, safe-area padding, `100dvh`. Login, forgot password and code pages fit 320x640 without scrolling; register fits from 360x740. Tablets get a two-column register. Landscape phones drop decorative lines and may scroll, nothing is cut off.
+- Desktop card is never clipped on short windows (the form side scrolls if needed).
+- Caps Lock hint under the password, Show/hide password has aria-pressed, first field is focused on devices with a keyboard.
+- Tests: `otp_ui_test.py` types into the boxes; `urdu_auth_ui_test.py` no longer expects the removed link.

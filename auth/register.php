@@ -160,5 +160,4 @@ require_once __DIR__ . '/../includes/auth-layout.php';
     <label class="agree"><input type="checkbox" name="agree" value="1" required<?= !empty($_POST['agree']) ? ' checked' : '' ?>> <span><?= e(t('I agree to the')) ?> <a href="../terms.php" target="_blank" rel="noopener"><?= e(t('Terms of Use')) ?></a> <?= e(t('and the')) ?> <a href="../privacy.php" target="_blank" rel="noopener"><?= e(t('Privacy Policy')) ?></a>.</span></label>
     <button class="btn lg" style="width:100%" type="submit"><?= e(t('Send confirmation code')) ?></button>
 </form>
-<div class="aft"><?= e(t('Already have an account?')) ?> <a class="lnk" href="login.php"><?= e(t('Log in')) ?></a></div>
 <?php ef_auth_end(); ?>
