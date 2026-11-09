@@ -42,3 +42,6 @@ html[dir=rtl] .p-doc .gc a.g:after{content:"←"}
   .pub h1{font-size:1.65rem}
   .pub h2{font-size:1.15rem;margin-top:22px}
 }
+
+/* Part 98f: easier to tap */
+.p-crumbs a{display:inline-flex;align-items:center;justify-content:center;min-height:32px;min-width:32px;padding:0 3px;margin:-6px -3px}
