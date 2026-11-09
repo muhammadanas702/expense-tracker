@@ -223,5 +223,5 @@ html[data-theme=dark] .caps{color:#fbbf24}
   .otpg .otpc{max-width:44px}
 }
 
-.agree a{display:inline;padding:0;min-height:0}
+.agree a{display:inline-block;padding:7px 2px;margin:-7px -2px;min-height:0}
 .agree span{line-height:1.45}

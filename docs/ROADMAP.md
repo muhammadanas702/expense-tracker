@@ -40,6 +40,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 98c | Admin setting "E-mailed code when signing in": Off (default) / Staff only / Everyone. Registration keeps its e-mail code | done (no SQL) |
 | 98d | Auth round 3: no repeated links, 6 code boxes, fully responsive login/register/forgot | done |
 | 98e | Public pages responsive audit (320 to 1920) | done |
+| 98f | Signed-in app mobile audit (51 pages) + fixes | done |
 | 99 | **Planned:** Website health monitor page in admin (site up/down checks, slow pages, PHP/DB errors, disk and mail status, history) | todo |
 | 100 | **Planned:** Branding page in admin (logo, name, colours, landing text and social image editable without code) | todo |
 
@@ -702,3 +703,12 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Audited home, about, contact, privacy, terms, the guides and the 404/new-password pages at 320, 360, 414, 768, 1024, 1366, 1920 and a 740x360 landscape phone (English and Urdu): no sideways scrolling anywhere.
 - Fixed on small phones: the header "Get started" button no longer breaks into two lines (it and the menu fit even at 320px), the big "Create free account" buttons stay on one line, the hero shows one centred phone instead of a second phone cut off at the edge, and guides/legal text is a little tighter.
 - Not covered: the signed-in app pages (dashboard, reports, shared, settings). They need a logged-in audit and are the next candidate.
+
+
+## Part 98f - Signed-in app mobile audit
+
+- Ran `tests/ui_audit.py` on all 51 pages at 390px and 1280px (English, and Urdu + dark): no sideways scrolling, no empty gaps, no broken images.
+- Bug fixed: on a shared group page the expense rows squeezed "Who owes what" and "Comments" into a ~90px column, so the comment box was only 22px wide on phones. The text now takes the full row width and the amount tag and edit/delete icons wrap below it. The small toggles are plain text instead of padded cards.
+- The phone tab bar is now nearly opaque so page text no longer shows through its labels.
+- Small tap targets enlarged: breadcrumb "Home", "See what's inside", Terms/Privacy links on the sign-up form.
+- `ui_audit.py` ignores controls inside closed "details" blocks (they were reported as tiny).

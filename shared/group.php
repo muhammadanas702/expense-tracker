@@ -97,7 +97,7 @@ usort($debts, fn($x, $y) => (($y['from'] === $user_id || $y['to'] === $user_id) 
     $can = shared_can_edit($x, $group, $user_id);
   ?>
   <div class="row" id="x<?= (int) $x['id'] ?>" style="align-items:flex-start;flex-wrap:wrap">
-    <span style="flex:1;min-width:0"><b><?= e($x['title']) ?></b><?php if (!empty($rcpts[(int) $x['id']])): ?> <a href="<?= e(ef_url('receipts/view.php?id=' . (int) $rcpts[(int) $x['id']])) ?>" target="_blank" rel="noopener" title="View receipt" style="color:var(--a1)"><?= ef_icon('rcp') ?></a><?php endif; ?>
+    <span style="flex:1 1 220px;min-width:0"><b><?= e($x['title']) ?></b><?php if (!empty($rcpts[(int) $x['id']])): ?> <a href="<?= e(ef_url('receipts/view.php?id=' . (int) $rcpts[(int) $x['id']])) ?>" target="_blank" rel="noopener" title="View receipt" style="color:var(--a1)"><?= ef_icon('rcp') ?></a><?php endif; ?>
       <small><?= e($x['payer_name'] ?? 'Former member') ?> paid <?= shared_money($total, $cur) ?> · <?= e(date('d M Y', strtotime($x['expense_date']))) ?> · <?= e(SHARED_SPLIT_TYPES[$x['split_type']] ?? 'Split') ?></small>
       <div class="xd"><details><summary class="k" style="cursor:pointer">Who owes what</summary>
         <?php foreach ($splitNames[(int) $x['id']] ?? [] as [$nm, $sh]): ?><small><?= e($nm) ?>: <?= shared_money($sh, $cur) ?></small><?php endforeach; ?>

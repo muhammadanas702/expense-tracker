@@ -109,3 +109,13 @@ p.k[style*="padding:12px 0"]::before,.np-e::before{content:"";display:block;widt
  form#sx>.fl:has(#amount),form#sx>.fl:has(#currency),form#sx>.fl:has(#paid_by),form#sx>.fl:has(#expense_date),form#sx>.fl:has(#note),form#sx>.fl:has(#receipt){grid-column:auto}
 }
 .view>.fl{width:100%}
+
+/* Part 98f: the phone tab bar is nearly opaque so page text never shows through its labels */
+@media (max-width:768px){
+  .bn.g{background:rgba(255,255,255,.93)}
+  html[data-theme=dark] .bn.g{background:rgba(20,32,48,.95)}
+}
+/* Part 98f: the small "Who owes what" / "Comments" toggles inside an expense row are plain text, not padded cards */
+.xd details{padding:0;margin:0;background:none;border:0;box-shadow:none;backdrop-filter:none}
+.xd summary{justify-content:flex-start;gap:6px;padding:4px 0}
+.xd details[open]>summary{margin-bottom:4px}

@@ -223,3 +223,4 @@ html[dir=rtl] .l-rail a span{transform:translateX(-6px)}
   .l-stage{min-height:0;justify-content:center}
   .l-stage .l-phone:not(.l-p2),html[dir=rtl] .l-stage .l-phone:not(.l-p2){transform:none;margin-inline:auto}
 }
+.s-link{padding-block:8px}

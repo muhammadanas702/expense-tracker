@@ -29,7 +29,7 @@ SKIP = re.compile(r'logout|delete|export|download|-action|remove|\.pdf|\.csv|\.a
 PUBLIC = ['/', '/about.php', '/contact.php', '/privacy.php', '/terms.php', '/guides/', '/auth/login.php', '/auth/register.php', '/auth/forgot-password.php', '/offline.html']
 CHECK = """() => {
   const r = {};
-  const vis = e => { const c = getComputedStyle(e), b = e.getBoundingClientRect(); return c.display !== 'none' && c.visibility !== 'hidden' && b.width > 0 && b.height > 0; };
+  const vis = e => { const c = getComputedStyle(e), b = e.getBoundingClientRect(); if (e.closest('details:not([open])') && !e.closest('summary')) return false; return c.display !== 'none' && c.visibility !== 'hidden' && b.width > 0 && b.height > 0; };
   r.overflowX = document.documentElement.scrollWidth - innerWidth;
   r.overflowEls = [];
   if (r.overflowX > 1) document.querySelectorAll('body *').forEach(e => { const b = e.getBoundingClientRect(); if (vis(e) && b.right > innerWidth + 1 && r.overflowEls.length < 4) r.overflowEls.push(e.tagName.toLowerCase() + (e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/\\s+/)[0] : '')); });
