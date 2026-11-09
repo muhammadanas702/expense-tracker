@@ -645,6 +645,8 @@ return [
     'Checking code…' => 'کوڈ چیک ہو رہا ہے…',
     'Code verified' => 'کوڈ درست ہے',
     'Wrong code' => 'کوڈ غلط ہے',
+    'Enter all 6 digits' => 'پورے 6 ہندسے درج کریں',
+    'Caps Lock is on' => 'Caps Lock آن ہے',
     'Scroll down' => 'نیچے جائیں',
     'Start in a minute.' => 'ایک منٹ میں شروع کریں۔',
     'Stay on top for good.' => 'اور ہمیشہ حساب میں رہیں۔',

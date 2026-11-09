@@ -36,7 +36,7 @@ function ef_field(string $label, string $name, string $icon, string $type = 'tex
         . '<input class="inp' . ($isPw ? ' hasey' : '') . '" id="f_' . e($name) . '" type="' . e($type) . '" name="' . e($name)
         . '" value="' . e($value) . '"' . $extra . '>'
         . ($isPw ? '<button type="button" class="ey" data-eye aria-label="Show or hide password">' . ef_icon('eye') . '</button>' : '')
-        . '</div></div>';
+        . '</div>' . ($isPw && $name === 'password' ? '<small class="caps" hidden>' . e(t('Caps Lock is on')) . '</small>' : '') . '</div>';
 }
 
 function ef_msg(string $text, string $type = 'err'): string
@@ -51,7 +51,7 @@ function ef_msg(string $text, string $type = 'err'): string
 /** Hidden labels for the code-check animation (auth-ui.js reads them, so they are translated with the page). */
 function ef_otp_texts(): string
 {
-    return '<div class="otps-t" hidden><span data-k="chk">' . e(t('Checking code…')) . '</span><span data-k="ok">' . e(t('Code verified')) . '</span><span data-k="bad">' . e(t('Wrong code')) . '</span></div>';
+    return '<div class="otps-t" hidden><span data-k="chk">' . e(t('Checking code…')) . '</span><span data-k="ok">' . e(t('Code verified')) . '</span><span data-k="bad">' . e(t('Wrong code')) . '</span><span data-k="short">' . e(t('Enter all 6 digits')) . '</span></div>';
 }
 
 function ef_auth_start(array $o = []): void
@@ -117,7 +117,7 @@ function ef_auth_end(array $o = []): void
     ?>
     <div class="atrust">
       <p><?= e(t('ExpenseFlow is a free expense tracker. We will never ask for your bank or card details, and we never email you asking for your password.')) ?></p>
-      <p><a href="<?= e(ef_url('index.php')) ?>"><?= e(t('Home')) ?></a> · <a href="<?= e(ef_url('about.php')) ?>"><?= e(t('About')) ?></a> · <a href="<?= e(ef_url('privacy.php')) ?>"><?= e(t('Privacy')) ?></a> · <a href="<?= e(ef_url('terms.php')) ?>"><?= e(t('Terms')) ?></a> · <a href="<?= e(ef_url('contact.php')) ?>"><?= e(t('Contact')) ?></a></p>
+      <p><?php if (!$split): ?><a href="<?= e(ef_url('index.php')) ?>"><?= e(t('Home')) ?></a> · <?php endif; ?><a href="<?= e(ef_url('about.php')) ?>"><?= e(t('About')) ?></a> · <a href="<?= e(ef_url('privacy.php')) ?>"><?= e(t('Privacy')) ?></a> · <a href="<?= e(ef_url('terms.php')) ?>"><?= e(t('Terms')) ?></a> · <a href="<?= e(ef_url('contact.php')) ?>"><?= e(t('Contact')) ?></a></p>
     </div>
   </div><?= $split ? '</div>' : '' ?>
 </div>

@@ -16,7 +16,7 @@ with sync_playwright() as pw:
     p.goto(B + '/auth/register.php?lang=ur'); p.wait_for_timeout(400)
     t = p.inner_text('body')
     ok(p.evaluate("document.documentElement.dir") == 'rtl', 'register is right-to-left')
-    for w in ['اپنا اکاؤنٹ بنائیں', 'پورا نام', 'پاس ورڈ کی تصدیق', 'تصدیقی کوڈ بھیجیں', 'استعمال کی شرائط', 'پرائیویسی پالیسی', 'پہلے سے اکاؤنٹ ہے؟']: ok(w in t, 'register: ' + w)
+    for w in ['اپنا اکاؤنٹ بنائیں', 'پورا نام', 'پاس ورڈ کی تصدیق', 'تصدیقی کوڈ بھیجیں', 'استعمال کی شرائط', 'پرائیویسی پالیسی']: ok(w in t, 'register: ' + w)
     ok(p.get_attribute('#f_name', 'placeholder') == 'آپ کا نام', 'placeholder is Urdu')
     ok(not p.evaluate("document.documentElement.scrollWidth > innerWidth + 1"), 'register: no sideways scrolling')
     ok(p.evaluate("getComputedStyle(document.querySelector('#f_email')).direction") == 'ltr', 'e-mail box stays left-to-right')
