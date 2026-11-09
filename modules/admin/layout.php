@@ -30,6 +30,7 @@ function admin_menu(): array
             ['bak', 'admin/backups.php', 'db', 'Backups', 'backup'],
             ['set', 'admin/settings.php', 'set', 'Settings', 'set'],
             ['spd', 'admin/speed.php', 'zap', 'Speed check', 'set'],
+            ['mail', 'admin/mail.php', 'mail', 'Email log', 'set'],
         ],
     ];
 }

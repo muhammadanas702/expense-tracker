@@ -89,5 +89,8 @@ if (function_exists('fastcgi_finish_request')) {
 
 if ($user && $otp !== null) {
     sendOtpMail($email, (string) $user['name'], $otp);
+} else {
+    // Visitors get the same answer either way; the admin e-mail log says why nothing was sent.
+    ef_mail_log($email, 'Password reset code', false, 'Not sent: no account uses this e-mail address.');
 }
 exit();
