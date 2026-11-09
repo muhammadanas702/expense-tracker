@@ -52,6 +52,69 @@ function ef_mail_configured(): bool
     return getenv('EXPENSEFLOW_SMTP_USERNAME') && getenv('EXPENSEFLOW_SMTP_PASSWORD');
 }
 
+/** Last SMTP error text of this request (never contains the password). */
+function ef_mail_last_error(?string $set = null): string
+{
+    static $last = '';
+    if ($set !== null) {
+        $last = $set;
+    }
+    return $last;
+}
+
+/** Hides the middle of an address: ab•••@example.com. */
+function ef_mail_mask(string $email): string
+{
+    $at = strrpos($email, '@');
+    if ($at === false) {
+        return mb_substr($email, 0, 3) . '•••';
+    }
+    return mb_substr($email, 0, min(2, $at)) . '•••' . substr($email, $at);
+}
+
+function ef_mail_log_schema(PDO $conn): void
+{
+    require_once __DIR__ . '/../includes/schema.php';
+    if (ef_schema_ok(__FUNCTION__, __FILE__)) {
+        return;
+    }
+    $conn->exec(
+        "CREATE TABLE IF NOT EXISTS `mail_log` (
+          `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+          `created_at` DATETIME NOT NULL,
+          `to_mask` VARCHAR(120) NOT NULL DEFAULT '',
+          `subject` VARCHAR(120) NOT NULL DEFAULT '',
+          `ok` TINYINT(1) NOT NULL DEFAULT 0,
+          `error` VARCHAR(300) NOT NULL DEFAULT '',
+          `ms` INT UNSIGNED NOT NULL DEFAULT 0,
+          PRIMARY KEY (`id`),
+          KEY `idx_mail_time` (`created_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    );
+}
+
+/**
+ * Records that an e-mail was sent or why it was not (admin: System > Email log). Stores only a hidden address, the
+ * subject and the error text, never the message or the code. Best effort: it never breaks the page.
+ */
+function ef_mail_log(string $to, string $subject, bool $ok, string $error = '', int $ms = 0): void
+{
+    try {
+        global $conn;
+        if (!isset($conn) || !($conn instanceof PDO)) {
+            return;
+        }
+        ef_mail_log_schema($conn);
+        $conn->prepare('INSERT INTO mail_log (created_at, to_mask, subject, ok, error, ms) VALUES (NOW(), ?, ?, ?, ?, ?)')
+            ->execute([ef_mail_mask($to), mb_substr($subject, 0, 120), $ok ? 1 : 0, mb_substr(trim(preg_replace('/\s+/', ' ', $error)), 0, 300), max(0, $ms)]);
+        if (random_int(1, 25) === 1) {
+            $conn->exec('DELETE FROM mail_log WHERE created_at < (NOW() - INTERVAL 60 DAY)');
+        }
+    } catch (Throwable $e) {
+        // logging must never stop a sign-in
+    }
+}
+
 function ef_send_mail(string $email, string $name, string $subject, string $html, string $alt, bool $logo = false): bool
 {
     // Tests only: EXPENSEFLOW_MAIL_SINK=<file> writes each mail as one JSON line instead of sending it.
@@ -61,9 +124,12 @@ function ef_send_mail(string $email, string $name, string $subject, string $html
     }
     $settings = mail_settings();
     if ($settings === null) {
+        ef_mail_last_error('E-mail is not set up on this server (SMTP user or password missing).');
+        ef_mail_log($email, $subject, false, ef_mail_last_error());
         return false;
     }
 
+    $t0 = microtime(true);
     $mail = new PHPMailer(true);
 
     try {
@@ -104,9 +170,14 @@ function ef_send_mail(string $email, string $name, string $subject, string $html
         }
 
         $mail->send();
+        ef_mail_last_error('');
+        ef_mail_log($email, $subject, true, '', (int) round((microtime(true) - $t0) * 1000));
         return true;
-    } catch (Exception $e) {
-        error_log('ExpenseFlow email could not be sent: ' . $mail->ErrorInfo);
+    } catch (Throwable $e) {
+        $why = $mail->ErrorInfo !== '' ? $mail->ErrorInfo : $e->getMessage();
+        error_log('ExpenseFlow email could not be sent: ' . $why);
+        ef_mail_last_error($why);
+        ef_mail_log($email, $subject, false, $why, (int) round((microtime(true) - $t0) * 1000));
         return false;
     }
 }

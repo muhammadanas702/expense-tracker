@@ -36,6 +36,9 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 11e | Announcements, Categories, Currencies, Groups | done (SQL: database/part-11e.sql) |
 | 11f | Security (failed logins, blocked IPs), Backups, System settings, scrollable admin menu | done (SQL: database/part-11f.sql) |
 | 12 | Email confirmation at sign-up + website polish and animations (design: docs/design/v8-complete-website.html) | done (no SQL) |
+| 98 | Email log in admin (System > Email log): every e-mail tried, sent or not, with the reason, plus "Send test e-mail" – to find why reset codes do not arrive | done (no SQL, table self-creates) |
+| 99 | **Planned:** Website health monitor page in admin (site up/down checks, slow pages, PHP/DB errors, disk and mail status, history) | todo |
+| 100 | **Planned:** Branding page in admin (logo, name, colours, landing text and social image editable without code) | todo |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -662,3 +665,10 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Login and register now fit on one screen on laptops (checked 1280×600 up to 1920×1000, also with the Google button): tighter spacing, register uses two columns (name | email, password | confirm), the repeated trust paragraph is dropped on desktop, and on very short screens the sub-title/hints are hidden. Phones still scroll normally.
 - Code pages (forgot password, confirm email, two-step sign-in): typing the 6th digit sends the code in the background, shows "Checking code…" (bouncing dots + glowing box), then a drawn green tick "Code verified" and moves on, or a shaking red box with a red cross and the server's message ("Invalid code…", "expired…"), clearing the box for another try. Without JavaScript it is still a normal form post.
 - Tests: `tests/otp_ui_test.py` (+ helper `tests/ui_seed_otp.php`, local server only). Web-only, no APK/exe build.
+
+## Part 98 – Email log and the "reset code does not arrive" issue
+- Reported: asking for a forgot-password code 2–3 times, no e-mail came (spam checked too). The send happens after the page has already answered, and any SMTP error only went to the server log, so nobody could see why.
+- Now every e-mail attempt is saved in `mail_log` (hidden address, subject, sent or not, error text, time; never the code or message; kept 60 days). Admin > System > **Email log** shows the SMTP set-up, sent / not-sent counts for 24 hours, the list with the reason, a hint when the mail server cannot be reached, and a **Send test e-mail** button.
+- A reset request for an address that has no account is logged as "Not sent: no account uses this e-mail" (visitors still get the same neutral answer). This is the most common reason a code "never arrives": the address typed is not the one the account was made with (for example a Google sign-in account on another address).
+- Tests: `tests/mail_log_http_test.py`. No build needed (web-only).
+- Still to do after looking at the log on the live site: if it says the server cannot connect, the host blocks outgoing SMTP and we switch to an e-mail service that works over HTTPS.
