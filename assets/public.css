@@ -34,3 +34,11 @@ html[dir=rtl] .p-doc .gc a.g:after{content:"←"}
 .p-cta h2{color:#fff;font-size:clamp(26px,4vw,40px);letter-spacing:-.03em;font-weight:800}
 .p-cta p{color:rgba(255,255,255,.82);margin:12px 0 28px;font-size:17px}
 @media (max-width:640px){.p-doc .gc{grid-template-columns:1fr}.p-doc{border-radius:20px;font-size:16px}.p-cta{border-radius:22px}}
+
+/* Part 98e: guides and legal pages on small phones */
+@media (max-width:520px){
+  .pub p,.pub li{font-size:.96rem;line-height:1.65}
+  .pub ul,.pub ol{padding-left:18px}
+  .pub h1{font-size:1.65rem}
+  .pub h2{font-size:1.15rem;margin-top:22px}
+}

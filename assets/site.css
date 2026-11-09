@@ -74,3 +74,12 @@ html[dir=rtl] .s-btn{padding-top:.2em;padding-bottom:.2em}
 html[dir=rtl] .s-btn svg,html[dir=rtl] .s-link svg,html[dir=rtl] .l-more svg{transform:scaleX(-1)}
 html[dir=rtl] .s-links a{padding-inline:10px;font-size:14px}
 html[dir=rtl] .s-logo{direction:ltr}
+
+/* Part 98e: small phones. Buttons never break into two lines; the header always fits. */
+.s-btn{white-space:nowrap}
+@media (max-width:420px){
+  .s-act .s-btn{padding:0 12px;font-size:14px;min-height:40px}
+  .s-navin{gap:8px}
+  .s-btn.s-lg{padding:0 22px;font-size:15px;min-height:52px}
+}
+@media (max-width:340px){.s-logo{font-size:16px}.s-act .s-btn{padding:0 10px;font-size:13px}}

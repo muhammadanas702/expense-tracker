@@ -39,6 +39,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 98 | Email log in admin (System > Email log): every e-mail tried, sent or not, with the reason, plus "Send test e-mail" – to find why reset codes do not arrive | done (no SQL, table self-creates) |
 | 98c | Admin setting "E-mailed code when signing in": Off (default) / Staff only / Everyone. Registration keeps its e-mail code | done (no SQL) |
 | 98d | Auth round 3: no repeated links, 6 code boxes, fully responsive login/register/forgot | done |
+| 98e | Public pages responsive audit (320 to 1920) | done |
 | 99 | **Planned:** Website health monitor page in admin (site up/down checks, slow pages, PHP/DB errors, disk and mail status, history) | todo |
 | 100 | **Planned:** Branding page in admin (logo, name, colours, landing text and social image editable without code) | todo |
 
@@ -694,3 +695,10 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Desktop card is never clipped on short windows (the form side scrolls if needed).
 - Caps Lock hint under the password, Show/hide password has aria-pressed, first field is focused on devices with a keyboard.
 - Tests: `otp_ui_test.py` types into the boxes; `urdu_auth_ui_test.py` no longer expects the removed link.
+
+
+## Part 98e - Public pages responsive audit
+
+- Audited home, about, contact, privacy, terms, the guides and the 404/new-password pages at 320, 360, 414, 768, 1024, 1366, 1920 and a 740x360 landscape phone (English and Urdu): no sideways scrolling anywhere.
+- Fixed on small phones: the header "Get started" button no longer breaks into two lines (it and the menu fit even at 320px), the big "Create free account" buttons stay on one line, the hero shows one centred phone instead of a second phone cut off at the edge, and guides/legal text is a little tighter.
+- Not covered: the signed-in app pages (dashboard, reports, shared, settings). They need a logged-in audit and are the next candidate.
