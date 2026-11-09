@@ -679,3 +679,7 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Admin > Settings now has **E-mailed code when signing in**: Off (default), Staff only (support, admin, super admin), or Everyone. It is saved in `app_settings` (`login_code`), logged in the audit log, and ignored when the server cannot send e-mail (nobody is locked out). People can still switch it on for themselves in Settings > Security.
 - Before this, staff were always asked for a code, so with broken e-mail (Gmail refusing the App Password) staff sign-in would fail with "could not send your sign-in code". Now the default is off.
 - Tests: `tests/login_code_setting_test.php`, `tests/twofactor_http_test.py` updated. Web-only, no build.
+
+## Part 98b – Email log hint for refused sign-in
+- First live look at the Email log: "SMTP Error: Could not authenticate" (Gmail refused the user name or App Password), 4 failures, 0 sent. The page now explains this case and the fix (new Gmail App Password in the GitHub secret, then deploy and "Send test").
+- Note: while mail cannot be sent, staff and users with two-step sign-in cannot sign in ("we could not send your sign-in code"), so fix the App Password before the admin session ends.
