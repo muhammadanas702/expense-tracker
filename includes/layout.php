@@ -109,7 +109,7 @@ function ef_page_start(array $o): void
         unset($_SESSION[$key]);
     }
     // Staff announcements (optional module, best-effort).
-    if (isset($_SESSION['user_id']) && is_file(__DIR__ . '/../modules/announce/lib.php')) {
+    if (isset($_SESSION['user_id']) && ef_feature_on('announce') && is_file(__DIR__ . '/../modules/announce/lib.php')) {
         global $conn;
         if ($conn instanceof PDO) {
             require_once __DIR__ . '/../modules/announce/lib.php';

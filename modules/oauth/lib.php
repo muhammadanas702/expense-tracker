@@ -11,6 +11,7 @@
  * accounts respect the "sign-ups closed" switch. Google-created accounts get a random password nobody knows
  * (the person can set a real one with "Forgot password").
  */
+require_once __DIR__ . '/../features/lib.php';
 require_once __DIR__ . '/../../config/google.php';
 require_once __DIR__ . '/../../includes/schema.php';
 require_once __DIR__ . '/../../includes/assets.php';
@@ -113,7 +114,7 @@ function google_configured(): bool
 /** True where the normal "Continue with Google" link works (a real browser). The apps use the hand-off instead. */
 function google_available(): bool
 {
-    return google_configured() && !google_in_app_shell();
+    return google_configured() && !google_in_app_shell() && ef_feature_on('oauth');
 }
 
 function google_redirect_uri(): string
@@ -359,7 +360,7 @@ function google_mark(): string
 /** The "Continue with Google" button + "or" divider. Empty string when Google sign-in is not available. */
 function google_button(string $intent): string
 {
-    if (google_configured() && google_in_app_shell()) {
+    if (google_configured() && google_in_app_shell() && ef_feature_on('oauth')) {
         return google_app_button($intent);
     }
     if (!google_available()) {

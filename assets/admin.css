@@ -43,3 +43,13 @@ table.tbl td small{display:block;color:var(--mu);font-size:.75rem}
 /* Part 73: phone log rows wrap instead of clipping; helper paragraphs read as helper text */
 @media(max-width:700px){table.tbl.wide td{min-width:0;max-width:100%;overflow-wrap:anywhere}table.tbl.wide td:nth-child(3){flex:1 1 100%}}
 .card p.mut{font-size:.85rem;color:var(--mu);line-height:1.5}
+
+/* Dashboard: every admin area with a plain-words description, grouped by what you want to do (Part 101a) */
+.ahub{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px 22px;margin-top:6px}
+.ahs{min-width:0}.ahs>b{display:block;font-size:.95rem}.ahs>small{display:block;opacity:.75;margin:1px 0 6px}
+.ahs a{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;margin:0 -10px;border-radius:12px;text-decoration:none;color:inherit}
+.ahs a:hover,.ahs a:focus-visible{background:rgba(13,148,136,.09)}
+.ahs a svg{width:20px;height:20px;flex:none;margin-top:2px;color:var(--a1)}
+.ahs a span{min-width:0;font-weight:600;line-height:1.3}
+.ahs a span small{display:block;font-weight:400;opacity:.75;line-height:1.4;margin-top:1px}
+.ahub-off{margin-bottom:14px;border-inline-start:4px solid #f59e0b}

@@ -43,6 +43,10 @@ class CurrencyConverter
 
     private static function fetchRates(): ?array
     {
+        require_once __DIR__ . '/../modules/features/lib.php';
+        if (!ef_feature_on('rates')) {
+            return null; // switched off in Admin > Features: use the saved rates only
+        }
         $context = stream_context_create([
             'http' => [
                 'timeout' => self::API_TIMEOUT,

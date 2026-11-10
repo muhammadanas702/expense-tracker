@@ -146,18 +146,20 @@ foreach ($ld as $block): ?>
 <section class="l-sec l-dark" id="apps"><div class="s-wrap">
   <div class="l-head"><span class="l-eye">Get the app</span><h2>Use it on your phone or computer</h2><p>Your account works everywhere.</p></div>
   <div class="l-grid3">
+<?php if (ef_feature_on('downloads')): ?>
     <article class="l-card l-app"><span class="l-ic"><?= ef_icon('phone') ?></span><h3>Android</h3><p>Get the Android app from our GitHub releases page. Updates come inside the app.</p>
       <div class="l-b"><a class="s-btn" href="<?= e(settings_public('link_android')) ?>" rel="noopener"><?= ef_icon('dl') ?> Download APK</a></div></article>
     <article class="l-card l-app"><span class="l-ic"><?= ef_icon('lap') ?></span><h3>Windows</h3><p>Get the Windows app from our GitHub releases page, or from the Microsoft Store when it is listed.</p>
       <div class="l-b"><a class="s-btn" href="<?= e(settings_public('link_windows')) ?>" rel="noopener"><?= ef_icon('dl') ?> Download for Windows</a>
       <?php if (settings_public('link_store') !== ''): ?><a class="s-btn s-ghost" href="<?= e(settings_public('link_store')) ?>" rel="noopener"><?= ef_icon('dl') ?> Get it from Microsoft Store</a><?php endif; ?></div></article>
+<?php endif; ?>
     <article class="l-card l-app"><span class="l-ic"><?= ef_icon('globe') ?></span><h3>iPhone &amp; any browser</h3><p>On iPhone open this site in Safari, tap Share, then "Add to Home Screen". Chrome and Edge also offer "Install app".</p>
       <div class="l-b"><a class="s-btn s-ghost" href="<?= e($base) ?>/auth/login.php">Open in browser</a></div></article>
   </div>
 </div></section>
 
 <section class="l-sec" id="faq"><div class="s-wrap l-faq">
-  <div class="l-head"><span class="l-eye">FAQ</span><h2>Questions, answered</h2><p>Still stuck? <a class="s-link" href="<?= e($base) ?>/contact.php">Contact &amp; support</a></p></div>
+  <div class="l-head"><span class="l-eye">FAQ</span><h2>Questions, answered</h2><?php if (ef_feature_on('contact')): ?><p>Still stuck? <a class="s-link" href="<?= e($base) ?>/contact.php">Contact &amp; support</a></p><?php endif; ?></div>
   <div class="l-acc">
 <?php foreach ($faq as $i => $f): ?>
     <details<?= $i === 0 ? ' open' : '' ?>><summary><?= e($f[0]) ?><?= ef_icon('chev') ?></summary><p><?= e($f[1]) ?></p></details>
