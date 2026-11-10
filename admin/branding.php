@@ -12,6 +12,8 @@ $a1 = $v['a1'] !== '' ? $v['a1'] : BRAND_DEFAULT_A1;
 $a2 = $v['a2'] !== '' ? $v['a2'] : BRAND_DEFAULT_A2;
 $logo = brand_has_logo() ? '../' . brand_logo_path() : '../' . BRAND_BUILTIN_LOGO;
 $name = $v['name'];
+$texts = brand_texts(true);
+$editing = brand_edit_on();
 admin_page_start(['title' => 'Branding', 'sub' => brand_active() ? 'Custom look is ON' : 'Built-in look', 'active' => 'brand']);
 ?>
 <style>
@@ -60,6 +62,28 @@ admin_page_start(['title' => 'Branding', 'sub' => brand_active() ? 'Custom look 
   </div>
   <small class="k" style="display:block;margin-top:10px">A quick look only. Save to apply it to every page.</small>
 </div>
+</div>
+<div class="g card" style="margin-top:14px" id="texts">
+  <div class="t">Edit any text on the website and the app</div>
+  <p class="mut" style="margin:0 0 12px">Headlines, buttons, labels, hints, footer, sign-in pages, guides, dashboard and every other page. Press the button, then open any page as you normally would: <b>click a text, type the new words, Save</b>. It changes everywhere that exact text appears. In Urdu mode you edit the Urdu wording. Texts with changing numbers or names (like "Welcome, Ali") can only be changed as a whole sentence, and e-mails are not covered.</p>
+  <form method="post" action="brand-text-action.php" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+    <?= csrf_field() ?>
+    <button class="btn" type="submit" name="do" value="edit_on"><?= $editing ? 'Open the website (edit mode is on)' : 'Start editing texts' ?></button>
+    <?php if ($editing): ?><button class="btn o" type="submit" name="do" value="edit_off">Stop editing</button><?php endif; ?>
+    <?php if ($texts): ?><button class="btn o" type="submit" name="do" value="reset_all" onclick="return confirm('Restore ALL <?= count($texts) ?> edited texts to the original words?')">Restore all texts</button><?php endif; ?>
+  </form>
+<?php if ($texts): ?>
+  <div class="t" style="margin:20px 0 8px"><?= count($texts) ?> edited text<?= count($texts) === 1 ? '' : 's' ?></div>
+  <div class="tbl-wrap"><table class="tbl fixm wide">
+    <tr><th>Original</th><th>English now</th><th>Urdu now</th><th></th></tr>
+<?php foreach (array_slice($texts, 0, 300, true) as $k => $tv): ?>
+    <tr><td><?= e(mb_strimwidth($k, 0, 70, '…')) ?></td><td><?= isset($tv['en']) ? e(mb_strimwidth($tv['en'], 0, 70, '…')) : '<span class="k">original</span>' ?></td><td dir="auto"><?= isset($tv['ur']) ? e(mb_strimwidth($tv['ur'], 0, 70, '…')) : '<span class="k">original</span>' ?></td>
+      <td class="nw"><form method="post" action="brand-text-action.php" style="margin:0"><?= csrf_field() ?><input type="hidden" name="key" value="<?= e($k) ?>"><button class="btn sm ghost" type="submit" name="do" value="clear">Restore</button></form></td></tr>
+<?php endforeach; ?>
+  </table></div>
+<?php else: ?>
+  <p class="k" style="margin:16px 0 0">No text has been changed yet.</p>
+<?php endif; ?>
 </div>
 <script>
 (function () {
