@@ -9,6 +9,9 @@
 const BRAND_FILE = __DIR__ . '/../../storage/branding.json';
 const BRAND_BUILTIN = 'ExpenseFlow';
 const BRAND_DEFAULT_TAGLINE = 'A simple, private way to track spending, set budgets and share expenses with friends.';
+const BRAND_TEXTS_FILE = __DIR__ . '/../../storage/brand-texts.json';
+const BRAND_TEXT_MAX = 300;
+const BRAND_TEXTS_MAX = 2000;
 const BRAND_LOGO_FILE = __DIR__ . '/../../storage/brand-logo.png';
 const BRAND_BUILTIN_LOGO = 'assets/icons/logo-96.webp';
 const BRAND_DEFAULT_A1 = '#0f766e';
@@ -71,7 +74,7 @@ function brand_has_logo(): bool
 function brand_active(): bool
 {
     $d = brand_data();
-    return brand_is_custom() || $d['a1'] !== '' || $d['a2'] !== '' || brand_has_logo();
+    return brand_is_custom() || $d['a1'] !== '' || $d['a2'] !== '' || brand_has_logo() || brand_texts() !== [];
 }
 
 /** Address of the uploaded logo (relative to the site root), with a version so a new upload shows at once. */
@@ -96,6 +99,171 @@ function brand_contrast(string $hex): float
 function brand_text(string $s): string
 {
     return brand_is_custom() ? str_replace(BRAND_BUILTIN, brand_name(), $s) : $s;
+}
+
+/** Same whitespace rules as the Urdu filter, so one text has one key everywhere. */
+function brand_norm(string $raw): string
+{
+    $plain = html_entity_decode($raw, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    return trim((string) preg_replace('/\s+/u', ' ', $plain));
+}
+
+/** Edited texts: ['original English text' => ['en' => '...', 'ur' => '...']] (a language that was not edited is missing). */
+function brand_texts(bool $fresh = false): array
+{
+    static $cache = null;
+    if ($cache !== null && !$fresh) {
+        return $cache;
+    }
+    $out = [];
+    try {
+        if (is_file(BRAND_TEXTS_FILE)) {
+            $j = json_decode((string) file_get_contents(BRAND_TEXTS_FILE), true);
+            foreach (is_array($j) ? $j : [] as $k => $v) {
+                if (!is_string($k) || !is_array($v)) {
+                    continue;
+                }
+                $row = [];
+                foreach (['en', 'ur'] as $l) {
+                    if (isset($v[$l]) && is_string($v[$l]) && $v[$l] !== '') {
+                        $row[$l] = $v[$l];
+                    }
+                }
+                if ($row) {
+                    $out[$k] = $row;
+                }
+            }
+        }
+    } catch (Throwable $e) {
+        // no edited texts
+    }
+    return $cache = $out;
+}
+
+/** Secret for the edit-mode cookie, created once in storage/. Null when storage is not writable. */
+function brand_edit_key(): ?string
+{
+    $f = __DIR__ . '/../../storage/brand-edit.key';
+    if (!is_file($f)) {
+        @mkdir(dirname($f), 0775, true);
+        @file_put_contents($f, bin2hex(random_bytes(32)), LOCK_EX);
+        @chmod($f, 0600);
+    }
+    $k = is_file($f) ? trim((string) @file_get_contents($f)) : '';
+    return strlen($k) >= 32 ? $k : null;
+}
+
+/** Value of the edit-mode cookie for this staff member (signed, valid 8 hours), or null. */
+function brand_edit_cookie(int $userId): ?string
+{
+    $k = brand_edit_key();
+    if ($k === null) {
+        return null;
+    }
+    $exp = time() + 8 * 3600;
+    return $userId . '.' . $exp . '.' . hash_hmac('sha256', $userId . '.' . $exp, $k);
+}
+
+/** Edit mode: switched on by staff in Admin > Branding. A signed cookie, so public pages need no session to know it. Saving still checks the staff role. */
+function brand_edit_on(): bool
+{
+    $c = (string) ($_COOKIE['ef_be'] ?? '');
+    if (!preg_match('/^(\d+)\.(\d+)\.([0-9a-f]{64})$/', $c, $m) || (int) $m[2] < time()) {
+        return false;
+    }
+    $k = brand_edit_key();
+    return $k !== null && hash_equals(hash_hmac('sha256', $m[1] . '.' . $m[2], $k), $m[3]);
+}
+
+/** Which original text does what the visitor sees belong to? (the page may show an edited text or the Urdu translation) */
+function brand_text_key(string $cur, string $lang): string
+{
+    foreach (brand_texts() as $k => $v) {
+        if (($v[$lang] ?? null) === $cur) {
+            return $k;
+        }
+    }
+    if ($lang === 'ur') {
+        $dict = function_exists('ef_ur_dictionary') ? ef_ur_dictionary() : [];
+        $k = array_search($cur, $dict, true);
+        if (is_string($k)) {
+            return $k;
+        }
+    }
+    return $cur;
+}
+
+/** Sets ($new text) or clears ($new === '') one language of one text. Returns an error text or null. */
+function brand_text_set(string $key, string $lang, string $new): ?string
+{
+    $lang = $lang === 'ur' ? 'ur' : 'en';
+    $new = brand_norm($new);
+    $new = (string) preg_replace('/[\x00-\x1F\x7F]/u', '', $new);
+    if (mb_strlen($new) > BRAND_TEXT_MAX) {
+        return 'A text can be up to ' . BRAND_TEXT_MAX . ' characters.';
+    }
+    $all = brand_texts(true);
+    $dict = function_exists('ef_ur_dictionary') ? ef_ur_dictionary() : [];
+    $original = $lang === 'ur' ? ($dict[$key] ?? $key) : $key;
+    if ($new === '' || $new === $original) {
+        unset($all[$key][$lang]);
+        if (empty($all[$key])) {
+            unset($all[$key]);
+        }
+    } else {
+        if (!isset($all[$key]) && count($all) >= BRAND_TEXTS_MAX) {
+            return 'Too many edited texts (' . BRAND_TEXTS_MAX . ' at most). Reset some first.';
+        }
+        $all[$key][$lang] = $new;
+    }
+    $dir = dirname(BRAND_TEXTS_FILE);
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0775, true);
+    }
+    if (!$all) {
+        return !is_file(BRAND_TEXTS_FILE) || @unlink(BRAND_TEXTS_FILE) ? null : 'Could not save (the storage folder is not writable).';
+    }
+    if (@file_put_contents(BRAND_TEXTS_FILE, json_encode($all, JSON_UNESCAPED_UNICODE), LOCK_EX) === false) {
+        return 'Could not save (the storage folder is not writable).';
+    }
+    brand_texts(true);
+    return null;
+}
+
+/** text => replacement for the language of this request (what the visitor would see now => what to show). */
+function brand_text_map(string $lang): array
+{
+    $dict = $lang === 'ur' && function_exists('ef_ur_dictionary') ? ef_ur_dictionary() : [];
+    $map = [];
+    foreach (brand_texts() as $k => $v) {
+        if ($lang === 'ur') {
+            $to = $v['ur'] ?? ((!isset($dict[$k]) && isset($v['en'])) ? $v['en'] : null);
+            if ($to === null) {
+                continue;
+            }
+            $map[$k] = $to;
+            if (isset($dict[$k])) {
+                $map[$dict[$k]] = $to;
+            }
+        } elseif (isset($v['en'])) {
+            $map[$k] = $v['en'];
+        }
+    }
+    return $map;
+}
+
+function brand_apply_text(string $raw, array $map): string
+{
+    if (!$map || $raw === '') {
+        return $raw;
+    }
+    $key = brand_norm($raw);
+    if ($key === '' || !isset($map[$key])) {
+        return $raw;
+    }
+    $lead = preg_match('/^\s*/u', $raw, $m) ? $m[0] : '';
+    $trail = preg_match('/\s*$/u', $raw, $m) ? $m[0] : '';
+    return $lead . htmlspecialchars($map[$key], ENT_NOQUOTES, 'UTF-8') . $trail;
 }
 
 /** Output filter for HTML pages. Scripts and styles are left alone, except JSON-LD where the name is JSON-escaped. */
@@ -125,39 +293,57 @@ function ef_brand_page(string $html): string
             $html = substr($html, 0, $pos) . $css . substr($html, $pos);
         }
     }
-    if (!brand_is_custom() || strpos($html, BRAND_BUILTIN) === false) {
-        return $html;
-    }
-    $name = brand_name();
-    $text = htmlspecialchars($name, ENT_NOQUOTES, 'UTF-8');
-    $attr = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
-    $json = substr((string) json_encode($name, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), 1, -1);
-    $parts = preg_split('/(<script\b.*?<\/script>|<style\b.*?<\/style>|<!--.*?-->|<[^>]+>)/is', $html, -1, PREG_SPLIT_DELIM_CAPTURE);
-    if ($parts === false) {
-        return $html;
-    }
-    foreach ($parts as $i => $seg) {
-        if ($seg === '') {
-            continue;
-        }
-        if ($seg[0] !== '<') {
-            $parts[$i] = str_replace(BRAND_BUILTIN, $text, $seg);
-        } elseif (stripos($seg, '<script') === 0) {
-            if (stripos($seg, 'application/ld+json') !== false) {
-                $parts[$i] = str_replace(BRAND_BUILTIN, $json, $seg);
-            }
-        } elseif (isset($seg[1]) && $seg[1] !== '/' && $seg[1] !== '!' && stripos($seg, '<style') !== 0) {
-            $isMeta = stripos($seg, '<meta') === 0;
-            $parts[$i] = preg_replace_callback('/\b(placeholder|title|aria-label|alt|content)=("([^"]*)"|\'([^\']*)\')/i', function ($m) use ($isMeta, $attr) {
-                if (strtolower($m[1]) === 'content' && !$isMeta) {
-                    return $m[0];
+    $staffPanel = defined('EF_ADMIN_PAGE');
+    $lang = function_exists('ef_lang') ? ef_lang() : 'en';
+    $map = $staffPanel ? [] : brand_text_map($lang);
+    $swapName = brand_is_custom() && strpos($html, BRAND_BUILTIN) !== false;
+    if ($swapName || $map) {
+        $name = brand_name();
+        $text = htmlspecialchars($name, ENT_NOQUOTES, 'UTF-8');
+        $attr = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+        $json = substr((string) json_encode($name, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), 1, -1);
+        $parts = preg_split('/(<script\b.*?<\/script>|<style\b.*?<\/style>|<!--.*?-->|<[^>]+>)/is', $html, -1, PREG_SPLIT_DELIM_CAPTURE);
+        if ($parts !== false) {
+            foreach ($parts as $i => $seg) {
+                if ($seg === '') {
+                    continue;
                 }
-                $val = $m[3] !== '' ? $m[3] : ($m[4] ?? '');
-                return strpos($val, BRAND_BUILTIN) === false ? $m[0] : $m[1] . '="' . str_replace(BRAND_BUILTIN, $attr, $val) . '"';
-            }, $seg);
+                if ($seg[0] !== '<') {
+                    $seg = brand_apply_text($seg, $map);
+                    $parts[$i] = $swapName ? str_replace(BRAND_BUILTIN, $text, $seg) : $seg;
+                } elseif (stripos($seg, '<script') === 0) {
+                    if ($swapName && stripos($seg, 'application/ld+json') !== false) {
+                        $parts[$i] = str_replace(BRAND_BUILTIN, $json, $seg);
+                    }
+                } elseif (isset($seg[1]) && $seg[1] !== '/' && $seg[1] !== '!' && stripos($seg, '<style') !== 0) {
+                    $isMeta = stripos($seg, '<meta') === 0;
+                    $isButton = (bool) preg_match('/<input\b[^>]*\btype=["\']?(submit|button|reset)/i', $seg);
+                    $parts[$i] = preg_replace_callback('/\b(placeholder|title|aria-label|alt|content|value)=("([^"]*)"|\'([^\']*)\')/i', function ($m) use ($isMeta, $isButton, $attr, $swapName, $map) {
+                        $k = strtolower($m[1]);
+                        if (($k === 'content' && !$isMeta) || ($k === 'value' && !$isButton)) {
+                            return $m[0];
+                        }
+                        $val = $m[3] !== '' ? $m[3] : ($m[4] ?? '');
+                        $new = $k === 'content' ? $val : brand_apply_text($val, $map);
+                        if ($swapName) {
+                            $new = str_replace(BRAND_BUILTIN, $attr, $new);
+                        }
+                        return $new === $val ? $m[0] : $m[1] . '="' . str_replace('"', '&quot;', $new) . '"';
+                    }, $seg);
+                }
+            }
+            $html = implode('', $parts);
         }
     }
-    return implode('', $parts);
+    // Edit mode (staff only): the little editor that lets them click any text of any page.
+    if (!$staffPanel && brand_edit_on() && function_exists('ef_url') && ($pos = strripos($html, '</body>')) !== false) {
+        $tag = '<script src="' . htmlspecialchars(ef_url('assets/brand-edit.js'), ENT_QUOTES, 'UTF-8') . '?v=' . (int) @filemtime(__DIR__ . '/../../assets/brand-edit.js')
+            . '" data-post="' . htmlspecialchars(ef_url('admin/brand-text-action.php'), ENT_QUOTES, 'UTF-8')
+            . '" data-lang="' . htmlspecialchars($lang, ENT_QUOTES, 'UTF-8')
+            . '" data-back="' . htmlspecialchars(ef_url('admin/branding.php'), ENT_QUOTES, 'UTF-8') . '" defer></script>';
+        $html = substr($html, 0, $pos) . $tag . substr($html, $pos);
+    }
+    return $html;
 }
 
 /** Staff form. Returns [values|null, error|null]. An empty field means "back to the default". */
