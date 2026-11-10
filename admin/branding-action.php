@@ -10,12 +10,41 @@ if ($do === 'reset') {
     $had = brand_active();
     @unlink(BRAND_FILE);
     brand_remove_logo();
+    foreach (array_keys(BRAND_IMAGE_SLOTS) as $slot) {
+        brand_remove_image($slot);
+    }
     brand_data(true);
     if ($had) {
         admin_audit($conn, $admin['id'], 'brand_change', 'Branding: reset to the built-in look');
     }
     $_SESSION['success'] = $had ? 'Back to the built-in look.' : 'Nothing changed.';
     header('Location: branding.php');
+    exit();
+}
+
+if ($do === 'image' || $do === 'image_remove') {
+    $slot = (string) ($_POST['slot'] ?? '');
+    if (!isset(BRAND_IMAGE_SLOTS[$slot])) {
+        $_SESSION['error'] = 'Unknown picture.';
+    } elseif ($do === 'image_remove') {
+        if (brand_image_file($slot) !== null && brand_remove_image($slot)) {
+            admin_audit($conn, $admin['id'], 'brand_change', 'Branding: ' . BRAND_IMAGE_SLOTS[$slot]['label'] . ' restored to the built-in picture');
+            $_SESSION['success'] = 'Built-in picture restored.';
+        } else {
+            $_SESSION['success'] = 'Nothing changed.';
+        }
+    } elseif (empty($_FILES['img']['name'])) {
+        $_SESSION['error'] = 'Choose a picture first.';
+    } else {
+        $err = brand_save_image($slot, $_FILES['img']);
+        if ($err) {
+            $_SESSION['error'] = $err;
+        } else {
+            admin_audit($conn, $admin['id'], 'brand_change', 'Branding: ' . BRAND_IMAGE_SLOTS[$slot]['label'] . ' replaced');
+            $_SESSION['success'] = 'Picture saved. It shows on the website now.';
+        }
+    }
+    header('Location: branding.php#pictures');
     exit();
 }
 

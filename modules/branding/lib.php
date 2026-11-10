@@ -74,7 +74,7 @@ function brand_has_logo(): bool
 function brand_active(): bool
 {
     $d = brand_data();
-    return brand_is_custom() || $d['a1'] !== '' || $d['a2'] !== '' || brand_has_logo() || brand_texts() !== [];
+    return brand_is_custom() || $d['a1'] !== '' || $d['a2'] !== '' || brand_has_logo() || brand_texts() !== [] || brand_images() !== [];
 }
 
 /** Address of the uploaded logo (relative to the site root), with a version so a new upload shows at once. */
@@ -282,6 +282,10 @@ function ef_brand_page(string $html): string
     if (brand_has_logo()) {
         $html = str_replace(BRAND_BUILTIN_LOGO, brand_logo_path(), $html);
     }
+    // Pictures: landing screenshots and the share-preview image.
+    foreach (brand_images() as $slot => $f) {
+        $html = preg_replace('~' . preg_quote(BRAND_IMAGE_SLOTS[$slot]['builtin'], '~') . '(\?[^"\'\s<>]*)?~', 'brand-image.php?' . $slot . '=' . (int) @filemtime($f), $html);
+    }
     // Colours: one small style block at the end of <head>, so it wins over the site style sheets.
     if ($d['a1'] !== '' || $d['a2'] !== '') {
         $a1 = $d['a1'] !== '' ? $d['a1'] : BRAND_DEFAULT_A1;
@@ -462,4 +466,97 @@ function brand_save_logo(array $f): ?string
 function brand_remove_logo(): bool
 {
     return !is_file(BRAND_LOGO_FILE) || @unlink(BRAND_LOGO_FILE);
+}
+
+
+// ---- Pictures (Part 100c): landing screenshots and the share-preview image -------------------------------
+
+/** Slots a picture can be uploaded for: built-in file that is replaced, size it is cut to, and where it shows. */
+const BRAND_IMAGE_SLOTS = [
+    'dash' => ['label' => 'Landing screenshot 1 (dashboard)', 'builtin' => 'assets/landing/app-dashboard.webp', 'w' => 720, 'h' => 1440, 'min' => [240, 480], 'where' => 'Home page phone, and the Login / Forgot password side panel. Tall phone screenshot, about 720 x 1440.'],
+    'group' => ['label' => 'Landing screenshot 2 (groups)', 'builtin' => 'assets/landing/app-group.webp', 'w' => 720, 'h' => 1440, 'min' => [240, 480], 'where' => 'Second phone on the home page, and the Create account side panel. Tall phone screenshot, about 720 x 1440.'],
+    'share' => ['label' => 'Share-preview image', 'builtin' => 'assets/og-image.png', 'w' => 1200, 'h' => 630, 'min' => [600, 315], 'where' => 'The picture WhatsApp, Facebook, X and Google show when a link to your site is shared. Wide, 1200 x 630.'],
+];
+const BRAND_IMAGE_MAX_BYTES = 4000000;
+
+function brand_image_file(string $slot): ?string
+{
+    if (!isset(BRAND_IMAGE_SLOTS[$slot])) {
+        return null;
+    }
+    foreach (['webp', 'jpg', 'png'] as $x) {
+        $f = __DIR__ . '/../../storage/brand-img-' . $slot . '.' . $x;
+        if (is_file($f)) {
+            return $f;
+        }
+    }
+    return null;
+}
+
+/** Uploaded pictures as slot => file. */
+function brand_images(): array
+{
+    $out = [];
+    foreach (array_keys(BRAND_IMAGE_SLOTS) as $slot) {
+        $f = brand_image_file($slot);
+        if ($f !== null) {
+            $out[$slot] = $f;
+        }
+    }
+    return $out;
+}
+
+/** Cuts an uploaded picture to the slot's exact size (fills it, centre crop) and stores it. Returns an error text or null. */
+function brand_save_image(string $slot, array $f): ?string
+{
+    if (!isset(BRAND_IMAGE_SLOTS[$slot])) {
+        return 'Unknown picture.';
+    }
+    $c = BRAND_IMAGE_SLOTS[$slot];
+    if (($f['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file((string) ($f['tmp_name'] ?? '')) && empty($f['_test'])) {
+        return 'The picture did not upload. Try a smaller file.';
+    }
+    if ((int) $f['size'] > BRAND_IMAGE_MAX_BYTES) {
+        return 'The picture is too big (4 MB at most).';
+    }
+    $info = @getimagesize($f['tmp_name']);
+    if (!$info || !in_array($info[2], [IMAGETYPE_PNG, IMAGETYPE_JPEG, IMAGETYPE_WEBP], true)) {
+        return 'The picture must be a PNG, JPG or WebP file.';
+    }
+    if ($info[0] < $c['min'][0] || $info[1] < $c['min'][1] || $info[0] > 6000 || $info[1] > 6000) {
+        return 'The picture is too small or too large: at least ' . $c['min'][0] . ' x ' . $c['min'][1] . ' pixels, at most 6000.';
+    }
+    if (!function_exists('imagecreatefromstring')) {
+        return 'This server cannot process pictures (the GD extension is missing).';
+    }
+    $src = @imagecreatefromstring((string) file_get_contents($f['tmp_name']));
+    if (!$src) {
+        return 'The picture could not be read.';
+    }
+    $sw = imagesx($src);
+    $sh = imagesy($src);
+    $r = max($c['w'] / $sw, $c['h'] / $sh);
+    $cw = (int) round($c['w'] / $r);
+    $ch = (int) round($c['h'] / $r);
+    $dst = imagecreatetruecolor($c['w'], $c['h']);
+    imagefill($dst, 0, 0, imagecolorallocate($dst, 255, 255, 255));
+    imagecopyresampled($dst, $src, 0, 0, (int) (($sw - $cw) / 2), (int) (($sh - $ch) / 2), $c['w'], $c['h'], $cw, $ch);
+    $dir = __DIR__ . '/../../storage';
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0775, true);
+    }
+    // Link-preview robots want JPEG; the phone screens use WebP when the server can write it (smaller), else PNG.
+    $ext = $slot === 'share' ? 'jpg' : (function_exists('imagewebp') ? 'webp' : 'png');
+    brand_remove_image($slot);
+    $file = $dir . '/brand-img-' . $slot . '.' . $ext;
+    $ok = $ext === 'jpg' ? @imagejpeg($dst, $file, 88) : ($ext === 'webp' ? @imagewebp($dst, $file, 86) : @imagepng($dst, $file, 8));
+    imagedestroy($src);
+    imagedestroy($dst);
+    return $ok ? null : 'The picture could not be saved (the storage folder is not writable).';
+}
+
+function brand_remove_image(string $slot): bool
+{
+    $f = brand_image_file($slot);
+    return $f === null || @unlink($f);
 }
