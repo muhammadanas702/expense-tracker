@@ -52,7 +52,7 @@ admin_page_start(['title' => 'Branding', 'sub' => brand_active() ? 'Custom look 
   <small class="k" style="display:block;margin-top:4px">Buttons and highlights use these two colours. White text sits on them, so very light colours are refused.</small>
   <div class="fl" style="margin-top:12px"><label for="b_logo">Logo</label>
     <input class="inp" id="b_logo" type="file" name="logo" accept="image/png,image/jpeg,image/webp">
-    <small class="k">PNG, JPG or WebP, at least 64 x 64 px, up to 1.5 MB. It is fitted into a square. The app icon, browser tab icon and the installed apps keep their built-in icon.</small>
+    <small class="k">PNG, JPG or WebP, at least 64 x 64 px, up to 1.5 MB. It is fitted into a square and also becomes the browser tab icon, the phone home-screen icon and the logo inside the app. A square logo of 256 px or more looks sharpest. Apps already installed from the Play Store / Windows installer (APK/exe) keep their own icon.</small>
     <?php if (brand_has_logo()): ?><label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" name="remove_logo" value="1"> Remove my logo (use the built-in one)</label><?php endif; ?></div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
     <button class="btn" type="submit" name="do" value="save">Save</button>
