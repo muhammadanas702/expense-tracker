@@ -12,6 +12,10 @@ function ef_lang(): string
         return $lang;
     }
     $lang = 'en';
+    require_once __DIR__ . '/../modules/features/lib.php';
+    if (!ef_feature_on('language')) {
+        return $lang; // switched off in Admin > Features: English only
+    }
     if (defined('EF_ADMIN_PAGE')) {
         return $lang; // the staff panel is English only (nothing there is translated, so never half and half)
     }
@@ -71,6 +75,9 @@ function ef_lang_url(string $to): string
 /** A small link that switches to the other language ("اردو" on English pages, "English" on Urdu pages). */
 function ef_lang_switch(string $class = 'lang-sw'): string
 {
+    if (!ef_feature_on('language')) {
+        return '';
+    }
     $to = ef_lang() === 'ur' ? 'en' : 'ur';
     return '<a class="' . htmlspecialchars($class, ENT_QUOTES, 'UTF-8') . '" href="' . htmlspecialchars(ef_lang_url($to), ENT_QUOTES, 'UTF-8')
         . '" hreflang="' . $to . '" lang="' . $to . '">' . ($to === 'ur' ? 'اردو' : 'English') . '</a>';
@@ -152,6 +159,11 @@ function ef_i18n_page(string $html): string
 }
 
 if (PHP_SAPI !== 'cli') {
+    require_once __DIR__ . '/../modules/features/lib.php';
+    // Switched-off features (Part 101b): links to their pages are removed from the page. Started first, so it runs last on the finished page.
+    if (features_off_list()) {
+        ob_start('ef_feature_hide_links');
+    }
     // Branding (Part 100a). Started before the Urdu filter so that one runs first and this one swaps the name in its result.
     require_once __DIR__ . '/../modules/branding/lib.php';
     if (brand_active() || isset($_COOKIE['ef_be'])) {

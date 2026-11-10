@@ -312,7 +312,7 @@ if ($budgetItems): $bcol = ['ok' => '#0d9f6e', 'warn' => '#f59e0b', 'over' => '#
 
 <div class="G2">
     <div class="g card">
-        <div class="t"><?= e(t('Recent activity')) ?> <a href="<?= e($base_url) ?>/reports/view-report.php"><?= e(t('Full Report')) ?> →</a></div>
+        <div class="t"><?= e(t('Recent activity')) ?> <?php if (ef_feature_on('reports')): ?><a href="<?= e($base_url) ?>/reports/view-report.php"><?= e(t('Full Report')) ?> →</a><?php endif; ?></div>
         <?php
         $all = [];
         foreach ($incomes as $r) { $r['kind'] = 'income'; $all[] = $r; }

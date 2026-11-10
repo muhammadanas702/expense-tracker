@@ -15,6 +15,8 @@ require_once __DIR__ . '/../config/app.php';
 require_once __DIR__ . '/currencies.php';
 require_once __DIR__ . '/errors.php';
 require_once __DIR__ . '/i18n.php';
+require_once __DIR__ . '/../modules/features/lib.php';
+ef_feature_gate(); // a switched-off feature shows a friendly page instead of its own
 ef_install_error_handlers(); // friendly page instead of a blank screen when something unexpected breaks
 
 /** Largest amount accepted for a single income/expense entry. */

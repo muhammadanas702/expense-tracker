@@ -32,9 +32,16 @@ $audit = admin_can($conn, $admin['role'], 'log')
     ? $conn->query("SELECT l.action, l.details, l.created_at, u.name FROM user_logs l LEFT JOIN users u ON u.id = l.user_id WHERE l.action LIKE 'admin\\_%'" . admin_hide_super_sql($admin) . " ORDER BY l.id DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC)
     : [];
 
+require_once __DIR__ . '/../modules/features/lib.php';
+$offNow = array_map(fn($id) => features_flat()[$id]['label'], features_off_list(true));
+$hub = admin_visible_menu($conn, $admin['role']);
+unset($hub['Overview']);
 admin_page_start(['title' => 'Admin overview', 'sub' => 'How ExpenseFlow is doing', 'active' => 'ov']);
 $stat = fn($label, $n, $icon) => '<div class="g card stat"><div><div class="k">' . e($label) . '</div><div class="big2">' . number_format($n) . '</div></div><div class="ibx">' . ef_icon($icon) . '</div></div>';
 ?>
+<?php if ($offNow && admin_can($conn, $admin['role'], 'set')): ?>
+<div class="g card ahub-off"><b>Switched off right now:</b> <?= e(implode(', ', $offNow)) ?>. <a href="<?= e(ef_url('admin/features.php')) ?>">Open Features on/off →</a></div>
+<?php endif; ?>
 <div class="G4a">
   <?= $stat('Total users', $total, 'users') ?>
   <?= $stat('New this month', $newMonth, 'pl') ?>
@@ -63,6 +70,22 @@ $stat = fn($label, $n, $icon) => '<div class="g card stat"><div><div class="k">'
       <span><?= e($u['name']) ?><small><?= e(date('d M Y', strtotime((string) $u['created_at']))) ?></small></span>
       <?php if ($u['role'] !== 'user'): ?><span class="tag <?= $u['role'] === 'super' ? 'rs' : 'tb2' ?>"><?= e(admin_role_label($u['role'])) ?></span><?php endif; ?></div>
     <?php endforeach; ?>
+  </div>
+</div>
+
+<div class="g card" style="margin-top:14px">
+  <div class="t">What do you want to do? <a href="<?= e(ef_url('admin/help.php')) ?>">Not sure? Where do I go? →</a></div>
+  <div class="ahub">
+<?php foreach ($hub as $section => $items): ?>
+    <div class="ahs"><b><?= e($section) ?></b><small><?= e(admin_section_info()[$section] ?? '') ?></small>
+<?php foreach ($items as $i): ?>
+      <a href="<?= e(ef_url($i[1])) ?>"><?= ef_icon($i[2]) ?><span><?= e($i[3]) ?><small><?= e($i[5] ?? '') ?></small></span></a>
+<?php endforeach; ?>
+    </div>
+<?php endforeach; ?>
+    <div class="ahs ahs-tip"><b>Not sure where to go?</b><small>Describe the problem in your own words.</small>
+      <a href="<?= e(ef_url('admin/help.php')) ?>"><?= ef_icon('lifebuoy') ?><span>Where do I go?<small>"Login code not arriving", "website is slow", "change the logo"... we point you to the right page.</small></span></a>
+    </div>
   </div>
 </div>
 

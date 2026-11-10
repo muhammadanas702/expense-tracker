@@ -385,6 +385,8 @@ return [
     'Please go back and use the buttons on the page.' => 'براہ کرم واپس جائیں اور صفحے کے بٹن استعمال کریں۔',
     'Too many tries' => 'بہت زیادہ کوششیں',
     'Please wait a few minutes and try again.' => 'براہ کرم چند منٹ انتظار کریں اور دوبارہ کوشش کریں۔',
+    'This part is switched off for now' => 'یہ حصہ فی الحال بند ہے',
+    'This part of ExpenseFlow has been paused by the team while they fix something. Everything else works as usual. Please try again later.' => 'ایکسپینس فلو کا یہ حصہ ٹیم نے کچھ ٹھیک کرنے کے لیے عارضی طور پر روکا ہوا ہے۔ باقی سب کچھ معمول کے مطابق چل رہا ہے۔ براہ کرم بعد میں دوبارہ کوشش کریں۔',
     'We will be right back' => 'ہم ابھی واپس آتے ہیں',
     'ExpenseFlow is being updated or is very busy. Please try again in a few minutes.' => 'ایکسپینس فلو اپڈیٹ ہو رہا ہے یا بہت مصروف ہے۔ چند منٹ بعد دوبارہ کوشش کریں۔',
     'Something went wrong on our side' => 'ہماری طرف سے کچھ خرابی ہو گئی',

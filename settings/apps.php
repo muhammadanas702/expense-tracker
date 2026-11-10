@@ -8,9 +8,11 @@ settings_page_start('apps', $user);
     <div class="g card">
       <div class="t">Use ExpenseFlow as an app</div>
       <div class="row" id="install-row" hidden><span><?= ef_icon('phone') ?> Install app<small>Works offline on your phone or PC</small></span><b><a class="lnk" href="#" id="install-btn">Install</a></b></div>
+<?php if (ef_feature_on('downloads')): ?>
       <div class="row" id="app-dl"><span><?= ef_icon('dl') ?> Android app<small>Download the ExpenseFlow APK</small></span><b><a class="lnk" href="<?= e(settings_public('link_android')) ?>" rel="noopener">Download</a></b></div>
       <?php if (settings_lite_link() !== ''): ?><div class="row" id="app-lite"><span><?= ef_icon('dl') ?> Android Lite app<small>If Google Play Protect blocks the APK. No SMS reading: use Share or paste.</small></span><b><a class="lnk" href="<?= e(settings_lite_link()) ?>" rel="noopener">Download</a></b></div><?php endif; ?>
       <div class="row" id="app-win"><span><?= ef_icon('lap') ?> Windows app<small>Download the ExpenseFlow installer (.exe)</small></span><b><a class="lnk" href="<?= e(settings_public('link_store') ?: settings_public('link_windows')) ?>" rel="noopener">Download</a></b></div>
+<?php endif; ?>
       <details class="qhelp" id="install-help" style="margin:12px 0 4px">
         <summary>Install help (Android and Windows)</summary>
         <ol>

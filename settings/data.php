@@ -7,7 +7,9 @@ settings_page_start('data', $user);
 ?>
     <div class="g card">
       <div class="t">Your data</div>
+<?php if (ef_feature_on('reports')): ?>
       <div class="row"><span><?= ef_icon('doc') ?> Full report<small>Export CSV, Excel or PDF</small></span><b><a class="lnk" href="<?= e($base_url) ?>/reports/view-report.php">Open</a></b></div>
+<?php endif; ?>
     </div>
     <div class="g card dz">
       <div class="t"><?= ef_icon('warn', '#ea580c') ?> Danger zone</div>

@@ -10,10 +10,12 @@
  * Manifest format (returned array):
  *   'id'      => 'personal'            unique name
  *   'mode'    => 'p' | 's'             p = Personal (teal), s = Shared (blue)
- *   'enabled' => true|false            false hides it everywhere
+ *   'enabled' => true|false            false hides it everywhere (the owner can also switch a module off in Admin > Features)
  *   'nav'     => [[url, icon, label, key], ...]   key marks the active item
  *   'order'   => 50                    optional; lower comes first (the first Shared item is the Shared home)
  */
+require_once __DIR__ . '/../modules/features/lib.php';
+
 function ef_modules(): array
 {
     static $cache = null;
@@ -23,7 +25,7 @@ function ef_modules(): array
     $cache = [];
     foreach (glob(__DIR__ . '/../modules/*/module.php') ?: [] as $file) {
         $m = include $file;
-        if (is_array($m) && !empty($m['id']) && !empty($m['enabled'])) {
+        if (is_array($m) && !empty($m['id']) && !empty($m['enabled']) && ef_feature_on((string) $m['id'])) {
             $cache[$m['id']] = $m;
         }
     }

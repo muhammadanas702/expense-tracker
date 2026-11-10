@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../features/lib.php';
 require_once __DIR__ . '/../../includes/schema.php';
 /**
  * Two-step sign-in (table `user_2fa`). The second step is a 6-digit code sent to the account e-mail.
@@ -44,7 +45,7 @@ function twofa_staff_role(string $role): bool
 /** Can codes be e-mailed right now? When not, two-step sign-in is skipped instead of locking people out. */
 function twofa_available(): bool
 {
-    if (getenv('EXPENSEFLOW_2FA_OFF')) {
+    if (getenv('EXPENSEFLOW_2FA_OFF') || !ef_feature_on('twofactor')) {
         return false;
     }
     require_once __DIR__ . '/../../config/mail.php';
