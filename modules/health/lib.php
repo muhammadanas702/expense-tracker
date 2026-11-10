@@ -39,9 +39,31 @@ function health_worst(array $states): string
 /** Free disk space in percent, or null when the host does not report it. */
 function health_disk_pct(): ?float
 {
-    $free = @disk_free_space(__DIR__);
-    $total = @disk_total_space(__DIR__);
+    // Free hosts often disable these functions; in PHP 8 a disabled function is a fatal Error that @ cannot silence.
+    if (!function_exists('disk_free_space') || !function_exists('disk_total_space')) {
+        return null;
+    }
+    try {
+        $free = @disk_free_space(__DIR__);
+        $total = @disk_total_space(__DIR__);
+    } catch (Throwable $e) {
+        return null;
+    }
     return ($free !== false && $total !== false && $total > 0) ? round($free / $total * 100, 1) : null;
+}
+
+/** Free disk space in bytes, or null when the host does not report it. */
+function health_disk_free_bytes(): ?float
+{
+    if (!function_exists('disk_free_space')) {
+        return null;
+    }
+    try {
+        $f = @disk_free_space(__DIR__);
+        return $f === false ? null : (float) $f;
+    } catch (Throwable $e) {
+        return null;
+    }
 }
 
 function health_bytes($b): string
@@ -129,10 +151,11 @@ function health_checks(PDO $conn, ?float $dbMs): array
     if ($pct === null) {
         $rows[] = ['Disk space', 'The host does not report it', 'ok', 'Free hosts often hide this. Watch the hosting panel instead.'];
     } else {
-        $rows[] = ['Disk space', $pct . '% free (' . health_bytes(@disk_free_space(__DIR__)) . ')', $pct < 5 ? 'bad' : ($pct < 15 ? 'warn' : 'ok'), 'Backups, receipts and sessions live on this disk. Under 15% free needs attention.'];
+        $rows[] = ['Disk space', $pct . '% free (' . health_bytes(health_disk_free_bytes() ?? 0) . ')', $pct < 5 ? 'bad' : ($pct < 15 ? 'warn' : 'ok'), 'Backups, receipts and sessions live on this disk. Under 15% free needs attention.'];
     }
 
     // Folders the site writes to
+    try {
     $root = dirname(__DIR__, 2);
     $dirs = ['storage' => true, 'storage/sessions' => false, 'storage/backups' => false];
     $bad = [];
@@ -147,9 +170,12 @@ function health_checks(PDO $conn, ?float $dbMs): array
 
     // Session files
     $sess = $root . '/storage/sessions';
-    if (is_dir($sess)) {
+    if (is_dir($sess) && function_exists('glob')) {
         $n = count(glob($sess . '/sess_*') ?: []);
         $rows[] = ['Session files', (string) $n, $n > 5000 ? 'warn' : 'ok', 'Thousands of old session files slow every page down.'];
+    }
+    } catch (Throwable $e) {
+        $rows[] = ['Storage folders', 'Could not check', 'warn', ''];
     }
 
     // E-mail
@@ -170,6 +196,7 @@ function health_checks(PDO $conn, ?float $dbMs): array
     $rows[] = ['Secure connection (HTTPS)', $https ? 'This page was opened over HTTPS' : 'This page was opened without HTTPS', $https ? 'ok' : 'warn', 'Passwords should only travel over HTTPS.'];
 
     // PHP error log
+    try {
     $p = health_error_log_path();
     if ($p === null) {
         $rows[] = ['PHP error log', 'Not available on this host', 'ok', 'Errors are written to the host\'s own log. Open it from the hosting panel when something breaks.'];
@@ -177,6 +204,9 @@ function health_checks(PDO $conn, ?float $dbMs): array
         $tail = health_log_tail(100);
         $fatal = count(array_filter($tail, fn($l) => stripos($l, 'fatal') !== false));
         $rows[] = ['PHP error log', health_bytes(filesize($p)) . ($fatal ? ', ' . $fatal . ' fatal error(s) in the last lines' : ', no fatal errors lately'), $fatal ? 'bad' : 'ok', 'The newest lines are shown below.'];
+    }
+    } catch (Throwable $e) {
+        $rows[] = ['PHP error log', 'Could not check', 'warn', ''];
     }
 
     // Outside monitor

@@ -745,3 +745,7 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Limits: 300 characters per text, 2000 edited texts. Texts with dynamic parts (names, amounts) and e-mails are not editable here. Staff panel pages are never edited.
 - Tests: `tests/brand_texts_test.py` (HTTP rules + a real browser click flow). Web-only: no APK/exe build needed.
 
+### Fix: Website health on free hosting
+- Free hosts disable `disk_free_space` / `disk_total_space`; in PHP 8 that is a fatal Error (`@` does not help), so the page gave HTTP 500 live. Disk checks now skip when the functions are missing, and every live-check section and the history part of the page degrade instead of failing.
+- Test: `tests/health_disabled_functions_test.py` starts its own server with those functions disabled.
+
