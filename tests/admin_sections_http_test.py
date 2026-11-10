@@ -62,5 +62,20 @@ ok('Switched off right now' not in sup.get(B + '/admin/index.php').text, 'notice
 bn = r[r.index('<nav class="g bn">'):]
 bn = bn[:bn.index('</nav>')]
 ok('Where' not in bn and 'More' in bn and 'Dashboard' in bn, 'phone bottom bar keeps Dashboard ... More (help is not squeezed in)')
+# Part 101c: "What is this page?" box on every admin page
+import re as _re
+pages = {'mail': ('Email log', 'Health and fixing'), 'users': ('Users', 'People'), 'features': ('Features on/off', 'Turn things on / off'), 'branding': ('Branding', 'Look and content'),
+         'health': ('Website health', 'Health and fixing'), 'audit': ('Audit log', 'Safety'), 'settings': ('Settings', 'Turn things on / off'), 'backups': ('Backups', 'Health and fixing'),
+         'categories': ('Categories', 'Look and content'), 'support': ('Support', 'People'), 'security': ('Security', 'Safety'), 'speed': ('Speed check', 'Health and fixing')}
+for pg, (name, sec) in pages.items():
+    t = sup.get(B + f'/admin/{pg}.php').text
+    m = _re.search(r'<div class="g card ap-intro".*?</div>(?=\s*<)', t, _re.S)
+    box = t[t.index('class="g card ap-intro"'):] if 'class="g card ap-intro"' in t else ''
+    ok(bool(box) and (sec.upper() in box.upper() or sec.replace('&', '&amp;') in box) and name in box, f'{pg}: intro box names the section "{sec}" and the page')
+t = sup.get(B + '/admin/mail.php').text
+ok('When do I need this page?' in t and 'People say the login code never arrives' in t and 'admin/help.php' in t, 'Email log lists the everyday problems that send you there and links to Where do I go?')
+ok('ap-intro' not in sup.get(B + '/admin/index.php').text and 'ap-intro' not in sup.get(B + '/admin/help.php').text and 'ap-intro' not in sup.get(B + '/admin/menu.php').text, 'no intro box on the dashboard, Where do I go? and All pages')
+ok('ap-intro' in hp.get(B + '/admin/support.php').text, 'support staff see the box on their pages too')
+ok('Where do I go?' in sup.get(B + '/admin/help.php').text and 'People say the login code never arrives' in sup.get(B + '/admin/help.php').text, 'Where do I go? still lists the problems (moved to a shared list)')
 sql("DELETE FROM users WHERE email LIKE '%@as.local'")
 print('admin_sections_http_test: ' + ('ALL PASSED' if not fails else f'{fails} FAILED')); raise SystemExit(1 if fails else 0)
