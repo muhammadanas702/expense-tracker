@@ -191,7 +191,7 @@ function admin_audit_kinds(): array
         'cat_add' => ['content', 'Added category'], 'cat_change' => ['content', 'Changed category'], 'cat_delete' => ['content', 'Deleted category'],
         'cur_change' => ['content', 'Changed currencies'], 'group_delete' => ['content', 'Deleted group'],
         'ip_block' => ['system', 'Blocked address'], 'ip_unblock' => ['system', 'Unblocked address'], 'backup_create' => ['system', 'Created backup'],
-        'backup_download' => ['system', 'Downloaded backup'], 'backup_delete' => ['system', 'Deleted backup'], 'settings_change' => ['system', 'Changed settings'],
+        'health_probe' => ['system', 'Ran page speed check'], 'brand_change' => ['system', 'Changed branding'], 'mail_test' => ['system', 'Sent test e-mail'], 'backup_download' => ['system', 'Downloaded backup'], 'backup_delete' => ['system', 'Deleted backup'], 'settings_change' => ['system', 'Changed settings'],
     ];
 }
 

@@ -41,7 +41,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 98d | Auth round 3: no repeated links, 6 code boxes, fully responsive login/register/forgot | done |
 | 98e | Public pages responsive audit (320 to 1920) | done |
 | 98f | Signed-in app mobile audit (51 pages) + fixes | done |
-| 99 | **Planned:** Website health monitor page in admin (site up/down checks, slow pages, PHP/DB errors, disk and mail status, history) | todo |
+| 99 | Website health monitor page in admin (live checks, page speed check, uptime history, outside-monitor address, PHP error log) | done |
 | 100 | **Planned:** Branding page in admin (logo, name, colours, landing text and social image editable without code) | todo |
 
 ## Native apps (plan)
@@ -712,3 +712,14 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - The phone tab bar is now nearly opaque so page text no longer shows through its labels.
 - Small tap targets enlarged: breadcrumb "Home", "See what's inside", Terms/Privacy links on the sign-up form.
 - `ui_audit.py` ignores controls inside closed "details" blocks (they were reported as tiny).
+
+
+## Part 99 - Website health monitor (Admin > Website health)
+
+- New admin page for staff with the settings permission: live checks (database speed, PHP and extensions, memory, disk space, writable folders, session files, e-mail sending, HTTPS, PHP error log, outside-monitor pings) with an overall green / yellow / red state.
+- "Run page speed check" requests the home page, login, register, guides and `health.php?db=1` from the server and times them (over 1.5 s warns, over 4 s is a problem).
+- 24 hour history: one row each time the page is opened or an outside monitor pings, uptime counts, longest silence and a small database-time graph. History is kept small by itself.
+- `health.php?db=1` records a ping (at most one per 4 minutes), so a free UptimeRobot monitor fills the history and shows when the site was down. The page shows the exact address to give the monitor.
+- The newest PHP error lines are shown when the host allows reading the log.
+- Test: `tests/admin_health_http_test.py` (needs the test server started with `PHP_CLI_SERVER_WORKERS=4`, because the speed check requests the site from itself).
+- Also fixed: the Email log "send test" action wrote an audit kind that was not listed.
