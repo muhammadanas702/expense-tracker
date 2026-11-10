@@ -168,7 +168,7 @@ function ef_send_mail(string $email, string $name, string $subject, string $html
         if (!empty($settings['reply_to'])) {
             $mail->addReplyTo($settings['reply_to'], brand_text($settings['from_name'] ?? 'ExpenseFlow'));
         }
-        $logoFile = __DIR__ . '/../assets/icons/icon-192.png';
+        $logoFile = function_exists('brand_has_logo') && brand_has_logo() ? BRAND_LOGO_FILE : __DIR__ . '/../assets/icons/icon-192.png';
         if ($logo && is_file($logoFile)) {
             $mail->addEmbeddedImage($logoFile, 'efLogo', 'expenseflow.png', 'base64', 'image/png');
         }

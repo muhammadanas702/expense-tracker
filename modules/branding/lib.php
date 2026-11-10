@@ -282,6 +282,16 @@ function ef_brand_page(string $html): string
     if (brand_has_logo()) {
         $html = str_replace(BRAND_BUILTIN_LOGO, brand_logo_path(), $html);
     }
+    // Icons and installed-app details: favicon, home-screen icon, sidebar logo and the web-app manifest.
+    if (brand_has_logo()) {
+        $v = (int) @filemtime(BRAND_LOGO_FILE);
+        $html = preg_replace_callback('~assets/icons/(favicon-32|favicon-48|favicon-192|favicon-512|apple-touch-icon|icon-192|icon-512|maskable-192|maskable-512)\.png(\?[^"\'\s<>]*)?~', function ($m) use ($v) {
+            $code = ['favicon-32' => '32', 'favicon-48' => '48', 'favicon-192' => '192', 'favicon-512' => '512', 'apple-touch-icon' => '180', 'icon-192' => '192', 'icon-512' => '512', 'maskable-192' => 'm192', 'maskable-512' => 'm512'][$m[1]];
+            return 'brand-icon.php?i=' . $code . '.' . $v;
+        }, $html);
+        $html = preg_replace('~(?<=["\'/])favicon\.(?:ico|png)(\?[^"\'\s<>]*)?~', 'brand-icon.php?i=96.' . $v, $html);
+    }
+    $html = str_replace('/manifest.json', '/brand-manifest.php?v=' . (int) @filemtime(BRAND_FILE) . '-' . (int) @filemtime(BRAND_LOGO_FILE), $html);
     // Pictures: landing screenshots and the share-preview image.
     foreach (brand_images() as $slot => $f) {
         $html = preg_replace('~' . preg_quote(BRAND_IMAGE_SLOTS[$slot]['builtin'], '~') . '(\?[^"\'\s<>]*)?~', 'brand-image.php?' . $slot . '=' . (int) @filemtime($f), $html);
@@ -559,4 +569,65 @@ function brand_remove_image(string $slot): bool
 {
     $f = brand_image_file($slot);
     return $f === null || @unlink($f);
+}
+
+
+// ---- Icons (Part 100d) ---------------------------------------------------------------------------------
+
+const BRAND_ICON_SIZES = [32, 48, 96, 180, 192, 512];
+
+/** PNG bytes of the uploaded logo as a square icon. $maskable puts it on a white square with room around it (home-screen shapes crop the edge). Null without a logo or GD. */
+function brand_icon_png(int $size, bool $maskable = false): ?string
+{
+    if (!brand_has_logo() || !function_exists('imagecreatefrompng') || !in_array($size, BRAND_ICON_SIZES, true)) {
+        return null;
+    }
+    $src = @imagecreatefrompng(BRAND_LOGO_FILE);
+    if (!$src) {
+        return null;
+    }
+    $dst = imagecreatetruecolor($size, $size);
+    imagealphablending($dst, false);
+    imagesavealpha($dst, true);
+    if ($maskable) {
+        imagefill($dst, 0, 0, imagecolorallocate($dst, 255, 255, 255));
+        $inner = (int) round($size * 0.62);
+    } else {
+        imagefill($dst, 0, 0, imagecolorallocatealpha($dst, 0, 0, 0, 127));
+        $inner = (int) round($size * 0.94);
+    }
+    $off = (int) (($size - $inner) / 2);
+    imagealphablending($dst, true);
+    imagecopyresampled($dst, $src, $off, $off, 0, 0, $inner, $inner, imagesx($src), imagesy($src));
+    imagealphablending($dst, false);
+    ob_start();
+    imagepng($dst, null, 7);
+    $png = (string) ob_get_clean();
+    imagedestroy($src);
+    imagedestroy($dst);
+    return $png;
+}
+
+/** The web-app manifest with the site name, colour and icons of the branding. */
+function brand_manifest(): array
+{
+    $m = json_decode((string) @file_get_contents(__DIR__ . '/../../manifest.json'), true) ?: [];
+    $d = brand_data();
+    if (brand_is_custom()) {
+        $m['name'] = $d['name'];
+        $m['short_name'] = mb_substr($d['name'], 0, 12);
+        $m['description'] = brand_tagline();
+    }
+    if ($d['a1'] !== '') {
+        $m['theme_color'] = $d['a1'];
+    }
+    if (brand_has_logo()) {
+        $v = (int) @filemtime(BRAND_LOGO_FILE);
+        $m['icons'] = [];
+        foreach ([['192', 'any'], ['512', 'any'], ['m192', 'maskable'], ['m512', 'maskable']] as [$c, $purpose]) {
+            $n = (int) ltrim($c, 'm');
+            $m['icons'][] = ['src' => 'brand-icon.php?i=' . $c . '.' . $v, 'sizes' => $n . 'x' . $n, 'type' => 'image/png', 'purpose' => $purpose];
+        }
+    }
+    return $m;
 }

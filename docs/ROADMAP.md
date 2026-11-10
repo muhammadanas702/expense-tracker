@@ -45,6 +45,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 100a | Branding page in admin: site name, tagline, two colours, logo (landing text and social image still to do) | done |
 | 100b | **Done:** Branding part 2: click-to-edit texts (landing + whole web app, English and Urdu) from Admin → Branding | done |
 | 100c | **Done:** Branding part 3: landing screenshots (home + sign-in panels) and share-preview (social) image replaceable from Admin → Branding | done |
+| 100d | **Done:** Branding part 4: the logo also becomes favicon, home-screen icon, in-app logo, e-mail logo and the web-app manifest (installed-app name, colour, icons) | done |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -755,4 +756,11 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Stored as `storage/brand-img-<slot>.*`, served by `brand-image.php?<slot>=<version>` (cached by version). The output filter swaps the built-in file address in every page (home, sign-in/register side panels, guides, other public pages, `og:image`, `twitter:image`), so no template changed.
 - Not covered: app icon, favicon and the APK/exe icon (they are inside the installed apps). Web-only: no APK/exe build needed.
 - Tests: `tests/brand_images_test.py` (27 checks).
+
+## Part 100d — Logo everywhere (icons + installed web app)
+
+- The logo uploaded in Branding now also becomes: the browser tab icon (favicon, 32/48/96/192), the iPhone/Android home-screen icon (180), the small logo in the signed-in app and staff sidebar, the logo in e-mails, and the web-app manifest (`brand-manifest.php`: installed-app name, theme colour and 192/512 icons, plus maskable ones with a white safe-zone margin).
+- Icons are cut from the stored 256 px logo by `brand-icon.php?i=<size>.<version>` (cached by version; built-in icon when there is no logo). The output filter swaps the built-in addresses, so no template changed.
+- Still built-in: the APK / Windows exe icon and the Play Store listing (they live inside the installed app; a rebuild would be needed), and the push-notification icon.
+- Tests: `tests/brand_icons_test.py` (22 checks). Web-only: no APK/exe build needed.
 
