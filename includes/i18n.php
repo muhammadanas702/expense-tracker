@@ -154,7 +154,7 @@ function ef_i18n_page(string $html): string
 if (PHP_SAPI !== 'cli') {
     // Branding (Part 100a). Started before the Urdu filter so that one runs first and this one swaps the name in its result.
     require_once __DIR__ . '/../modules/branding/lib.php';
-    if (brand_active()) {
+    if (brand_active() || isset($_COOKIE['ef_be'])) {
         ob_start('ef_brand_page');
     }
 }

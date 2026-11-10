@@ -43,7 +43,8 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 98f | Signed-in app mobile audit (51 pages) + fixes | done |
 | 99 | Website health monitor page in admin (live checks, page speed check, uptime history, outside-monitor address, PHP error log) | done |
 | 100a | Branding page in admin: site name, tagline, two colours, logo (landing text and social image still to do) | done |
-| 100b | **Planned:** Branding part 2: landing headline/text and the share-preview (social) image editable in admin | todo |
+| 100b | **Done:** Branding part 2: click-to-edit texts (landing + whole web app, English and Urdu) from Admin → Branding | done |
+| 100c | **Planned:** Branding part 3: landing screenshots and share-preview (social) image replaceable from admin | todo |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -735,3 +736,16 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Everything is stored in `storage/branding.json` and `storage/brand-logo.png` (no database), so public pages keep their look during a database outage. While nothing is customised no page is touched.
 - Not covered yet: the dark sign-in side panel keeps its built-in tones, and landing headline text and the share-preview image are the next part (100b).
 - Test: `tests/admin_branding_http_test.py`.
+
+## Part 100b — Edit any text from Branding
+
+- Admin → Branding → "Edit texts" → *Start editing texts* opens the site in edit mode: hover any text, click, change it (English or Urdu), Save. The same exact text changes everywhere it appears. *Restore original* per text, *Restore all* in Branding.
+- Stored in `storage/brand-texts.json` (keyed by the original English text). Applied by the output filter in `modules/branding/lib.php`; no page markup is touched, so updates to the app never conflict with edits.
+- Edit mode is a signed 8-hour cookie (`ef_be`); saving still needs a signed-in staff account with the `set` permission plus CSRF. Visitors only ever see the saved result.
+- Limits: 300 characters per text, 2000 edited texts. Texts with dynamic parts (names, amounts) and e-mails are not editable here. Staff panel pages are never edited.
+- Tests: `tests/brand_texts_test.py` (HTTP rules + a real browser click flow). Web-only: no APK/exe build needed.
+
+### Fix: Website health on free hosting
+- Free hosts disable `disk_free_space` / `disk_total_space`; in PHP 8 that is a fatal Error (`@` does not help), so the page gave HTTP 500 live. Disk checks now skip when the functions are missing, and every live-check section and the history part of the page degrade instead of failing.
+- Test: `tests/health_disabled_functions_test.py` starts its own server with those functions disabled.
+

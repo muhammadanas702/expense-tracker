@@ -3,7 +3,13 @@
 require_once __DIR__ . '/auth.php';
 admin_need('set');
 require_once __DIR__ . '/../modules/health/lib.php';
-health_ensure_schema($conn);
+$histErr = null;
+try {
+    health_ensure_schema($conn);
+} catch (Throwable $e) {
+    $histErr = $e->getMessage();
+    error_log('ExpenseFlow health page: history table unavailable: ' . $e->getMessage());
+}
 
 $dbMs = health_db_ms($conn);
 $checks = health_checks($conn, $dbMs);
@@ -11,10 +17,18 @@ $overall = health_worst(array_column($checks, 2));
 // Opening the page leaves one history row (at most one per 10 minutes).
 health_record($conn, 'admin', $dbMs, $dbMs !== null && $overall !== 'bad', 600);
 
-$hist = health_history($conn, 24);
+// The history is optional: if its table cannot be used, the live checks above still show.
+$hist = [];
+$probe = false;
+try {
+    $hist = health_history($conn, 24);
+    $probe = $conn->query("SELECT created_at, detail FROM health_log WHERE kind = 'probe' ORDER BY id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {
+    $histErr = $histErr ?? $e->getMessage();
+    error_log('ExpenseFlow health page: history failed: ' . $e->getMessage());
+}
 $up = health_uptime($hist);
 $spark = health_spark($hist);
-$probe = $conn->query("SELECT created_at, detail FROM health_log WHERE kind = 'probe' ORDER BY id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
 $probeRows = $probe ? (json_decode((string) $probe['detail'], true) ?: []) : [];
 $recent = array_reverse(array_slice($hist, -14));
 $tail = health_log_tail(15);
@@ -39,6 +53,9 @@ admin_page_start(['title' => 'Website health', 'sub' => $lbl[$overall], 'active'
   </div>
 </div>
 
+<?php if ($histErr !== null): ?>
+<div class="g card" style="margin-bottom:14px;border-inline-start:4px solid #f59e0b"><b>History is not available</b><small class="k" style="display:block">The history table could not be used (<?= e(mb_substr($histErr, 0, 200)) ?>). Live checks below still work.</small></div>
+<?php endif; ?>
 <div class="g card" style="margin-bottom:14px">
   <h3 style="margin:0 0 6px">Live checks</h3>
   <?php foreach ($checks as [$k, $v, $st, $hint]): ?>
