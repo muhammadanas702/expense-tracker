@@ -47,6 +47,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 100c | **Done:** Branding part 3: landing screenshots (home + sign-in panels) and share-preview (social) image replaceable from Admin → Branding | done |
 | 100d | **Done:** Branding part 4: the logo also becomes favicon, home-screen icon, in-app logo, e-mail logo and the web-app manifest (installed-app name, colour, icons) | done |
 | 101b | **Done:** Features on/off gets 6 more switches: Full report and downloads, Live exchange rates, Urdu language, App download buttons, Guides, Contact page (23 in total); links to a switched-off page disappear everywhere automatically | done |
+| 101c | **Done:** every admin page starts with a "What is this page?" box: section, plain description, and the everyday problems that send you there | done |
 | 101a | **Done:** Admin → Features on/off: 17 optional parts can be switched off/on, each with a plain-words description | done |
 | 101b | **Planned:** Admin panel in clear sections, a plain description for every page and option, a "which page fixes my problem" guide | todo |
 
@@ -779,4 +780,10 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Admin → Features on/off now has 23 switches. New: **Full report and downloads** (CSV/Excel/PDF), **Live exchange rates** (off = app uses only the last saved rates and never calls the internet), **Urdu language** (off = switch hidden, English only, even `?lang=ur`), **App download buttons** (APK/Windows on the home page and in Settings), **Guides**, **Contact page**.
 - New automatic output filter `ef_feature_hide_links()`: for every switched-off feature the links to its pages (menu buttons, footer links, "open report" links) are removed from the page, so nothing leads to a "switched off" page by accident. Staff panel pages are never filtered.
 - Tests: `tests/features_test.py` extended (all 23 on/off one by one and all at once, link removal, language, downloads, rates). Web-only: no APK/exe build needed.
+
+## Part 101c — "What is this page?" on every admin page
+
+- Under the title of every admin page (except Dashboard, "Where do I go?" and "All pages"): `Section › Page`, one plain sentence about what the page is for, and a "When do I need this page?" list with the everyday problems that send you there (taken from the "Where do I go?" list, so the two never disagree), plus a link to "Where do I go?".
+- The problem list moved to `modules/admin/help-topics.php` and is shared by both. Add a new admin page to the menu with its description and it gets the box automatically.
+- Tests: `tests/admin_sections_http_test.py` extended (12 pages, role check, pages without a box). Web-only: no APK/exe build needed.
 

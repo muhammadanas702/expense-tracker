@@ -73,6 +73,48 @@ function admin_visible_menu(PDO $conn, string $role): array
     return $out;
 }
 
+/**
+ * The "What is this page?" box under the title of every admin page: which section it belongs to, what it is for in plain words, and the
+ * everyday problems that send you here (from the "Where do I go?" list). Nothing for the dashboard, "Where do I go?" and "All pages".
+ */
+function admin_page_intro(array $menu, string $active): string
+{
+    if (in_array($active, ['', 'ov', 'help', 'more'], true)) {
+        return '';
+    }
+    foreach ($menu as $section => $items) {
+        foreach ($items as $i) {
+            if ($i[0] !== $active) {
+                continue;
+            }
+            require_once __DIR__ . '/help-topics.php';
+            $when = [];
+            foreach (admin_help_topics() as $qs) {
+                foreach ($qs as [$q, , $go]) {
+                    foreach ($go as [$key, $why]) {
+                        if ($key === $active) {
+                            $when[] = [$q, $why];
+                        }
+                    }
+                }
+            }
+            $h = '<div class="g card ap-intro" role="note"><div class="ap-in1"><span class="ap-sec">' . e($section) . ' &rsaquo; ' . e($i[3]) . '</span>'
+                . '<p>' . e((string) ($i[5] ?? '')) . '</p></div>';
+            if ($when) {
+                $h .= '<details class="ap-when"><summary>When do I need this page?</summary><ul>';
+                foreach (array_slice($when, 0, 5) as [$q, $why]) {
+                    $h .= '<li><b>' . e($q) . '</b><small>' . e($why) . '</small></li>';
+                }
+                $h .= '</ul><a class="lnk" href="' . e(ef_url('admin/help.php')) . '">Not sure? Open "Where do I go?"</a></details>';
+            } else {
+                $h .= '<a class="lnk ap-help" href="' . e(ef_url('admin/help.php')) . '">Something wrong? Where do I go?</a>';
+            }
+            return $h . '</div>';
+        }
+    }
+    return '';
+}
+
 function admin_page_start(array $o): void
 {
     global $conn, $admin;
@@ -131,6 +173,7 @@ function admin_page_start(array $o): void
         }
         unset($_SESSION[$key]);
     }
+    echo admin_page_intro($menu, $active);
     $GLOBALS['__admin_bottom'] = [$bottom, $active];
 }
 
