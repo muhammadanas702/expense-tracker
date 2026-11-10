@@ -30,7 +30,7 @@
 .p-doc .gc a.g:after{content:"→";margin-top:auto;padding-top:10px;color:var(--a1);font-weight:800}
 html[dir=rtl] .p-doc .gc a.g:after{content:"←"}
 /* closing call */
-.p-cta{margin:clamp(48px,7vw,88px) 0;border-radius:28px;padding:clamp(40px,6vw,72px) clamp(24px,5vw,56px);text-align:center;color:#fff;background:linear-gradient(135deg,#0B2545,#0f766e 70%,#1d4ed8)}
+.p-cta{margin:clamp(48px,7vw,88px) 0;border-radius:28px;padding:clamp(40px,6vw,72px) clamp(24px,5vw,56px);text-align:center;color:#fff;background:linear-gradient(135deg,#0B2545,var(--a1) 70%,var(--a2))}
 .p-cta h2{color:#fff;font-size:clamp(26px,4vw,40px);letter-spacing:-.03em;font-weight:800}
 .p-cta p{color:rgba(255,255,255,.82);margin:12px 0 28px;font-size:17px}
 @media (max-width:640px){.p-doc .gc{grid-template-columns:1fr}.p-doc{border-radius:20px;font-size:16px}.p-cta{border-radius:22px}}

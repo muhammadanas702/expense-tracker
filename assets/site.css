@@ -1,6 +1,6 @@
 /* ExpenseFlow site look (Part 89): shared by the landing page and the public pages. One grid, one spacing scale (8px), one type scale. */
 :root{--bg:#f3f8f7;--bg2:#e8f1fb;--card:#fff;--ink:#0B2545;--mu:#5b6b80;--line:rgba(11,37,69,.1);--a1:#0f766e;--a2:#1d4ed8;--tint:#e3f4f0;--tint2:#e6eefb;--ok:#059669;--bad:#dc2626;
-  --grad:linear-gradient(135deg,#0f766e,#1d4ed8);--r:20px;--sh:0 1px 2px rgba(11,37,69,.04),0 8px 28px rgba(11,37,69,.07);--w:1160px;--navh:72px;
+  --grad:linear-gradient(135deg,var(--a1),var(--a2));--r:20px;--sh:0 1px 2px rgba(11,37,69,.04),0 8px 28px rgba(11,37,69,.07);--w:1160px;--navh:72px;
   --fh:var(--font-head,"Plus Jakarta Sans",system-ui,sans-serif)}
 html[data-theme=dark]{--bg:#08121f;--bg2:#0b1830;--card:#101c2e;--ink:#e8eef8;--mu:#9fb0c6;--line:rgba(255,255,255,.1);--a1:#2dd4bf;--a2:#6ea0ff;--tint:rgba(45,212,191,.12);--tint2:rgba(110,160,255,.12);--sh:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35)}
 *{box-sizing:border-box}

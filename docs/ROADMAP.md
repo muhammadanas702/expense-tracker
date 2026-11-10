@@ -42,7 +42,8 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 98e | Public pages responsive audit (320 to 1920) | done |
 | 98f | Signed-in app mobile audit (51 pages) + fixes | done |
 | 99 | Website health monitor page in admin (live checks, page speed check, uptime history, outside-monitor address, PHP error log) | done |
-| 100 | **Planned:** Branding page in admin (logo, name, colours, landing text and social image editable without code) | todo |
+| 100a | Branding page in admin: site name, tagline, two colours, logo (landing text and social image still to do) | done |
+| 100b | **Planned:** Branding part 2: landing headline/text and the share-preview (social) image editable in admin | todo |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -723,3 +724,14 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - The newest PHP error lines are shown when the host allows reading the log.
 - Test: `tests/admin_health_http_test.py` (needs the test server started with `PHP_CLI_SERVER_WORKERS=4`, because the speed check requests the site from itself).
 - Also fixed: the Email log "send test" action wrote an audit kind that was not listed.
+
+
+## Part 100a - Branding (Admin > Branding)
+
+- New admin page (settings permission): site name, tagline, main and second colour, logo upload, live preview, "Reset to built-in".
+- Name: the built-in name "ExpenseFlow" is swapped in the finished page (visible text, alt/title/placeholder, meta tags, JSON-LD) and in every e-mail subject and body. File names, addresses and code are not touched. Works in Urdu pages too.
+- Colours: one small style block at the end of `<head>` sets `--a1`, `--a2` (and the browser theme colour). Landing, sign-in, guides and the app follow it; dark mode keeps its own lighter tones. Colours that are too light for white text (contrast below 4.5) are refused.
+- Logo: PNG, JPG or WebP (64 to 4096 px, up to 1.5 MB) is fitted into a 256 px transparent PNG, saved in `storage/` and served by `brand-logo.php`; every place that showed the built-in logo file shows it. The app icon, favicon and installed APK/exe icons are not changed.
+- Everything is stored in `storage/branding.json` and `storage/brand-logo.png` (no database), so public pages keep their look during a database outage. While nothing is customised no page is touched.
+- Not covered yet: the dark sign-in side panel keeps its built-in tones, and landing headline text and the share-preview image are the next part (100b).
+- Test: `tests/admin_branding_http_test.py`.
