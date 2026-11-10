@@ -44,7 +44,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 99 | Website health monitor page in admin (live checks, page speed check, uptime history, outside-monitor address, PHP error log) | done |
 | 100a | Branding page in admin: site name, tagline, two colours, logo (landing text and social image still to do) | done |
 | 100b | **Done:** Branding part 2: click-to-edit texts (landing + whole web app, English and Urdu) from Admin → Branding | done |
-| 100c | **Planned:** Branding part 3: landing screenshots and share-preview (social) image replaceable from admin | todo |
+| 100c | **Done:** Branding part 3: landing screenshots (home + sign-in panels) and share-preview (social) image replaceable from Admin → Branding | done |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -748,4 +748,11 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 ### Fix: Website health on free hosting
 - Free hosts disable `disk_free_space` / `disk_total_space`; in PHP 8 that is a fatal Error (`@` does not help), so the page gave HTTP 500 live. Disk checks now skip when the functions are missing, and every live-check section and the history part of the page degrade instead of failing.
 - Test: `tests/health_disabled_functions_test.py` starts its own server with those functions disabled.
+
+## Part 100c — Branding pictures
+
+- Admin → Branding → "Pictures on the website": upload a replacement for landing screenshot 1 (dashboard), screenshot 2 (groups) and the share-preview image (what WhatsApp/Facebook/X/Google show for a link). PNG/JPG/WebP up to 4 MB; each is cut (centre crop) to the exact size: screens 720 x 1440 (WebP, PNG fallback), share image 1200 x 630 (JPEG). "Use built-in" per picture; "Reset to built-in" removes them all.
+- Stored as `storage/brand-img-<slot>.*`, served by `brand-image.php?<slot>=<version>` (cached by version). The output filter swaps the built-in file address in every page (home, sign-in/register side panels, guides, other public pages, `og:image`, `twitter:image`), so no template changed.
+- Not covered: app icon, favicon and the APK/exe icon (they are inside the installed apps). Web-only: no APK/exe build needed.
+- Tests: `tests/brand_images_test.py` (27 checks).
 

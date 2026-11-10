@@ -1,5 +1,5 @@
 <?php
-/** Branding: site name, tagline, two colours and the logo. Staff with the settings permission. */
+/** Branding: site name, tagline, two colours, logo, pictures and texts. Staff with the settings permission. */
 require_once __DIR__ . '/auth.php';
 admin_need('set');
 require_once __DIR__ . '/../modules/branding/lib.php';
@@ -28,6 +28,12 @@ admin_page_start(['title' => 'Branding', 'sub' => brand_active() ? 'Custom look 
 .br-prev .lg img{width:40px;height:40px;border-radius:10px;object-fit:contain;background:#fff}
 .br-prev .lg b{font-size:1.25rem;font-weight:800;background:linear-gradient(135deg,var(--p1),var(--p2));-webkit-background-clip:text;background-clip:text;color:transparent}
 .br-prev .btnp{display:inline-block;padding:10px 18px;border-radius:12px;color:#fff;font-weight:700;background:linear-gradient(135deg,var(--p1),var(--p2))}
+.br-pics{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.br-pic{display:flex;gap:14px;align-items:flex-start;padding:12px;border:1px solid var(--line,#e2e8f0);border-radius:14px;min-width:0}
+.br-pic img{flex:none;border-radius:10px;background:#eef2f7;object-fit:cover;border:1px solid var(--line,#e2e8f0)}
+.br-pic img.tall{width:84px;height:168px}.br-pic img.wide{width:150px;height:79px}
+.br-pic .bd{min-width:0;flex:1}
+@media(max-width:420px){.br-pic{flex-direction:column}.br-pic .bd{width:100%}}
 .br-prev p{margin:0 0 14px;color:#475569;font-size:.9rem;line-height:1.5}
 </style>
 <div class="br-grid">
@@ -50,7 +56,7 @@ admin_page_start(['title' => 'Branding', 'sub' => brand_active() ? 'Custom look 
     <?php if (brand_has_logo()): ?><label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" name="remove_logo" value="1"> Remove my logo (use the built-in one)</label><?php endif; ?></div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
     <button class="btn" type="submit" name="do" value="save">Save</button>
-    <button class="btn o" type="submit" name="do" value="reset" onclick="return confirm('Go back to the built-in name, colours and logo?')">Reset to built-in</button>
+    <button class="btn o" type="submit" name="do" value="reset" onclick="return confirm('Go back to the built-in name, colours, logo and pictures? (Edited texts are kept; restore them below.)')">Reset to built-in</button>
   </div>
 </form>
 <div class="g card">
@@ -62,6 +68,27 @@ admin_page_start(['title' => 'Branding', 'sub' => brand_active() ? 'Custom look 
   </div>
   <small class="k" style="display:block;margin-top:10px">A quick look only. Save to apply it to every page.</small>
 </div>
+</div>
+<div class="g card" style="margin-top:14px" id="pictures">
+  <div class="t">Pictures on the website</div>
+  <p class="mut" style="margin:0 0 12px">Replace the phone screenshots on the home and sign-in pages and the picture people see when your link is shared. Pictures are cut to the right shape automatically (PNG, JPG or WebP, up to 4 MB).</p>
+  <div class="br-pics">
+<?php foreach (BRAND_IMAGE_SLOTS as $slot => $c): $own = brand_image_file($slot) !== null; $src = $own ? '../brand-image.php?' . $slot . '=' . (int) @filemtime(brand_image_file($slot)) : '../' . $c['builtin']; ?>
+    <div class="br-pic" data-slot="<?= e($slot) ?>">
+      <img src="<?= e($src) ?>" alt="" class="<?= $slot === 'share' ? 'wide' : 'tall' ?>" loading="lazy">
+      <div class="bd">
+        <b><?= e($c['label']) ?></b> <span class="tag <?= $own ? 'tg' : '' ?>"><?= $own ? 'Your picture' : 'Built-in' ?></span>
+        <small class="k" style="display:block;margin:4px 0 8px"><?= e($c['where']) ?></small>
+        <form method="post" action="branding-action.php" enctype="multipart/form-data" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0">
+          <?= csrf_field() ?><input type="hidden" name="slot" value="<?= e($slot) ?>">
+          <input class="inp" type="file" name="img" accept="image/png,image/jpeg,image/webp" aria-label="Choose a picture for <?= e($c['label']) ?>" style="flex:1 1 100%;min-width:0">
+          <button class="btn sm" type="submit" name="do" value="image">Upload</button>
+          <?php if ($own): ?><button class="btn sm ghost" type="submit" name="do" value="image_remove">Use built-in</button><?php endif; ?>
+        </form>
+      </div>
+    </div>
+<?php endforeach; ?>
+  </div>
 </div>
 <div class="g card" style="margin-top:14px" id="texts">
   <div class="t">Edit any text on the website and the app</div>
