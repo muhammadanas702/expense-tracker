@@ -117,6 +117,10 @@ function ef_mail_log(string $to, string $subject, bool $ok, string $error = '', 
 
 function ef_send_mail(string $email, string $name, string $subject, string $html, string $alt, bool $logo = false): bool
 {
+    require_once __DIR__ . '/../modules/branding/lib.php';
+    $subject = brand_text($subject);
+    $html = brand_text($html);
+    $alt = brand_text($alt);
     // Tests only: EXPENSEFLOW_MAIL_SINK=<file> writes each mail as one JSON line instead of sending it.
     $sink = getenv('EXPENSEFLOW_MAIL_SINK');
     if ($sink) {
@@ -152,7 +156,7 @@ function ef_send_mail(string $email, string $name, string $subject, string $html
         $mail->Timeout = 10;
         $mail->CharSet = PHPMailer::CHARSET_UTF8;
 
-        $mail->setFrom($settings['from_email'] ?: $settings['username'], $settings['from_name'] ?? 'ExpenseFlow');
+        $mail->setFrom($settings['from_email'] ?: $settings['username'], brand_text($settings['from_name'] ?? 'ExpenseFlow'));
         $mail->addAddress($email, $name);
         $mail->isHTML(true);
         $mail->Subject = $subject;
@@ -162,7 +166,7 @@ function ef_send_mail(string $email, string $name, string $subject, string $html
         $mail->addCustomHeader('Auto-Submitted', 'auto-generated');
         $mail->addCustomHeader('X-Auto-Response-Suppress', 'All');
         if (!empty($settings['reply_to'])) {
-            $mail->addReplyTo($settings['reply_to'], $settings['from_name'] ?? 'ExpenseFlow');
+            $mail->addReplyTo($settings['reply_to'], brand_text($settings['from_name'] ?? 'ExpenseFlow'));
         }
         $logoFile = __DIR__ . '/../assets/icons/icon-192.png';
         if ($logo && is_file($logoFile)) {

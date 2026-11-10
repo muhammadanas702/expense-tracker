@@ -32,6 +32,7 @@ function admin_menu(): array
             ['spd', 'admin/speed.php', 'zap', 'Speed check', 'set'],
             ['mail', 'admin/mail.php', 'mail', 'Email log', 'set'],
             ['hlth', 'admin/health.php', 'heart', 'Website health', 'set'],
+            ['brand', 'admin/branding.php', 'spark', 'Branding', 'set'],
         ],
     ];
 }
