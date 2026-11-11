@@ -1,4 +1,7 @@
 <?php
+if (is_file(__DIR__ . '/../modules/features/lib.php')) {
+    require_once __DIR__ . '/../modules/features/lib.php'; // staff switches (Admin > Features)
+}
 /**
  * Module registry.
  *
@@ -21,9 +24,10 @@ function ef_modules(): array
         return $cache;
     }
     $cache = [];
+    $off = function_exists('features_off') ? features_off() : []; // staff switches (Admin > Features)
     foreach (glob(__DIR__ . '/../modules/*/module.php') ?: [] as $file) {
         $m = include $file;
-        if (is_array($m) && !empty($m['id']) && !empty($m['enabled'])) {
+        if (is_array($m) && !empty($m['id']) && !empty($m['enabled']) && !in_array($m['id'], $off, true)) {
             $cache[$m['id']] = $m;
         }
     }

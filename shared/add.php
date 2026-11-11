@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $key = rl_key((string) $user_id);
     $ft = (string) ($_POST['ft'] ?? '');
     $recFile = $_FILES['receipt'] ?? null;
-    $rc = function_exists('receipts_check_upload') ? receipts_check_upload($recFile) : null; // null = none, true = ok, string = error
+    $rc = (ef_feature_on('receipts') && function_exists('receipts_check_upload')) ? receipts_check_upload($recFile) : null; // null = none, true = ok, string = error
 
     if (!$group) {
         $error = 'Choose a group first.';
@@ -155,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     rl_hit($conn, 'shared_expense', $key);
                 }
                 $warn = '';
-                if (function_exists('receipts_save')) {
+                if (ef_feature_on('receipts') && function_exists('receipts_save')) {
                     if ($rc === true && !receipts_save($conn, $gid, $id, $user_id, $recFile)) {
                         $warn = ' The receipt could not be saved, you can add it again by editing the expense.';
                     } elseif ($rc === null && $existing && ($_POST['remove_receipt'] ?? '') === '1') {
@@ -174,7 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$curReceipt = ($existing && function_exists('receipts_for_expenses')) ? (receipts_for_expenses($conn, [$editId])[$editId] ?? 0) : 0;
+$curReceipt = ($existing && ef_feature_on('receipts') && function_exists('receipts_for_expenses')) ? (receipts_for_expenses($conn, [$editId])[$editId] ?? 0) : 0;
 $csrf = csrf_token();
 $ftoken = ($_SERVER['REQUEST_METHOD'] === 'POST' && shared_token_valid($_POST['ft'] ?? null)) ? (string) $_POST['ft'] : shared_token_new();
 ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expense', 'sub' => $group ? $group['name'] : 'Split a bill with your group', 'mode' => 's', 'active' => 'sadd', 'user' => $user]);
@@ -244,7 +244,7 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
     <div class="fl"><label for="note">Note (optional)</label>
       <input class="inp" id="note" type="text" name="note" maxlength="255" value="<?= e($old['note']) ?>"></div>
 
-    <?php if (function_exists('receipts_check_upload')): ?>
+    <?php if (ef_feature_on('receipts') && function_exists('receipts_check_upload')): ?>
     <div class="fl"><label for="receipt">Receipt photo (optional)</label>
       <input class="inp" id="receipt" type="file" name="receipt" accept="image/jpeg,image/png,image/webp" capture="environment">
       <small class="k">JPG, PNG or WebP, up to 3 MB. Only group members can see it.</small>

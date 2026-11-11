@@ -15,7 +15,7 @@ ef_page_start(['title' => 'Profile & Settings', 'sub' => 'Account, security and 
 <?php foreach (settings_sections() as $k => [$ic, $t, $d, $f]): ?>
   <a class="g card scard" href="<?= e($base_url . '/' . $f) ?>"><i class="sci"><?= ef_icon($ic) ?></i><span><b><?= e($t) ?></b><small><?= e($d) ?></small></span><?= ef_icon('chev') ?></a>
 <?php endforeach; ?>
-  <a class="g card scard" href="<?= e($base_url) ?>/support/index.php"><i class="sci"><?= ef_icon('lifebuoy') ?></i><span><b>Help &amp; support</b><small>Ask a question or report a problem</small></span><?= ef_icon('chev') ?></a>
+  <?php if (ef_feature_on('support')): ?><a class="g card scard" href="<?= e($base_url) ?>/support/index.php"><i class="sci"><?= ef_icon('lifebuoy') ?></i><span><b>Help &amp; support</b><small>Ask a question or report a problem</small></span><?= ef_icon('chev') ?></a> <?php endif; ?>
 <?php if (!empty($user['is_admin'])): ?>
   <a class="g card scard" href="<?= e($base_url) ?>/admin/index.php"><i class="sci"><?= ef_icon('shield') ?></i><span><b>Admin panel</b><small>Manage users and data</small></span><?= ef_icon('chev') ?></a>
 <?php endif; ?>

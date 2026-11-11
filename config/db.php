@@ -84,3 +84,9 @@ if (is_file(__DIR__ . '/../modules/settings/lib.php')) {
     require_once __DIR__ . '/../modules/settings/lib.php';
     settings_enforce_maintenance($conn);
 }
+
+// Feature switches (Admin > Features): a page of an option that staff switched off is blocked here.
+if (is_file(__DIR__ . '/../modules/features/lib.php')) {
+    require_once __DIR__ . '/../modules/features/lib.php';
+    features_enforce();
+}

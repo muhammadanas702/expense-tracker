@@ -46,6 +46,8 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 100b | **Done:** Branding part 2: click-to-edit texts (landing + whole web app, English and Urdu) from Admin → Branding | done |
 | 100c | **Done:** Branding part 3: landing screenshots (home + sign-in panels) and share-preview (social) image replaceable from Admin → Branding | done |
 | 100d | **Done:** Branding part 4: the logo also becomes favicon, home-screen icon, in-app logo, e-mail logo and the web-app manifest (installed-app name, colour, icons) | done |
+| 101a | **Done:** Features on / off: staff can turn any user option off (hidden + blocked) from Admin and on again | done |
+| 101b | **Planned:** Admin panel in clear sections, a plain description for every option and a "Something is wrong? Where to look" guide | todo |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -763,4 +765,13 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Icons are cut from the stored 256 px logo by `brand-icon.php?i=<size>.<version>` (cached by version; built-in icon when there is no logo). The output filter swaps the built-in addresses, so no template changed.
 - Still built-in: the APK / Windows exe icon and the Play Store listing (they live inside the installed app; a rebuild would be needed), and the push-notification icon.
 - Tests: `tests/brand_icons_test.py` (22 checks). Web-only: no APK/exe build needed.
+
+## Part 101a — Features on / off
+
+- Admin → Features on / off: 14 options (Budgets, Savings goals, Reminders, Quick add, Search, Getting-started checklist, Shared / split bills, Friends, Activity + bell, Comments, Receipt photos, Google sign-in, Help & support, Phone alerts). Each card says in plain words what the option is and what people notice when it is off; one button turns it off or on (confirm before off).
+- Off = hidden from menus/dashboard/profile **and** blocked at the page (friendly "switched off for now" page, HTTP 503; JSON for script callers). No data is deleted; staff pages are never blocked. Options that need another one (Friends/Activity/Comments/Receipts need Shared) go off with it and the card says so.
+- Stored in `storage/features-off.json` (not the database), so the switches work even when the database is the broken part; a damaged file fails open (everything stays on). Every change is in the audit log ("Switched an option on or off").
+- Built on the existing module registry (`ef_modules()` skips off options) plus a central gate in `config/db.php` (`features_enforce()`); UI spots that only checked `function_exists` now also check `ef_feature_on()`.
+- Test: `tests/admin_features_test.py` (60 checks, includes switching every option off and crawling 30 pages for errors). Web-only: no APK/exe build needed.
+- Next (101b): admin panel regrouped into clear sections with a plain description for each option and a "Something is wrong? Where to look" guide.
 

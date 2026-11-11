@@ -359,6 +359,10 @@ function google_mark(): string
 /** The "Continue with Google" button + "or" divider. Empty string when Google sign-in is not available. */
 function google_button(string $intent): string
 {
+    require_once __DIR__ . '/../features/lib.php';
+    if (!ef_feature_on('oauth')) { // staff switched Google sign-in off (Admin > Features)
+        return '';
+    }
     if (google_configured() && google_in_app_shell()) {
         return google_app_button($intent);
     }
