@@ -49,7 +49,6 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 101b | **Done:** Features on/off gets 6 more switches: Full report and downloads, Live exchange rates, Urdu language, App download buttons, Guides, Contact page (23 in total); links to a switched-off page disappear everywhere automatically | done |
 | 101c | **Done:** every admin page starts with a "What is this page?" box: section, plain description, and the everyday problems that send you there | done |
 | 101a | **Done:** Admin → Features on/off: 17 optional parts can be switched off/on, each with a plain-words description | done |
-| 101b | **Planned:** Admin panel in clear sections, a plain description for every page and option, a "which page fixes my problem" guide | todo |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -786,4 +785,7 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Under the title of every admin page (except Dashboard, "Where do I go?" and "All pages"): `Section › Page`, one plain sentence about what the page is for, and a "When do I need this page?" list with the everyday problems that send you there (taken from the "Where do I go?" list, so the two never disagree), plus a link to "Where do I go?".
 - The problem list moved to `modules/admin/help-topics.php` and is shared by both. Add a new admin page to the menu with its description and it gets the box automatically.
 - Tests: `tests/admin_sections_http_test.py` extended (12 pages, role check, pages without a box). Web-only: no APK/exe build needed.
+
+## Part 101d — Cleanup after 101a/b/c
+- Removed a duplicate Features test (the real one is `tests/features_test.py`), fixed the Roadmap row that still said 101b was planned, made the "Website health" link on the Features page a proper tap-sized button, and made the Branding edit-mode test robust against the new "What is this page?" box. No behaviour change; web-only, no APK/exe build.
 

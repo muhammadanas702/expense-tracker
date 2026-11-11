@@ -51,5 +51,5 @@ admin_page_start(['title' => 'Features on/off', 'sub' => $n ? $n . ' switched of
 <?php endforeach; ?>
 </div>
 <?php endforeach; ?>
-<div class="g card"><small class="k">Core parts (login, adding income and expenses, the dashboard, reports, settings) cannot be switched off. If something there is broken, check <a href="health.php">Website health</a>.</small></div>
+<div class="g card" style="display:flex;gap:10px 14px;align-items:center;justify-content:space-between;flex-wrap:wrap"><small class="k" style="flex:1 1 260px;line-height:1.45">Core parts (login, adding income and expenses, the dashboard, reports, settings) cannot be switched off. If something there is broken, check the Website health page.</small><a class="btn sm ghost" href="health.php">Open Website health</a></div>
 <?php admin_page_end();
