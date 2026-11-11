@@ -33,7 +33,7 @@ ok('MISSING' not in php, 'every menu item has a description of its own (' + php.
 # dashboard hub
 ok('What do you want to do?' in r and 'class="ahub"' in r and r.count('class="ahs"') == 5 and 'ahs ahs-tip' in r, 'dashboard has the "What do you want to do?" hub with 5 sections and a "Not sure" tile')
 ok('Not sure? Where do I go?' in r, 'dashboard links to the problem finder')
-ok('Switched off right now' not in r, 'no "switched off" notice when everything is on')
+ok('switched off</b>' not in r, 'no "switched off" notice when everything is on')
 # all pages page
 m = sup.get(B + '/admin/menu.php').text
 ok('Everyone who has an account.' in m and 'Pause the whole website for maintenance' in m, 'All pages lists descriptions')
@@ -47,7 +47,7 @@ ok('id="hp-q"' in t and 'hp-none' in t, 'it has a search box')
 # support-role: links only to pages the role can open; others say ask the owner
 t2 = hp.get(B + '/admin/help.php').text
 ok('admin/support.php' in t2 and 'admin/health.php' not in t2 and '(ask the owner)' in t2, 'a support member sees only links they may open, the rest say "ask the owner"')
-ok('admin/index.php' in hp.get(B + '/admin/index.php').text and 'Switched off right now' not in hp.get(B + '/admin/index.php').text, 'support dashboard still works')
+ok('admin/index.php' in hp.get(B + '/admin/index.php').text and 'switched off</b>' not in hp.get(B + '/admin/index.php').text, 'support dashboard still works')
 # plain user is kept out
 ok(u1.get(B + '/admin/help.php', allow_redirects=False).status_code in (302, 303, 403), 'plain user cannot open Where do I go?')
 ok(requests.get(B + '/admin/help.php', allow_redirects=False).status_code in (302, 303, 403), 'signed-out visitor cannot open it')
@@ -55,9 +55,9 @@ ok(requests.get(B + '/admin/help.php', allow_redirects=False).status_code in (30
 sup_t = re.search(r'name="csrf_token" value="([^"]+)"', sup.get(B + '/admin/features.php').text).group(1)
 sup.post(B + '/admin/features-action.php', data={'do': 'off', 'id': 'budgets', 'csrf_token': sup_t})
 r = sup.get(B + '/admin/index.php').text
-ok('Switched off right now:</b> Budgets' in r, 'dashboard warns when something is switched off')
+ok(re.search(r'option is switched off</b>.*?Budgets', r, re.S) is not None, 'dashboard warns when something is switched off')
 sup.post(B + '/admin/features-action.php', data={'do': 'all_on', 'csrf_token': sup_t})
-ok('Switched off right now' not in sup.get(B + '/admin/index.php').text, 'notice goes away when everything is on again')
+ok('switched off</b>' not in sup.get(B + '/admin/index.php').text, 'notice goes away when everything is on again')
 # phone bottom bar unchanged: first three items + More
 bn = r[r.index('<nav class="g bn">'):]
 bn = bn[:bn.index('</nav>')]
