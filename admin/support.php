@@ -24,7 +24,7 @@ admin_page_start(['title' => 'Support', 'sub' => $counts['open'] . ' waiting for
     <a class="chip<?= $status === '' ? ' on' : '' ?>" href="<?= e($url(['s' => '', 'p' => ''])) ?>">All (<?= array_sum($counts) ?>)</a>
     <?php foreach (SUPPORT_STATUSES as $k => $l): ?><a class="chip<?= $status === $k ? ' on' : '' ?>" href="<?= e($url(['s' => $k, 'p' => ''])) ?>"><?= e($l) ?> (<?= $counts[$k] ?>)</a><?php endforeach; ?>
   </div>
-  <div class="tbl-wrap"><table class="tbl fixm">
+  <div class="tbl-wrap"><table class="tbl wide">
     <tr><th>Request</th><th class="hm">From</th><th class="hm">Topic</th><th>Status</th><th class="hm">Updated</th><th class="nw"></th></tr>
     <?php foreach ($rows as $r): ?>
     <tr>
