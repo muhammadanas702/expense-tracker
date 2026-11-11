@@ -30,6 +30,24 @@ function health_ensure_schema(PDO $conn): void
     );
 }
 
+/** Staff may switch the "Outside monitor" check off (free hosts often cannot be pinged); stored as a flag file. */
+function health_monitor_flag(): string
+{
+    return __DIR__ . '/../../storage/health-monitor-off';
+}
+function health_monitor_off(): bool
+{
+    return is_file(health_monitor_flag());
+}
+function health_monitor_set_off(bool $off): bool
+{
+    $f = health_monitor_flag();
+    if ($off) {
+        return function_exists('file_put_contents') && @file_put_contents($f, '1') !== false;
+    }
+    return !is_file($f) || @unlink($f);
+}
+
 /** The worst of a list of states ('ok' < 'warn' < 'bad'). */
 function health_worst(array $states): string
 {
@@ -212,12 +230,16 @@ function health_checks(PDO $conn, ?float $dbMs): array
     // Outside monitor
     try {
         health_ensure_schema($conn);
+        if (health_monitor_off()) {
+            $rows[] = ['Outside monitor', 'Not used (check switched off)', 'ok', 'You told ExpenseFlow you do not use an outside monitor, so this is not counted as a warning. You can switch it on again below.'];
+            return $rows;
+        }
         $age = $conn->query("SELECT TIMESTAMPDIFF(SECOND, MAX(created_at), NOW()) FROM health_log WHERE source = 'ping'")->fetchColumn();
         if ($age === null || $age === false) {
-            $rows[] = ['Outside monitor', 'No pings yet', 'warn', 'Add a free monitor (for example UptimeRobot) for the address shown below. It records an uptime history here and e-mails you when the site is down.'];
+            $rows[] = ['Outside monitor', 'No pings yet', 'warn', 'Add a free monitor (for example UptimeRobot) for the address shown below, or switch this check off below if you do not want one.'];
         } else {
             $age = max(0, (int) $age);
-            $rows[] = ['Outside monitor', 'Last ping ' . health_ago($age) . ' ago', $age > 1200 ? 'warn' : 'ok', 'A good monitor pings every 5 minutes. No ping for 20 minutes usually means the site was down or the monitor stopped.'];
+            $rows[] = ['Outside monitor', 'Last ping ' . health_ago($age) . ' ago', $age > 1200 ? 'warn' : 'ok', $age > 1200 ? 'No ping for more than 20 minutes: the monitor was stopped or cannot reach the site (some free hosts block monitors). The site itself may be fine. If you do not use a monitor, switch this check off below.' : 'A good monitor pings every 5 minutes. No ping for 20 minutes usually means the site was down or the monitor stopped.'];
         }
     } catch (Throwable $e) {
         // history is optional
