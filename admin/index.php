@@ -32,16 +32,40 @@ $audit = admin_can($conn, $admin['role'], 'log')
     ? $conn->query("SELECT l.action, l.details, l.created_at, u.name FROM user_logs l LEFT JOIN users u ON u.id = l.user_id WHERE l.action LIKE 'admin\\_%'" . admin_hide_super_sql($admin) . " ORDER BY l.id DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC)
     : [];
 
-require_once __DIR__ . '/../modules/features/lib.php';
-$offNow = array_map(fn($id) => features_flat()[$id]['label'], features_off_list(true));
+require_once __DIR__ . '/../modules/admin/attention.php';
+$attention = admin_attention($conn, $admin);
 $hub = admin_visible_menu($conn, $admin['role']);
 unset($hub['Overview']);
 admin_page_start(['title' => 'Admin overview', 'sub' => 'How ExpenseFlow is doing', 'active' => 'ov']);
 $stat = fn($label, $n, $icon) => '<div class="g card stat"><div><div class="k">' . e($label) . '</div><div class="big2">' . number_format($n) . '</div></div><div class="ibx">' . ef_icon($icon) . '</div></div>';
 ?>
-<?php if ($offNow && admin_can($conn, $admin['role'], 'set')): ?>
-<div class="g card ahub-off"><b>Switched off right now:</b> <?= e(implode(', ', $offNow)) ?>. <a href="<?= e(ef_url('admin/features.php')) ?>">Open Features on/off →</a></div>
-<?php endif; ?>
+<?php $nBad = count(array_filter($attention, fn($a) => $a['level'] !== 'info')); ?>
+<div class="g card attn <?= $attention ? ($nBad ? 'has' : 'info') : 'ok' ?>" id="attention">
+  <div class="t"><?= ef_icon($attention ? 'bell' : 'ck') ?> <?= $attention ? 'Needs your attention' . ($nBad ? ' (' . $nBad . ')' : '') : 'All clear' ?></div>
+<?php if (!$attention): ?>
+  <p class="k" style="margin:0">Nothing needs your attention right now: the website is healthy, no one is waiting for an answer and the backup is recent.</p>
+<?php else: foreach ($attention as $a): ?>
+  <div class="attn-row <?= e($a['level']) ?>">
+    <i aria-hidden="true"></i>
+    <span><b><?= e($a['title']) ?></b><small><?= e($a['detail']) ?></small></span>
+    <a class="btn sm" href="<?= e(ef_url($a['url'])) ?>"><?= e($a['go']) ?></a>
+  </div>
+<?php endforeach; endif; ?>
+</div>
+<style>
+.attn{margin-bottom:14px;padding:14px 16px}
+.attn.ok{border-inline-start:4px solid #16a34a}.attn.has{border-inline-start:4px solid #dc2626}.attn.info{border-inline-start:4px solid #2563eb}
+.attn .t{display:flex;align-items:center;justify-content:flex-start;gap:8px;margin-bottom:6px}
+.attn-row{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line,rgba(120,130,150,.22))}
+.attn-row:first-of-type{border-top:0}
+.attn-row i{flex:none;width:10px;height:10px;border-radius:50%}
+.attn-row.bad i{background:#dc2626}.attn-row.warn i{background:#f59e0b}.attn-row.info i{background:#2563eb}
+.attn-row span{flex:1;min-width:0;display:block}
+.attn-row b{display:block;line-height:1.3}
+.attn-row small{display:block;margin-top:2px;line-height:1.4;opacity:.8}
+.attn-row .btn{flex:none;white-space:nowrap}
+@media(max-width:560px){.attn-row{flex-wrap:wrap;row-gap:8px}.attn-row span{flex:1 1 calc(100% - 24px)}.attn-row .btn{margin-inline-start:22px}}
+</style>
 <div class="G4a">
   <?= $stat('Total users', $total, 'users') ?>
   <?= $stat('New this month', $newMonth, 'pl') ?>

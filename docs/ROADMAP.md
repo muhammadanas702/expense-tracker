@@ -49,6 +49,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 101b | **Done:** Features on/off gets 6 more switches: Full report and downloads, Live exchange rates, Urdu language, App download buttons, Guides, Contact page (23 in total); links to a switched-off page disappear everywhere automatically | done |
 | 101c | **Done:** every admin page starts with a "What is this page?" box: section, plain description, and the everyday problems that send you there | done |
 | 101a | **Done:** Admin → Features on/off: 17 optional parts can be switched off/on, each with a plain-words description | done |
+| 102 | **Done:** Admin home "Needs your attention": website health, e-mail failures, waiting tickets, switched-off options, failed sign-ins, backups, each with a plain explanation and a button | done |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -788,4 +789,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 
 ## Part 101d — Cleanup after 101a/b/c
 - Removed a duplicate Features test (the real one is `tests/features_test.py`), fixed the Roadmap row that still said 101b was planned, made the "Website health" link on the Features page a proper tap-sized button, and made the Branding edit-mode test robust against the new "What is this page?" box. No behaviour change; web-only, no APK/exe build.
+
+## Part 102 — Admin home: "Needs your attention"
+- The top of the admin home page now lists what needs a staff member's attention today, worst first, each in plain words with a button to the page that fixes it: website paused (maintenance), failing website-health checks, e-mails that could not be sent in the last 24 h, users waiting for a support answer, options switched off, many failed sign-ins, an old/missing backup. Nothing wrong = a green "All clear".
+- Each staff member only sees rows for pages they may open (a Support-role staff member sees only the support row). Every check is wrapped: one failing check never breaks the page. Mobile: buttons drop under the text and stay tap-sized.
+- New `modules/admin/attention.php`; test `tests/admin_attention_test.py`. Web-only: no APK/exe build needed.
 
