@@ -96,7 +96,7 @@ with sync_playwright() as p:
     pg.reload(); pg.wait_for_selector('.bt-bar')
     ok(pg.locator('text=Take a look').count() >= 1, 'it is still there after a reload')
     pg.click('.bt-bar .go'); pg.wait_for_url('**/admin/branding.php'); 
-    ok(pg.url.endswith('/admin/branding.php') and pg.locator('text=Start editing texts').count() == 1, 'Done returns to Branding and edit mode is off')
+    ok(pg.url.endswith('/admin/branding.php') and pg.locator('button:has-text("Start editing texts")').count() == 1, 'Done returns to Branding and edit mode is off')
     b.close()
 ok('Take a look' in visible(anon('/')), 'visitors see the text edited in the browser')
 clean()
