@@ -70,3 +70,19 @@ table.tbl td small{display:block;color:var(--mu);font-size:.75rem}
 .ap-when li small{display:block;opacity:.75}
 .ap-help{align-self:center;font-size:.88rem;display:inline-flex;align-items:center;min-height:36px}
 @media(max-width:700px){.ap-intro{padding:10px 12px}.ap-in1{flex-basis:100%}}
+
+
+/* Part 103a: admin polish */
+/* the "When do I need this page?" box: the global details{padding;margin} rule made it ~50px too tall; now it is one tidy row (description left, link right) */
+.ap-intro{align-items:center;padding:10px 16px}
+.ap-when{flex:0 0 auto;padding:0;margin:0;background:none;border:0;box-shadow:none}
+.ap-when[open]{flex:1 1 100%}
+.ap-when summary{justify-content:flex-start;font-size:.88rem}
+.ap-when ul{margin:4px 0 6px}
+.ap-intro p{margin-top:2px}
+@media(max-width:700px){.ap-intro{padding:10px 12px;align-items:flex-start}.ap-when{flex:1 1 100%}.ap-when summary{min-height:34px}}
+/* on a computer the phone-only second line of a table cell stays hidden (it repeated the Details column) */
+table.tbl td small.dt-m{display:none}
+@media(max-width:700px){table.tbl td small.dt-m{display:block}}
+/* phone header: the role chip pushed the page title; the avatar and the menu already tell who is signed in */
+@media(max-width:700px){.tb>.tag{display:none}}

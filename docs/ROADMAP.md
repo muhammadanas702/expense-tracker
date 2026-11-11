@@ -50,6 +50,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 101c | **Done:** every admin page starts with a "What is this page?" box: section, plain description, and the everyday problems that send you there | done |
 | 101a | **Done:** Admin → Features on/off: 17 optional parts can be switched off/on, each with a plain-words description | done |
 | 102 | **Done:** Admin home "Needs your attention": website health, e-mail failures, waiting tickets, switched-off options, failed sign-ins, backups, each with a plain explanation and a button | done |
+| 103a | **Done:** Admin UI polish: compact "What is this page?" box, tidy phone tables (Users, Support), audit log without repeated text, header chip hidden on phone | done |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -795,3 +796,6 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Each staff member only sees rows for pages they may open (a Support-role staff member sees only the support row). Every check is wrapped: one failing check never breaks the page. Mobile: buttons drop under the text and stay tap-sized.
 - New `modules/admin/attention.php`; test `tests/admin_attention_test.py`. Web-only: no APK/exe build needed.
 
+## Part 103a — Admin UI polish
+- Audit of 20 admin pages at phone (390px), tablet (820px) and desktop (1366px). Fixed: the "What is this page?" box was 150–190px tall because the global `details` padding leaked into it (now about 100–120px); the role chip no longer crowds the page title on phones; the Users and Support lists become tap-friendly cards on phones; the audit log no longer shows the same text twice on desktop.
+- CSS only in `assets/admin.css` plus two table class changes (`admin/users.php`, `admin/support.php`). Test: `tests/admin_ui_test.py` (no sideways scrolling on any admin page at 3 widths, compact box, no duplicate text, card rows). Web-only: no APK/exe build needed.

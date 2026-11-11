@@ -65,7 +65,7 @@ admin_page_start(['title' => 'Users', 'sub' => $total . ' account' . ($total ===
       <a class="chip<?= $sortKey === $k ? ' on' : '' ?>" href="<?= e($url(['s' => $k === 'new' ? '' : $k, 'p' => ''])) ?>"><?= e($l) ?></a>
     <?php endforeach; ?>
   </div>
-  <div class="tbl-wrap"><table class="tbl">
+  <div class="tbl-wrap"><table class="tbl wide">
     <tr><th>User</th><th class="hm">Joined</th><th class="hm">Last login</th><th>Role</th><th>Status</th><th></th></tr>
     <?php foreach ($users as $u): $m = admin_can_manage($admin, $u); ?>
     <tr>
