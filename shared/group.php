@@ -25,8 +25,8 @@ $nameIds = array_merge([], ...array_values(array_map('array_keys', $nets)));
 foreach ($pairs as $list) { foreach ($list as $p) { $nameIds[] = $p['from']; $nameIds[] = $p['to']; } }
 $nameMap = shared_names($conn, $nameIds);
 $nm = fn(int $id) => $nameMap[$id] ?? 'Former member';
-$cmts = function_exists('comments_for_expenses') ? comments_for_expenses($conn, array_map(fn($x) => (int) $x['id'], $expenses)) : [];
-$rcpts = function_exists('receipts_for_expenses') ? receipts_for_expenses($conn, array_map(fn($x) => (int) $x['id'], $expenses)) : [];
+$cmts = (ef_feature_on('comments') && function_exists('comments_for_expenses')) ? comments_for_expenses($conn, array_map(fn($x) => (int) $x['id'], $expenses)) : [];
+$rcpts = (ef_feature_on('receipts') && function_exists('receipts_for_expenses')) ? receipts_for_expenses($conn, array_map(fn($x) => (int) $x['id'], $expenses)) : [];
 $splitNames = [];
 if ($expenses) {
     $ids = array_map(fn($x) => (int) $x['id'], $expenses);
@@ -103,7 +103,7 @@ usort($debts, fn($x, $y) => (($y['from'] === $user_id || $y['to'] === $user_id) 
         <?php foreach ($splitNames[(int) $x['id']] ?? [] as [$nm, $sh]): ?><small><?= e($nm) ?>: <?= shared_money($sh, $cur) ?></small><?php endforeach; ?>
         <?php if (!empty($x['note'])): ?><small>Note: <?= e($x['note']) ?></small><?php endif; ?>
       </details>
-      <?php if (function_exists('comments_add')): $xc = $cmts[(int) $x['id']] ?? []; ?>
+      <?php if (ef_feature_on('comments') && function_exists('comments_add')): $xc = $cmts[(int) $x['id']] ?? []; ?>
       <details<?= $xc && isset($_GET['c']) && (int) $_GET['c'] === (int) $x['id'] ? ' open' : '' ?>><summary class="k" style="cursor:pointer"><?= ef_icon('msg') ?> Comments<?= $xc ? ' (' . count($xc) . ')' : '' ?></summary>
         <?php foreach ($xc as $c): ?>
         <small style="display:flex;gap:8px;align-items:flex-start;margin:6px 0"><span style="flex:1;overflow-wrap:anywhere"><b><?= (int) $c['user_id'] === $user_id ? 'You' : e($c['name'] ?? 'Former member') ?></b> · <?= function_exists('activity_ago') ? e(activity_ago((int) $c['age_s'], $c['created_at'])) : '' ?><br><?= nl2br(e($c['body'])) ?></span>

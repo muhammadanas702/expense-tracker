@@ -37,7 +37,7 @@ ef_page_start(['title' => 'Shared Overview', 'sub' => 'Who owes whom, across all
 </div>
 <?php endif; ?>
 
-<?php $recent = function_exists('activity_feed') ? activity_feed($conn, $user_id, 0, 5) : []; ?>
+<?php $recent = (ef_feature_on('activity') && function_exists('activity_feed')) ? activity_feed($conn, $user_id, 0, 5) : []; ?>
 <?php if ($recent): ?>
 <div class="g card" style="margin-bottom:14px">
   <div class="t">Recent activity <a href="<?= e(ef_url('activity/index.php')) ?>">View all →</a></div>
