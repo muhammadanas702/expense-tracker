@@ -99,6 +99,14 @@ admin_page_start(['title' => 'Website health', 'sub' => $lbl[$overall], 'active'
   <h3 style="margin:0 0 6px">Watch the site 24/7 (free)</h3>
   <small class="k" style="display:block;margin-bottom:8px">This page can only show what the site itself sees. To know when the whole site is down, add a free monitor such as UptimeRobot or Better Stack: create an HTTP(s) monitor for this address and set the interval to 5 minutes. Every ping is saved above, and the monitor e-mails you when it fails.</small>
   <input class="inp" type="text" readonly value="<?= e($pingUrl) ?>" aria-label="Monitor address" onclick="this.select()">
+  <form method="post" action="health-action.php" style="margin:10px 0 0">
+    <?= csrf_field() ?>
+    <?php if (health_monitor_off()): ?>
+    <button class="btn sm ghost" type="submit" name="do" value="monitor_on">Switch the monitor check on again</button>
+    <?php else: ?>
+    <button class="btn sm ghost" type="submit" name="do" value="monitor_off">I do not use an outside monitor: stop warning me</button>
+    <?php endif; ?>
+  </form>
 </div>
 
 <?php if ($tail): ?>
