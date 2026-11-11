@@ -17,6 +17,14 @@ if ($do === 'probe') {
         admin_audit($conn, $admin['id'], 'health_probe', 'Page speed check: ' . ($bad === 0 ? 'all pages answered' : $bad . ' page(s) slow or failing'));
         $_SESSION[$bad === 0 ? 'success' : 'error'] = $bad === 0 ? 'All pages answered.' : $bad . ' page(s) were slow or did not answer. See the list below.';
     }
+} elseif ($do === 'monitor_off' || $do === 'monitor_on') {
+    $off = $do === 'monitor_off';
+    if (health_monitor_set_off($off)) {
+        admin_audit($conn, $admin['id'], 'health_monitor', $off ? 'Switched the outside-monitor check off' : 'Switched the outside-monitor check on');
+        $_SESSION['success'] = $off ? 'The outside-monitor check is off. It no longer counts as a warning.' : 'The outside-monitor check is on again.';
+    } else {
+        $_SESSION['error'] = 'Could not save this choice (the storage folder is not writable).';
+    }
 } elseif ($do === 'record') {
     $ms = health_db_ms($conn);
     health_record($conn, 'manual', $ms, $ms !== null);
