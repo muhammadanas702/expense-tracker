@@ -1,64 +1,55 @@
 <?php
-/** Feature switches: turn an option off (hidden + blocked) when it misbehaves, and on again later. Needs the "set" permission. */
+/** Features on/off: every optional part of the app with a switch and a plain-words description. */
 require_once __DIR__ . '/auth.php';
 admin_need('set');
 require_once __DIR__ . '/../modules/features/lib.php';
 
-$cat = features_catalog();
-$off = features_off();
-$saved = features_saved_off();
-$sections = [];
-foreach ($cat as $id => $f) {
-    $sections[$f['section']][$id] = $f;
-}
-$nOff = count($off);
-
-admin_page_start(['active' => 'feat', 'title' => 'Features on / off', 'sub' => 'Switch an option off when it is not working, switch it on again when fixed']);
+$off = features_off_list(true);
+$n = count($off);
+admin_page_start(['title' => 'Features on/off', 'sub' => $n ? $n . ' switched off' : 'Everything is on', 'active' => 'feat']);
 ?>
 <style>
-.ft-note{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;margin-bottom:14px}
-.ft-note p{margin:0;line-height:1.5}
-.ft-sec{margin:18px 2px 8px;font-weight:700;font-size:.95rem}
-.ft-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
-.ft{display:flex;flex-direction:column;gap:8px;padding:14px 16px;min-width:0}
-.ft.off{border-inline-start:4px solid #dc2626}
-.ft.on{border-inline-start:4px solid #16a34a}
-.ft-h{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-.ft-h b{font-size:1rem}
-.ft p{margin:0;line-height:1.45}
-.ft .eff{font-size:.86rem;opacity:.85;line-height:1.4}
-.ft form{margin:0;margin-top:auto;padding-top:4px}
-.ft .btn{width:100%}
-.ft .btn.stop{background:#dc2626;background-image:none;color:#fff}
-@media(max-width:420px){.ft-grid{grid-template-columns:1fr}}
+.ft-grp{margin-bottom:14px}.ft-grp h3{margin:0 0 4px}
+.ft{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-top:1px solid var(--line,#e2e8f0)}
+.ft:first-of-type{border-top:0}
+.ft .tx{flex:1;min-width:0}.ft .tx b{font-size:1rem}.ft .tx p{margin:4px 0 0;line-height:1.5}
+.ft .wh{display:block;margin-top:6px;font-size:.84rem;color:#64748b}
+.ft form{margin:0;flex:none}
+.sw{display:inline-flex;align-items:center;gap:10px;border:0;background:none;cursor:pointer;font:inherit;font-weight:700;padding:4px;min-height:44px}
+.sw i{position:relative;width:52px;height:30px;border-radius:99px;background:#cbd5e1;transition:background .2s;flex:none}
+.sw i:after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.sw.on i{background:#0d9f6e}.sw.on i:after{transform:translateX(22px)}
+.sw span{min-width:28px;text-align:left}.sw.on span{color:#0d9f6e}.sw:not(.on) span{color:#b45309}
+.ft.isoff .tx b{color:#92400e}
+.ft .tag{margin-inline-start:6px}
+@media(max-width:560px){.ft{flex-direction:column;gap:6px}.ft form{align-self:flex-start}}
 </style>
-<div class="g card ft-note">
-  <?= ef_icon('shield') ?>
-  <p><b>How this works.</b> Turning an option <b>off</b> hides it from the menus and blocks its pages, so nobody can open it, even with an old link. <b>No data is deleted.</b> Turn it on again and everything is back. Use this when an option shows an error or behaves badly while you fix it.
-  <?php if ($nOff > 0): ?><br><b style="color:#dc2626"><?= (int) $nOff ?> option<?= $nOff === 1 ? ' is' : 's are' ?> off right now.</b><?php else: ?><br>Everything is on right now.<?php endif; ?></p>
+<div class="g card" style="margin-bottom:14px">
+  <b>Something not working properly?</b>
+  <p class="mut" style="margin:4px 0 10px">Switch that part <b>off</b> here. People stop seeing it, nothing breaks, and nobody's data is deleted. Switch it <b>on</b> again when it is fixed. Changes work straight away for everyone.</p>
+<?php if ($n): ?>
+  <form method="post" action="features-action.php" style="margin:0"><?= csrf_field() ?><button class="btn o sm" type="submit" name="do" value="all_on">Turn everything back on</button></form>
+<?php else: ?>
+  <small class="k">Nothing is switched off right now.</small>
+<?php endif; ?>
 </div>
-<?php foreach ($sections as $title => $items): ?>
-<div class="ft-sec"><?= e($title) ?></div>
-<div class="ft-grid">
-<?php foreach ($items as $id => $f):
-    $isOff = in_array($id, $off, true);
-    $byParent = $isOff && !in_array($id, $saved, true); // off only because the option it needs is off
-?>
-  <div class="g card ft <?= $isOff ? 'off' : 'on' ?>" id="f-<?= e($id) ?>">
-    <div class="ft-h"><b><?= e($f['label']) ?></b><span class="tag <?= $isOff ? 'rs' : 'tg' ?>"><?= $isOff ? 'Off' : 'On' ?></span></div>
-    <p><?= e($f['desc']) ?></p>
-    <p class="eff"><b>If you turn it off:</b> <?= e($f['off']) ?></p>
-    <?php if ($byParent): ?>
-      <small class="k">It is off because "<?= e($cat[$f['needs']]['label']) ?>" is off. Turn that one on to bring this back.</small>
-    <?php else: ?>
+<?php foreach (features_catalog() as $group => $list): ?>
+<div class="g card ft-grp">
+  <h3><?= e($group) ?></h3>
+<?php foreach ($list as $id => $f): $on = !in_array($id, $off, true); $parentOff = !empty($f['needs']) && !ef_feature_on($f['needs']); ?>
+  <div class="ft<?= $on && !$parentOff ? '' : ' isoff' ?>" id="f-<?= e($id) ?>">
+    <div class="tx">
+      <b><?= e($f['label']) ?></b><?php if (!$on): ?><span class="tag tx">OFF</span><?php elseif ($parentOff): ?><span class="tag tx">OFF (because <?= e(features_flat()[$f['needs']]['label']) ?> is off)</span><?php endif; ?>
+      <p class="mut"><?= e($f['desc']) ?></p>
+      <span class="wh"><b>When off:</b> <?= e($f['off']) ?></span>
+    </div>
     <form method="post" action="features-action.php">
       <?= csrf_field() ?><input type="hidden" name="id" value="<?= e($id) ?>">
-      <?php if (isset($f['needs']) && !$isOff): ?><small class="k" style="display:block;margin-bottom:6px">Works only while "<?= e($cat[$f['needs']]['label']) ?>" is on.</small><?php endif; ?>
-      <button class="btn sm <?= $isOff ? '' : 'stop' ?>" type="submit" name="do" value="<?= $isOff ? 'on' : 'off' ?>"<?= $isOff ? '' : ' onclick="return confirm(' . e(json_encode('Turn off ' . $f['label'] . '? Users will not be able to open it until you turn it on again.')) . ')"' ?>><?= $isOff ? 'Turn on' : 'Turn off' ?></button>
+      <button class="sw<?= $on ? ' on' : '' ?>" type="submit" name="do" value="<?= $on ? 'off' : 'on' ?>" role="switch" aria-checked="<?= $on ? 'true' : 'false' ?>" aria-label="<?= e($f['label']) ?>: <?= $on ? 'on, press to switch off' : 'off, press to switch on' ?>"><i></i><span><?= $on ? 'On' : 'Off' ?></span></button>
     </form>
-    <?php endif; ?>
   </div>
 <?php endforeach; ?>
 </div>
 <?php endforeach; ?>
-<?php admin_page_end(); ?>
+<div class="g card"><small class="k">Core parts (login, adding income and expenses, the dashboard, reports, settings) cannot be switched off. If something there is broken, check <a href="health.php">Website health</a>.</small></div>
+<?php admin_page_end();

@@ -1,7 +1,4 @@
 <?php
-if (is_file(__DIR__ . '/../modules/features/lib.php')) {
-    require_once __DIR__ . '/../modules/features/lib.php'; // staff switches (Admin > Features)
-}
 /**
  * Module registry.
  *
@@ -13,10 +10,12 @@ if (is_file(__DIR__ . '/../modules/features/lib.php')) {
  * Manifest format (returned array):
  *   'id'      => 'personal'            unique name
  *   'mode'    => 'p' | 's'             p = Personal (teal), s = Shared (blue)
- *   'enabled' => true|false            false hides it everywhere
+ *   'enabled' => true|false            false hides it everywhere (the owner can also switch a module off in Admin > Features)
  *   'nav'     => [[url, icon, label, key], ...]   key marks the active item
  *   'order'   => 50                    optional; lower comes first (the first Shared item is the Shared home)
  */
+require_once __DIR__ . '/../modules/features/lib.php';
+
 function ef_modules(): array
 {
     static $cache = null;
@@ -24,10 +23,9 @@ function ef_modules(): array
         return $cache;
     }
     $cache = [];
-    $off = function_exists('features_off') ? features_off() : []; // staff switches (Admin > Features)
     foreach (glob(__DIR__ . '/../modules/*/module.php') ?: [] as $file) {
         $m = include $file;
-        if (is_array($m) && !empty($m['id']) && !empty($m['enabled']) && !in_array($m['id'], $off, true)) {
+        if (is_array($m) && !empty($m['id']) && !empty($m['enabled']) && ef_feature_on((string) $m['id'])) {
             $cache[$m['id']] = $m;
         }
     }

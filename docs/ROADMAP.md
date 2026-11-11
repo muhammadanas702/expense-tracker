@@ -46,8 +46,10 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 100b | **Done:** Branding part 2: click-to-edit texts (landing + whole web app, English and Urdu) from Admin → Branding | done |
 | 100c | **Done:** Branding part 3: landing screenshots (home + sign-in panels) and share-preview (social) image replaceable from Admin → Branding | done |
 | 100d | **Done:** Branding part 4: the logo also becomes favicon, home-screen icon, in-app logo, e-mail logo and the web-app manifest (installed-app name, colour, icons) | done |
-| 101a | **Done:** Features on / off: staff can turn any user option off (hidden + blocked) from Admin and on again | done |
-| 101b | **Planned:** Admin panel in clear sections, a plain description for every option and a "Something is wrong? Where to look" guide | todo |
+| 101b | **Done:** Features on/off gets 6 more switches: Full report and downloads, Live exchange rates, Urdu language, App download buttons, Guides, Contact page (23 in total); links to a switched-off page disappear everywhere automatically | done |
+| 101c | **Done:** every admin page starts with a "What is this page?" box: section, plain description, and the everyday problems that send you there | done |
+| 101a | **Done:** Admin → Features on/off: 17 optional parts can be switched off/on, each with a plain-words description | done |
+| 101b | **Planned:** Admin panel in clear sections, a plain description for every page and option, a "which page fixes my problem" guide | todo |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -766,12 +768,22 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Still built-in: the APK / Windows exe icon and the Play Store listing (they live inside the installed app; a rebuild would be needed), and the push-notification icon.
 - Tests: `tests/brand_icons_test.py` (22 checks). Web-only: no APK/exe build needed.
 
-## Part 101a — Features on / off
+## Part 101a — Features on/off
 
-- Admin → Features on / off: 14 options (Budgets, Savings goals, Reminders, Quick add, Search, Getting-started checklist, Shared / split bills, Friends, Activity + bell, Comments, Receipt photos, Google sign-in, Help & support, Phone alerts). Each card says in plain words what the option is and what people notice when it is off; one button turns it off or on (confirm before off).
-- Off = hidden from menus/dashboard/profile **and** blocked at the page (friendly "switched off for now" page, HTTP 503; JSON for script callers). No data is deleted; staff pages are never blocked. Options that need another one (Friends/Activity/Comments/Receipts need Shared) go off with it and the card says so.
-- Stored in `storage/features-off.json` (not the database), so the switches work even when the database is the broken part; a damaged file fails open (everything stays on). Every change is in the audit log ("Switched an option on or off").
-- Built on the existing module registry (`ef_modules()` skips off options) plus a central gate in `config/db.php` (`features_enforce()`); UI spots that only checked `function_exists` now also check `ef_feature_on()`.
-- Test: `tests/admin_features_test.py` (60 checks, includes switching every option off and crawling 30 pages for errors). Web-only: no APK/exe build needed.
-- Next (101b): admin panel regrouped into clear sections with a plain description for each option and a "Something is wrong? Where to look" guide.
+- Admin → Features on/off (System section): every optional part of the app has a switch and a plain-words description plus a "When off" line. Off = the part vanishes from menus and its pages show a friendly "This part is switched off for now" (HTTP 503, Urdu too); nobody's data is touched. "Turn everything back on" undoes all.
+- Switchable (17): Budgets, Savings goals, Reminders, Quick add, Search, Getting-started tips, Phone notifications; Groups and split bills (turns off Friends, Activity, Comments, Receipts as well), Friends, Activity, Comments, Receipts; New sign-ups, Sign in with Google, E-mailed login code; Help and support, Announcements. Core parts (login, income/expense, dashboard, reports, settings) cannot be switched off.
+- Stored in `storage/features.json` (a file, not the database, so it works even when the database is the problem). `ef_modules()` now honours it, so menus hide automatically; `ef_feature_gate()` in `includes/security.php` blocks the pages by path. Every change is written to the audit log.
+- Tests: `tests/features_test.py` (79 checks; every feature off one by one and all at once: no 500 anywhere). Web-only: no APK/exe build needed.
+
+## Part 101b — More things the owner can switch off
+
+- Admin → Features on/off now has 23 switches. New: **Full report and downloads** (CSV/Excel/PDF), **Live exchange rates** (off = app uses only the last saved rates and never calls the internet), **Urdu language** (off = switch hidden, English only, even `?lang=ur`), **App download buttons** (APK/Windows on the home page and in Settings), **Guides**, **Contact page**.
+- New automatic output filter `ef_feature_hide_links()`: for every switched-off feature the links to its pages (menu buttons, footer links, "open report" links) are removed from the page, so nothing leads to a "switched off" page by accident. Staff panel pages are never filtered.
+- Tests: `tests/features_test.py` extended (all 23 on/off one by one and all at once, link removal, language, downloads, rates). Web-only: no APK/exe build needed.
+
+## Part 101c — "What is this page?" on every admin page
+
+- Under the title of every admin page (except Dashboard, "Where do I go?" and "All pages"): `Section › Page`, one plain sentence about what the page is for, and a "When do I need this page?" list with the everyday problems that send you there (taken from the "Where do I go?" list, so the two never disagree), plus a link to "Where do I go?".
+- The problem list moved to `modules/admin/help-topics.php` and is shared by both. Add a new admin page to the menu with its description and it gets the box automatically.
+- Tests: `tests/admin_sections_http_test.py` extended (12 pages, role check, pages without a box). Web-only: no APK/exe build needed.
 
