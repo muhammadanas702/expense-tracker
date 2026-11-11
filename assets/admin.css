@@ -86,3 +86,14 @@ table.tbl td small.dt-m{display:none}
 @media(max-width:700px){table.tbl td small.dt-m{display:block}}
 /* phone header: the role chip pushed the page title; the avatar and the menu already tell who is signed in */
 @media(max-width:700px){.tb>.tag{display:none}}
+/* Part 103a: dark mode contrast (text was too dim on the dark panels) */
+.btn.e2{background:#c2410c}
+html[data-theme=dark] .tag.rs{color:#fbbf24}
+html[data-theme=dark] .tag.tb2{background:rgba(96,165,250,.16);color:#93c5fd}
+html[data-theme=dark] .ap-when summary,html[data-theme=dark] .t a:not(.btn){color:#7cc4ff}
+html[data-theme=dark] .btn.e2{background:#fb923c;color:#2a1100}
+html[data-theme=dark] .row>b[style*="#dc2626"]{color:#f87171!important}
+html[data-theme=dark] .row>b[style*="#0d9f6e"]{color:#34d399!important}
+html[data-theme=dark] .ft .wh{color:#9db0c7}
+html[data-theme=dark] .sw.on span{color:#34d399}
+html[data-theme=dark] .sw:not(.on) span{color:#fbbf24}

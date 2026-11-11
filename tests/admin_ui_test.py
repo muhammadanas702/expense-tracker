@@ -37,6 +37,16 @@ with sync_playwright() as p:
         else:
             pg.goto(B + '/admin/audit.php')
             ok(visible(pg, 'table.tbl td small.dt-m') == 0, f'{w}px: audit log does not repeat text under the action')
+    pg = b.new_context(viewport={'width': 1366, 'height': 800}).new_page()
+    pg.goto(B + '/auth/login.php'); pg.fill('input[name=email]', 'ui@ad.local'); pg.fill('input[name=password]', 'Test#12345'); pg.click('button[type=submit]'); pg.wait_for_load_state()
+    pg.goto(B + '/admin/users.php'); pg.evaluate("document.documentElement.setAttribute('data-theme','dark')"); pg.wait_for_timeout(300)
+    def ratio(sel):
+        return pg.evaluate("""s=>{const e=document.querySelector(s);if(!e)return 0;const lum=c=>{const a=c.match(/[\\d.]+/g).slice(0,3).map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)});return .2126*a[0]+.7152*a[1]+.0722*a[2]};
+        const st=getComputedStyle(e);let bg=null,x=e;while(x){const c=getComputedStyle(x).backgroundColor;const m=c.match(/[\\d.]+/g);if(m&&(m.length<4||+m[3]>.5)){bg=c;break}x=x.parentElement}
+        const a=lum(st.color),b=lum(bg||'rgb(11,18,32)');return (Math.max(a,b)+.05)/(Math.min(a,b)+.05)}""", sel)
+    ok(ratio('.ap-when summary') >= 4.5, 'dark: "When do I need this page?" link is readable')
+    ok(ratio('.tb .tag.rs') >= 4.5, 'dark: Super Admin chip is readable')
+    ok(ratio('.btn.e2') >= 4.5, 'dark: orange Block button is readable')
     b.close()
 sql("DELETE FROM users WHERE email='ui@ad.local'")
 print('ALL PASSED' if not fails else f'{fails} FAILED'); raise SystemExit(1 if fails else 0)
