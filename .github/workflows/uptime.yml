@@ -1,0 +1,84 @@
+name: Uptime monitor
+
+# Every ~10 minutes: ask the website if it is alive. When it is down a GitHub issue "ExpenseFlow is down" is opened
+# (GitHub e-mails the repository owner) and closed again when the site is back. The public status page is refreshed
+# on the `status-page` branch only when the state changes (turn on GitHub Pages for that branch to see it).
+# The address comes from the repository variable SITE_URL (Settings > Secrets and variables > Actions > Variables).
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: expenseflow-uptime
+  cancel-in-progress: false
+
+jobs:
+  check:
+    if: github.repository == 'muhammadanas702/expense-tracker'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      SITE_URL: ${{ vars.SITE_URL || 'https://expenseflow.rf.gd' }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Ask the website
+        id: probe
+        run: python3 .github/scripts/uptime_check.py "$SITE_URL" --out /tmp/result.json
+
+      - name: Open or close the "down" issue
+        run: |
+          set -e
+          STATE=$(python3 -c "import json;print(json.load(open('/tmp/result.json'))['state'])")
+          DETAIL=$(python3 -c "import json;print(json.load(open('/tmp/result.json'))['detail'])")
+          WHEN=$(python3 -c "import json;print(json.load(open('/tmp/result.json'))['checked_at'])")
+          gh label create site-down --color B60205 --description "ExpenseFlow website is down" --force >/dev/null 2>&1 || true
+          OPEN=$(gh issue list --label site-down --state open --json number --jq '.[0].number // empty')
+          if [ "$STATE" = "down" ] && [ -z "$OPEN" ]; then
+            gh issue create --label site-down --title "ExpenseFlow is down" --body "The monitor could not reach **$SITE_URL** (3 tries over about a minute) at $WHEN.
+
+          $DETAIL
+
+          What to do: open the address in a browser; check the InfinityFree panel (account status, MySQL); if the host is down, wait or switch to the standby host (see docs/RESILIENCE.md). This issue closes by itself when the site is back."
+          elif [ "$STATE" = "up" ] && [ -n "$OPEN" ]; then
+            gh issue comment "$OPEN" --body "The website answers again ($WHEN)."
+            gh issue close "$OPEN"
+          fi
+
+      - name: Refresh the status page (only when the state changed)
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p /tmp/page && cp .github/status-page/index.html /tmp/page/index.html
+          if git ls-remote --exit-code --heads origin status-page >/dev/null 2>&1; then
+            git fetch --depth=1 origin status-page
+            git show FETCH_HEAD:status.json > /tmp/old.json 2>/dev/null || echo '{}' > /tmp/old.json
+          else
+            echo '{}' > /tmp/old.json
+          fi
+          python3 - <<'PY'
+          import json
+          r = json.load(open('/tmp/result.json')); o = json.load(open('/tmp/old.json'))
+          changed = o.get('state') != r['state']
+          out = {'state': r['state'], 'detail': r['detail'], 'url': r['url'],
+                 'since': r['checked_at'] if changed else o.get('since', r['checked_at']),
+                 'last_change': r['checked_at'] if changed else o.get('last_change', r['checked_at'])}
+          json.dump(out, open('/tmp/page/status.json', 'w'), indent=1)
+          open('/tmp/changed', 'w').write('1' if changed or not o else '0')
+          PY
+          if [ "$(cat /tmp/changed)" = "1" ]; then
+            git checkout --orphan status-page-new
+            git rm -rf . >/dev/null 2>&1 || true
+            cp /tmp/page/index.html /tmp/page/status.json . && touch .nojekyll
+            git add index.html status.json .nojekyll
+            git commit -m "Status: $(python3 -c "import json;print(json.load(open('status.json'))['state'])")"
+            git push --force origin status-page-new:status-page
+          fi
