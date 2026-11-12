@@ -51,6 +51,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 101a | **Done:** Admin → Features on/off: 17 optional parts can be switched off/on, each with a plain-words description | done |
 | 102 | **Done:** Admin home "Needs your attention": website health, e-mail failures, waiting tickets, switched-off options, failed sign-ins, backups, each with a plain explanation and a button | done |
 | 103a | **Done:** Admin UI polish: compact "What is this page?" box, tidy phone tables (Users, Support), audit log without repeated text, header chip hidden on phone | done |
+| 104 | **Done:** Off-site backup: the newest backup is encrypted and sent daily to a private GitHub repository (Admin > Backups), with status, "send now", switch-off and an admin-home warning | done |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -801,3 +802,10 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - CSS only in `assets/admin.css` plus two table class changes (`admin/users.php`, `admin/support.php`). Test: `tests/admin_ui_test.py` (no sideways scrolling on any admin page at 3 widths, compact box, no duplicate text, card rows, dark-mode contrast).
 - Dark mode: the "Super Admin" chip, the "When do I need this page?" link, audit-log chips, the orange Block button, red/green health values and the Features hints were too dim; they now meet readable contrast. Web-only: no APK/exe build needed.
 - Website health: the "Outside monitor: Last ping Xh ago" warning now explains its cause (monitor stopped or blocked by the free host) and has a button "I do not use an outside monitor: stop warning me" (and a way to switch it back on). Stored as the flag file `storage/health-monitor-off`, audited as `admin_health_monitor`; the admin home attention list follows it. Test: `tests/health_monitor_switch_test.py`.
+
+## Part 104 — Off-site backup (GitHub)
+- Why: backups lived only on the free host; if the host suspends the account, data and backups are lost together.
+- `modules/backup/offsite.php`: encrypts the newest backup (AES-256-GCM, same `EFBK1` format as the encrypted download, opened with `php tools/decrypt-backup.php`) and uploads it to `backups/<name>.enc` in a **private** GitHub repo through the contents API (curl). Public repositories are refused. The newest 30 copies are kept. Settings (repo, fine-grained token, passphrase) live in `storage/offsite.json` (mode 0600, storage is closed to the web). Switching off deletes the token and passphrase from the server.
+- Runs when a staff member opens the admin overview (free hosts have no cron), right after the automatic daily backup. A failure is remembered, retried after 30 minutes, shown on Admin > Backups and in "Needs your attention". Never breaks a page.
+- `admin/offsite-action.php` (save + test, send now, switch off; permission `backup`, CSRF, audited as `admin_backup_offsite`). The token and passphrase are never shown again.
+- Test: `tests/offsite_backup_test.py` (fake GitHub API: validation, public repo refused, bad token, encrypted upload that decrypts, no plain SQL, auto upload, trim to 30, failure warning, switch off, audit). Web-only: no APK/exe build needed.

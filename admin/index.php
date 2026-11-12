@@ -6,6 +6,10 @@ if (admin_can($conn, $admin['role'], 'backup')) {
     if (backup_auto_maybe($conn)) {
         admin_audit($conn, $admin['id'], 'backup_create', 'Automatic daily database backup');
     }
+    require_once __DIR__ . '/../modules/backup/offsite.php';
+    if (($up = offsite_maybe()) && $up[0]) {
+        admin_audit($conn, $admin['id'], 'backup_offsite', 'Automatic off-site backup');
+    }
 }
 
 $one = fn(string $sql, array $p = []) => (function () use ($conn, $sql, $p) { try { $s = $conn->prepare($sql); $s->execute($p); return (int) $s->fetchColumn(); } catch (Throwable $e) { return 0; } })();
