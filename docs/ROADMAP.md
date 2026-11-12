@@ -53,6 +53,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 103a | **Done:** Admin UI polish: compact "What is this page?" box, tidy phone tables (Users, Support), audit log without repeated text, header chip hidden on phone | done |
 | 104 | **Done:** Off-site backup: the newest backup is encrypted and sent daily to a private GitHub repository (Admin > Backups), with status, "send now", switch-off and an admin-home warning | done |
 | 105 | **Done:** Uptime monitor on GitHub Actions (every ~10 min, "ExpenseFlow is down" issue + e-mail, auto-close) and a public status page on the `status-page` branch; guide in `docs/RESILIENCE.md` | done |
+| 103c | **Done:** Full-app visual pass (phone + desktop, light/dark); report "All transactions" table now cards on phones (amount was off-screen) | done |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -816,3 +817,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Down: opens the issue "ExpenseFlow is down" (label `site-down`, GitHub e-mails the owner); recovered: comments and closes it.
 - Status page: `.github/status-page/index.html` is published with `status.json` to the branch `status-page` only when the state changes (turn on GitHub Pages for that branch once). Works while the site is down.
 - Tests: `tests/uptime_check_test.py` (8 website behaviours, retries, valid workflow). The status-branch shell logic was also run against a local bare repository (no commit when nothing changed, `since` kept). Web/CI only: no APK/exe build needed.
+
+## Part 103c — Full-app visual pass, report table on phones
+- Re-ran `tests/ui_audit.py` (app and admin, light and dark): no real findings (only the offline page's own check request). Then looked at the screens themselves at 390px and 1366px: dashboard, add expense, report, budgets, goals, reminders, shared, profile, quick add.
+- Found and fixed one real problem: Report > "All transactions" was a 620px-wide table inside a scroller, so on a phone the **Amount** column was off-screen. On phones each row is now a card (title and amount on top; date, category, method and the PKR value below). Desktop is unchanged (6 columns). `assets/polish.css`, classes `rtx/rd/rt/rc/rm/ra/rp` in `reports/view-report.php`.
+- It is the only table with a fixed minimum width outside the admin panel.
+- Test: `tests/report_phone_table_test.py` (360, 390, 1366px). Web only: no APK/exe build needed.

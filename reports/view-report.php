@@ -260,17 +260,17 @@ ef_page_start(['title' => 'Full Report', 'sub' => 'Filter, analyse and export', 
 <div class="g card">
     <div class="t">All transactions <span class="k"><?= count($rows) ?> entries</span></div>
     <div style="overflow-x:auto">
-    <table style="width:100%;border-collapse:collapse;font-size:.82rem;min-width:620px">
+    <table class="rtx" style="width:100%;border-collapse:collapse;font-size:.82rem;min-width:620px">
         <thead><tr style="text-align:left;color:var(--mu);font-size:.72rem;text-transform:uppercase"><th style="padding:8px 6px">Date</th><th>Title</th><th>Category</th><th>Method</th><th style="text-align:right">Amount</th><th style="text-align:right">PKR</th></tr></thead>
         <tbody>
         <?php foreach ($rows as $r): $isInc = $r['kind'] === 'income'; ?>
             <tr style="border-top:1px solid rgba(91,107,128,.14)">
-                <td style="padding:9px 6px;white-space:nowrap"><?= e(date('d M Y', strtotime($r['transaction_date']))) ?></td>
-                <td><?= e($r['title']) ?><?php if (!empty($r['note'])): ?><small style="display:block;color:var(--mu)"><?= e($r['note']) ?></small><?php endif; ?></td>
-                <td><?= $isInc ? '<span class="tag tg">Income</span>' : e($r['category']) ?></td>
-                <td><?= e((string) ($r['payment_method'] ?? '')) ?></td>
-                <td style="text-align:right;white-space:nowrap" class="<?= $isInc ? 'in' : 'ex' ?>"><?= $isInc ? '+' : '−' ?> <?= $fmt((float) $r['amount']) ?> <?= e($r['currency'] ?? 'PKR') ?></td>
-                <td style="text-align:right;white-space:nowrap"><?= $fmt((float) $r['pkr']) ?></td>
+                <td class="rd" style="padding:9px 6px;white-space:nowrap"><?= e(date('d M Y', strtotime($r['transaction_date']))) ?></td>
+                <td class="rt"><?= e($r['title']) ?><?php if (!empty($r['note'])): ?><small style="display:block;color:var(--mu)"><?= e($r['note']) ?></small><?php endif; ?></td>
+                <td class="rc"><?= $isInc ? '<span class="tag tg">Income</span>' : e($r['category']) ?></td>
+                <td class="rm"><?= e((string) ($r['payment_method'] ?? '')) ?></td>
+                <td style="text-align:right;white-space:nowrap" class="ra <?= $isInc ? 'in' : 'ex' ?>"><?= $isInc ? '+' : '−' ?> <?= $fmt((float) $r['amount']) ?> <?= e($r['currency'] ?? 'PKR') ?></td>
+                <td class="rp" style="text-align:right;white-space:nowrap"><?= $fmt((float) $r['pkr']) ?></td>
             </tr>
         <?php endforeach; ?>
         </tbody>
