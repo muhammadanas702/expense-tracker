@@ -119,3 +119,20 @@ p.k[style*="padding:12px 0"]::before,.np-e::before{content:"";display:block;widt
 .xd details{padding:0;margin:0;background:none;border:0;box-shadow:none;backdrop-filter:none}
 .xd summary{justify-content:flex-start;gap:6px;padding:4px 0}
 .xd details[open]>summary{margin-bottom:4px}
+
+/* Part 103c: the report's "All transactions" table becomes tap-friendly cards on a phone (the amount used to be off-screen) */
+@media(max-width:700px){
+  table.rtx{min-width:0!important}
+  table.rtx,table.rtx tbody{display:block}
+  table.rtx thead{display:none}
+  table.rtx tr{display:grid;grid-template-columns:auto auto 1fr auto;grid-template-areas:"t t t a" "d c m p";gap:3px 10px;align-items:baseline;padding:11px 2px}
+  table.rtx td{display:block;padding:0!important;min-width:0}
+  table.rtx td.rt{grid-area:t;font-weight:600;font-size:.92rem;overflow-wrap:anywhere}
+  table.rtx td.ra{grid-area:a;font-weight:700;font-size:.92rem}
+  table.rtx td.rd{grid-area:d;white-space:nowrap;color:var(--mu);font-size:.78rem}
+  table.rtx td.rc{grid-area:c;color:var(--mu);font-size:.78rem}
+  table.rtx td.rm{grid-area:m;color:var(--mu);font-size:.78rem}
+  table.rtx td.rp{grid-area:p;color:var(--mu);font-size:.78rem}
+  table.rtx td.rp::before{content:"= "}
+  table.rtx td.rm:empty{display:none}
+}
