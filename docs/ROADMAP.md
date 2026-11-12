@@ -54,6 +54,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 104 | **Done:** Off-site backup: the newest backup is encrypted and sent daily to a private GitHub repository (Admin > Backups), with status, "send now", switch-off and an admin-home warning | done |
 | 105 | **Done:** Uptime monitor on GitHub Actions (every ~10 min, "ExpenseFlow is down" issue + e-mail, auto-close) and a public status page on the `status-page` branch; guide in `docs/RESILIENCE.md` | done |
 | 103c | **Done:** Full-app visual pass (phone + desktop, light/dark); report "All transactions" table now cards on phones (amount was off-screen) | done |
+| 108a | **Done:** Search in Shared (`shared/search.php`, only your own groups) + search bar on the Shared overview; Personal/Shared switch checked on every main page | done |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -823,3 +824,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Found and fixed one real problem: Report > "All transactions" was a 620px-wide table inside a scroller, so on a phone the **Amount** column was off-screen. On phones each row is now a card (title and amount on top; date, category, method and the PKR value below). Desktop is unchanged (6 columns). `assets/polish.css`, classes `rtx/rd/rt/rc/rm/ra/rp` in `reports/view-report.php`.
 - It is the only table with a fixed minimum width outside the admin panel.
 - Test: `tests/report_phone_table_test.py` (360, 390, 1366px). Web only: no APK/exe build needed.
+
+## Part 108a — Shared search
+- New `shared/search.php` + `modules/shared/search.php`: finds shared expenses (title, note, who paid, group name) and settle-up payments in the groups the person belongs to. Filters: group, type, from/to. Read-only; a group you are not in can never be reached (the group filter is checked against your own group list).
+- Search bar on the Shared overview (same look as on the Personal dashboard); results open the group.
+- Checked: the Personal/Shared switch is already on Dashboard, Overview, Groups, Group, Add, Friends, Activity and Search; Profile and Notifications stay neutral on purpose.
+- Test: `tests/shared_search_test.py`. Web only: no APK/exe build needed.

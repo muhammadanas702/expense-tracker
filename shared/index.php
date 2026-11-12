@@ -19,6 +19,11 @@ $netAll = array_filter($netAll);
 
 ef_page_start(['title' => 'Shared Overview', 'sub' => 'Who owes whom, across all groups', 'mode' => 's', 'active' => 'shome', 'user' => $user]);
 ?>
+<form method="GET" action="<?= e(ef_url('shared/search.php')) ?>" class="g card" id="dash-search" role="search" style="display:flex;gap:8px;align-items:center;padding:10px 12px">
+    <?= ef_icon('search') ?>
+    <input class="inp" type="search" name="q" maxlength="60" aria-label="Search shared expenses" placeholder="Search shared expenses" style="flex:1;min-width:0;border:0;background:transparent">
+    <button class="btn sm" type="submit">Search</button>
+</form>
 <div class="G3">
   <div class="g card hero"><div class="k">Net balance</div><div class="v"><?php if ($netAll): foreach (array_slice($netAll, 0, 3, true) as $cur => $v): ?><div><?= $v < 0 ? '−' : '' ?><?= shared_money(abs($v), $cur) ?></div><?php endforeach; else: ?>0.00<?php endif; ?></div><span class="badge"><?= $netAll ? 'Across all groups' : 'All settled' ?></span></div>
   <div class="g card"><div class="k">You are owed</div><div class="v in"><?= $fmt($owed) ?></div></div>
