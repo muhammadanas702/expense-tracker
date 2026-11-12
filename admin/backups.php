@@ -2,6 +2,8 @@
 require_once __DIR__ . '/auth.php';
 admin_need('backup');
 require_once __DIR__ . '/../modules/backup/lib.php';
+require_once __DIR__ . '/../modules/backup/offsite.php';
+$off = offsite_status();
 $list = backup_list();
 admin_page_start(['title' => 'Backups', 'sub' => count($list) . ' saved (the newest ' . BACKUP_KEEP . ' are kept)', 'active' => 'bak']);
 ?>
@@ -10,6 +12,27 @@ admin_page_start(['title' => 'Backups', 'sub' => count($list) . ' saved (the new
     <?= csrf_field() ?>
     <button class="btn" type="submit" name="do" value="create">Create backup now</button>
     <small class="k" style="flex:1 1 240px">A backup is a copy of the whole database, including every account and password hash, so keep the downloaded file private. Receipt pictures are not included. To restore, import the file in phpMyAdmin.</small>
+  </form>
+</div>
+<div class="g card" id="offsite" style="margin-bottom:14px;border-left:4px solid <?= $off['state'] === 'ok' ? '#0d9f6e' : ($off['state'] === 'off' ? '#64748b' : '#d97706') ?>">
+  <b>Off-site copy (GitHub)</b>
+  <small class="k" style="display:block;margin:4px 0 10px">If the free host ever suspends the account, backups kept only on it are lost. This sends the newest backup, <b>encrypted</b>, to a private GitHub repository once a day (when you open the admin overview). The newest <?= (int) OFFSITE_KEEP ?> copies are kept. Open one later with <code>php tools/decrypt-backup.php file.enc</code>.</small>
+  <p style="margin:0 0 10px"><b><?= $off['state'] === 'ok' ? 'Working.' : ($off['state'] === 'off' ? 'Switched off.' : 'Needs attention.') ?></b> <?= e($off['text']) ?></p>
+  <form method="post" action="offsite-action.php" style="display:grid;gap:10px;max-width:520px">
+    <?= csrf_field() ?>
+    <label class="k">Private repository (owner/name)
+      <input class="inp" type="text" name="repo" value="<?= e($off['config']['repo']) ?>" placeholder="muhammadanas702/expenseflow-backups" autocomplete="off" spellcheck="false"></label>
+    <label class="k">GitHub token (fine-grained, only this repository, Contents: read and write)
+      <input class="inp" type="password" name="token" placeholder="<?= $off['config']['token'] !== '' ? 'Saved. Leave empty to keep it.' : 'github_pat_...' ?>" autocomplete="new-password"></label>
+    <label class="k">Passphrase (8+ characters; without it the copies cannot be opened, so do not lose it)
+      <input class="inp" type="password" name="pass" minlength="8" placeholder="<?= $off['config']['pass'] !== '' ? 'Saved. Leave empty to keep it.' : 'Choose a passphrase' ?>" autocomplete="new-password"></label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" type="submit" name="do" value="save">Save and test</button>
+      <?php if ($off['state'] !== 'off'): ?>
+      <button class="btn o" type="submit" name="do" value="push">Send newest backup now</button>
+      <button class="btn o" type="submit" name="do" value="off" onclick="return confirm('Switch off and remove the saved token and passphrase from this server?')">Switch off</button>
+      <?php endif; ?>
+    </div>
   </form>
 </div>
 <?php if (backup_is_stale()): $ag = backup_age_days(); ?>

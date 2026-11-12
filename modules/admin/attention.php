@@ -69,6 +69,13 @@ function admin_attention(PDO $conn, array $admin): array
                 $age = backup_age_days();
                 $add('warn', $age === null ? 'There is no backup yet' : 'The newest backup is ' . $age . ' days old', 'A backup is a safe copy of all the data. Make a fresh one so nothing is lost if something goes wrong.', 'admin/backups.php', 'Open Backups');
             }
+            require_once __DIR__ . '/../backup/offsite.php';
+            $os = offsite_status();
+            if ($os['state'] === 'failed' || $os['state'] === 'late') {
+                $add('warn', 'The off-site backup is not working', $os['text'], 'admin/backups.php#offsite', 'Open Backups');
+            } elseif ($os['state'] === 'off') {
+                $add('info', 'Backups are only kept on this server', 'If the host suspends the account, the backups go with it. Send an encrypted copy to a private GitHub repository (it takes 5 minutes to set up).', 'admin/backups.php#offsite', 'Set up off-site copy');
+            }
         } catch (Throwable $e) {
         }
     }

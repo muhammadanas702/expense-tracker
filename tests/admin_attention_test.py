@@ -60,7 +60,7 @@ ok(len(rr) == 1 and rr[0][0] == 'bad' and rr[0][3].endswith('admin/settings.php'
 sql("DELETE FROM app_settings WHERE k='maintenance'")
 # backup: opening the admin home makes the automatic daily backup, so a missing backup fixes itself and no backup row is shown
 backups(); st, c = card(sup)
-ok(not [r for r in rows(c) if 'backup' in r[1].lower()] and len(glob.glob(ROOT + '/storage/backups/*')) >= 1, 'a missing backup is made automatically on opening the admin home, so no backup row')
+ok(not [r for r in rows(c) if ('no backup' in r[1].lower() or 'days old' in r[1])] and len(glob.glob(ROOT + '/storage/backups/*')) >= 1, 'a missing backup is made automatically on opening the admin home, so no backup row')
 # security
 for i in range(25): sql("INSERT INTO security_events (kind, ip, who, created_at) VALUES ('login_fail','1.2.3.4','x@y.z',NOW())")
 st, c = card(sup); rr = [r for r in rows(c) if 'failed sign-ins' in r[1]]
