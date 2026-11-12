@@ -52,6 +52,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 102 | **Done:** Admin home "Needs your attention": website health, e-mail failures, waiting tickets, switched-off options, failed sign-ins, backups, each with a plain explanation and a button | done |
 | 103a | **Done:** Admin UI polish: compact "What is this page?" box, tidy phone tables (Users, Support), audit log without repeated text, header chip hidden on phone | done |
 | 104 | **Done:** Off-site backup: the newest backup is encrypted and sent daily to a private GitHub repository (Admin > Backups), with status, "send now", switch-off and an admin-home warning | done |
+| 105 | **Done:** Uptime monitor on GitHub Actions (every ~10 min, "ExpenseFlow is down" issue + e-mail, auto-close) and a public status page on the `status-page` branch; guide in `docs/RESILIENCE.md` | done |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -809,3 +810,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Runs when a staff member opens the admin overview (free hosts have no cron), right after the automatic daily backup. A failure is remembered, retried after 30 minutes, shown on Admin > Backups and in "Needs your attention". Never breaks a page.
 - `admin/offsite-action.php` (save + test, send now, switch off; permission `backup`, CSRF, audited as `admin_backup_offsite`). The token and passphrase are never shown again.
 - Test: `tests/offsite_backup_test.py` (fake GitHub API: validation, public repo refused, bad token, encrypted upload that decrypts, no plain SQL, auto upload, trim to 30, failure warning, switch off, audit). Web-only: no APK/exe build needed.
+
+## Part 105 — Uptime monitor and status page
+- `.github/workflows/uptime.yml` (every ~10 minutes, owner repo only) runs `.github/scripts/uptime_check.py <SITE_URL>` (repository variable `SITE_URL`, default `https://expenseflow.rf.gd`): asks `health.php?db=1` up to 3 times. UP = HTTP 200 with healthy JSON, or the host's own bot-check page; DOWN = no answer, HTTP error, database down, "suspended" page.
+- Down: opens the issue "ExpenseFlow is down" (label `site-down`, GitHub e-mails the owner); recovered: comments and closes it.
+- Status page: `.github/status-page/index.html` is published with `status.json` to the branch `status-page` only when the state changes (turn on GitHub Pages for that branch once). Works while the site is down.
+- Tests: `tests/uptime_check_test.py` (8 website behaviours, retries, valid workflow). The status-branch shell logic was also run against a local bare repository (no commit when nothing changed, `since` kept). Web/CI only: no APK/exe build needed.

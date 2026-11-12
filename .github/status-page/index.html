@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ExpenseFlow status</title>
+<meta name="robots" content="noindex">
+<style>
+:root{--bg:#f0f6ff;--card:#fff;--ink:#0b2545;--mut:#5b6b80;--ok:#0d9f6e;--bad:#dc2626;--line:#dbe3ee}
+@media(prefers-color-scheme:dark){:root{--bg:#0b1220;--card:#121c2f;--ink:#e8eefc;--mut:#9db0c7;--ok:#34d399;--bad:#f87171;--line:#24334d}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:16px;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px 22px;text-align:center}
+.dot{width:18px;height:18px;border-radius:50%;display:inline-block;background:var(--mut);margin-bottom:10px}
+.up .dot{background:var(--ok);box-shadow:0 0 0 6px color-mix(in srgb,var(--ok) 22%,transparent)}
+.down .dot{background:var(--bad);box-shadow:0 0 0 6px color-mix(in srgb,var(--bad) 22%,transparent)}
+h1{margin:0 0 6px;font-size:1.5rem}
+p{margin:6px 0;color:var(--mut)}
+.d{margin-top:14px;padding:12px;border-radius:12px;background:color-mix(in srgb,var(--bad) 10%,transparent);color:var(--ink);display:none}
+.down .d{display:block}
+a.b{display:inline-block;margin-top:16px;padding:12px 20px;border-radius:12px;background:var(--ink);color:var(--card);text-decoration:none;font-weight:700}
+small{display:block;margin-top:18px;color:var(--mut)}
+</style>
+</head>
+<body>
+<main id="m">
+  <i class="dot"></i>
+  <h1 id="t">Checking…</h1>
+  <p id="s">Looking up the latest status.</p>
+  <p class="d" id="d"></p>
+  <a class="b" id="a" href="#" hidden>Open ExpenseFlow</a>
+  <small>A robot checks the website about every 10 minutes. This page changes only when the state changes, so the time shown is the last change.</small>
+</main>
+<script>
+(function () {
+  var m = document.getElementById('m');
+  function when(iso) { try { return new Date(iso).toLocaleString(); } catch (e) { return iso; } }
+  fetch('status.json?' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
+    var up = j.state === 'up';
+    m.className = up ? 'up' : 'down';
+    document.getElementById('t').textContent = up ? 'ExpenseFlow is working' : 'ExpenseFlow has a problem';
+    document.getElementById('s').textContent = (up ? 'Working since ' : 'Not working since ') + when(j.since) + '.';
+    document.getElementById('d').textContent = up ? '' : (j.detail || '') + ' The owner has been told. Please try again a little later.';
+    var a = document.getElementById('a');
+    if (j.url) { a.href = j.url; a.hidden = false; }
+  }).catch(function () {
+    document.getElementById('t').textContent = 'Status not available';
+    document.getElementById('s').textContent = 'Please try again in a minute.';
+  });
+})();
+</script>
+</body>
+</html>
