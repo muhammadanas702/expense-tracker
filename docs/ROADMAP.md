@@ -62,6 +62,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 109b | **Done:** Equal controls: all buttons 46px, switch buttons one width, Profile list cards use the card padding, empty-state button centred; measurement now 0 findings on the app pages | done |
 | 109c | **Done:** Admin panel, public pages and dark mode measured and fixed: one small-button height, Features switch, About page buttons; `ui_measure.py --public` added | done |
 | 106 | **Done (code + guide):** Connect `expenseflow.page`: Admin > Domain (3-step live check, make main address, go back), `storage/site.json`, old address keeps /admin/ and /health.php, `docs/DOMAIN.md` | done |
+| 106b | **Done:** The free address stays alive: if the own domain (main address) is down, `.rf.gd` serves the site itself instead of redirecting | done |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -886,3 +887,8 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - `docs/DOMAIN.md`: the full steps (InfinityFree addon domain, Cloudflare name servers, two A records grey cloud, free SSL, SITE_URL variable, Google redirect URI, apps via `tools/change-domain.php`), optional orange cloud with SSL Full, going back, common problems.
 - Tests: `tests/domain_test.py` (own PHP servers: check, switch, failed check never switches, revert, config, redirect rules), `tests/redirect_test.php`, `tests/change_domain_test.php`, `tests/ui_measure.py --admin` (0 findings).
 - **Needs you** (outside this code): the steps in `docs/DOMAIN.md` at InfinityFree, Cloudflare and name.com. Web only: no APK/exe build now; build them once after the domain is main (`php tools/change-domain.php expenseflow.page`).
+
+## Part 106b — The free address stays alive
+- `.rf.gd` is never switched off. With `.page` as main address the free address redirects to it only while `.page` answers `/health.php` (`site_main_healthy()`, 3-second check, remembered 2 minutes when up / 30 seconds when down in `storage/site-health.json`). When `.page` is down, `.rf.gd` serves the site itself (plain http still goes to https).
+- Limit: if the free host is down, `.rf.gd` cannot answer anything; then the `.page` A records move to a standby host (Part 107).
+- Tests: `tests/old_address_test.py` (real PHP servers, Host header), `tests/domain_test.py`, `tests/redirect_test.php`. Web only: no APK/exe build.

@@ -101,6 +101,13 @@ if (!function_exists('app_redirect_target')) {
             header('Set-Cookie: ef_s=1; Max-Age=31536000; Path=/; Secure; HttpOnly; SameSite=Lax', false);
         }
         $to = app_redirect_target($baseUrl, (string) ($_SERVER['HTTP_HOST'] ?? ''), (string) ($_SERVER['REQUEST_URI'] ?? '/'), $https, isset($_GET['ef_https']) || isset($_COOKIE['ef_s']));
+        // Part 106b: the free address stays alive. If the own domain is the main address but is not answering, the free address serves the site itself.
+        if ($to !== null && strtolower(preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? ''))) === 'expenseflow.rf.gd' && strpos($to, 'https://expenseflow.rf.gd') !== 0) {
+            require_once __DIR__ . '/../modules/site/host.php';
+            if (!site_main_healthy()) {
+                $to = app_redirect_target('https://expenseflow.rf.gd', (string) ($_SERVER['HTTP_HOST'] ?? ''), (string) ($_SERVER['REQUEST_URI'] ?? '/'), $https, isset($_GET['ef_https']) || isset($_COOKIE['ef_s'])); // only the https rule
+            }
+        }
         if ($to !== null) {
             header('Location: ' . $to, true, 301);
             header('Cache-Control: no-store');

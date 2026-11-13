@@ -85,3 +85,34 @@ function site_check_passed(array $steps): bool
 {
     return count($steps) === 3 && !in_array(false, array_column($steps, 1), true);
 }
+
+/**
+ * Is the main address answering? Used only on the free address: when the own domain is the main address but is down
+ * (Cloudflare or DNS trouble) the free address serves the site itself instead of sending people to a dead page.
+ * The answer is remembered for a short time (storage/site-health.json), so a visit costs at most one 3-second check per 2 minutes.
+ */
+function site_main_healthy(): bool
+{
+    $base = site_live_base();
+    if ($base === null) {
+        return true;
+    }
+    $f = dirname(__DIR__, 2) . '/storage/site-health.json';
+    $c = @json_decode((string) @file_get_contents($f), true);
+    if (is_array($c) && ($c['base'] ?? '') === $base && time() - (int) ($c['t'] ?? 0) < (!empty($c['ok']) ? 120 : 30)) {
+        return !empty($c['ok']);
+    }
+    $ok = false;
+    if (function_exists('curl_init')) {
+        $ch = curl_init((getenv('EXPENSEFLOW_SITE_CHECK_BASE') ?: $base) . '/health.php');
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_CONNECTTIMEOUT => 2, CURLOPT_TIMEOUT => 3, CURLOPT_USERAGENT => 'ExpenseFlow-site-check']);
+        $raw = curl_exec($ch);
+        $code = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        curl_close($ch);
+        $ok = $raw !== false && $code > 0 && $code < 500;
+    } else {
+        $ok = true; // cannot check: keep the normal redirect
+    }
+    @file_put_contents($f, json_encode(['base' => $base, 't' => time(), 'ok' => $ok]), LOCK_EX);
+    return $ok;
+}
