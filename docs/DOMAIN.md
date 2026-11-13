@@ -31,6 +31,12 @@ people use does not change. The free address keeps working in the meantime.
 ## Optional: Cloudflare in front (orange cloud)
 After the site works over https with the grey cloud, you can turn the cloud **orange** (proxied) for speed and protection. Then set Cloudflare > SSL/TLS > **Full** (not Flexible: Flexible causes endless redirects because the site already forces https). If the site shows "too many redirects" or a certificate error, turn the cloud back to grey. InfinityFree may show a visitor-check page to scripts; that is normal and the monitor knows it.
 
+## Both addresses stay alive
+`expenseflow.rf.gd` is never switched off. Main address = `expenseflow.page`.
+- `.page` answering: the free address sends people to it.
+- `.page not answering` (Cloudflare or DNS trouble): the free address serves the site itself (checked at most every 2 minutes, 30 seconds while it is down), so nobody lands on a dead page.
+- The free host itself down: nothing on `.rf.gd` can answer. Then point the `.page` A records to the standby host (Part 107).
+
 ## Going back
 Admin > Domain > *Go back to expenseflow.rf.gd*. Or delete `storage/site.json` with the file manager / FTP. The free address always keeps its `/admin/` pages and `/health.php` (they are never redirected), so you can reach the admin panel even if the domain is broken.
 
