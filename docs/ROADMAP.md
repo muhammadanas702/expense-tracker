@@ -61,6 +61,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 109a | **Done:** UI measurement tool (`tests/ui_measure.py`, 4 screen widths) + one spacing rhythm (leftover margins no longer add to the column gap: 26-28px became 12-14px) | done |
 | 109b | **Done:** Equal controls: all buttons 46px, switch buttons one width, Profile list cards use the card padding, empty-state button centred; measurement now 0 findings on the app pages | done |
 | 109c | **Done:** Admin panel, public pages and dark mode measured and fixed: one small-button height, Features switch, About page buttons; `ui_measure.py --public` added | done |
+| 106 | **Done (code + guide):** Connect `expenseflow.page`: Admin > Domain (3-step live check, make main address, go back), `storage/site.json`, old address keeps /admin/ and /health.php, `docs/DOMAIN.md` | done |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -877,3 +878,11 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - About page: "Create a free account" and the "Read the guides" link now wrap as whole items (before, the link broke into two lines next to the button on phones).
 - Measured and left alone on purpose (and the tool knows it): the pill search bar, admin stat tiles and notice banners (own compact padding), the 32px tap area around breadcrumb and agreement links, the password eye inside its field.
 - Result: 0 findings on app pages, admin panel and public pages, light and dark, four widths. Web only: no APK/exe build needed.
+
+## Part 106 — Connecting expenseflow.page
+- **Admin > Domain** (`admin/domain.php`, `admin/domain-action.php`, `modules/site/host.php`): type the domain, press *Check*: (1) it points to a server, (2) https answers with a valid certificate, (3) ExpenseFlow answers (`/health.php`; the free host's visitor-check page also counts, it proves the domain reaches the host). *Make it the main address* runs the same check first and only then writes `storage/site.json`. *Go back* is one click. Both changes go to the audit log (`domain_change`).
+- `config/app.php` reads `storage/site.json` (a broken file falls back to the free address). When live, every other host (free address, www) is sent to the main address with the existing 301 rule.
+- Safety: the free address **keeps `/admin/` and `/health.php`** (never redirected), so a broken domain can never lock the owner out; sign-ins do not move between addresses (one new sign-in, said on the page).
+- `docs/DOMAIN.md`: the full steps (InfinityFree addon domain, Cloudflare name servers, two A records grey cloud, free SSL, SITE_URL variable, Google redirect URI, apps via `tools/change-domain.php`), optional orange cloud with SSL Full, going back, common problems.
+- Tests: `tests/domain_test.py` (own PHP servers: check, switch, failed check never switches, revert, config, redirect rules), `tests/redirect_test.php`, `tests/change_domain_test.php`, `tests/ui_measure.py --admin` (0 findings).
+- **Needs you** (outside this code): the steps in `docs/DOMAIN.md` at InfinityFree, Cloudflare and name.com. Web only: no APK/exe build now; build them once after the domain is main (`php tools/change-domain.php expenseflow.page`).

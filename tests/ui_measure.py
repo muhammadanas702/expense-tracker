@@ -181,7 +181,7 @@ with sync_playwright() as pw:
         p = ctx.new_page(); p.route('**/health.php*', lambda r: r.abort())
         if not public:
             p.goto(B + '/auth/login.php'); p.fill('input[name=email]', email); p.fill('input[name=password]', 'Test#12345'); p.click('button[type=submit]'); p.wait_for_load_state(); p.wait_for_timeout(800)
-        queue = (['/', '/auth/login.php', '/auth/register.php', '/auth/forgot.php'] if public else ['/dashboard.php', '/profile.php'] + (['/admin/index.php'] if admin else [])); seen = set(); n = 0
+        queue = (['/', '/auth/login.php', '/auth/register.php', '/auth/forgot.php'] if public else ['/dashboard.php', '/profile.php'] + (['/admin/index.php', '/admin/domain.php'] if admin else [])); seen = set(); n = 0
         while queue and n < maxp:
             path = queue.pop(0)
             if path in seen: continue

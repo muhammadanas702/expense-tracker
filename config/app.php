@@ -41,6 +41,12 @@ if ($envBaseUrl) {
     $base_url = $localScheme . '://' . $_SERVER['HTTP_HOST'] . app_local_base_path();
 } else {
     $base_url = 'https://expenseflow.rf.gd';
+    // Part 106: when the own domain was made the main address in Admin > Domain, storage/site.json says so.
+    $siteJson = @json_decode((string) @file_get_contents(__DIR__ . '/../storage/site.json'), true);
+    if (is_array($siteJson) && !empty($siteJson['live']) && is_string($siteJson['host'] ?? null)
+        && preg_match('/^(?=.{4,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/', $siteJson['host'])) {
+        $base_url = 'https://' . strtolower($siteJson['host']);
+    }
 }
 
 /*
@@ -66,6 +72,10 @@ if (!function_exists('app_redirect_target')) {
         $uri = preg_replace('/[\r\n]/', '', $uri);
         if ($uri === '' || $uri[0] !== '/') {
             $uri = '/';
+        }
+        // The free address keeps its admin pages and the health check, so the owner can always get in and switch back.
+        if ($host === 'expenseflow.rf.gd' && $host !== $wantHost && preg_match('#^/(admin/|health\.php)#', $uri)) {
+            return null;
         }
         if ($host !== $wantHost) {
             return rtrim($baseUrl, '/') . $uri;
