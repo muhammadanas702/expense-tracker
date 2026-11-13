@@ -137,3 +137,7 @@ p.k[style*="padding:12px 0"]::before,.np-e::before{content:"";display:block;widt
   table.rtx td.rm:empty{display:none}
 }
 .ig .ins b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Part 109b: one rhythm. The page column already spaces its blocks with `gap`; a leftover margin on a block used to be added
+   on top of it (26-28px instead of 12-14px), so margins on direct children of the column are neutral. */
+.view>*,.mn>*{margin-top:0!important;margin-bottom:0!important}
+.G2>*,.G3>*,.G4>*{margin-top:0!important;margin-bottom:0!important}
