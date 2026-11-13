@@ -277,7 +277,7 @@ a.row{color:inherit;text-decoration:none;border-radius:12px;transition:backgroun
 .ft2{text-align:left}.ft2 nav{align-items:flex-start}.ft2b .wm,.ft2b>*:first-child{justify-content:flex-start}
 
 /* Friends page: add form + search bar */
-.fr-top{grid-template-columns:1.3fr 1fr;margin-bottom:14px;align-items:stretch}
+.fr-top{margin-bottom:14px}
 .fr-top .t{margin-bottom:10px}.fr-top .k{margin-top:10px;line-height:1.5}
 .frform{display:flex;gap:10px;flex-wrap:wrap}.frform input{flex:1;min-width:180px}
 .frform .btn{white-space:nowrap}

@@ -13,24 +13,20 @@ $fmt = function (array $byCur, string $sign = '') {
     foreach (array_slice($byCur, 0, 3, true) as $cur => $v) { $h .= '<div>' . $sign . shared_money($v, $cur) . '</div>'; }
     return $h;
 };
-$netAll = $owed;
-foreach ($owe as $cur => $v) { $netAll[$cur] = ($netAll[$cur] ?? 0) - $v; }
-$netAll = array_filter($netAll);
 
 ef_page_start(['title' => 'Shared Overview', 'sub' => 'Who owes whom, across all groups', 'mode' => 's', 'active' => 'shome', 'user' => $user]);
 ?>
 <form method="GET" action="<?= e(ef_url('shared/search.php')) ?>" class="g card" id="dash-search" role="search" style="display:flex;gap:8px;align-items:center;padding:10px 12px">
     <?= ef_icon('search') ?>
-    <input class="inp" type="search" name="q" maxlength="60" aria-label="Search shared expenses" placeholder="Search shared expenses" style="flex:1;min-width:0;border:0;background:transparent">
+    <input class="inp" type="search" name="q" maxlength="60" aria-label="Search shared expenses" placeholder="Search shared" style="flex:1;min-width:0;border:0;background:transparent">
     <button class="btn sm" type="submit">Search</button>
 </form>
-<div class="G3">
-  <div class="g card hero"><div class="k">Net balance</div><div class="v"><?php if ($netAll): foreach (array_slice($netAll, 0, 3, true) as $cur => $v): ?><div><?= $v < 0 ? '−' : '' ?><?= shared_money(abs($v), $cur) ?></div><?php endforeach; else: ?>0.00<?php endif; ?></div><span class="badge"><?= $netAll ? 'Across all groups' : 'All settled' ?></span></div>
+<div class="G2" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:14px">
   <div class="g card"><div class="k">You are owed</div><div class="v in"><?= $fmt($owed) ?></div></div>
   <div class="g card"><div class="k">You owe</div><div class="v ex"><?= $fmt($owe) ?></div></div>
 </div>
 
-<p class="k" style="margin:-4px 4px 14px">Debts are kept person by person: what Munna owes you never cancels what you owe Ali. Only two people who owe each other cancel out.</p>
+<p class="k" style="margin:-4px 4px 14px">Debts stay person by person: what one friend owes you never cancels what you owe another.</p>
 <?php if ($todo): ?>
 <div class="g card" style="margin-bottom:14px">
   <div class="t">To settle</div>

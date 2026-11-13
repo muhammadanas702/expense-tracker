@@ -56,6 +56,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 103c | **Done:** Full-app visual pass (phone + desktop, light/dark); report "All transactions" table now cards on phones (amount was off-screen) | done |
 | 108a | **Done:** Search in Shared (`shared/search.php`, only your own groups) + search bar on the Shared overview; Personal/Shared switch checked on every main page | done |
 | 108b | **Done:** Personal dashboard cleanup: duplicate/unneeded info removed, Smart insights card filled with new facts | done |
+| 108c | **Done:** Shared overview and Friends cleanup: duplicate Net balance card, extra search card and filler text removed; spacing fixed | done |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -839,3 +840,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Removed the "Reset data or delete account" card (it only linked to Profile, where the option lives).
 - The space freed in Smart insights is used by three new facts: Biggest expense, Biggest income, Entries in this period (from the period queries already run, no extra database query). Long titles are cut with "…".
 - Test: `tests/dashboard_cleanup_test.py` (360 and 1366px). Web only: no APK/exe build needed.
+
+## Part 108c — Shared overview and Friends: duplicates removed
+- Shared overview: the "Net balance" hero card is gone. It was just "You are owed" minus "You owe", and the page's own note says debts are not netted across people. "You are owed" and "You owe" now sit side by side (also on phones, instead of two tall stacked cards). The note under them is one short sentence. Search placeholder shortened so it is not cut on 360px.
+- Friends: the separate "Find in your friends" card (with the filler line "Type to filter instantly") is merged into the "Your friends" list as its search box; "Add a friend" now uses the full width instead of sharing a row with a nearly empty card.
+- Checked with the earlier Parts: the Personal/Shared switch is on every main page (108a), dashboard cleanup (108b).
+- Test: `tests/shared_cleanup_test.py` (360 and 1366px). Web only: no APK/exe build needed.
