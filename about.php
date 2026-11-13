@@ -19,5 +19,5 @@ ef_public_start([
 <p>ExpenseFlow is an independent project built by a software engineering student in Lahore, Pakistan. It is free to use and has no advertisements.</p>
 <h2>What we will never do</h2>
 <p>ExpenseFlow never asks for your bank login, card number or any payment details. It only stores the numbers you type in yourself. Staff will never ask for your password. Read the <a href="privacy.php">Privacy Policy</a> and <a href="terms.php">Terms</a> for details.</p>
-<p><a class="btn" href="auth/register.php">Create a free account</a> &nbsp; <a href="guides/">Read the guides</a></p>
+<p class="p-acts"><a class="btn" href="auth/register.php">Create a free account</a><a href="guides/">Read the guides</a></p>
 <?php ef_public_end();

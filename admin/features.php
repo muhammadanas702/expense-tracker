@@ -15,11 +15,11 @@ admin_page_start(['title' => 'Features on/off', 'sub' => $n ? $n . ' switched of
 .ft .tx{flex:1;min-width:0}.ft .tx b{font-size:1rem}.ft .tx p{margin:4px 0 0;line-height:1.5}
 .ft .wh{display:block;margin-top:6px;font-size:.84rem;color:#64748b}
 .ft form{margin:0;flex:none}
-.sw{display:inline-flex;align-items:center;gap:10px;border:0;background:none;cursor:pointer;font:inherit;font-weight:700;padding:4px;min-height:44px}
-.sw i{position:relative;width:52px;height:30px;border-radius:99px;background:#cbd5e1;transition:background .2s;flex:none}
-.sw i:after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
-.sw.on i{background:#0d9f6e}.sw.on i:after{transform:translateX(22px)}
-.sw span{min-width:28px;text-align:left}.sw.on span{color:#0d9f6e}.sw:not(.on) span{color:#b45309}
+.fsw{display:inline-flex;align-items:center;gap:10px;border:0;background:none;cursor:pointer;font:inherit;font-weight:700;padding:4px;min-height:44px}
+.fsw i{position:relative;width:52px;height:30px;border-radius:99px;background:#cbd5e1;transition:background .2s;flex:none}
+.fsw i:after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.fsw.on i{background:#0d9f6e}.fsw.on i:after{transform:translateX(22px)}
+.fsw span{min-width:28px;text-align:left}.fsw.on span{color:#0d9f6e}.fsw:not(.on) span{color:#b45309}
 .ft.isoff .tx b{color:#92400e}
 .ft .tag{margin-inline-start:6px}
 @media(max-width:560px){.ft{flex-direction:column;gap:6px}.ft form{align-self:flex-start}}
@@ -45,7 +45,7 @@ admin_page_start(['title' => 'Features on/off', 'sub' => $n ? $n . ' switched of
     </div>
     <form method="post" action="features-action.php">
       <?= csrf_field() ?><input type="hidden" name="id" value="<?= e($id) ?>">
-      <button class="sw<?= $on ? ' on' : '' ?>" type="submit" name="do" value="<?= $on ? 'off' : 'on' ?>" role="switch" aria-checked="<?= $on ? 'true' : 'false' ?>" aria-label="<?= e($f['label']) ?>: <?= $on ? 'on, press to switch off' : 'off, press to switch on' ?>"><i></i><span><?= $on ? 'On' : 'Off' ?></span></button>
+      <button class="fsw<?= $on ? ' on' : '' ?>" type="submit" name="do" value="<?= $on ? 'off' : 'on' ?>" role="switch" aria-checked="<?= $on ? 'true' : 'false' ?>" aria-label="<?= e($f['label']) ?>: <?= $on ? 'on, press to switch off' : 'off, press to switch on' ?>"><i></i><span><?= $on ? 'On' : 'Off' ?></span></button>
     </form>
   </div>
 <?php endforeach; ?>

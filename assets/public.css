@@ -45,3 +45,6 @@ html[dir=rtl] .p-doc .gc a.g:after{content:"←"}
 
 /* Part 98f: easier to tap */
 .p-crumbs a{display:inline-flex;align-items:center;justify-content:center;min-height:32px;min-width:32px;padding:0 3px;margin:-6px -3px}
+
+/* a button and a text link side by side: wrap as whole items, never inside the link */
+.p-acts{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px}.p-acts a:not(.btn){white-space:nowrap;font-weight:700}

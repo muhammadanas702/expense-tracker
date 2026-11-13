@@ -152,3 +152,7 @@ p.k[style*="padding:12px 0"]::before,.np-e::before{content:"";display:block;widt
 @media(max-width:768px){.scard{padding:14px}}
 /* an empty-state sentence is centred, so the button under it is centred too */
 .card>p.k+a.btn,.card>p.k+.btn{display:flex;width:max-content;max-width:100%;margin:6px auto 0!important}
+/* Part 109c: one small-button height (38px) in tables, toolbars and cards; a small button in a stretching row keeps its height */
+.btn.sm,.btn.xs,.toolbar .btn.sm,.tb-search .btn,form button.btn.sm[type=submit],button.btn.sm{min-height:38px}
+.btn.sm,.btn.xs{align-self:center}
+.btn.sm{display:inline-flex;align-items:center;justify-content:center}

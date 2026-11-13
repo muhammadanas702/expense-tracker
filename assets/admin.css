@@ -95,5 +95,5 @@ html[data-theme=dark] .btn.e2{background:#fb923c;color:#2a1100}
 html[data-theme=dark] .row>b[style*="#dc2626"]{color:#f87171!important}
 html[data-theme=dark] .row>b[style*="#0d9f6e"]{color:#34d399!important}
 html[data-theme=dark] .ft .wh{color:#9db0c7}
-html[data-theme=dark] .sw.on span{color:#34d399}
-html[data-theme=dark] .sw:not(.on) span{color:#fbbf24}
+html[data-theme=dark] .fsw.on span{color:#34d399}
+html[data-theme=dark] .fsw:not(.on) span{color:#fbbf24}
