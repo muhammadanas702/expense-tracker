@@ -141,3 +141,14 @@ p.k[style*="padding:12px 0"]::before,.np-e::before{content:"";display:block;widt
    on top of it (26-28px instead of 12-14px), so margins on direct children of the column are neutral. */
 .view>*,.mn>*{margin-top:0!important;margin-bottom:0!important}
 .G2>*,.G3>*,.G4>*{margin-top:0!important;margin-bottom:0!important}
+/* Part 109b: equal controls (from tests/ui_measure.py). Every normal button is 46px high whether it is a <button> or a link;
+   the Personal/Shared switch has two buttons of one width; list cards use the card padding; the search bar is the same height everywhere. */
+.btn:not(.sm):not(.xs):not(.lg){min-height:46px;line-height:1.2}
+.btn.lg{min-height:52px;line-height:1.2}
+.frform{align-items:center}
+.frform input[type=email]{min-height:46px;padding-top:0;padding-bottom:0}
+.seg a{flex:1 1 0;min-width:112px}
+.scard{padding:18px}
+@media(max-width:768px){.scard{padding:14px}}
+/* an empty-state sentence is centred, so the button under it is centred too */
+.card>p.k+a.btn,.card>p.k+.btn{display:flex;width:max-content;max-width:100%;margin:6px auto 0!important}

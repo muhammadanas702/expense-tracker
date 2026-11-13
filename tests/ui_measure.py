@@ -73,7 +73,7 @@ MEASURE = r"""() => {
   // ---- card padding and radius -------------------------------------------------------
   R.stat.pad = []; R.stat.radius = [];
   document.querySelectorAll('.card:not(.hero):not(.gc), .g.card:not(.hero):not(.gc)').forEach(e => {
-    if (!vis(e) || fixed(e)) return;
+    if (!vis(e) || fixed(e) || e.matches('#dash-search')) return; // the pill search bar has its own padding
     const c = getComputedStyle(e);
     R.stat.pad.push([nm(e), r1(parseFloat(c.paddingTop)), r1(parseFloat(c.paddingRight)), r1(parseFloat(c.paddingBottom)), r1(parseFloat(c.paddingLeft))]);
     const rad = r1(parseFloat(c.borderTopLeftRadius)); if (rad < 100 && !(e.parentElement && e.parentElement.classList.contains('g'))) R.stat.radius.push(['card', rad]); // pill-shaped search bars are intentional
@@ -116,7 +116,7 @@ MEASURE = r"""() => {
   // ---- clipping and overflow of text ------------------------------------------------
   let clipN = 0;
   document.querySelectorAll('body *').forEach(e => {
-    if (clipN > 6 || !vis(e) || fixed(e)) return;
+    if (clipN > 6 || !vis(e) || fixed(e) || e.closest('.msg')) return; // flash messages animate in
     const c = getComputedStyle(e);
     if (!e.childNodes.length || ![...e.childNodes].some(n => n.nodeType === 3 && n.nodeValue.trim())) return;
     if ((c.overflow === 'hidden' || c.overflowX === 'hidden' || c.overflowX === 'clip') && e.scrollWidth > e.clientWidth + 1 && c.textOverflow !== 'ellipsis' && c.display !== 'inline') { add('clip', `text of ${nm(e)} "${txt(e)}" is cut off (${e.scrollWidth} > ${e.clientWidth})`); clipN++; }
