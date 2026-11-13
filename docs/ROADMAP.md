@@ -59,7 +59,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 108c | **Done:** Shared overview and Friends cleanup: duplicate Net balance card, extra search card and filler text removed; spacing fixed | done |
 | 108d | **Done:** Last pass: Report insight no longer repeats the savings-rate number; every other page checked, full UI audit clean | done |
 | 109a | **Done:** UI measurement tool (`tests/ui_measure.py`, 4 screen widths) + one spacing rhythm (leftover margins no longer add to the column gap: 26-28px became 12-14px) | done |
-| 109b | Buttons, Personal/Shared switch, search bar and list-card padding made equal (from the measurement report) | todo |
+| 109b | **Done:** Equal controls: all buttons 46px, switch buttons one width, Profile list cards use the card padding, empty-state button centred; measurement now 0 findings on the app pages | done |
 | 109c | Page by page re-measure (admin, public pages, dark) and screenshots | todo |
 
 ## Native apps (plan)
@@ -862,3 +862,10 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - First run: 197 findings. The biggest group was spacing: a block that kept an old `margin-bottom:14px` (or `margin-top`) inside the page column, which already spaces blocks with `gap`, so the real gap was 26-28px (desktop) / 24-26px (phone) on Profile, Settings, Friends, Activity, Support and others. `polish.css` now makes margins on the column's direct children (and grid cells) neutral, so every gap is the column's own 12px (phone) / 14px (desktop).
 - Result after the fix: 55 findings, all real and listed for 109b (button heights 42/46/49px, switch buttons of different width, search bar and list-card padding). The tool also ignores things that are on purpose (pill-shaped search bars, two-line icon rows, flash messages that animate in).
 - Existing `tests/ui_audit.py` still clean. Web only: no APK/exe build needed.
+
+## Part 109b — Equal controls
+- Every normal button is 46px high (before: links 42px, buttons 46px, the Friends "Send request" 49px), large buttons 52px, small ones keep 36px. The e-mail field next to "Send request" has the same 46px.
+- The Personal/Shared switch has two buttons of one width (112px minimum; before 101px and 112px).
+- Profile & Settings list cards use the normal card padding (18px desktop, 14px phone; before 16px everywhere).
+- The button under an empty-state sentence ("Create a group") is centred like the sentence.
+- `tests/ui_measure.py` no longer reports the pill search bar's own padding or the animating flash message (both on purpose). Result: 0 findings on all app pages at 360/390/768/1366px; `tests/ui_audit.py` unchanged. Web only: no APK/exe build needed.
