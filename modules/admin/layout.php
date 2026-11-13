@@ -24,6 +24,7 @@ function admin_menu(): array
         ],
         'Turn things on / off' => [
             ['feat', 'admin/features.php', 'ck', 'Features on/off', 'set', 'A part of the app is not working? Switch it off here until it is fixed. Nothing is deleted.'],
+            ['dom', 'admin/domain.php', 'globe', 'Domain', 'set', 'Connect your own domain (expenseflow.page) and make it the main address of the website. Checks it first and can always go back.'],
             ['set', 'admin/settings.php', 'set', 'Settings', 'set', 'Pause the whole website for maintenance, open or close new sign-ups, and other site-wide choices.'],
         ],
         'Look and content' => [
