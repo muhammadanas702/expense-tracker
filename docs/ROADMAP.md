@@ -58,6 +58,9 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 108b | **Done:** Personal dashboard cleanup: duplicate/unneeded info removed, Smart insights card filled with new facts | done |
 | 108c | **Done:** Shared overview and Friends cleanup: duplicate Net balance card, extra search card and filler text removed; spacing fixed | done |
 | 108d | **Done:** Last pass: Report insight no longer repeats the savings-rate number; every other page checked, full UI audit clean | done |
+| 109a | **Done:** UI measurement tool (`tests/ui_measure.py`, 4 screen widths) + one spacing rhythm (leftover margins no longer add to the column gap: 26-28px became 12-14px) | done |
+| 109b | Buttons, Personal/Shared switch, search bar and list-card padding made equal (from the measurement report) | todo |
+| 109c | Page by page re-measure (admin, public pages, dark) and screenshots | todo |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -853,3 +856,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Checked Group detail, Groups, Activity, Budgets, Goals, Reminders, Profile: the remaining texts are empty-state hints or one-line explanations, no duplicated cards or options. "Who pays whom" and "Net per person" on the group page show different things (payments to make vs each person's balance) and stay.
 - Full `tests/ui_audit.py` run after Parts 108a-c, phone and desktop, light and dark: 51 pages, only the offline page's own check request is reported (expected).
 - Test: `tests/report_insight_test.py`. Web only: no APK/exe build needed.
+
+## Part 109a — Measuring the UI, one spacing rhythm
+- New `tests/ui_measure.py` (`--admin`, `--dark`, `--widths=`, `--json=`, `--fail-over=N`): opens every page at 360, 390, 768 and 1366 px and measures with `getBoundingClientRect` instead of looking: block edges against the column, screen gutter, gaps between blocks, card padding and radius, button heights and label centring, icon-to-text centring, list-row title/amount lines, cut-off or overlapping text, sidebar / bottom bar / Personal-Shared switch / top bar sizes and centring, heading sizes.
+- First run: 197 findings. The biggest group was spacing: a block that kept an old `margin-bottom:14px` (or `margin-top`) inside the page column, which already spaces blocks with `gap`, so the real gap was 26-28px (desktop) / 24-26px (phone) on Profile, Settings, Friends, Activity, Support and others. `polish.css` now makes margins on the column's direct children (and grid cells) neutral, so every gap is the column's own 12px (phone) / 14px (desktop).
+- Result after the fix: 55 findings, all real and listed for 109b (button heights 42/46/49px, switch buttons of different width, search bar and list-card padding). The tool also ignores things that are on purpose (pill-shaped search bars, two-line icon rows, flash messages that animate in).
+- Existing `tests/ui_audit.py` still clean. Web only: no APK/exe build needed.
