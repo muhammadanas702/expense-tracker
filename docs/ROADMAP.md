@@ -60,7 +60,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 108d | **Done:** Last pass: Report insight no longer repeats the savings-rate number; every other page checked, full UI audit clean | done |
 | 109a | **Done:** UI measurement tool (`tests/ui_measure.py`, 4 screen widths) + one spacing rhythm (leftover margins no longer add to the column gap: 26-28px became 12-14px) | done |
 | 109b | **Done:** Equal controls: all buttons 46px, switch buttons one width, Profile list cards use the card padding, empty-state button centred; measurement now 0 findings on the app pages | done |
-| 109c | Page by page re-measure (admin, public pages, dark) and screenshots | todo |
+| 109c | **Done:** Admin panel, public pages and dark mode measured and fixed: one small-button height, Features switch, About page buttons; `ui_measure.py --public` added | done |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -869,3 +869,11 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Profile & Settings list cards use the normal card padding (18px desktop, 14px phone; before 16px everywhere).
 - The button under an empty-state sentence ("Create a group") is centred like the sentence.
 - `tests/ui_measure.py` no longer reports the pill search bar's own padding or the animating flash message (both on purpose). Result: 0 findings on all app pages at 360/390/768/1366px; `tests/ui_audit.py` unchanged. Web only: no APK/exe build needed.
+
+## Part 109c — Admin, public pages and dark mode
+- `tests/ui_measure.py` got `--public` (landing, About, Privacy, Terms, Login, Register, Guides: no sign-in) and is run with and without `--dark`, with and without `--admin`, at 360/390/768/1366px.
+- Small buttons were 36px, 40px and 46px in different places (tables, toolbars, cards, forms). All `.btn.sm` are now 38px and keep that height inside a stretching row.
+- Admin > Features on/off: the On/Off switch borrowed the global 42px-wide `.sw` toggle, so its "On" label stuck out of the button. The page's own switch is now `.fsw`.
+- About page: "Create a free account" and the "Read the guides" link now wrap as whole items (before, the link broke into two lines next to the button on phones).
+- Measured and left alone on purpose (and the tool knows it): the pill search bar, admin stat tiles and notice banners (own compact padding), the 32px tap area around breadcrumb and agreement links, the password eye inside its field.
+- Result: 0 findings on app pages, admin panel and public pages, light and dark, four widths. Web only: no APK/exe build needed.

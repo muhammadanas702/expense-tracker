@@ -10,13 +10,13 @@ Part 109a: UI measurement audit. Opens every page of the signed-in app (and the 
   clip      text is not cut off or pushed outside its box; no two controls overlap
   nav       sidebar, bottom bar and the Personal/Shared switch: equal item sizes, icon and label centred
   radius    corner radius of cards and buttons is the same everywhere
-Usage: (EXPENSEFLOW_2FA_OFF=1 php -S 127.0.0.1:8080 -t . router.php)  python3 tests/ui_measure.py [--admin] [--dark] [--max=60] [--json=file] [--fail-over=N] [--widths=360,390,768,1366] [--verbose]
+Usage: (EXPENSEFLOW_2FA_OFF=1 php -S 127.0.0.1:8080 -t . router.php)  python3 tests/ui_measure.py [--admin] [--public] [--dark] [--max=60] [--json=file] [--fail-over=N] [--widths=360,390,768,1366] [--verbose]
 Uses the TEST database; creates and removes one audit user. Exit code 1 only with --fail-over.
 """
 import re, subprocess, sys, json, os, collections
 from playwright.sync_api import sync_playwright
 B = 'http://127.0.0.1:8080'
-admin = '--admin' in sys.argv; dark = '--dark' in sys.argv; verbose = '--verbose' in sys.argv
+public = '--public' in sys.argv; admin = '--admin' in sys.argv; dark = '--dark' in sys.argv; verbose = '--verbose' in sys.argv
 maxp = next((int(a[6:]) for a in sys.argv if a.startswith('--max=')), 60)
 jf = next((a[7:] for a in sys.argv if a.startswith('--json=')), None)
 limit = next((int(a[12:]) for a in sys.argv if a.startswith('--fail-over=')), None)
@@ -73,7 +73,7 @@ MEASURE = r"""() => {
   // ---- card padding and radius -------------------------------------------------------
   R.stat.pad = []; R.stat.radius = [];
   document.querySelectorAll('.card:not(.hero):not(.gc), .g.card:not(.hero):not(.gc)').forEach(e => {
-    if (!vis(e) || fixed(e) || e.matches('#dash-search')) return; // the pill search bar has its own padding
+    if (!vis(e) || fixed(e) || e.matches('#dash-search,.stat,.ap-intro,.attn')) return; // pill search bar, stat tiles and notice banners have their own compact padding
     const c = getComputedStyle(e);
     R.stat.pad.push([nm(e), r1(parseFloat(c.paddingTop)), r1(parseFloat(c.paddingRight)), r1(parseFloat(c.paddingBottom)), r1(parseFloat(c.paddingLeft))]);
     const rad = r1(parseFloat(c.borderTopLeftRadius)); if (rad < 100 && !(e.parentElement && e.parentElement.classList.contains('g'))) R.stat.radius.push(['card', rad]); // pill-shaped search bars are intentional
@@ -116,7 +116,7 @@ MEASURE = r"""() => {
   // ---- clipping and overflow of text ------------------------------------------------
   let clipN = 0;
   document.querySelectorAll('body *').forEach(e => {
-    if (clipN > 6 || !vis(e) || fixed(e) || e.closest('.msg')) return; // flash messages animate in
+    if (clipN > 6 || !vis(e) || fixed(e) || e.closest('.msg') || e.matches('.p-crumbs a') || e.closest('.agree')) return; // flash messages animate in
     const c = getComputedStyle(e);
     if (!e.childNodes.length || ![...e.childNodes].some(n => n.nodeType === 3 && n.nodeValue.trim())) return;
     if ((c.overflow === 'hidden' || c.overflowX === 'hidden' || c.overflowX === 'clip') && e.scrollWidth > e.clientWidth + 1 && c.textOverflow !== 'ellipsis' && c.display !== 'inline') { add('clip', `text of ${nm(e)} "${txt(e)}" is cut off (${e.scrollWidth} > ${e.clientWidth})`); clipN++; }
@@ -128,7 +128,7 @@ MEASURE = r"""() => {
     }
   });
   // ---- overlap of controls ----------------------------------------------------------
-  const ctl = [...document.querySelectorAll('a[href],button,input:not([type=hidden]),select,textarea')].filter(e => vis(e) && !fixed(e) && !e.closest('.acts,.chips,.seg,.tbl'));
+  const ctl = [...document.querySelectorAll('a[href],button,input:not([type=hidden]),select,textarea')].filter(e => vis(e) && !fixed(e) && !e.closest('.acts,.chips,.seg,.tbl') && !(e.tagName === 'A' && getComputedStyle(e).display === 'inline') && !e.matches('.ey,.hasey') && !e.closest('.agree')); // inline links wrapping inside a paragraph and the password eye are on purpose
   let ov = 0;
   for (let i = 0; i < ctl.length && ov < 4; i++) for (let j = i + 1; j < ctl.length && ov < 4; j++) {
     const a = ctl[i], b = ctl[j]; if (a.contains(b) || b.contains(a)) continue;
@@ -179,15 +179,16 @@ with sync_playwright() as pw:
         ctx = br.new_context(viewport={'width': w, 'height': 800}, service_workers='block', is_mobile=mob, device_scale_factor=1)
         if dark: ctx.add_cookies([{'name': 'ef_theme', 'value': 'dark', 'url': B}])
         p = ctx.new_page(); p.route('**/health.php*', lambda r: r.abort())
-        p.goto(B + '/auth/login.php'); p.fill('input[name=email]', email); p.fill('input[name=password]', 'Test#12345'); p.click('button[type=submit]'); p.wait_for_load_state(); p.wait_for_timeout(800)
-        queue = ['/dashboard.php', '/profile.php'] + (['/admin/index.php'] if admin else []); seen = set(); n = 0
+        if not public:
+            p.goto(B + '/auth/login.php'); p.fill('input[name=email]', email); p.fill('input[name=password]', 'Test#12345'); p.click('button[type=submit]'); p.wait_for_load_state(); p.wait_for_timeout(800)
+        queue = (['/', '/auth/login.php', '/auth/register.php', '/auth/forgot.php'] if public else ['/dashboard.php', '/profile.php'] + (['/admin/index.php'] if admin else [])); seen = set(); n = 0
         while queue and n < maxp:
             path = queue.pop(0)
             if path in seen: continue
             seen.add(path); n += 1
             try: p.goto(B + path, wait_until='load'); p.wait_for_timeout(450)
             except Exception: continue
-            if '/auth/login' in p.url: continue
+            if '/auth/login' in p.url and not public and path != '/auth/login.php': continue
             res = None
             for _ in range(3):
                 try: res = p.evaluate(MEASURE); break
@@ -253,7 +254,7 @@ for pg in sorted(rep):
     for w in widths:
         d = rep[pg].get(w)
         if not d: continue
-        uniq = list(dict.fromkeys(d['issues']))
+        uniq = list(dict.fromkeys(i for i in d['issues'] if not (public and i.split(':')[0] in ('edges', 'gutter', 'gap', 'title'))))  # marketing pages have no app column
         for i in uniq:
             total += 1; cats[i.split(':')[0]] += 1; out.append(f'{pg} [{w}] {i}')
 for line in out: print(line)
