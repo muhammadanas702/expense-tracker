@@ -86,18 +86,23 @@ $categories = [];
 $categoryTotals = [];
 $top_category = ['category' => 'N/A', 'total' => 0];
 
-$stmtInc = $conn->prepare("SELECT amount_pkr FROM income WHERE user_id = ? AND transaction_date >= ? AND transaction_date < ?");
+$stmtInc = $conn->prepare("SELECT title, amount_pkr FROM income WHERE user_id = ? AND transaction_date >= ? AND transaction_date < ?");
 $stmtInc->execute([$user_id, $range_from, $range_to]);
+$periodN = 0; $bigInc = null; $bigExp = null; // for the Smart insights tiles
 foreach ($stmtInc->fetchAll(PDO::FETCH_ASSOC) as $inc) {
     $total_income += CurrencyConverter::convert($inc['amount_pkr'] ?? 0, 'PKR', $display_currency);
+    $periodN++;
+    if ($bigInc === null || (float) $inc['amount_pkr'] > (float) $bigInc['amount_pkr']) { $bigInc = $inc; }
 }
 
-$stmtExp = $conn->prepare("SELECT category, amount, currency, amount_pkr FROM expenses WHERE user_id = ? AND transaction_date >= ? AND transaction_date < ?");
+$stmtExp = $conn->prepare("SELECT title, category, amount, currency, amount_pkr FROM expenses WHERE user_id = ? AND transaction_date >= ? AND transaction_date < ?");
 $stmtExp->execute([$user_id, $range_from, $range_to]);
 $categoryMap = [];
 foreach ($stmtExp->fetchAll(PDO::FETCH_ASSOC) as $exp) {
     $value = $toDisplay($exp);
     $total_expense += $value;
+    $periodN++;
+    if ($bigExp === null || (float) $exp['amount_pkr'] > (float) $bigExp['amount_pkr']) { $bigExp = $exp; }
     $cat = trim((string) ($exp['category'] ?? '')) !== '' ? (string) $exp['category'] : 'Uncategorized';
     $categoryMap[$cat] = ($categoryMap[$cat] ?? 0) + $value;
 }
@@ -301,12 +306,13 @@ if ($budgetItems): $bcol = ['ok' => '#0d9f6e', 'warn' => '#f59e0b', 'over' => '#
     <div class="g card">
         <div class="t"><?= e(t('Smart insights')) ?></div>
         <div class="ig">
-            <div class="ins"><b><?= e(t($savings_percent >= 30 ? 'Excellent' : ($savings_percent >= 15 ? 'Good' : 'Needs control'))) ?></b><?= e(t('Financial health')) ?> · <?= e(t('%s%% saved', (string) round($savings_percent, 1))) ?></div>
+            <div class="ins"><b><?= e(t($savings_percent >= 30 ? 'Excellent' : ($savings_percent >= 15 ? 'Good' : 'Needs control'))) ?></b><?= e(t('Financial health')) ?></div>
             <div class="ins"><b><?= (!$use_date_range && $trend != 0) ? ($trend > 0 ? '↑ +' . round($trend, 1) : '↓ ' . round(abs($trend), 1)) . '%' : 'N/A' ?></b><?= e(t($use_date_range ? 'Custom range' : 'Spending vs last month')) ?></div>
             <div class="ins"><b><?= e(t($top_category['category'] ?? 'N/A')) ?></b><?= e(t('Top expense category')) ?></div>
-            <div class="ins"><b><?= e(t($balance > 0 ? 'Surplus' : ($balance < 0 ? 'Deficit' : 'Neutral'))) ?></b><?= e(t('Income vs expense')) ?></div>
+            <div class="ins"><b><?= $bigExp ? e($bigExp['title']) : 'N/A' ?></b><?= e(t('Biggest expense')) ?></div>
+            <div class="ins"><b><?= $bigInc ? e($bigInc['title']) : 'N/A' ?></b><?= e(t('Biggest income')) ?></div>
+            <div class="ins"><b><?= (int) $periodN ?></b><?= e(t('Entries in this period')) ?></div>
         </div>
-        <canvas id="flowChart" height="150" style="margin-top:14px" aria-label="<?= e(t('Income versus expense')) ?>"></canvas>
     </div>
 </div>
 
@@ -336,6 +342,7 @@ if ($budgetItems): $bcol = ['ok' => '#0d9f6e', 'warn' => '#f59e0b', 'over' => '#
     </div>
 
     <div style="display:flex;flex-direction:column;gap:14px">
+        <?php if ($repeating): ?>
         <div class="g card">
             <div class="t"><?= e(t('Repeating every month')) ?></div>
             <?php foreach ($repeating as $r): ?>
@@ -345,8 +352,9 @@ if ($budgetItems): $bcol = ['ok' => '#0d9f6e', 'warn' => '#f59e0b', 'over' => '#
                 <b><?= $fmt((float) $r['amount']) ?> <?= e($r['currency']) ?></b>
                 <span class="acts"><a class="del" href="<?= e($base_url) ?>/stop-recurring.php" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"id":<?= (int) $r['id'] ?>}' onclick="return confirm(<?= e(json_encode(t('Stop repeating this item?'), JSON_UNESCAPED_UNICODE)) ?>)" aria-label="<?= e(t('Stop repeating')) ?>"><?= ef_icon('tr') ?></a></span>
             </div>
-            <?php endforeach; if (!$repeating): ?><p class="k"><?= e(t('None. Turn on “Repeat every month” when adding an entry.')) ?></p><?php endif; ?>
+            <?php endforeach; ?>
         </div>
+        <?php endif; ?>
         <?php if (!$use_date_range): ?>
         <div class="g card" id="base">
             <div class="t"><?= e(t('Base currency for %s', ef_month_year($period_start))) ?></div>
@@ -358,7 +366,6 @@ if ($budgetItems): $bcol = ['ok' => '#0d9f6e', 'warn' => '#f59e0b', 'over' => '#
             </form>
         </div>
         <?php endif; ?>
-        <div class="g card"><div class="row" style="border:0;padding:0"><span><?= e(t('Reset data or delete account')) ?><small><?= e(t('Now in Profile & Settings')) ?></small></span><b><a class="lnk" href="<?= e($base_url) ?>/profile.php"><?= e(t('Open')) ?></a></b></div></div>
     </div>
 </div>
 <?php
@@ -367,15 +374,11 @@ $js = '<script>
 window.addEventListener("load",function(){
   if (typeof Chart === "undefined") return;
   var cats = ' . json_encode($categories, $json_flags) . ', vals = ' . json_encode($categoryTotals, $json_flags) . ';
-  var inc = ' . json_encode($total_income, $json_flags) . ', exp = ' . json_encode($total_expense, $json_flags) . ';
   var palette = ["#0f766e","#1d4ed8","#F59E0B","#f97316","#4DA8DA","#a855f7","#ef4444","#64748b"];
   var c1 = document.getElementById("categoryChart");
   Chart.defaults.color = getComputedStyle(document.documentElement).getPropertyValue("--mu").trim() || "#5b6b80"; Chart.defaults.borderColor = "rgba(128,140,160,.2)";
   if (c1) new Chart(c1, {type:"doughnut", data:{labels:cats, datasets:[{data:vals, backgroundColor:palette, borderWidth:0}]},
     options:{cutout:"62%", maintainAspectRatio:true, aspectRatio:1.15, plugins:{legend:{position:"bottom"}, tooltip:{callbacks:{label:function(c){return " "+c.label+": "+Number(c.raw).toFixed(2)}}}}}});
-  var c2 = document.getElementById("flowChart");
-  if (c2) new Chart(c2, {type:"bar", data:{labels:' . json_encode([t('Income'), t('Expense')], $json_flags | JSON_UNESCAPED_UNICODE) . ', datasets:[{data:[inc,exp], backgroundColor:["#10b981","#f97316"], borderRadius:8}]},
-    options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}});
 });
 setTimeout(function(){document.querySelectorAll("[data-flash]").forEach(function(m){m.style.transition="opacity .5s";m.style.opacity="0";setTimeout(function(){m.remove()},500)})},4000);
 </script>';
