@@ -55,6 +55,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 105 | **Done:** Uptime monitor on GitHub Actions (every ~10 min, "ExpenseFlow is down" issue + e-mail, auto-close) and a public status page on the `status-page` branch; guide in `docs/RESILIENCE.md` | done |
 | 103c | **Done:** Full-app visual pass (phone + desktop, light/dark); report "All transactions" table now cards on phones (amount was off-screen) | done |
 | 108a | **Done:** Search in Shared (`shared/search.php`, only your own groups) + search bar on the Shared overview; Personal/Shared switch checked on every main page | done |
+| 108b | **Done:** Personal dashboard cleanup: duplicate/unneeded info removed, Smart insights card filled with new facts | done |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -830,3 +831,11 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Search bar on the Shared overview (same look as on the Personal dashboard); results open the group.
 - Checked: the Personal/Shared switch is already on Dashboard, Overview, Groups, Group, Add, Friends, Activity and Search; Profile and Notifications stay neutral on purpose.
 - Test: `tests/shared_search_test.py`. Web only: no APK/exe build needed.
+
+## Part 108b — Personal dashboard: duplicates and unneeded info removed
+- Savings rate was shown 3 times (pill, "Financial health · x% saved", tip): it now shows once in the pill; the insight tile only says Excellent / Good / Needs control.
+- Removed the "Income vs expense: Surplus" tile (the Net balance card already says it) and the Income-vs-Expense bar chart (the Total income / Total expense cards show the same two numbers).
+- The "Repeating every month" card shows only when there is something repeating (it was an empty card with a hint).
+- Removed the "Reset data or delete account" card (it only linked to Profile, where the option lives).
+- The space freed in Smart insights is used by three new facts: Biggest expense, Biggest income, Entries in this period (from the period queries already run, no extra database query). Long titles are cut with "…".
+- Test: `tests/dashboard_cleanup_test.py` (360 and 1366px). Web only: no APK/exe build needed.

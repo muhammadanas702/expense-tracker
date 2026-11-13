@@ -136,3 +136,4 @@ p.k[style*="padding:12px 0"]::before,.np-e::before{content:"";display:block;widt
   table.rtx td.rp::before{content:"= "}
   table.rtx td.rm:empty{display:none}
 }
+.ig .ins b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
