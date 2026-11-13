@@ -57,6 +57,7 @@ Never push to `main` directly (a push to `main` auto-deploys).
 | 108a | **Done:** Search in Shared (`shared/search.php`, only your own groups) + search bar on the Shared overview; Personal/Shared switch checked on every main page | done |
 | 108b | **Done:** Personal dashboard cleanup: duplicate/unneeded info removed, Smart insights card filled with new facts | done |
 | 108c | **Done:** Shared overview and Friends cleanup: duplicate Net balance card, extra search card and filler text removed; spacing fixed | done |
+| 108d | **Done:** Last pass: Report insight no longer repeats the savings-rate number; every other page checked, full UI audit clean | done |
 
 ## Native apps (plan)
 - PWA already works (Install app / Add to Home Screen).
@@ -846,3 +847,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - Friends: the separate "Find in your friends" card (with the filler line "Type to filter instantly") is merged into the "Your friends" list as its search box; "Add a friend" now uses the full width instead of sharing a row with a nearly empty card.
 - Checked with the earlier Parts: the Personal/Shared switch is on every main page (108a), dashboard cleanup (108b).
 - Test: `tests/shared_cleanup_test.py` (360 and 1366px). Web only: no APK/exe build needed.
+
+## Part 108d — Last pass over the remaining pages
+- Report: the "Smart insight" sentence repeated the savings-rate number that the card right above it already shows ("You're saving 45%…"); it now only gives the advice. The same sentence is used in the exports, which already contain the rate.
+- Checked Group detail, Groups, Activity, Budgets, Goals, Reminders, Profile: the remaining texts are empty-state hints or one-line explanations, no duplicated cards or options. "Who pays whom" and "Net per person" on the group page show different things (payments to make vs each person's balance) and stay.
+- Full `tests/ui_audit.py` run after Parts 108a-c, phone and desktop, light and dark: 51 pages, only the offline page's own check request is reported (expected).
+- Test: `tests/report_insight_test.py`. Web only: no APK/exe build needed.

@@ -84,9 +84,9 @@ rsort($allYears);
 if ($savings_percent >= 30) {
     $ai_insight = "Excellent! You're saving more than 30% of your income. Keep it up! 🎉";
 } elseif ($savings_percent >= 15) {
-    $ai_insight = "Good job! You're saving {$savings_percent}% of your income. Try to reach 30% for financial freedom. 📈";
+    $ai_insight = "Good job! You're saving well. Try to reach 30% of your income for financial freedom. 📈";
 } elseif ($savings_percent > 0) {
-    $ai_insight = "You're saving {$savings_percent}% of your income. Consider reducing non-essential expenses to save more. 💡";
+    $ai_insight = "Your savings are low. Consider reducing non-essential expenses to save more. 💡";
 } else {
     $ai_insight = "Your expenses exceed income. Review your spending habits and prioritize needs over wants. ⚠️";
 }
