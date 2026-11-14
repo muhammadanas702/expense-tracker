@@ -892,3 +892,12 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - `.rf.gd` is never switched off. With `.page` as main address the free address redirects to it only while `.page` answers `/health.php` (`site_main_healthy()`, 3-second check, remembered 2 minutes when up / 30 seconds when down in `storage/site-health.json`). When `.page` is down, `.rf.gd` serves the site itself (plain http still goes to https).
 - Limit: if the free host is down, `.rf.gd` cannot answer anything; then the `.page` A records move to a standby host (Part 107).
 - Tests: `tests/old_address_test.py` (real PHP servers, Host header), `tests/domain_test.py`, `tests/redirect_test.php`. Web only: no APK/exe build.
+
+## Part 106c — Domain check on a host with an old CA list
+- Admin > Domain and the free-address health guard retry once without certificate verification for curl errors 58/59/60/77/83 and tell the owner (`site_probe()` in `modules/site/host.php`). Test: `tests/old_ca_test.php`. Web only.
+- Found afterwards: the real cause is not an old CA list but that InfinityFree sends **no intermediate certificate** (see 106d). The retry stays as a safety net.
+
+## Part 106d — Cloudflare proxy, real visitor IP
+- InfinityFree free hosting installs the certificate without the intermediate; browsers cope, the GitHub uptime monitor and Android/desktop apps do not. Free accounts cannot change it.
+- Fix: Cloudflare proxy (SSL/TLS mode **Full**, A records for `@` and `www` **Proxied**, `_acme-challenge` CNAME **DNS only**). `client_ip()` (`includes/security.php`) takes `CF-Connecting-IP` only when the request comes from a published Cloudflare range. Test: `tests/client_ip_test.php`. Guide: `docs/DOMAIN.md`. Web only: no APK/exe build.
+- Done live on 2026-11-14: `expenseflow.page` is the main address, Cloudflare serves the certificate (checked in a private window), repo variable `SITE_URL=https://expenseflow.page`.
