@@ -35,11 +35,55 @@ function e($value): string
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-/** The visitor's IP. Only REMOTE_ADDR is trusted; forwarded headers are client-controlled. */
+/** Cloudflare's published address ranges (https://www.cloudflare.com/ips). Only these may tell us the visitor's real IP. */
+const CLOUDFLARE_RANGES = [
+    '173.245.48.0/20', '103.21.244.0/22', '103.22.200.0/22', '103.31.4.0/22', '141.101.64.0/18', '108.162.192.0/18',
+    '190.93.240.0/20', '188.114.96.0/20', '197.234.240.0/22', '198.41.128.0/17', '162.158.0.0/15', '104.16.0.0/13',
+    '104.24.0.0/14', '172.64.0.0/13', '131.0.72.0/22',
+    '2400:cb00::/32', '2606:4700::/32', '2803:f800::/32', '2405:b500::/32', '2405:8100::/32', '2a06:98c0::/29', '2c0f:f248::/32',
+];
+
+/** Is $ip inside $cidr (IPv4 or IPv6)? */
+function ip_in_cidr(string $ip, string $cidr): bool
+{
+    [$net, $bits] = explode('/', $cidr) + [1 => '0'];
+    $a = @inet_pton($ip);
+    $b = @inet_pton($net);
+    if ($a === false || $b === false || strlen($a) !== strlen($b)) {
+        return false;
+    }
+    $bits = (int) $bits;
+    $full = intdiv($bits, 8);
+    if ($full > 0 && substr($a, 0, $full) !== substr($b, 0, $full)) {
+        return false;
+    }
+    $rest = $bits % 8;
+    if ($rest === 0) {
+        return true;
+    }
+    $mask = (0xFF << (8 - $rest)) & 0xFF;
+    return (ord($a[$full]) & $mask) === (ord($b[$full]) & $mask);
+}
+
+/**
+ * The visitor's IP. REMOTE_ADDR is trusted; forwarded headers are client-controlled, so CF-Connecting-IP counts
+ * only when the request really comes from a Cloudflare address (the own domain runs behind Cloudflare).
+ */
 function client_ip(): string
 {
     $ip = $_SERVER['REMOTE_ADDR'] ?? '';
-    return filter_var($ip, FILTER_VALIDATE_IP) ? $ip : 'unknown';
+    if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+        return 'unknown';
+    }
+    $cf = (string) ($_SERVER['HTTP_CF_CONNECTING_IP'] ?? '');
+    if ($cf !== '' && filter_var($cf, FILTER_VALIDATE_IP)) {
+        foreach (CLOUDFLARE_RANGES as $range) {
+            if (ip_in_cidr($ip, $range)) {
+                return $cf;
+            }
+        }
+    }
+    return $ip;
 }
 
 function app_is_https(): bool

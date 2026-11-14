@@ -51,3 +51,13 @@ Because DNS is in Cloudflare, moving is one change: DNS > the two A records > th
 | *Opens, but it is not ExpenseFlow* | The domain is not added to the InfinityFree account (step 1), or a parking page is still cached. |
 | Redirect loop after switching | Cloudflare SSL mode must be **Full**, or turn the cloud grey. Use *Go back* on the free address meanwhile. |
 | Everyone was signed out | Expected once: sign-ins do not move between addresses. |
+
+## Free host sends no intermediate certificate (Part 106d)
+
+InfinityFree's free hosting installs your Let's Encrypt certificate **without the intermediate certificate**. Browsers fetch it themselves, so the site opens with a lock, but strict clients fail with "unable to get local issuer certificate": the GitHub uptime monitor, Android/desktop apps, curl. Free accounts cannot change this.
+
+Fix: let Cloudflare serve the certificate.
+1. Cloudflare > SSL/TLS > Overview: set the mode to **Full** (not Flexible, not Full strict).
+2. Cloudflare > DNS: switch the two A records (`@` and `www`) to **Proxied** (orange cloud). Leave the `_acme-challenge` CNAME on **DNS only**, it is needed for certificate renewal.
+3. The site reads the visitor's real IP from `CF-Connecting-IP`, but only when the request comes from a published Cloudflare address (`client_ip()` in `includes/security.php`), so rate limits and the audit log keep working.
+4. Undo: switch the A records back to DNS only.
