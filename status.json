@@ -1,0 +1,7 @@
+{
+ "state": "up",
+ "detail": "The host answers with its own page (bot check), so the site is reachable.",
+ "url": "https://expenseflow.page",
+ "since": "2026-11-14T14:05:36Z",
+ "last_change": "2026-11-14T14:05:36Z"
+}
