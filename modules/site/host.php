@@ -45,6 +45,32 @@ function site_check_base(string $host): string
     return rtrim(getenv('EXPENSEFLOW_SITE_CHECK_BASE') ?: 'https://' . $host, '/');
 }
 
+/**
+ * One GET to a /health.php address: [body|false, http code, curl error, certificate-list warning].
+ * Free hosts ship an old list of trusted certificate authorities, so a perfectly good Let's Encrypt certificate can fail
+ * there with "unable to get local issuer certificate" while every browser accepts it. For this only-looking check we then
+ * retry once without verifying and say so; nothing secret is sent and nothing is changed by the answer.
+ */
+function site_probe(string $url, int $connect, int $total): array
+{
+    $run = function (bool $verify) use ($url, $connect, $total): array {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_CONNECTTIMEOUT => $connect, CURLOPT_TIMEOUT => $total, CURLOPT_FOLLOWLOCATION => false, CURLOPT_USERAGENT => 'ExpenseFlow-site-check', CURLOPT_SSL_VERIFYPEER => $verify, CURLOPT_SSL_VERIFYHOST => $verify ? 2 : 0]);
+        $raw = curl_exec($ch);
+        $r = [$raw, (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE), $raw === false ? curl_error($ch) : '', curl_errno($ch)];
+        curl_close($ch);
+        return $r;
+    };
+    [$raw, $code, $err, $no] = $run(true);
+    if ($raw === false && in_array($no, [58, 59, 60, 77, 83], true) && stripos($url, 'https://') === 0) {
+        [$raw2, $code2] = $run(false);
+        if ($raw2 !== false && $code2 > 0) {
+            return [$raw2, $code2, '', true];
+        }
+    }
+    return [$raw, $code, $err, false];
+}
+
 /** Three plain checks for a host: [['dns'|'https'|'app', ok, text], ...]. Nothing is changed. */
 function site_check(string $host): array
 {
@@ -63,17 +89,12 @@ function site_check(string $host): array
         $out[] = ['https', false, 'The curl extension is not available on this server, so the live check cannot run. Open https://' . $host . '/health.php in a browser instead.'];
         return $out;
     }
-    $ch = curl_init(site_check_base($host) . '/health.php');
-    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_CONNECTTIMEOUT => 8, CURLOPT_TIMEOUT => 15, CURLOPT_FOLLOWLOCATION => false, CURLOPT_USERAGENT => 'ExpenseFlow-site-check']);
-    $raw = curl_exec($ch);
-    $code = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-    $err = $raw === false ? curl_error($ch) : '';
-    curl_close($ch);
+    [$raw, $code, $err, $oldCa] = site_probe(site_check_base($host) . '/health.php', 8, 15);
     if ($raw === false || $code === 0) {
         $out[] = ['https', false, 'https://' . $host . ' did not answer (' . ($err !== '' ? $err : 'no connection') . '). The secure certificate (SSL) may not be ready yet.'];
         return $out;
     }
-    $out[] = ['https', $code < 500, 'https://' . $host . ' answered with a valid certificate (HTTP ' . $code . ').'];
+    $out[] = ['https', $code < 500, 'https://' . $host . ' answered (HTTP ' . $code . ').' . ($oldCa ? ' This server\'s own list of trusted certificate authorities is old, so it could not verify the certificate itself; browsers can. Open https://' . $host . ' once and look for the lock.' : ' The certificate is valid.')];
     $j = json_decode((string) $raw, true);
     $appOk = $code === 200 && is_array($j) && !empty($j['ok']);
     $botPage = !$appOk && stripos((string) $raw, 'aes.js') !== false; // the free host shows scripts a "visitor check" page: the domain does reach it
@@ -104,11 +125,7 @@ function site_main_healthy(): bool
     }
     $ok = false;
     if (function_exists('curl_init')) {
-        $ch = curl_init((getenv('EXPENSEFLOW_SITE_CHECK_BASE') ?: $base) . '/health.php');
-        curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_CONNECTTIMEOUT => 2, CURLOPT_TIMEOUT => 3, CURLOPT_USERAGENT => 'ExpenseFlow-site-check']);
-        $raw = curl_exec($ch);
-        $code = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-        curl_close($ch);
+        [$raw, $code] = site_probe((getenv('EXPENSEFLOW_SITE_CHECK_BASE') ?: $base) . '/health.php', 2, 3);
         $ok = $raw !== false && $code > 0 && $code < 500;
     } else {
         $ok = true; // cannot check: keep the normal redirect
