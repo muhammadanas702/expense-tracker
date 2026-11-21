@@ -141,6 +141,8 @@ function friends_list(PDO $conn, int $userId, ?array $groups = null): array
     $groups = $groups ?? shared_groups_of($conn, $userId);
     $gids = array_map(fn($g) => (int) $g['id'], $groups);
     $gnames = array_column($groups, 'name', 'id');
+    $directGroups = array_column(array_filter($groups, fn($g) => !empty($g['is_direct'])), 'id');
+    $directGroups = array_map('intval', $directGroups);
     $friends = [];
     if ($gids) {
         $in = implode(',', $gids); // integers only
@@ -148,7 +150,11 @@ function friends_list(PDO $conn, int $userId, ?array $groups = null): array
         $stmt->execute([$userId]);
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
             $id = (int) $r['id'];
-            $friends[$id] ??= ['id' => $id, 'name' => $r['name'], 'groups' => [], 'owed' => [], 'owe' => [], 'todo' => [], 'direct' => false, 'link_id' => 0];
+            $friends[$id] ??= ['id' => $id, 'name' => $r['name'], 'groups' => [], 'owed' => [], 'owe' => [], 'todo' => [], 'direct' => false, 'link_id' => 0, 'ledger' => 0];
+            if (in_array((int) $r['group_id'], $directGroups, true)) {
+                $friends[$id]['ledger'] = (int) $r['group_id']; // the two-person ledger, not a group to list
+                continue;
+            }
             $friends[$id]['groups'][(int) $r['group_id']] = $gnames[(int) $r['group_id']] ?? 'Group';
         }
     }
@@ -157,7 +163,7 @@ function friends_list(PDO $conn, int $userId, ?array $groups = null): array
         $in2 = implode(',', array_map('intval', array_keys($direct)));
         foreach ($conn->query("SELECT id, name FROM users WHERE id IN ($in2)")->fetchAll(PDO::FETCH_ASSOC) as $r) {
             $id = (int) $r['id'];
-            $friends[$id] ??= ['id' => $id, 'name' => $r['name'], 'groups' => [], 'owed' => [], 'owe' => [], 'todo' => [], 'direct' => true, 'link_id' => 0];
+            $friends[$id] ??= ['id' => $id, 'name' => $r['name'], 'groups' => [], 'owed' => [], 'owe' => [], 'todo' => [], 'direct' => true, 'link_id' => 0, 'ledger' => 0];
             $friends[$id]['direct'] = true;
             $friends[$id]['link_id'] = (int) $direct[$id];
         }

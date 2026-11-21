@@ -1,10 +1,12 @@
 <?php
 require_once __DIR__ . '/../modules/shared/boot.php';
-$groups = shared_groups_of($conn, $user_id);
+$groupsAll = shared_groups_of($conn, $user_id); // totals include the private ledgers with single friends
+$groups = array_values(array_filter($groupsAll, fn($g) => empty($g['is_direct'])));
 // Totals across all groups, per currency, from the same simplified payments the group pages show.
-$sum = shared_user_summary($conn, array_map(fn($g) => (int) $g['id'], $groups), $user_id);
+$sum = shared_user_summary($conn, array_map(fn($g) => (int) $g['id'], $groupsAll), $user_id);
 $owed = $sum['owed']; $owe = $sum['owe']; $todo = $sum['todo'];
 $gnames = array_column($groups, 'name', 'id');
+foreach ($groupsAll as $ga) { if (!empty($ga['is_direct'])) { $gnames[(int) $ga['id']] = 'Just you two'; } }
 $other = shared_names($conn, array_map(fn($p) => $p['from'] === $user_id ? $p['to'] : $p['from'], $todo));
 $fmt = function (array $byCur, string $sign = '') {
     if (!$byCur) { return '<span class="mu" style="font-size:1rem;font-weight:600">Nothing</span>'; }
