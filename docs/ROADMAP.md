@@ -901,3 +901,9 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - InfinityFree free hosting installs the certificate without the intermediate; browsers cope, the GitHub uptime monitor and Android/desktop apps do not. Free accounts cannot change it.
 - Fix: Cloudflare proxy (SSL/TLS mode **Full**, A records for `@` and `www` **Proxied**, `_acme-challenge` CNAME **DNS only**). `client_ip()` (`includes/security.php`) takes `CF-Connecting-IP` only when the request comes from a published Cloudflare range. Test: `tests/client_ip_test.php`. Guide: `docs/DOMAIN.md`. Web only: no APK/exe build.
 - Done live on 2026-11-14: `expenseflow.page` is the main address, Cloudflare serves the certificate (checked in a private window), repo variable `SITE_URL=https://expenseflow.page`.
+
+## Part 110a — Shared group page made clear
+- Owner feedback: the Shared part felt messy and hard to understand. Group page (`shared/group.php`) was 2500+ px with equal-weight cards ("Who pays whom", "Net per person", icon-only edit/delete).
+- Now: group hero (members + total) -> "Your balance in this group" ("You owe / You get / All settled up") with **Add expense** and **Record a payment** -> **Settle up** (only your payments; the others' sit in "Between other members") -> **Expenses** (name, who paid, your share; "Details" holds split, note, comments, Edit, Delete with words) -> Payments made -> collapsed "Everyone's balance" -> Members + Invite -> collapsed "Group settings" (rename, icon, Delete / Leave). Page is about 1870 px on a phone.
+- Overview wording: "You will get" / "You have to pay" / "Nothing", "Settle up"; the long note shows only when both sides have money. Tests: `tests/shared_group_clarity_test.py`. Web only, no APK/exe build.
+- Next (110b): Add expense form, Friends page, Groups list.

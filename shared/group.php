@@ -36,100 +36,120 @@ if ($expenses) {
     }
 }
 
+$debts = [];
+foreach ($pairs as $cur => $list) {
+    foreach ($list as $p) { $p['currency'] = $cur; $debts[] = $p; }
+}
+$mine = array_values(array_filter($debts, fn($p) => $p['from'] === $user_id || $p['to'] === $user_id));
+$others = array_values(array_filter($debts, fn($p) => $p['from'] !== $user_id && $p['to'] !== $user_id));
+$iOwe = []; $iGet = [];
+foreach ($mine as $p) {
+    if ($p['from'] === $user_id) { $iOwe[$p['currency']] = ($iOwe[$p['currency']] ?? 0) + $p['amount']; }
+    else { $iGet[$p['currency']] = ($iGet[$p['currency']] ?? 0) + $p['amount']; }
+}
+$settleUrl = fn(array $p) => ef_url('shared/settle.php?' . http_build_query(['group' => $gid, 'from' => $p['from'], 'to' => $p['to'], 'amount' => shared_from_minor($p['amount']), 'currency' => $p['currency']]));
+$debtRow = function (array $p) use ($user_id, $isOwner, $nm, $settleUrl) {
+    $mineFrom = $p['from'] === $user_id; $mineTo = $p['to'] === $user_id;
+    $h = '<div class="row"><span>' . ($mineFrom ? '<b>You</b> pay ' : e($nm($p['from'])) . ' pays ') . ($mineTo ? '<b>you</b>' : e($nm($p['to']))) . '</span>';
+    $h .= '<b class="' . ($mineFrom ? 'ex' : ($mineTo ? 'in' : '')) . '">' . shared_money($p['amount'], $p['currency']) . '</b>';
+    if ($mineFrom || $mineTo || $isOwner) { $h .= '<a class="btn sm o" href="' . e($settleUrl($p)) . '">Settle</a>'; }
+    return $h . '</div>';
+};
+
 ef_page_start(['title' => $group['name'], 'sub' => count($members) . ' member' . (count($members) === 1 ? '' : 's'), 'mode' => 's', 'active' => 'grp', 'user' => $user]);
 ?>
 <div class="g card hero">
   <div class="gh">
     <div class="gi" style="margin:0"><?= ef_icon(shared_icon_key($group['icon']), '#1d4ed8') ?></div>
-    <div style="flex:1"><b style="font-size:1.1rem"><?= e($group['name']) ?></b>
+    <div style="flex:1;min-width:0"><div class="k">Members</div>
       <div class="stk" style="margin-top:6px"><?php foreach (array_slice($members, 0, 6) as $i => $m) { echo shared_avatar($m['name'], $i); } ?></div></div>
     <div style="text-align:right"><div class="k">Total spent</div>
       <?php if ($totals): foreach (array_slice($totals, 0, 3) as $t): ?><div class="v" style="margin:0;font-size:1.15rem"><?= shared_money((int) $t['total'], $t['currency']) ?></div><?php endforeach; else: ?><div class="v" style="margin:0">0.00</div><?php endif; ?></div>
   </div>
 </div>
 
-<?php
-$debts = [];
-foreach ($pairs as $cur => $list) {
-    foreach ($list as $p) { $p['currency'] = $cur; $debts[] = $p; }
-}
-usort($debts, fn($x, $y) => (($y['from'] === $user_id || $y['to'] === $user_id) <=> ($x['from'] === $user_id || $x['to'] === $user_id)));
-?>
-<div class="G2" style="margin-bottom:14px">
-  <div class="g card">
-    <div class="t">Who pays whom</div>
-    <?php if (!$debts): ?><p class="k" style="padding:10px 0"><?= $expenses || $settlements ? 'Everyone is settled up. What you owe each other adds up to zero, so nothing is left to pay.' : 'Add an expense to see who owes what.' ?></p><?php endif; ?>
-    <?php foreach ($debts as $p):
-      $mineFrom = $p['from'] === $user_id; $mineTo = $p['to'] === $user_id;
-      $url = ef_url('shared/settle.php?' . http_build_query(['group' => $gid, 'from' => $p['from'], 'to' => $p['to'], 'amount' => shared_from_minor($p['amount']), 'currency' => $p['currency']]));
-    ?>
-    <div class="row">
-      <span><?= $mineFrom ? '<b>You</b> pay' : e($nm($p['from'])) . ' pays' ?> <?= $mineTo ? '<b>you</b>' : e($nm($p['to'])) ?><small><?= $mineFrom ? 'you owe' : ($mineTo ? 'you get' : 'between others') ?></small></span>
-      <b class="<?= $mineFrom ? 'ex' : ($mineTo ? 'in' : '') ?>"><?= shared_money($p['amount'], $p['currency']) ?></b>
-      <?php if ($mineFrom || $mineTo || $isOwner): ?><a class="btn sm o" href="<?= e($url) ?>">Settle</a><?php endif; ?>
-    </div>
-    <?php endforeach; ?>
-    <a class="btn sm" style="margin-top:10px" href="<?= e(ef_url('shared/settle.php?group=' . $gid)) ?>">Record a payment</a>
+<div class="g card sg-me">
+  <div class="sg-state">
+    <div class="k">Your balance in this group</div>
+    <?php if ($iOwe || $iGet): ?>
+      <?php foreach ($iGet as $cur => $v): ?><div class="sg-big in">You get <?= shared_money($v, $cur) ?></div><?php endforeach; ?>
+      <?php foreach ($iOwe as $cur => $v): ?><div class="sg-big ex">You owe <?= shared_money($v, $cur) ?></div><?php endforeach; ?>
+    <?php else: ?>
+      <div class="sg-big ok"><?= $expenses || $settlements ? 'All settled up' : 'No expenses yet' ?></div>
+    <?php endif; ?>
   </div>
-  <div class="g card">
-    <div class="t">Net per person</div>
-    <?php if (!$nets): ?><p class="k" style="padding:10px 0">No balances yet.</p><?php endif; ?>
-    <?php foreach ($nets as $cur => $byUser): ksort($byUser); ?>
-      <div class="k" style="margin-top:6px"><?= e($cur) ?></div>
-      <?php foreach ($byUser as $uid => $n): $pt = $parts[$cur][$uid]; ?>
-      <div class="row"><span><?= $uid === $user_id ? 'You' : e($nm($uid)) ?><small>paid <?= shared_money($pt['paid'], $cur) ?> · share <?= shared_money($pt['share'], $cur) ?><?= ($pt['sent'] || $pt['recv']) ? ' · paid back ' . shared_money($pt['sent'], $cur) . ' · got back ' . shared_money($pt['recv'], $cur) : '' ?></small></span>
-        <b class="<?= $n > 0 ? 'in' : ($n < 0 ? 'ex' : '') ?>"><?= $n > 0 ? 'gets ' : ($n < 0 ? 'owes ' : 'settled ') ?><?= $n === 0 ? '' : shared_money(abs($n), $cur) ?></b></div>
-      <?php endforeach; ?>
-    <?php endforeach; ?>
+  <div class="sg-btns">
+    <a class="btn" href="<?= e(ef_url('shared/add.php?group=' . $gid)) ?>"><?= ef_icon('pl') ?> Add expense</a>
+    <a class="btn o" href="<?= e(ef_url('shared/settle.php?group=' . $gid)) ?>">Record a payment</a>
   </div>
 </div>
 
+<?php if ($debts): ?>
 <div class="g card" style="margin-bottom:14px">
-  <div class="t">Expenses <span class="k"><?= count($expenses) ?></span>
-    <a class="btn sm" style="margin-left:auto" href="<?= e(ef_url('shared/add.php?group=' . $gid)) ?>"><?= ef_icon('pl') ?> Add expense</a></div>
-  <?php if (!$expenses): ?><p class="k" style="padding:10px 0">No expenses yet. Add the first one and choose how to split it.</p><?php endif; ?>
+  <div class="t">Settle up</div>
+  <?php if (!$mine): ?><p class="k" style="padding:6px 0">You have nothing to pay or receive here.</p><?php endif; ?>
+  <?php foreach ($mine as $p) { echo $debtRow($p); } ?>
+  <?php if ($others): ?>
+  <details class="sg-d"><summary>Between other members (<?= count($others) ?>)</summary>
+    <div class="sg-body"><?php foreach ($others as $p) { echo $debtRow($p); } ?></div>
+  </details>
+  <?php endif; ?>
+</div>
+<?php elseif ($expenses || $settlements): ?>
+<p class="k" style="margin:0 4px 14px">Everyone is settled up. What you owe each other adds up to zero, so nothing is left to pay.</p>
+<?php endif; ?>
+
+<div class="g card" style="margin-bottom:14px">
+  <div class="t">Expenses <span class="k"><?= count($expenses) ?></span></div>
+  <?php if (!$expenses): ?><p class="k" style="padding:10px 0">No expenses yet. Tap "Add expense" and choose how to split it.</p><?php endif; ?>
   <?php foreach ($expenses as $x):
-    $cur = $x['currency']; $mine = $x['my_share'] !== null ? (int) $x['my_share'] : null;
+    $cur = $x['currency']; $mineShare = $x['my_share'] !== null ? (int) $x['my_share'] : null;
     $paidMe = (int) $x['paid_by'] === $user_id; $total = (int) $x['amount_minor'];
-    if ($paidMe) { $net = $total - (int) ($mine ?? 0); $label = $net > 0 ? 'you lent' : 'you paid'; $cls = 'tg'; }
-    elseif ($mine) { $net = $mine; $label = 'you owe'; $cls = 'tx'; }
+    if ($paidMe) { $net = $total - (int) ($mineShare ?? 0); $label = $net > 0 ? 'you lent' : 'you paid'; $cls = 'tg'; }
+    elseif ($mineShare) { $net = $mineShare; $label = 'you owe'; $cls = 'tx'; }
     else { $net = 0; $label = 'not involved'; $cls = 'tn'; }
     $can = shared_can_edit($x, $group, $user_id);
+    $xc = (ef_feature_on('comments') && function_exists('comments_add')) ? ($cmts[(int) $x['id']] ?? []) : null;
+    $open = $xc && isset($_GET['c']) && (int) $_GET['c'] === (int) $x['id'];
   ?>
-  <div class="row" id="x<?= (int) $x['id'] ?>" style="align-items:flex-start;flex-wrap:wrap">
-    <span style="flex:1 1 220px;min-width:0"><b><?= e($x['title']) ?></b><?php if (!empty($rcpts[(int) $x['id']])): ?> <a href="<?= e(ef_url('receipts/view.php?id=' . (int) $rcpts[(int) $x['id']])) ?>" target="_blank" rel="noopener" title="View receipt" style="color:var(--a1)"><?= ef_icon('rcp') ?></a><?php endif; ?>
-      <small><?= e($x['payer_name'] ?? 'Former member') ?> paid <?= shared_money($total, $cur) ?> · <?= e(date('d M Y', strtotime($x['expense_date']))) ?> · <?= e(SHARED_SPLIT_TYPES[$x['split_type']] ?? 'Split') ?></small>
-      <div class="xd"><details><summary class="k" style="cursor:pointer">Who owes what</summary>
-        <?php foreach ($splitNames[(int) $x['id']] ?? [] as [$nm, $sh]): ?><small><?= e($nm) ?>: <?= shared_money($sh, $cur) ?></small><?php endforeach; ?>
-        <?php if (!empty($x['note'])): ?><small>Note: <?= e($x['note']) ?></small><?php endif; ?>
-      </details>
-      <?php if (ef_feature_on('comments') && function_exists('comments_add')): $xc = $cmts[(int) $x['id']] ?? []; ?>
-      <details<?= $xc && isset($_GET['c']) && (int) $_GET['c'] === (int) $x['id'] ? ' open' : '' ?>><summary class="k" style="cursor:pointer"><?= ef_icon('msg') ?> Comments<?= $xc ? ' (' . count($xc) . ')' : '' ?></summary>
-        <?php foreach ($xc as $c): ?>
-        <small style="display:flex;gap:8px;align-items:flex-start;margin:6px 0"><span style="flex:1;overflow-wrap:anywhere"><b><?= (int) $c['user_id'] === $user_id ? 'You' : e($c['name'] ?? 'Former member') ?></b> · <?= function_exists('activity_ago') ? e(activity_ago((int) $c['age_s'], $c['created_at'])) : '' ?><br><?= nl2br(e($c['body'])) ?></span>
-          <?php if ((int) $c['user_id'] === $user_id || $isOwner): ?><a class="del" href="<?= e(ef_url('comments/action.php')) ?>" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"do":"delete","group_id":<?= $gid ?>,"expense_id":<?= (int) $x['id'] ?>,"comment_id":<?= (int) $c['id'] ?>}' onclick="return confirm('Delete this comment?')" aria-label="Delete comment"><?= ef_icon('tr') ?></a><?php endif; ?></small>
-        <?php endforeach; ?>
-        <form method="POST" action="<?= e(ef_url('comments/action.php')) ?>" autocomplete="off" style="display:flex;gap:8px;margin-top:6px">
-          <?= csrf_field() ?><input type="hidden" name="do" value="add"><input type="hidden" name="group_id" value="<?= $gid ?>"><input type="hidden" name="expense_id" value="<?= (int) $x['id'] ?>">
-          <input class="inp" style="padding:8px 10px" type="text" name="body" maxlength="500" placeholder="Write a comment…" aria-label="Comment" required>
-          <button class="btn sm" type="submit">Send</button>
-        </form>
-      </details>
-      <?php endif; ?></div></span>
-    <span class="tag <?= $cls ?>" style="white-space:nowrap"><?= e($label) ?><?= $net > 0 ? ' ' . shared_money($net, $cur) : '' ?></span>
-    <?php if ($can): ?>
-    <span class="acts">
-      <a href="<?= e(ef_url('shared/add.php?edit=' . (int) $x['id'])) ?>" aria-label="Edit expense"><?= ef_icon('pen') ?></a>
-      <a class="del" href="<?= e($action) ?>" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"do":"delete_expense","group_id":<?= $gid ?>,"expense_id":<?= (int) $x['id'] ?>}' onclick="return confirm('Delete this expense for everyone in the group?')" aria-label="Delete expense"><?= ef_icon('tr') ?></a>
-    </span>
-    <?php endif; ?>
+  <div class="row sg-x" id="x<?= (int) $x['id'] ?>">
+    <span class="sg-xm"><b><?= e($x['title']) ?></b><?php if (!empty($rcpts[(int) $x['id']])): ?> <a href="<?= e(ef_url('receipts/view.php?id=' . (int) $rcpts[(int) $x['id']])) ?>" target="_blank" rel="noopener" title="View receipt" style="color:var(--a1)"><?= ef_icon('rcp') ?></a><?php endif; ?>
+      <small><?= e($x['payer_name'] ?? 'Former member') ?> paid <?= shared_money($total, $cur) ?> · <?= e(date('d M Y', strtotime($x['expense_date']))) ?></small>
+      <details class="sg-d"<?= $open ? ' open' : '' ?>><summary>Details<?= $xc ? ' · ' . count($xc) . ' comment' . (count($xc) === 1 ? '' : 's') : '' ?></summary>
+        <div class="sg-body">
+          <div><div class="k">Split: <?= e(SHARED_SPLIT_TYPES[$x['split_type']] ?? 'Split') ?></div>
+            <?php foreach ($splitNames[(int) $x['id']] ?? [] as [$sn, $sh]): ?><div class="sg-ln"><span><?= e($sn) ?></span><b><?= shared_money($sh, $cur) ?></b></div><?php endforeach; ?></div>
+          <?php if (!empty($x['note'])): ?><div class="k">Note: <?= e($x['note']) ?></div><?php endif; ?>
+          <?php if ($xc !== null): ?>
+          <div>
+            <div class="k"><?= ef_icon('msg') ?> Comments<?= $xc ? ' (' . count($xc) . ')' : '' ?></div>
+            <?php foreach ($xc as $c): ?>
+            <small style="display:flex;gap:8px;align-items:flex-start;margin:6px 0"><span style="flex:1;overflow-wrap:anywhere"><b><?= (int) $c['user_id'] === $user_id ? 'You' : e($c['name'] ?? 'Former member') ?></b> · <?= function_exists('activity_ago') ? e(activity_ago((int) $c['age_s'], $c['created_at'])) : '' ?><br><?= nl2br(e($c['body'])) ?></span>
+              <?php if ((int) $c['user_id'] === $user_id || $isOwner): ?><a class="del" href="<?= e(ef_url('comments/action.php')) ?>" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"do":"delete","group_id":<?= $gid ?>,"expense_id":<?= (int) $x['id'] ?>,"comment_id":<?= (int) $c['id'] ?>}' onclick="return confirm('Delete this comment?')" aria-label="Delete comment"><?= ef_icon('tr') ?></a><?php endif; ?></small>
+            <?php endforeach; ?>
+            <form method="POST" action="<?= e(ef_url('comments/action.php')) ?>" autocomplete="off" style="display:flex;gap:8px;margin-top:6px">
+              <?= csrf_field() ?><input type="hidden" name="do" value="add"><input type="hidden" name="group_id" value="<?= $gid ?>"><input type="hidden" name="expense_id" value="<?= (int) $x['id'] ?>">
+              <input class="inp" style="padding:8px 10px" type="text" name="body" maxlength="500" placeholder="Write a comment…" aria-label="Comment" required>
+              <button class="btn sm" type="submit">Send</button>
+            </form>
+          </div>
+          <?php endif; ?>
+          <?php if ($can): ?>
+          <div class="sg-acts">
+            <a class="btn sm o" href="<?= e(ef_url('shared/add.php?edit=' . (int) $x['id'])) ?>"><?= ef_icon('pen') ?> Edit</a>
+            <a class="btn sm o sg-del" href="<?= e($action) ?>" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"do":"delete_expense","group_id":<?= $gid ?>,"expense_id":<?= (int) $x['id'] ?>}' onclick="return confirm('Delete this expense for everyone in the group?')"><?= ef_icon('tr') ?> Delete</a>
+          </div>
+          <?php endif; ?>
+        </div>
+      </details></span>
+    <span class="tag <?= $cls ?>"><?= e($label) ?><?= $net > 0 ? ' ' . shared_money($net, $cur) : '' ?></span>
   </div>
   <?php endforeach; ?>
 </div>
 
 <?php if ($settlements): ?>
 <div class="g card" style="margin-bottom:14px">
-  <div class="t">Payments <span class="k"><?= count($settlements) ?></span></div>
+  <div class="t">Payments made <span class="k"><?= count($settlements) ?></span></div>
   <?php foreach ($settlements as $st): $canDel = (int) $st['created_by'] === $user_id || $isOwner; ?>
   <div class="row">
     <span><?= e($st['from_name'] ?? 'Former member') ?> paid <?= e($st['to_name'] ?? 'Former member') ?><small><?= e(date('d M Y', strtotime($st['settled_on']))) ?><?= $st['note'] ? ' · ' . e($st['note']) : '' ?></small></span>
@@ -140,7 +160,22 @@ usort($debts, fn($x, $y) => (($y['from'] === $user_id || $y['to'] === $user_id) 
 </div>
 <?php endif; ?>
 
-<div class="G2">
+<?php if ($nets): ?>
+<details class="g card sg-card">
+  <summary>Everyone's balance</summary>
+  <div class="sg-in">
+    <?php foreach ($nets as $cur => $byUser): ksort($byUser); ?>
+      <div class="k" style="margin-top:6px"><?= e($cur) ?></div>
+      <?php foreach ($byUser as $uid => $n): $pt = $parts[$cur][$uid]; ?>
+      <div class="row"><span><?= $uid === $user_id ? 'You' : e($nm($uid)) ?><small>paid <?= shared_money($pt['paid'], $cur) ?> · share <?= shared_money($pt['share'], $cur) ?><?= ($pt['sent'] || $pt['recv']) ? ' · paid back ' . shared_money($pt['sent'], $cur) . ' · got back ' . shared_money($pt['recv'], $cur) : '' ?></small></span>
+        <b class="<?= $n > 0 ? 'in' : ($n < 0 ? 'ex' : '') ?>"><?= $n > 0 ? 'gets ' : ($n < 0 ? 'owes ' : 'settled ') ?><?= $n === 0 ? '' : shared_money(abs($n), $cur) ?></b></div>
+      <?php endforeach; ?>
+    <?php endforeach; ?>
+  </div>
+</details>
+<?php endif; ?>
+
+<div class="G2" style="margin-bottom:14px">
   <div class="g card">
     <div class="t">Members <span class="k"><?= count($members) ?></span></div>
     <?php foreach ($members as $i => $m): ?>
@@ -148,56 +183,52 @@ usort($debts, fn($x, $y) => (($y['from'] === $user_id || $y['to'] === $user_id) 
       <?= shared_avatar($m['name'], $i) ?>
       <span><?= e($m['name']) ?><?= (int) $m['id'] === $user_id ? ' (you)' : '' ?><small><?= $m['role'] === 'owner' ? 'Owner' : 'Member' ?> · joined <?= e(date('d M Y', strtotime($m['joined_at']))) ?></small></span>
       <?php if ($isOwner && (int) $m['id'] !== $user_id): ?>
-      <span class="acts"><a class="del" href="<?= e($action) ?>" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"do":"remove","group_id":<?= $gid ?>,"user_id":<?= (int) $m['id'] ?>}' onclick="return confirm('Remove <?= e(addslashes($m['name'])) ?> from this group?')" aria-label="Remove member"><?= ef_icon('tr') ?></a></span>
+      <span class="acts"><a class="del" href="<?= e($action) ?>" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"do":"remove","group_id":<?= $gid ?>,"user_id":<?= (int) $m['id'] ?>}' onclick="return confirm('Remove <?= e(addslashes($m['name'])) ?> from this group?')" aria-label="Remove <?= e($m['name']) ?>"><?= ef_icon('tr') ?></a></span>
       <?php endif; ?>
     </div>
     <?php endforeach; ?>
   </div>
-
-  <div style="display:flex;flex-direction:column;gap:14px">
-    <div class="g card">
-      <div class="t">Invite friends</div>
-      <div class="fl"><label for="invite">Invite link</label><input class="inp" id="invite" type="text" value="<?= e($invite) ?>" readonly onclick="this.select()"></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn" type="button" id="copy-invite"><?= ef_icon('link') ?> Copy link</button>
-        <a class="btn i2" href="<?= e($wa) ?>" target="_blank" rel="noopener noreferrer"><?= ef_icon('msg') ?> WhatsApp</a>
-        <?php if ($isOwner): ?>
-        <a class="btn o" href="<?= e($action) ?>" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"do":"regen","group_id":<?= $gid ?>}' onclick="return confirm('Create a new link? The old link will stop working.')">New link</a>
-        <?php endif; ?>
-      </div>
-      <p class="k" style="margin-top:10px">Anyone with this link can join after signing in. Create a new link to stop old invites.</p>
+  <div class="g card">
+    <div class="t">Invite friends</div>
+    <div class="fl"><label for="invite">Invite link</label><input class="inp" id="invite" type="text" value="<?= e($invite) ?>" readonly onclick="this.select()"></div>
+    <div class="sg-acts">
+      <button class="btn" type="button" id="copy-invite"><?= ef_icon('link') ?> Copy link</button>
+      <a class="btn i2" href="<?= e($wa) ?>" target="_blank" rel="noopener noreferrer"><?= ef_icon('msg') ?> WhatsApp</a>
     </div>
-
+    <p class="k" style="margin-top:10px">Anyone with this link can join after signing in.<?= $isOwner ? ' Made a mistake or shared it with the wrong person? Create a new link and the old one stops working.' : '' ?></p>
     <?php if ($isOwner): ?>
-    <div class="g card">
-      <div class="t">Group settings</div>
-      <form method="POST" action="<?= e($action) ?>" autocomplete="off">
-        <?= csrf_field() ?>
-        <input type="hidden" name="do" value="rename"><input type="hidden" name="group_id" value="<?= $gid ?>">
-        <div class="fl"><label for="gname">Name</label><input class="inp" id="gname" type="text" name="name" maxlength="60" value="<?= e($group['name']) ?>" required></div>
-        <div class="fl"><label>Icon</label>
-          <div class="chips">
-            <?php foreach (shared_icons() as $key => $label): ?>
-            <label><input type="radio" name="icon" value="<?= e($key) ?>"<?= $group['icon'] === $key ? ' checked' : '' ?>><span class="chip"><?= ef_icon($key) ?><?= e($label) ?></span></label>
-            <?php endforeach; ?>
-          </div></div>
-        <button class="btn" type="submit">Save</button>
-      </form>
-    </div>
+    <a class="btn sm o" style="margin-top:8px" href="<?= e($action) ?>" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"do":"regen","group_id":<?= $gid ?>}' onclick="return confirm('Create a new link? The old link will stop working.')">Create new link</a>
     <?php endif; ?>
-
-    <div class="g card dz">
-      <div class="t"><?= ef_icon('warn', '#ea580c') ?> <?= $isOwner ? 'Delete group' : 'Leave group' ?></div>
-      <?php if ($isOwner): ?>
-        <p class="k">Deletes the group for everyone. This cannot be undone.</p>
-        <a class="btn o sm" style="color:#b91c1c;margin-top:10px" href="<?= e($action) ?>" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"do":"delete","group_id":<?= $gid ?>}' onclick="return confirm('Delete this group for everyone?')">Delete group</a>
-      <?php else: ?>
-        <p class="k">You will no longer see this group.</p>
-        <a class="btn o sm" style="color:#b91c1c;margin-top:10px" href="<?= e($action) ?>" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"do":"leave","group_id":<?= $gid ?>}' onclick="return confirm('Leave this group?')">Leave group</a>
-      <?php endif; ?>
-    </div>
   </div>
 </div>
+
+<details class="g card sg-card">
+  <summary><?= $isOwner ? 'Group settings' : 'Leave group' ?></summary>
+  <div class="sg-in">
+    <?php if ($isOwner): ?>
+    <form method="POST" action="<?= e($action) ?>" autocomplete="off">
+      <?= csrf_field() ?>
+      <input type="hidden" name="do" value="rename"><input type="hidden" name="group_id" value="<?= $gid ?>">
+      <div class="fl"><label for="gname">Group name</label><input class="inp" id="gname" type="text" name="name" maxlength="60" value="<?= e($group['name']) ?>" required></div>
+      <div class="fl"><label>Icon</label>
+        <div class="chips">
+          <?php foreach (shared_icons() as $key => $label): ?>
+          <label><input type="radio" name="icon" value="<?= e($key) ?>"<?= $group['icon'] === $key ? ' checked' : '' ?>><span class="chip"><?= ef_icon($key) ?><?= e($label) ?></span></label>
+          <?php endforeach; ?>
+        </div></div>
+      <button class="btn" type="submit">Save changes</button>
+    </form>
+    <div class="sg-danger">
+      <b><?= ef_icon('warn', '#ea580c') ?> Delete group</b>
+      <p class="k">Deletes the group, its expenses and payments for everyone. This cannot be undone.</p>
+      <a class="btn sm o sg-del" href="<?= e($action) ?>" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"do":"delete","group_id":<?= $gid ?>}' onclick="return confirm('Delete this group for everyone?')">Delete group</a>
+    </div>
+    <?php else: ?>
+    <p class="k">You can leave once you owe nothing and are owed nothing. Your past expenses stay in the group for the others.</p>
+    <a class="btn sm o sg-del" style="margin-top:10px" href="<?= e($action) ?>" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"do":"leave","group_id":<?= $gid ?>}' onclick="return confirm('Leave this group?')">Leave group</a>
+    <?php endif; ?>
+  </div>
+</details>
 <?php
 $js = '<script>(function(){var b=document.getElementById("copy-invite"),i=document.getElementById("invite");if(!b)return;b.addEventListener("click",function(){i.select();var done=function(){b.lastChild.textContent=" Copied!";setTimeout(function(){b.lastChild.textContent=" Copy link"},1800)};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(i.value).then(done,function(){document.execCommand("copy");done()})}else{document.execCommand("copy");done()}})})()</script>';
 ef_page_end(['mode' => 's', 'active' => 'grp', 'scripts' => $js]);

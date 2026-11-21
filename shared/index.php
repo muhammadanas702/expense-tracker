@@ -7,7 +7,7 @@ $owed = $sum['owed']; $owe = $sum['owe']; $todo = $sum['todo'];
 $gnames = array_column($groups, 'name', 'id');
 $other = shared_names($conn, array_map(fn($p) => $p['from'] === $user_id ? $p['to'] : $p['from'], $todo));
 $fmt = function (array $byCur, string $sign = '') {
-    if (!$byCur) { return '<span>0.00</span>'; }
+    if (!$byCur) { return '<span class="mu" style="font-size:1rem;font-weight:600">Nothing</span>'; }
     arsort($byCur);
     $h = '';
     foreach (array_slice($byCur, 0, 3, true) as $cur => $v) { $h .= '<div>' . $sign . shared_money($v, $cur) . '</div>'; }
@@ -22,14 +22,14 @@ ef_page_start(['title' => 'Shared Overview', 'sub' => 'Who owes whom, across all
     <button class="btn sm" type="submit">Search</button>
 </form>
 <div class="G2" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:14px">
-  <div class="g card"><div class="k">You are owed</div><div class="v in"><?= $fmt($owed) ?></div></div>
-  <div class="g card"><div class="k">You owe</div><div class="v ex"><?= $fmt($owe) ?></div></div>
+  <div class="g card"><div class="k">You will get</div><div class="v in"><?= $fmt($owed) ?></div></div>
+  <div class="g card"><div class="k">You have to pay</div><div class="v ex"><?= $fmt($owe) ?></div></div>
 </div>
 
-<p class="k" style="margin:-4px 4px 14px">Debts stay person by person: what one friend owes you never cancels what you owe another.</p>
+<?php if ($owed && $owe): ?><p class="k" style="margin:-4px 4px 14px">Each person is counted separately: what one friend owes you does not reduce what you owe someone else.</p><?php endif; ?>
 <?php if ($todo): ?>
 <div class="g card" style="margin-bottom:14px">
-  <div class="t">To settle</div>
+  <div class="t">Settle up</div>
   <?php foreach ($todo as $p): $pay = $p['from'] === $user_id; $oid = $pay ? $p['to'] : $p['from']; ?>
   <div class="row"><span><?= $pay ? 'You pay ' : '' ?><?= e($other[$oid] ?? 'Former member') ?><?= $pay ? '' : ' pays you' ?><small><?= e($gnames[$p['group']] ?? 'Group') ?></small></span>
     <b class="<?= $pay ? 'ex' : 'in' ?>"><?= shared_money($p['amount'], $p['currency']) ?></b>
