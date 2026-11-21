@@ -128,9 +128,6 @@ function ef_page_end(array $o = []): void
     </div>
   </div>
 </div>
-<?php if ($mode === 's' && !$pg['neutral'] && ef_nav('s')): ?>
-<a class="fabf" href="<?= e(ef_url('shared/add.php')) ?>" aria-label="<?= e(t('Add shared expense')) ?>"><?= ef_icon('pl') ?></a>
-<?php endif; ?>
 <?php
 // Phone bottom bar: at most 4 main items (entries flagged 'bar' in module.php, else the first 4) and a "More" sheet for the rest.
 $barItems = $bottom;
@@ -140,6 +137,7 @@ if (count($bottom) > 5) {
     $barItems = array_slice($flagged ?: $bottom, 0, 4);
     $moreItems = array_values(array_filter($bottom, fn($n) => !in_array($n, $barItems, true)));
 }
+$showAdd = $mode === 's' && !$pg['neutral'] && ef_nav('s') && count($barItems) >= 2;
 $moreActive = false;
 foreach ($moreItems as $n) { if ($n[3] === $active) { $moreActive = true; } }
 ?>
@@ -151,7 +149,10 @@ foreach ($moreItems as $n) { if ($n[3] === $active) { $moreActive = true; } }
 </div>
 <?php endif; ?>
 <nav class="g bn">
-<?php foreach ($barItems as $n): ?>
+<?php foreach ($barItems as $i => $n): ?>
+<?php if ($showAdd && $i === 2): ?>
+  <a class="bn-add" href="<?= e(ef_url('shared/add.php')) ?>" aria-label="<?= e(t('Add shared expense')) ?>"><span><?= ef_icon('pl') ?></span></a>
+<?php endif; ?>
   <a class="<?= $n[3] === $active ? 'on' : '' ?>" href="<?= e(ef_url($n[0])) ?>"><?= ef_icon($n[1]) ?><?= e(t(str_replace(['Add ', 'Full '], '', $n[2]))) ?></a>
 <?php endforeach; ?>
 <?php if ($moreItems): ?>
