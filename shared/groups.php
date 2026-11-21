@@ -9,12 +9,12 @@ ef_page_start(['title' => 'Groups', 'sub' => 'Trips, rent, family and friends', 
   <div class="g card">
     <div class="t">Your groups <span class="k"><?= count($groups) ?></span></div>
     <?php if ($groups): ?>
-    <div class="G4" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+    <div class="glist">
       <?php foreach ($groups as $gr): ?>
-      <a class="g gc" href="<?= e(ef_url('shared/group.php?id=' . (int) $gr['id'])) ?>">
-        <div class="gi"><?= ef_icon(shared_icon_key($gr['icon']), '#1d4ed8') ?></div>
-        <b><?= e($gr['name']) ?></b>
-        <div class="k" style="margin-top:4px"><?= (int) $gr['member_count'] ?> member<?= (int) $gr['member_count'] === 1 ? '' : 's' ?><?= $gr['my_role'] === 'owner' ? ' · owner' : '' ?></div>
+      <a class="grow" href="<?= e(ef_url('shared/group.php?id=' . (int) $gr['id'])) ?>">
+        <span class="gi"><?= ef_icon(shared_icon_key($gr['icon']), '#1d4ed8') ?></span>
+        <span class="gn"><b><?= e($gr['name']) ?></b><small><?= (int) $gr['member_count'] ?> member<?= (int) $gr['member_count'] === 1 ? '' : 's' ?><?= $gr['my_role'] === 'owner' ? ' · owner' : '' ?></small></span>
+        <span class="sec-ch" aria-hidden="true"></span>
       </a>
       <?php endforeach; ?>
     </div>
@@ -30,9 +30,9 @@ ef_page_start(['title' => 'Groups', 'sub' => 'Trips, rent, family and friends', 
       <input type="hidden" name="do" value="create">
       <div class="fl"><label for="gname">Group name</label><input class="inp" id="gname" type="text" name="name" maxlength="60" placeholder="e.g. Murree Trip" required></div>
       <div class="fl"><label>Icon</label>
-        <div class="chips">
+        <div class="icopick">
           <?php foreach (shared_icons() as $key => $label): ?>
-          <label><input type="radio" name="icon" value="<?= e($key) ?>"<?= $key === 'users' ? ' checked' : '' ?>><span class="chip"><?= ef_icon($key) ?><?= e($label) ?></span></label>
+          <label title="<?= e($label) ?>"><input type="radio" name="icon" value="<?= e($key) ?>" aria-label="<?= e($label) ?>"<?= $key === 'users' ? ' checked' : '' ?>><span><?= ef_icon($key) ?></span></label>
           <?php endforeach; ?>
         </div></div>
       <button class="btn" type="submit" style="width:100%;padding:14px">Create group</button>
