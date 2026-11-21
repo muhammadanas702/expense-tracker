@@ -16,6 +16,7 @@ $fmt = function (array $byCur, string $sign = '') {
 
 ef_page_start(['title' => 'Shared Overview', 'sub' => 'Who owes whom, across all groups', 'mode' => 's', 'active' => 'shome', 'user' => $user]);
 ?>
+<?= shared_invites_html($conn, $user_id, ef_url('shared/action.php'), csrf_field()) ?>
 <form method="GET" action="<?= e(ef_url('shared/search.php')) ?>" class="g card" id="dash-search" role="search" style="display:flex;gap:8px;align-items:center;padding:10px 12px">
     <?= ef_icon('search') ?>
     <input class="inp" type="search" name="q" maxlength="60" aria-label="Search shared expenses" placeholder="Search shared" style="flex:1;min-width:0;border:0;background:transparent">

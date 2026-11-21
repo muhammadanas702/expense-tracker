@@ -30,6 +30,19 @@ if ($do === 'create') {
     shared_back('shared/group.php?id=' . $id);
 }
 
+if ($do === 'invite_friend' || $do === 'invite_accept' || $do === 'invite_decline') {
+    if ($do === 'invite_friend') {
+        $fid = filter_var($_POST['friend_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
+        $r = shared_invite_friend($conn, $gid, $user_id, $fid);
+        $_SESSION[$r['ok'] ? 'success' : 'error'] = $r['msg'];
+        shared_back('shared/group.php?id=' . $gid . '#grp-invite');
+    }
+    $iid = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
+    $r = shared_invite_respond($conn, $user_id, $iid, $do === 'invite_accept' ? 'accept' : 'decline');
+    $_SESSION[$r['ok'] ? 'success' : 'error'] = $r['msg'];
+    shared_back(!empty($r['group']) ? 'shared/group.php?id=' . (int) $r['group'] : 'shared/groups.php');
+}
+
 if ($do === 'join') {
     $code = (string) ($_POST['code'] ?? '');
     $key = rl_key((string) $user_id);
