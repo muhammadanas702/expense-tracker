@@ -23,7 +23,7 @@ with sync_playwright() as p:
         pg.goto(B + '/auth/login.php'); pg.fill('input[name=email]', 'sc@sc.local'); pg.fill('input[name=password]', 'Test#12345'); pg.click('button[type=submit]'); pg.wait_for_load_state(); pg.wait_for_timeout(500)
         pg.goto(B + '/shared/index.php'); pg.wait_for_timeout(500); t = pg.inner_text('body')
         ok('Net balance' not in t, f'{w}px: no duplicate Net balance card')
-        ok('You are owed' in t and 'You owe' in t and 'Your groups' in t, f'{w}px: owed / owe / groups still shown')
+        ok('You will get' in t and 'You have to pay' in t and 'Your groups' in t, f'{w}px: will get / have to pay / groups still shown')
         ok(pg.evaluate('document.documentElement.scrollWidth-innerWidth') <= 1, f'{w}px: overview does not scroll sideways')
         pg.goto(B + '/friends/index.php'); pg.wait_for_timeout(500); t = pg.inner_text('body')
         ok('Find in your friends' not in t and 'Type to filter' not in t, f'{w}px: separate search card is gone')
