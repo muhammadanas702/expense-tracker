@@ -2,7 +2,7 @@
 /** Add (or edit) a shared expense: group, who paid, total, and how it is split. */
 require_once __DIR__ . '/../modules/shared/boot.php';
 
-$groups = shared_groups_of($conn, $user_id);
+$groups = array_values(array_filter(shared_groups_of($conn, $user_id), fn($g) => empty($g['is_direct']))); // a private ledger with one friend is opened from the friend's page
 $editId = filter_var($_GET['edit'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
 $gid = filter_var($_POST['group_id'] ?? ($_GET['group'] ?? null), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
 
@@ -181,7 +181,7 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
 ?>
 <div class="g" style="max-width:720px;margin:0 auto;padding:22px">
 <?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e($error) ?></div><?php endif; ?>
-<?php if (!$groups): ?>
+<?php if (!$groups && !$group): ?>
   <div class="g card"><p class="k" style="padding:12px 0">You need a group first. <a href="<?= e(ef_url('shared/groups.php')) ?>" style="color:var(--a1);font-weight:700">Create or join a group</a>, then come back to split a bill.</p></div>
 <?php elseif (!$group): ?>
   <div class="t">Which group?</div>
@@ -191,7 +191,7 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
     <?php endforeach; ?>
   </div>
 <?php else: ?>
-  <?php if (!$existing && count($groups) > 1): ?>
+  <?php if (!$existing && count($groups) > 1 && empty($group['is_direct'])): ?>
   <div class="fl"><label>Group</label>
     <div class="chips">
       <?php foreach ($groups as $gr): ?>

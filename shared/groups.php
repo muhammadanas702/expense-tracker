@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../modules/shared/boot.php';
-$groups = shared_groups_of($conn, $user_id);
+$groups = array_values(array_filter(shared_groups_of($conn, $user_id), fn($g) => empty($g['is_direct'])));
 $csrf = csrf_token();
 
 ef_page_start(['title' => 'Groups', 'sub' => 'Trips, rent, family and friends', 'mode' => 's', 'active' => 'grp', 'user' => $user]);

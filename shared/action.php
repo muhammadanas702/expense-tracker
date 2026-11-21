@@ -52,7 +52,7 @@ if ($do === 'join') {
     }
     $g = null;
     if (preg_match('/^[0-9a-f]{32}$/', $code)) {
-        $q = $conn->prepare('SELECT id, name FROM shared_groups WHERE invite_code = ?');
+        $q = $conn->prepare('SELECT id, name FROM shared_groups WHERE invite_code = ? AND is_direct = 0');
         $q->execute([$code]);
         $g = $q->fetch(PDO::FETCH_ASSOC);
     }
@@ -83,6 +83,10 @@ if (!$group) {
     shared_back('shared/groups.php');
 }
 $isOwner = $group['my_role'] === 'owner';
+if (!empty($group['is_direct']) && in_array($do, ['rename', 'regen', 'remove', 'leave', 'delete', 'invite_friend'], true)) {
+    $_SESSION['error'] = 'This is your private account with one friend. It has no members to change.';
+    shared_back('shared/group.php?id=' . $gid);
+}
 $back = 'shared/group.php?id=' . $gid;
 
 switch ($do) {

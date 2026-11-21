@@ -20,6 +20,8 @@ unset($ef_opt);
 require_once __DIR__ . '/../personal/lib.php';
 const SHARED_MAX_GROUPS_PER_USER = 30;
 const SHARED_MAX_MEMBERS = 50;
+/** SQL: a direct (two-person) ledger shows the OTHER person's name; needs aliases g (shared_groups) and m (the viewer's membership). */
+const SHARED_DISPLAY_NAME = "IF(g.is_direct = 1, COALESCE((SELECT u.name FROM shared_members x JOIN users u ON u.id = x.user_id WHERE x.group_id = g.id AND x.user_id <> m.user_id LIMIT 1), 'Friend'), g.name)";
 
 /** Group icon keys (all exist in includes/icons.php) with a label. */
 function shared_icons(): array
@@ -114,6 +116,11 @@ function shared_ensure_schema(PDO $conn): void
               KEY `idx_shared_settlements_group` (`group_id`, `settled_on`, `id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
         );
+        try {
+            $conn->query('SELECT is_direct FROM shared_groups LIMIT 1');
+        } catch (Throwable $e) {
+            $conn->exec('ALTER TABLE `shared_groups` ADD COLUMN `is_direct` TINYINT(1) NOT NULL DEFAULT 0');
+        }
     } catch (Throwable $e) {
         error_log('ExpenseFlow shared schema check failed: ' . $e->getMessage());
     }
@@ -123,12 +130,15 @@ function shared_ensure_schema(PDO $conn): void
 function shared_group_for(PDO $conn, int $groupId, int $userId): ?array
 {
     $stmt = $conn->prepare(
-        'SELECT g.*, m.role AS my_role FROM shared_groups g
+        'SELECT g.*, m.role AS my_role, ' . SHARED_DISPLAY_NAME . ' AS display_name FROM shared_groups g
          JOIN shared_members m ON m.group_id = g.id AND m.user_id = ?
          WHERE g.id = ?'
     );
     $stmt->execute([$userId, $groupId]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($row && !empty($row['is_direct'])) {
+        $row['name'] = $row['display_name']; // a two-person ledger is shown under the friend's name
+    }
     return $row ?: null;
 }
 
@@ -136,7 +146,7 @@ function shared_group_for(PDO $conn, int $groupId, int $userId): ?array
 function shared_groups_of(PDO $conn, int $userId): array
 {
     $stmt = $conn->prepare(
-        'SELECT g.id, g.name, g.icon, g.owner_id, m.role AS my_role,
+        'SELECT g.id, ' . SHARED_DISPLAY_NAME . ' AS name, g.icon, g.owner_id, g.is_direct, m.role AS my_role,
                 (SELECT COUNT(*) FROM shared_members x WHERE x.group_id = g.id) AS member_count
          FROM shared_groups g JOIN shared_members m ON m.group_id = g.id AND m.user_id = ?
          ORDER BY g.id DESC'
@@ -164,7 +174,7 @@ function shared_new_code(): string
 /** Creates a group and makes the user its owner. Returns the new id, or null with $error set. */
 function shared_create_group(PDO $conn, int $userId, string $name, string $icon, ?string &$error = null): ?int
 {
-    $cnt = $conn->prepare('SELECT COUNT(*) FROM shared_members WHERE user_id = ?');
+    $cnt = $conn->prepare('SELECT COUNT(*) FROM shared_members m JOIN shared_groups g ON g.id = m.group_id WHERE m.user_id = ? AND g.is_direct = 0');
     $cnt->execute([$userId]);
     if ((int) $cnt->fetchColumn() >= SHARED_MAX_GROUPS_PER_USER) {
         $error = 'You are in the maximum number of groups (' . SHARED_MAX_GROUPS_PER_USER . ').';
@@ -201,7 +211,7 @@ function shared_add_member(PDO $conn, int $groupId, int $userId): string
     if ((int) $cnt->fetchColumn() >= SHARED_MAX_MEMBERS) {
         return 'full';
     }
-    $mine = $conn->prepare('SELECT COUNT(*) FROM shared_members WHERE user_id = ?');
+    $mine = $conn->prepare('SELECT COUNT(*) FROM shared_members m JOIN shared_groups g ON g.id = m.group_id WHERE m.user_id = ? AND g.is_direct = 0');
     $mine->execute([$userId]);
     if ((int) $mine->fetchColumn() >= SHARED_MAX_GROUPS_PER_USER) {
         return 'full';
@@ -674,5 +684,36 @@ function shared_emit(PDO $conn, int $groupId, int $actorId, string $kind, array 
 {
     if (function_exists('activity_record')) {
         activity_record($conn, $groupId, $actorId, $kind, $d, $notify);
+    }
+}
+
+
+// ---------------------------------------------------------------- direct ledger with one friend (Part 111b)
+
+/** The two-person ledger of $me and $friendId (created on first use), or null when they are not friends. */
+function shared_direct_group(PDO $conn, int $me, int $friendId, bool $create = true): ?int
+{
+    if ($me === $friendId || !function_exists('friends_direct_ids') || !isset(friends_direct_ids($conn, $me)[$friendId])) {
+        return null;
+    }
+    $st = $conn->prepare('SELECT g.id FROM shared_groups g JOIN shared_members a ON a.group_id = g.id AND a.user_id = ? JOIN shared_members b ON b.group_id = g.id AND b.user_id = ? WHERE g.is_direct = 1 LIMIT 1');
+    $st->execute([$me, $friendId]);
+    $id = (int) $st->fetchColumn();
+    if ($id || !$create) {
+        return $id ?: null;
+    }
+    try {
+        $conn->beginTransaction();
+        $conn->prepare("INSERT INTO shared_groups (name, icon, owner_id, invite_code, is_direct) VALUES ('Direct', 'usr', ?, ?, 1)")->execute([$me, shared_new_code()]);
+        $id = (int) $conn->lastInsertId();
+        $conn->prepare("INSERT INTO shared_members (group_id, user_id, role) VALUES (?, ?, 'owner'), (?, ?, 'member')")->execute([$id, $me, $id, $friendId]);
+        $conn->commit();
+        return $id;
+    } catch (Throwable $e) {
+        if ($conn->inTransaction()) {
+            $conn->rollBack();
+        }
+        error_log('ExpenseFlow direct ledger failed: ' . $e->getMessage());
+        return null;
     }
 }

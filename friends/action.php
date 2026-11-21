@@ -7,6 +7,15 @@ if ($do === 'add') {
     $r = friends_request($conn, $user_id, (string) ($_POST['email'] ?? ''));
     $_SESSION[$r['ok'] ? 'success' : 'error'] = $r['msg'];
     logAction($conn, $user_id, 'friend_request', 'Friend request sent');
+} elseif ($do === 'direct') {
+    // Open (or create) the private two-person account with a friend, then go straight to adding an expense.
+    $fid = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
+    $gid = $fid ? shared_direct_group($conn, $user_id, $fid) : null;
+    if (!$gid) {
+        $_SESSION['error'] = 'You can keep a private account only with a friend.';
+        shared_back('friends/index.php');
+    }
+    shared_back(($_POST['go'] ?? '') === 'add' ? 'shared/add.php?group=' . $gid : 'shared/group.php?id=' . $gid);
 } elseif ($do === 'nudge') {
     // "Remind me to settle up" for the OTHER side: tell a friend who owes you money, at most once every 3 days per friend.
     $fid = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;

@@ -6,7 +6,7 @@ if (!$f) {
     $_SESSION['error'] = 'Friend not found.';
     shared_back('friends/index.php');
 }
-$pays = friends_settlements($conn, $user_id, $fid, array_keys($f['groups']));
+$pays = friends_settlements($conn, $user_id, $fid, array_merge(array_keys($f['groups']), $f['ledger'] ? [$f['ledger']] : []));
 $net = friends_net($f);
 
 ef_page_start(['title' => $f['name'], 'sub' => 'Your balance with this friend', 'mode' => 's', 'active' => 'fr', 'user' => $user]);
@@ -17,11 +17,23 @@ ef_page_start(['title' => $f['name'], 'sub' => 'Your balance with this friend', 
   <div class="g card"><div class="k">You owe <?= e($f['name']) ?></div><div class="v ex"><?php if ($f['owe']): foreach ($f['owe'] as $cur => $v): ?><div><?= shared_money($v, $cur) ?></div><?php endforeach; else: ?><span>0.00</span><?php endif; ?></div></div>
 </div>
 
+<?php if ($f['direct'] || $f['ledger']): ?>
+<div class="g card" style="margin:14px 0">
+  <div class="t">Just between you two</div>
+  <p class="k" style="margin:0 0 10px">Keep a private account with <?= e($f['name']) ?>. Only the two of you see it, and it does not show in your group list.</p>
+  <form method="post" action="<?= e(ef_url('friends/action.php')) ?>" class="sg-acts">
+    <?= csrf_field() ?><input type="hidden" name="do" value="direct"><input type="hidden" name="id" value="<?= (int) $fid ?>">
+    <button class="btn" name="go" value="add" type="submit"><?= ef_icon('pl') ?> Add expense</button>
+    <?php if ($f['ledger']): ?><button class="btn o" name="go" value="open" type="submit">Open account</button><?php endif; ?>
+  </form>
+</div>
+<?php endif; ?>
+
 <?php if ($f['todo']): ?>
 <div class="g card" style="margin:14px 0">
   <div class="t">To settle</div>
   <?php foreach ($f['todo'] as $p): $pay = $p['from'] === $user_id; ?>
-  <div class="row"><span><?= $pay ? 'You pay ' . e($f['name']) : e($f['name']) . ' pays you' ?><small><?= e($f['groups'][$p['group']] ?? 'Group') ?></small></span>
+  <div class="row"><span><?= $pay ? 'You pay ' . e($f['name']) : e($f['name']) . ' pays you' ?><small><?= e($f['groups'][$p['group']] ?? 'Just you two') ?></small></span>
     <b class="<?= $pay ? 'ex' : 'in' ?>"><?= shared_money($p['amount'], $p['currency']) ?></b>
     <a class="btn sm o" href="<?= e(ef_url('shared/settle.php?' . http_build_query(['group' => $p['group'], 'from' => $p['from'], 'to' => $p['to'], 'amount' => shared_from_minor($p['amount']), 'currency' => $p['currency']]))) ?>">Settle</a></div>
   <?php endforeach; ?>
@@ -51,7 +63,7 @@ ef_page_start(['title' => $f['name'], 'sub' => 'Your balance with this friend', 
 <div class="g card">
   <div class="t">Payments between you</div>
   <?php if ($pays): foreach ($pays as $s): $mine = (int) $s['from_user'] === $user_id; ?>
-  <div class="row"><span><?= $mine ? 'You paid ' . e($f['name']) : e($f['name']) . ' paid you' ?><small><?= e($s['group_name']) ?> · <?= e($s['settled_on']) ?></small></span>
+  <div class="row"><span><?= $mine ? 'You paid ' . e($f['name']) : e($f['name']) . ' paid you' ?><small><?= e($f['groups'][$s['group_id']] ?? 'Just you two') ?> · <?= e($s['settled_on']) ?></small></span>
     <b class="<?= $mine ? 'ex' : 'in' ?>"><?= shared_money((int) $s['amount_minor'], $s['currency']) ?></b></div>
   <?php endforeach; else: ?>
   <p class="k" style="padding:12px 0">No payments recorded yet.</p>

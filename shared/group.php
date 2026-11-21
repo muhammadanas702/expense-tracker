@@ -7,6 +7,7 @@ if (!$group) {
     shared_back('shared/groups.php');
 }
 $isOwner = $group['my_role'] === 'owner';
+$isDirect = !empty($group['is_direct']);
 $members = shared_members_of($conn, $gid);
 $csrf = csrf_token();
 $invite = shared_invite_url($group['invite_code']);
@@ -175,6 +176,7 @@ shared_panel('Expenses', 'wal', $expenses ? count($expenses) . ' expense' . (cou
 <?php shared_sec_end(); ?>
 <?php endif; ?>
 
+<?php if (!$isDirect): ?>
 <?php shared_sec('grp-members', 'Members', 'usr', 'blue', false, implode(', ', array_map(fn($m) => $m['name'], array_slice($members, 0, 4))) . (count($members) > 4 ? ' +' . (count($members) - 4) : ''), (string) count($members)); ?>
     <?php foreach ($members as $i => $m): ?>
     <div class="row">
@@ -232,6 +234,7 @@ shared_panel('Expenses', 'wal', $expenses ? count($expenses) . ' expense' . (cou
     <a class="btn sm o sg-del" style="margin-top:10px" href="<?= e($action) ?>" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"do":"leave","group_id":<?= $gid ?>}' onclick="return confirm('Leave this group?')">Leave group</a>
     <?php endif; ?>
 <?php shared_sec_end(); ?>
+<?php endif; ?>
 <?php
 $js = shared_sec_js() . '<script>(function(){var b=document.getElementById("copy-invite"),i=document.getElementById("invite");if(!b)return;b.addEventListener("click",function(){i.select();var done=function(){b.lastChild.textContent=" Copied!";setTimeout(function(){b.lastChild.textContent=" Copy link"},1800)};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(i.value).then(done,function(){document.execCommand("copy");done()})}else{document.execCommand("copy");done()}})})()</script>';
 ef_page_end(['mode' => 's', 'active' => 'grp', 'scripts' => $js]);
