@@ -103,7 +103,7 @@ ef_page_start(['title' => $group['name'], 'sub' => count($members) . ' member' .
 
 <?php
 $firstTot = $totals ? shared_money((int) $totals[0]['total'], $totals[0]['currency']) : '';
-shared_panel('Expenses', 'wal', $expenses ? count($expenses) . ' expense' . (count($expenses) === 1 ? '' : 's') . ($firstTot ? ' · ' . $firstTot . ' in total' : '') : 'No expenses yet', (string) count($expenses));
+shared_panel('Expenses', 'wal', $expenses ? count($expenses) . ' expense' . (count($expenses) === 1 ? '' : 's') : 'No expenses yet', (string) count($expenses));
 ?>
   <?php if (!$expenses): ?><p class="k" style="padding:12px 0 4px">No expenses yet. Tap "Add expense" and choose how to split it.</p><?php endif; ?>
   <?php foreach ($expenses as $x):
@@ -117,8 +117,9 @@ shared_panel('Expenses', 'wal', $expenses ? count($expenses) . ' expense' . (cou
     $open = $xc && isset($_GET['c']) && (int) $_GET['c'] === (int) $x['id'];
   ?>
   <div class="row sg-x" id="x<?= (int) $x['id'] ?>">
-    <span class="sg-xm"><b><?= e($x['title']) ?></b><?php if (!empty($rcpts[(int) $x['id']])): ?> <a href="<?= e(ef_url('receipts/view.php?id=' . (int) $rcpts[(int) $x['id']])) ?>" target="_blank" rel="noopener" title="View receipt" style="color:var(--a1)"><?= ef_icon('rcp') ?></a><?php endif; ?>
-      <small><?= e($x['payer_name'] ?? 'Former member') ?> paid <?= shared_money($total, $cur) ?> · <?= e(date('d M Y', strtotime($x['expense_date']))) ?></small>
+    <div class="sg-xh"><span class="sg-xm"><b><?= e($x['title']) ?></b><?php if (!empty($rcpts[(int) $x['id']])): ?> <a href="<?= e(ef_url('receipts/view.php?id=' . (int) $rcpts[(int) $x['id']])) ?>" target="_blank" rel="noopener" title="View receipt" style="color:var(--a1)"><?= ef_icon('rcp') ?></a><?php endif; ?>
+      <small><?= e($x['payer_name'] ?? 'Former member') ?> paid <?= shared_money($total, $cur) ?> · <?= e(date('d M Y', strtotime($x['expense_date']))) ?></small></span>
+    <span class="tag <?= $cls ?>"><?= e($label) ?><?= $net > 0 ? ' ' . shared_money($net, $cur) : '' ?></span></div>
       <details class="sg-d"<?= $open ? ' open' : '' ?>><summary>Details<?= $xc ? ' · ' . count($xc) . ' comment' . (count($xc) === 1 ? '' : 's') : '' ?></summary>
         <div class="sg-body">
           <div><div class="k">Split: <?= e(SHARED_SPLIT_TYPES[$x['split_type']] ?? 'Split') ?></div>
@@ -133,7 +134,7 @@ shared_panel('Expenses', 'wal', $expenses ? count($expenses) . ' expense' . (cou
             <?php endforeach; ?>
             <form method="POST" action="<?= e(ef_url('comments/action.php')) ?>" autocomplete="off" style="display:flex;gap:8px;margin-top:6px">
               <?= csrf_field() ?><input type="hidden" name="do" value="add"><input type="hidden" name="group_id" value="<?= $gid ?>"><input type="hidden" name="expense_id" value="<?= (int) $x['id'] ?>">
-              <input class="inp" style="padding:8px 10px" type="text" name="body" maxlength="500" placeholder="Write a comment…" aria-label="Comment" required>
+              <input class="inp sg-cin" type="text" name="body" maxlength="500" placeholder="Write a comment…" aria-label="Comment" required>
               <button class="btn sm" type="submit">Send</button>
             </form>
           </div>
@@ -145,8 +146,7 @@ shared_panel('Expenses', 'wal', $expenses ? count($expenses) . ' expense' . (cou
           </div>
           <?php endif; ?>
         </div>
-      </details></span>
-    <span class="tag <?= $cls ?>"><?= e($label) ?><?= $net > 0 ? ' ' . shared_money($net, $cur) : '' ?></span>
+      </details>
   </div>
   <?php endforeach; ?>
 <?php shared_panel_end(); ?>
