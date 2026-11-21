@@ -11,7 +11,7 @@
  */
 
 /** Colour names a section may use. Each has an accent colour (see assets/app.css, .sec-<name>). */
-const SHARED_SEC_COLORS = ['blue', 'orange', 'violet', 'green', 'teal', 'slate', 'rose'];
+const SHARED_SEC_COLORS = ['blue', 'orange'];
 
 function shared_sec(string $key, string $title, string $icon, string $color, bool $open, string $meta = '', string $badge = ''): void
 {
@@ -21,6 +21,20 @@ function shared_sec(string $key, string $title, string $icon, string $color, boo
     echo '<span class="sec-tt"><b>' . e($title) . '</b>' . ($meta !== '' ? '<small>' . e($meta) . '</small>' : '') . '</span>';
     echo ($badge !== '' ? '<span class="sec-bd">' . e($badge) . '</span>' : '<span></span>');
     echo '<span class="sec-ch" aria-hidden="true"></span></summary><div class="sec-body">';
+}
+
+/** Always-visible card with the same header look as a section but no drop-down: for the main content of a page. Plain pages use blue; only "Settle up" is orange. */
+function shared_panel(string $title, string $icon, string $meta = '', string $badge = '', string $tone = 'blue'): void
+{
+    $tone = $tone === 'orange' ? 'orange' : 'blue';
+    echo '<section class="g card sec-panel sec-' . $tone . '"><div class="sec-head"><span class="sec-ic">' . ef_icon($icon) . '</span>';
+    echo '<span class="sec-tt"><b>' . e($title) . '</b>' . ($meta !== '' ? '<small class="sec-meta">' . e($meta) . '</small>' : '') . '</span>';
+    echo '</div><div class="sec-body">'; // $badge is accepted so panel and section calls look alike; panels show the summary line instead
+}
+
+function shared_panel_end(): void
+{
+    echo '</div></section>';
 }
 
 function shared_sec_end(): void

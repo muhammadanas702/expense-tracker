@@ -30,15 +30,15 @@ def login(email):
 s1 = login('gc1@gc.local'); s2 = login('gc2@gc.local')
 t = s1.get(f'{B}/shared/group.php?id={g}').text
 ok('You owe' in t and '1,000.00' in t, 'debtor sees "You owe <amount>" at the top')
-ok(t.index('sg-me') < t.index('data-sec="grp-settle"') < t.index('data-sec="grp-expenses"'), 'order: balance, settle up, expenses')
+ok(t.index('sg-me') < t.index('Settle up</b>') < t.index('Expenses</b>'), 'order: balance, settle up, expenses')
 ok('Who pays whom' not in t and 'Net per person' not in t, 'old confusing headings are gone')
 ok('Add expense' in t and 'Record a payment' in t, 'both main actions are at the top')
 ok('<summary>Details' in t and '>Edit<' not in t.split('<summary>Details')[0], 'expense actions sit inside Details')
 import re as _re
 def opens(h, k): return bool(_re.search(r'<details[^>]*data-sec="' + k + r'"[^>]*\bopen\b', h))
-ok(opens(t, 'grp-settle') and opens(t, 'grp-expenses'), 'important sections (Settle up, Expenses) start open')
+ok('sec-panel' in t and '<b>Settle up</b>' in t and '<b>Expenses</b>' in t, 'main content (Settle up, Expenses) is a plain always-visible panel, not a drop-down')
 ok(not opens(t, 'grp-balance') and not opens(t, 'grp-members') and not opens(t, 'grp-settings'), 'secondary sections (balance, members, settings) start closed')
-ok(all(c in t for c in ('sec-orange', 'sec-violet', 'sec-blue', 'sec-teal', 'sec-green', 'sec-slate')), 'each kind of section has its own colour')
+ok('sec-orange' in t and 'sec-violet' not in t and 'sec-green' not in t, 'calm colours: one blue accent, orange only for Settle up')
 ok('ef-sec-' in t, 'open/closed choice is remembered (script present)')
 ok('Edit</a>' in t and 'Delete</a>' in t, 'Edit and Delete have words, not only icons')
 ok('data-sec="grp-balance"' in t and 'data-sec="grp-settings"' in t, 'balance table and settings are drop-down sections')
