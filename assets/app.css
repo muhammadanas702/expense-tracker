@@ -380,3 +380,25 @@ details.sg-card[open]>summary::after{transform:rotate(90deg)}
 details.sg-card>.sg-in{padding:0 18px 16px}
 .sg-del{color:#b91c1c}
 .sg-danger{margin-top:18px;padding-top:14px;border-top:1px solid rgba(249,115,22,.35)}.sg-danger .k{margin:6px 0 10px}
+
+/* Part 110b — Shared drop-down sections: one look everywhere, one colour per kind of section */
+details.sec{--sc:#2563eb;padding:0;margin:0 0 14px;border-left:4px solid var(--sc)}
+details.sec.sec-blue{--sc:#2563eb}details.sec.sec-orange{--sc:#ea580c}details.sec.sec-violet{--sc:#7c3aed}details.sec.sec-green{--sc:#059669}details.sec.sec-teal{--sc:#0d9488}details.sec.sec-slate{--sc:#475569}details.sec.sec-rose{--sc:#e11d48}
+details.sec>summary{display:grid;grid-template-columns:40px minmax(0,1fr) auto 20px;align-items:center;gap:12px;min-height:64px;padding:12px 14px 12px 14px;font-size:1rem;list-style:none}
+details.sec>summary::-webkit-details-marker{display:none}
+.sec-ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--sc);background:color-mix(in srgb,var(--sc) 14%,transparent)}
+.sec-ic svg{width:20px;height:20px}
+.sec-tt{min-width:0;display:flex;flex-direction:column;gap:2px}.sec-tt b{font-size:1rem;line-height:1.25}
+.sec-tt small{color:var(--mu);font-size:.8rem;font-weight:500;line-height:1.3;overflow-wrap:anywhere}
+details.sec[open] .sec-tt small{display:none}
+.sec-bd{min-width:28px;text-align:center;padding:3px 10px;border-radius:99px;font-size:.78rem;font-weight:800;color:var(--sc);background:color-mix(in srgb,var(--sc) 14%,transparent);white-space:nowrap}
+.sec-ch{width:10px;height:10px;border-right:2.5px solid var(--mu);border-bottom:2.5px solid var(--mu);transform:rotate(-45deg);justify-self:center;transition:transform .2s}
+details.sec[open] .sec-ch{transform:rotate(45deg)}
+.sec-body{padding:0 16px 14px;border-top:1px solid color-mix(in srgb,var(--sc) 16%,transparent)}
+.sec-body>.row:first-child{border-top:0}
+.sec-body .row>b{font-variant-numeric:tabular-nums}
+.sec-body .row .btn.sm{min-width:76px;justify-content:center}
+.sec-body .row .av{flex:0 0 auto}
+@media(max-width:480px){details.sec>summary{gap:10px;padding:10px 12px}.sec-body{padding:0 12px 12px}}
+.sec-body .gc{box-shadow:none;background:color-mix(in srgb,var(--sc) 7%,transparent);border:1px solid color-mix(in srgb,var(--sc) 20%,transparent)}
+.sec-body .G4{margin-top:12px}

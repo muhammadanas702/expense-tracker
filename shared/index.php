@@ -28,20 +28,18 @@ ef_page_start(['title' => 'Shared Overview', 'sub' => 'Who owes whom, across all
 
 <?php if ($owed && $owe): ?><p class="k" style="margin:-4px 4px 14px">Each person is counted separately: what one friend owes you does not reduce what you owe someone else.</p><?php endif; ?>
 <?php if ($todo): ?>
-<div class="g card" style="margin-bottom:14px">
-  <div class="t">Settle up</div>
+<?php shared_sec('ov-settle', 'Settle up', 'send', 'orange', true, count($todo) . ' payment' . (count($todo) === 1 ? '' : 's') . ' waiting', (string) count($todo)); ?>
   <?php foreach ($todo as $p): $pay = $p['from'] === $user_id; $oid = $pay ? $p['to'] : $p['from']; ?>
-  <div class="row"><span><?= $pay ? 'You pay ' : '' ?><?= e($other[$oid] ?? 'Former member') ?><?= $pay ? '' : ' pays you' ?><small><?= e($gnames[$p['group']] ?? 'Group') ?></small></span>
+  <div class="row"><?= shared_avatar_for((int) $oid, $other[$oid] ?? 'Former member') ?><span><?= $pay ? 'You pay ' : '' ?><?= e($other[$oid] ?? 'Former member') ?><?= $pay ? '' : ' pays you' ?><small><?= e($gnames[$p['group']] ?? 'Group') ?></small></span>
     <b class="<?= $pay ? 'ex' : 'in' ?>"><?= shared_money($p['amount'], $p['currency']) ?></b>
     <a class="btn sm o" href="<?= e(ef_url('shared/settle.php?' . http_build_query(['group' => $p['group'], 'from' => $p['from'], 'to' => $p['to'], 'amount' => shared_from_minor($p['amount']), 'currency' => $p['currency']]))) ?>">Settle</a></div>
   <?php endforeach; ?>
-</div>
+<?php shared_sec_end(); ?>
 <?php endif; ?>
 
 <?php $recent = (ef_feature_on('activity') && function_exists('activity_feed')) ? activity_feed($conn, $user_id, 0, 5) : []; ?>
 <?php if ($recent): ?>
-<div class="g card" style="margin-bottom:14px">
-  <div class="t">Recent activity <a href="<?= e(ef_url('activity/index.php')) ?>">View all →</a></div>
+<?php [$li, $lt, $la] = activity_describe($recent[0], $user_id); shared_sec('ov-activity', 'Recent activity', 'act', 'blue', false, $lt . ' · ' . ($recent[0]['group_name'] ?? 'Group'), (string) count($recent)); ?>
   <?php foreach ($recent as $r): [$icon, $text, $amt] = activity_describe($r, $user_id); ?>
   <div class="row">
     <span class="gi" style="margin:0;width:36px;height:36px;flex:none"><?= ef_icon($icon, '#1d4ed8') ?></span>
@@ -49,11 +47,11 @@ ef_page_start(['title' => 'Shared Overview', 'sub' => 'Who owes whom, across all
     <?php if ($amt !== ''): ?><b><?= e($amt) ?></b><?php endif; ?>
   </div>
   <?php endforeach; ?>
-</div>
+  <a class="btn sm o" style="margin-top:8px" href="<?= e(ef_url('activity/index.php')) ?>">View all activity</a>
+<?php shared_sec_end(); ?>
 <?php endif; ?>
 
-<div class="g card">
-  <div class="t">Your groups <a href="<?= e(ef_url('shared/groups.php')) ?>"><?= $groups ? 'View all →' : 'Create one →' ?></a></div>
+<?php shared_sec('ov-groups', 'Your groups', 'users', 'violet', true, $groups ? count($groups) . ' group' . (count($groups) === 1 ? '' : 's') : 'No groups yet', $groups ? (string) count($groups) : ''); ?>
   <?php if ($groups): ?>
   <div class="G4" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
     <?php foreach (array_slice($groups, 0, 6) as $gr): ?>
@@ -68,5 +66,6 @@ ef_page_start(['title' => 'Shared Overview', 'sub' => 'Who owes whom, across all
     <p class="k" style="padding:12px 0">No groups yet. Create a group for a trip, rent or any shared bill, then invite your friends with a link.</p>
     <a class="btn" href="<?= e(ef_url('shared/groups.php')) ?>"><?= ef_icon('pl') ?> Create a group</a>
   <?php endif; ?>
-</div>
-<?php ef_page_end(['mode' => 's', 'active' => 'shome']);
+  <?php if ($groups): ?><a class="btn sm o" style="margin-top:10px" href="<?= e(ef_url('shared/groups.php')) ?>">All groups &amp; create new</a><?php endif; ?>
+<?php shared_sec_end(); ?>
+<?php ef_page_end(['mode' => 's', 'active' => 'shome', 'scripts' => shared_sec_js()]);
