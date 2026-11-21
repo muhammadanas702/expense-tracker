@@ -372,7 +372,8 @@ details.sg-d>summary::after{content:"›";font-size:1.1rem;line-height:1;transit
 details.sg-d[open]>summary::after{transform:rotate(90deg)}
 .sg-body{display:grid;gap:12px;padding:6px 0 4px}
 .sg-ln{display:flex;justify-content:space-between;gap:10px;font-size:.82rem;padding:3px 0}.sg-ln b{white-space:nowrap}
-.sg-x{align-items:flex-start;flex-wrap:nowrap}.sg-x .sg-xm{flex:1 1 auto;min-width:0}.sg-x .tag{flex:0 0 auto;max-width:46%;text-align:right}
+.sg-x{display:block}.sg-xh{display:flex;align-items:flex-start;gap:10px}.sg-xh .sg-xm{flex:1 1 auto;min-width:0}.sg-xh .tag{flex:0 0 auto;max-width:46%;text-align:right}
+.sg-cin{flex:1 1 auto;min-width:0;width:100%;padding:11px 12px;font-size:.95rem}.sg-x form .btn.sm{flex:0 0 auto;min-width:76px;justify-content:center}
 details.sg-card{padding:0;margin-bottom:14px}
 details.sg-card>summary{padding:16px 18px;font-size:.98rem;min-height:52px}
 details.sg-card>summary::after{content:"›";font-size:1.3rem;line-height:1;color:var(--mu);transition:transform .2s}
@@ -418,3 +419,5 @@ details.sec[open] .sec-ch{transform:rotate(45deg)}
 .icopick svg{width:18px;height:18px}
 .icopick input:checked+span{background:var(--a1);color:#fff;border-color:transparent}
 .icopick input:focus-visible+span{outline:2px solid var(--a1);outline-offset:2px}
+
+.sg-x~.sg-x{border-top:1px solid var(--gb)}
