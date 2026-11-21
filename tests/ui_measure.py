@@ -145,7 +145,7 @@ MEASURE = r"""() => {
     if (ix.length > 1 && Math.max(...ix) - Math.min(...ix) > 1) add('nav', 'sidebar icons are not on one line');
     sb.forEach(e => { const s = e.querySelector('svg'); if (!s) return; const d = (s.getBoundingClientRect().top + s.getBoundingClientRect().height / 2) - (e.getBoundingClientRect().top + e.getBoundingClientRect().height / 2); if (Math.abs(d) > 1.5) add('nav', `sidebar icon "${txt(e)}" is ${r1(d)}px off centre`); });
   }
-  const bn = [...document.querySelectorAll('.bn > a:not(.bn-add), .bn > button')].filter(vis);
+  const bn = [...document.querySelectorAll('.bn > a, .bn > button')].filter(vis);
   if (bn.length) {
     same(bn, 'bottom bar items', 'width'); same(bn, 'bottom bar items', 'height');
     bn.forEach(e => { const s = e.querySelector('svg'); if (!s) return; const eb = e.getBoundingClientRect(), sbb = s.getBoundingClientRect(); const d = (sbb.left + sbb.width / 2) - (eb.left + eb.width / 2); if (Math.abs(d) > 1.5) add('nav', `bottom bar icon "${txt(e)}" is ${r1(d)}px off centre`);
