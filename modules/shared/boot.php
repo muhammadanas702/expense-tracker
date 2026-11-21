@@ -6,6 +6,7 @@ require_once __DIR__ . '/../../config/db.php';
 require_once __DIR__ . '/../../includes/logging.php';
 require_once __DIR__ . '/../../includes/layout.php';
 require_once __DIR__ . '/lib.php';
+require_once __DIR__ . '/ui.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: ' . $base_url . '/auth/login.php');

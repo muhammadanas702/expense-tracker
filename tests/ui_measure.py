@@ -72,7 +72,7 @@ MEASURE = r"""() => {
   }
   // ---- card padding and radius -------------------------------------------------------
   R.stat.pad = []; R.stat.radius = [];
-  document.querySelectorAll('.card:not(.hero):not(.gc), .g.card:not(.hero):not(.gc)').forEach(e => {
+  document.querySelectorAll('.card:not(.hero):not(.gc):not(.sec), .g.card:not(.hero):not(.gc):not(.sec)').forEach(e => {
     if (!vis(e) || fixed(e) || e.matches('#dash-search,.stat,.ap-intro,.attn')) return; // pill search bar, stat tiles and notice banners have their own compact padding
     const c = getComputedStyle(e);
     R.stat.pad.push([nm(e), r1(parseFloat(c.paddingTop)), r1(parseFloat(c.paddingRight)), r1(parseFloat(c.paddingBottom)), r1(parseFloat(c.paddingLeft))]);
@@ -104,7 +104,7 @@ MEASURE = r"""() => {
     if (Math.abs(d) > 2.5) add('icon', `icon in ${nm(e)} "${txt(e)}" is ${r1(d)}px off the text middle`);
   });
   // ---- list rows --------------------------------------------------------------------
-  document.querySelectorAll('.card, .g.card').forEach(card => {
+  document.querySelectorAll('.card, .g.card, .sec-body').forEach(card => {
     if (!vis(card)) return;
     const rows = [...card.querySelectorAll(':scope > .row, :scope > a.row')].filter(vis);
     if (rows.length < 2) return;
