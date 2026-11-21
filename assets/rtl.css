@@ -32,7 +32,6 @@ html[dir=rtl] .aft svg{margin-right:0;margin-left:2px}
 html[dir=rtl] .crumb span:before{margin-right:0;margin-left:8px}
 html[dir=rtl] .pub ul,html[dir=rtl] .pub ol,html[dir=rtl] .qhelp ol{padding-left:0;padding-right:22px}
 html[dir=rtl] .pub h2,html[dir=rtl] .ft2,html[dir=rtl] .sms-row{text-align:right}
-html[dir=rtl] .fabf{right:auto;left:18px}
 /* arrows and chevrons point the other way */
 html[dir=rtl] .nv svg.i[class~=chev],html[dir=rtl] .row>svg.i:last-child{transform:scaleX(-1)}
 /* the on/off switch knob */
