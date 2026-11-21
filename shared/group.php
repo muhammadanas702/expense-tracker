@@ -87,7 +87,7 @@ ef_page_start(['title' => $group['name'], 'sub' => count($members) . ' member' .
 
 <?php if ($debts):
   $meta = !$mine ? 'Nothing for you to pay or receive' : (($iOwe ? 'You pay ' . count(array_filter($mine, fn($p) => $p['from'] === $user_id)) . ' · ' : '') . ($iGet ? 'You get from ' . count(array_filter($mine, fn($p) => $p['to'] === $user_id)) : ''));
-  shared_sec('grp-settle', 'Settle up', 'send', 'orange', true, rtrim($meta, ' ·'), $mine ? (string) count($mine) : '');
+  shared_panel('Settle up', 'send', rtrim($meta, ' ·'), $mine ? (string) count($mine) : '', 'orange');
 ?>
   <?php if (!$mine): ?><p class="k" style="padding:12px 0 4px">You have nothing to pay or receive here.</p><?php endif; ?>
   <?php foreach ($mine as $p) { echo $debtRow($p); } ?>
@@ -96,14 +96,14 @@ ef_page_start(['title' => $group['name'], 'sub' => count($members) . ' member' .
     <div class="sg-body"><?php foreach ($others as $p) { echo $debtRow($p); } ?></div>
   </details>
   <?php endif; ?>
-<?php shared_sec_end(); ?>
+<?php shared_panel_end(); ?>
 <?php elseif ($expenses || $settlements): ?>
 <p class="k" style="margin:0 4px 14px">Everyone is settled up. What you owe each other adds up to zero, so nothing is left to pay.</p>
 <?php endif; ?>
 
 <?php
 $firstTot = $totals ? shared_money((int) $totals[0]['total'], $totals[0]['currency']) : '';
-shared_sec('grp-expenses', 'Expenses', 'wal', 'violet', true, $expenses ? count($expenses) . ' expense' . (count($expenses) === 1 ? '' : 's') . ($firstTot ? ' · ' . $firstTot . ' in total' : '') : 'No expenses yet', (string) count($expenses));
+shared_panel('Expenses', 'wal', $expenses ? count($expenses) . ' expense' . (count($expenses) === 1 ? '' : 's') . ($firstTot ? ' · ' . $firstTot . ' in total' : '') : 'No expenses yet', (string) count($expenses));
 ?>
   <?php if (!$expenses): ?><p class="k" style="padding:12px 0 4px">No expenses yet. Tap "Add expense" and choose how to split it.</p><?php endif; ?>
   <?php foreach ($expenses as $x):
@@ -149,10 +149,10 @@ shared_sec('grp-expenses', 'Expenses', 'wal', 'violet', true, $expenses ? count(
     <span class="tag <?= $cls ?>"><?= e($label) ?><?= $net > 0 ? ' ' . shared_money($net, $cur) : '' ?></span>
   </div>
   <?php endforeach; ?>
-<?php shared_sec_end(); ?>
+<?php shared_panel_end(); ?>
 
 <?php if ($settlements): ?>
-<?php $lastSt = $settlements[0]; shared_sec('grp-payments', 'Payments made', 'ok', 'green', false, 'Last: ' . ($lastSt['from_name'] ?? 'Former member') . ' paid ' . ($lastSt['to_name'] ?? 'Former member') . ' ' . shared_money((int) $lastSt['amount_minor'], $lastSt['currency']), (string) count($settlements)); ?>
+<?php $lastSt = $settlements[0]; shared_sec('grp-payments', 'Payments made', 'ok', 'blue', false, 'Last: ' . ($lastSt['from_name'] ?? 'Former member') . ' paid ' . ($lastSt['to_name'] ?? 'Former member') . ' ' . shared_money((int) $lastSt['amount_minor'], $lastSt['currency']), (string) count($settlements)); ?>
   <?php foreach ($settlements as $st): $canDel = (int) $st['created_by'] === $user_id || $isOwner; ?>
   <div class="row">
     <span><?= e($st['from_name'] ?? 'Former member') ?> paid <?= e($st['to_name'] ?? 'Former member') ?><small><?= e(date('d M Y', strtotime($st['settled_on']))) ?><?= $st['note'] ? ' · ' . e($st['note']) : '' ?></small></span>
@@ -175,7 +175,7 @@ shared_sec('grp-expenses', 'Expenses', 'wal', 'violet', true, $expenses ? count(
 <?php shared_sec_end(); ?>
 <?php endif; ?>
 
-<?php shared_sec('grp-members', 'Members', 'usr', 'teal', false, implode(', ', array_map(fn($m) => $m['name'], array_slice($members, 0, 4))) . (count($members) > 4 ? ' +' . (count($members) - 4) : ''), (string) count($members)); ?>
+<?php shared_sec('grp-members', 'Members', 'usr', 'blue', false, implode(', ', array_map(fn($m) => $m['name'], array_slice($members, 0, 4))) . (count($members) > 4 ? ' +' . (count($members) - 4) : ''), (string) count($members)); ?>
     <?php foreach ($members as $i => $m): ?>
     <div class="row">
       <?= shared_avatar($m['name'], $i) ?>
@@ -186,7 +186,7 @@ shared_sec('grp-expenses', 'Expenses', 'wal', 'violet', true, $expenses ? count(
     </div>
     <?php endforeach; ?>
 <?php shared_sec_end(); ?>
-<?php shared_sec('grp-invite', 'Invite friends', 'link', 'green', count($members) === 1, 'Share the link on WhatsApp or copy it'); ?>
+<?php shared_sec('grp-invite', 'Invite friends', 'link', 'blue', count($members) === 1, 'Share the link on WhatsApp or copy it'); ?>
     <div class="fl"><label for="invite">Invite link</label><input class="inp" id="invite" type="text" value="<?= e($invite) ?>" readonly onclick="this.select()"></div>
     <div class="sg-acts">
       <button class="btn" type="button" id="copy-invite"><?= ef_icon('link') ?> Copy link</button>
@@ -198,7 +198,7 @@ shared_sec('grp-expenses', 'Expenses', 'wal', 'violet', true, $expenses ? count(
     <?php endif; ?>
 <?php shared_sec_end(); ?>
 
-<?php shared_sec('grp-settings', $isOwner ? 'Group settings' : 'Leave group', $isOwner ? 'set' : 'out', 'slate', false, $isOwner ? 'Rename, change icon, delete the group' : 'Stop seeing this group'); ?>
+<?php shared_sec('grp-settings', $isOwner ? 'Group settings' : 'Leave group', $isOwner ? 'set' : 'out', 'blue', false, $isOwner ? 'Rename, change icon, delete the group' : 'Stop seeing this group'); ?>
     <?php if ($isOwner): ?>
     <form method="POST" action="<?= e($action) ?>" autocomplete="off">
       <?= csrf_field() ?>

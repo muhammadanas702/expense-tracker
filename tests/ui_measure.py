@@ -72,7 +72,7 @@ MEASURE = r"""() => {
   }
   // ---- card padding and radius -------------------------------------------------------
   R.stat.pad = []; R.stat.radius = [];
-  document.querySelectorAll('.card:not(.hero):not(.gc):not(.sec), .g.card:not(.hero):not(.gc):not(.sec)').forEach(e => {
+  document.querySelectorAll('.card:not(.hero):not(.gc):not(.sec):not(.sec-panel), .g.card:not(.hero):not(.gc):not(.sec):not(.sec-panel)').forEach(e => {
     if (!vis(e) || fixed(e) || e.matches('#dash-search,.stat,.ap-intro,.attn')) return; // pill search bar, stat tiles and notice banners have their own compact padding
     const c = getComputedStyle(e);
     R.stat.pad.push([nm(e), r1(parseFloat(c.paddingTop)), r1(parseFloat(c.paddingRight)), r1(parseFloat(c.paddingBottom)), r1(parseFloat(c.paddingLeft))]);
