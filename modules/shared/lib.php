@@ -230,6 +230,7 @@ function shared_delete_group(PDO $conn, int $groupId): void
     if (function_exists('activity_on_group_deleted')) {
         activity_on_group_deleted($conn, $groupId);
     }
+    try { $conn->prepare('DELETE FROM shared_member_invites WHERE group_id = ?')->execute([$groupId]); } catch (Throwable $e) { /* table not created yet: nothing to remove */ }
     $conn->prepare('DELETE FROM shared_members WHERE group_id = ?')->execute([$groupId]);
     $conn->prepare('DELETE FROM shared_groups WHERE id = ?')->execute([$groupId]);
 }
@@ -241,6 +242,9 @@ function shared_delete_group(PDO $conn, int $groupId): void
 function shared_ensure_all_schemas(PDO $conn): void
 {
     shared_ensure_schema($conn);
+    if (function_exists('shared_invites_ensure_schema')) {
+        shared_invites_ensure_schema($conn);
+    }
     foreach (['activity_ensure_schema', 'comments_ensure_schema', 'receipts_ensure_schema', 'support_ensure_schema', 'announce_ensure_schema', 'oauth_ensure_schema', 'budgets_ensure_schema', 'goals_ensure_schema', 'reminders_ensure_schema', 'twofa_ensure_schema', 'quickadd_ensure_schema', 'friends_ensure_schema', 'personal_ensure_schema'] as $fn) {
         if (function_exists($fn)) {
             $fn($conn);
@@ -284,6 +288,7 @@ function shared_on_user_deleted(PDO $conn, int $userId): void
             shared_delete_group($conn, (int) $gid);
         }
     }
+    try { $conn->prepare('DELETE FROM shared_member_invites WHERE invitee_id = ? OR inviter_id = ?')->execute([$userId, $userId]); } catch (Throwable $e) { /* no table yet */ }
     $conn->prepare('DELETE FROM shared_members WHERE user_id = ?')->execute([$userId]);
     try { // Part 54: ids kept for offline-entry duplicate protection
         $conn->prepare('DELETE FROM `offline_imports` WHERE `user_id` = ?')->execute([$userId]);

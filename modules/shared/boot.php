@@ -7,6 +7,8 @@ require_once __DIR__ . '/../../includes/logging.php';
 require_once __DIR__ . '/../../includes/layout.php';
 require_once __DIR__ . '/lib.php';
 require_once __DIR__ . '/ui.php';
+require_once __DIR__ . '/invites.php';
+if (is_file(__DIR__ . '/../friends/lib.php')) { require_once __DIR__ . '/../friends/lib.php'; }
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: ' . $base_url . '/auth/login.php');

@@ -186,7 +186,17 @@ shared_panel('Expenses', 'wal', $expenses ? count($expenses) . ' expense' . (cou
     </div>
     <?php endforeach; ?>
 <?php shared_sec_end(); ?>
-<?php shared_sec('grp-invite', 'Invite friends', 'link', 'blue', count($members) === 1, 'Share the link on WhatsApp or copy it'); ?>
+<?php $invitable = function_exists('shared_invitable_friends') && function_exists('friends_direct_ids') ? shared_invitable_friends($conn, $gid, $user_id) : []; ?>
+<?php shared_sec('grp-invite', 'Add people', 'link', 'blue', count($members) === 1, $invitable ? 'Pick a friend, or share the link' : 'Share the link on WhatsApp or copy it'); ?>
+    <?php if ($invitable): ?>
+    <div class="k" style="margin:2px 0 4px"><b>Your friends</b> · they join after they accept</div>
+    <?php foreach ($invitable as $f): ?>
+    <div class="row"><?= shared_avatar_for((int) $f['id'], $f['name']) ?><span><?= e($f['name']) ?></span>
+      <?php if ((int) $f['invited']): ?><small>Invited</small>
+      <?php else: ?><form method="post" action="<?= e($action) ?>" class="inl"><?= csrf_field() ?><input type="hidden" name="do" value="invite_friend"><input type="hidden" name="group_id" value="<?= $gid ?>"><input type="hidden" name="friend_id" value="<?= (int) $f['id'] ?>"><button class="btn sm" type="submit">Add</button></form><?php endif; ?></div>
+    <?php endforeach; ?>
+    <div class="k" style="margin:14px 0 6px"><b>Not a friend yet?</b> Send them this link</div>
+    <?php endif; ?>
     <div class="fl"><label for="invite">Invite link</label><input class="inp" id="invite" type="text" value="<?= e($invite) ?>" readonly onclick="this.select()"></div>
     <div class="sg-acts">
       <button class="btn" type="button" id="copy-invite"><?= ef_icon('link') ?> Copy link</button>

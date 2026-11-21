@@ -5,6 +5,7 @@ $csrf = csrf_token();
 
 ef_page_start(['title' => 'Groups', 'sub' => 'Trips, rent, family and friends', 'mode' => 's', 'active' => 'grp', 'user' => $user]);
 ?>
+<?= shared_invites_html($conn, $user_id, ef_url('shared/action.php'), csrf_field()) ?>
 <div class="G2">
   <div class="g card">
     <div class="t">Your groups <span class="k"><?= count($groups) ?></span></div>
