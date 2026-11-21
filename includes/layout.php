@@ -151,7 +151,7 @@ foreach ($moreItems as $n) { if ($n[3] === $active) { $moreActive = true; } }
 <nav class="g bn">
 <?php foreach ($barItems as $i => $n): ?>
 <?php if ($showAdd && $i === 2): ?>
-  <a class="bn-add" href="<?= e(ef_url('shared/add.php')) ?>" aria-label="<?= e(t('Add shared expense')) ?>"><span><?= ef_icon('pl') ?></span></a>
+  <a class="bn-add" href="<?= e(ef_url('shared/add.php')) ?>" aria-label="<?= e(t('Add shared expense')) ?>"><?= ef_icon('pl') ?><?= e(t('Add')) ?></a>
 <?php endif; ?>
   <a class="<?= $n[3] === $active ? 'on' : '' ?>" href="<?= e(ef_url($n[0])) ?>"><?= ef_icon($n[1]) ?><?= e(t(str_replace(['Add ', 'Full '], '', $n[2]))) ?></a>
 <?php endforeach; ?>
