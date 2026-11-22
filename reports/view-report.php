@@ -81,7 +81,9 @@ rsort($allMonths);
 $allYears = array_unique(array_merge(array_keys($yearlyInc), array_keys($yearlyExp)));
 rsort($allYears);
 
-if ($savings_percent >= 30) {
+if ($total_income <= 0 && $total_expense <= 0) {
+    $ai_insight = "No entries in this period yet. Add an expense or an income to see your insight. 📝";
+} elseif ($savings_percent >= 30) {
     $ai_insight = "Excellent! You're saving more than 30% of your income. Keep it up! 🎉";
 } elseif ($savings_percent >= 15) {
     $ai_insight = "Good job! You're saving well. Try to reach 30% of your income for financial freedom. 📈";
@@ -226,6 +228,7 @@ ef_page_start(['title' => 'Full Report', 'sub' => 'Filter, analyse and export', 
 </div>
 <div class="g card"><div class="k">Smart insight</div><div style="font-weight:600;margin-top:4px"><?= e($ai_insight) ?></div></div>
 
+<?php if ($allMonths): ?>
 <div class="G2">
     <div class="g card">
         <div class="t">Monthly comparison <span class="k">Income vs expense (PKR)</span></div>
@@ -247,6 +250,7 @@ ef_page_start(['title' => 'Full Report', 'sub' => 'Filter, analyse and export', 
         <?php endforeach; if (!$catTotals): ?><p class="k">No expenses in this period.</p><?php endif; ?>
     </div>
 </div>
+<?php endif; ?>
 
 <?php if (count($allYears) > 1): ?>
 <div class="g card">
