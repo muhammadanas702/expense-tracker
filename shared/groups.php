@@ -7,8 +7,7 @@ ef_page_start(['title' => 'Groups', 'sub' => 'Trips, rent, family and friends', 
 ?>
 <?= shared_invites_html($conn, $user_id, ef_url('shared/action.php'), csrf_field()) ?>
 <div class="G2">
-  <div class="g card">
-    <div class="t">Your groups <span class="k"><?= count($groups) ?></span></div>
+  <?php shared_panel('Your groups', 'users', $groups ? count($groups) . ' group' . (count($groups) === 1 ? '' : 's') : 'No groups yet'); ?>
     <?php if ($groups): ?>
     <div class="glist">
       <?php foreach ($groups as $gr): ?>
@@ -22,10 +21,9 @@ ef_page_start(['title' => 'Groups', 'sub' => 'Trips, rent, family and friends', 
     <?php else: ?>
       <p class="k" style="padding:12px 0">You are not in any group yet. Create one, or open an invite link a friend sent you.</p>
     <?php endif; ?>
-  </div>
+  <?php shared_panel_end(); ?>
 
-  <div class="g card">
-    <div class="t">Create a group</div>
+  <?php shared_panel('Create a group', 'pl', 'Give it a name and pick an icon'); ?>
     <form method="POST" action="<?= e(ef_url('shared/action.php')) ?>" autocomplete="off">
       <?= csrf_field() ?>
       <input type="hidden" name="do" value="create">
@@ -38,6 +36,6 @@ ef_page_start(['title' => 'Groups', 'sub' => 'Trips, rent, family and friends', 
         </div></div>
       <button class="btn" type="submit" style="width:100%;padding:14px">Create group</button>
     </form>
-  </div>
+  <?php shared_panel_end(); ?>
 </div>
 <?php ef_page_end(['mode' => 's', 'active' => 'grp']);

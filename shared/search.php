@@ -42,10 +42,9 @@ ef_page_start(['title' => 'Search', 'sub' => 'Find a shared expense or payment',
       </div>
     </details>
   </form>
-  <?php if ($searched): ?><div class="chips sp-tags"><a class="chip" href="<?= e(ef_url('shared/search.php')) ?>">Clear</a></div><?php endif; ?>
   <?php if (!$loadError): ?>
-  <div class="g card" id="results">
-    <div class="t"><?php if ($searched): ?><?= (int) $res['count'] ?> result<?= $res['count'] === 1 ? '' : 's' ?><?php else: ?>Latest entries<?php endif; ?></div>
+  <?php shared_panel($searched ? (int) $res['count'] . ' result' . ($res['count'] === 1 ? '' : 's') : 'Latest entries', 'search', $searched ? 'Newest first' : 'Everything you can see, newest first'); ?>
+    <?php if ($searched): ?><a class="btn sm o sp-clear" href="<?= e(ef_url('shared/search.php')) ?>">Clear search</a><?php endif; ?>
     <?php if (!$res['rows']): ?><p style="color:var(--mu)"><?= $searched ? 'Nothing matches. Try fewer filters or a shorter word.' : 'No shared entries yet. Add a shared expense and it will show up here.' ?></p><?php endif; ?>
     <?php foreach ($res['rows'] as $r): $isExp = $r['kind'] === 'expense'; ?>
       <a class="row srow" data-kind="<?= e($r['kind']) ?>" href="<?= e(ef_url('shared/group.php?id=' . (int) $r['group_id'])) ?>" style="text-decoration:none;color:inherit">
@@ -55,7 +54,7 @@ ef_page_start(['title' => 'Search', 'sub' => 'Find a shared expense or payment',
       </a>
     <?php endforeach; ?>
     <?php if ($res['count'] > count($res['rows'])): ?><p style="color:var(--mu);font-size:.85rem;margin-top:8px">Showing the newest <?= (int) count($res['rows']) ?>. Add a filter to narrow it down.</p><?php endif; ?>
-  </div>
+  <?php shared_panel_end(); ?>
   <?php endif; ?>
 </div>
 <?php ef_page_end(['mode' => 's', 'active' => 'sfind']);
