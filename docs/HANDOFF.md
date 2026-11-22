@@ -1,4 +1,4 @@
-# Handoff — where the project stands (2026-11-14)
+# Handoff — where the project stands (2026-11-22)
 
 Owner: Muhammad Anas. Stack: PHP 8 + MySQL, no framework. Repo `muhammadanas702/expense-tracker`. Free host InfinityFree (`if0_41994702`, IP 185.27.134.103). Deploy: merge to `main` -> GitHub Actions "Deploy ExpenseFlow to InfinityFree" (FTPS, 15-30 s). Rule for every Part: small, tested, then a numbered "what you do next" list (which PR to merge, APK/exe build needed or not). Owner writes Roman Urdu and is on the free Claude plan: keep each job small.
 
@@ -11,6 +11,8 @@ Owner: Muhammad Anas. Stack: PHP 8 + MySQL, no framework. Repo `muhammadanas702/
   - Why the proxy: InfinityFree sends no intermediate certificate, so the uptime monitor and apps fail on the bare origin certificate. Cloudflare serves a complete chain. `client_ip()` reads `CF-Connecting-IP` only from Cloudflare ranges.
   - InfinityFree has a Let's Encrypt certificate for `.page` (expires 2027-02-11; InfinityFree renews through the CNAME).
   - GitHub repo variable `SITE_URL=https://expenseflow.page`.
+
+- Shared part redone (Parts 110a-110f, 111a-111e, see `docs/ROADMAP.md`): calm single-accent style with panels and a few drop-downs, Add in the middle of the phone bar, friends can be added to a group from the app (invitation), private two-person account with a friend, optional @username.
 
 ## Check once (owner, a few minutes)
 1. Actions > "Uptime monitor" > Run workflow: green, and issue #168 "ExpenseFlow is down" closes itself. If it stays red, open the run and read the message.
