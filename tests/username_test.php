@@ -33,7 +33,13 @@ ok($r2['ok'] && count(friends_pending($conn, $a)['out']) === 1, 'unknown usernam
 ok(!friends_request($conn, $a, 'a b')['ok'], 'garbage refused');
 $r3 = friends_request($conn, $a, 'usrc@t.local');
 ok($r3['ok'] && count(friends_pending($conn, $a)['out']) === 2, 'email still works');
-ok(!friends_request($conn, $a, '@usr.alpha')['ok'] || true, 'own username does not crash');
+$me1 = friends_request($conn, $a, '@usr.alpha');
+ok(!$me1['ok'] && strpos($me1['msg'], 'your own username') !== false, 'own username: clear message, no request');
+$me2 = friends_request($conn, $a, '@USR.Alpha');
+ok(!$me2['ok'], 'own username in other capitals is also caught');
+$me3 = friends_request($conn, $a, 'usra@t.local');
+ok(!$me3['ok'] && strpos($me3['msg'], 'your own email') !== false, 'own email: clear message');
+ok(count(friends_pending($conn, $a)['out']) === 2, 'no request was created for yourself');
 ok(friends_username_set($conn, $a, '')['ok'] && friends_username_of($conn, $a) === null, 'username can be removed');
 $conn->exec("DELETE FROM friend_links WHERE requester_id IN ($a,$b,$c)");
 $conn->exec("DELETE FROM users WHERE id IN ($a,$b,$c)");

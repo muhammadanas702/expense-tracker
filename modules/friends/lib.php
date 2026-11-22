@@ -76,6 +76,13 @@ function friends_request(PDO $conn, int $me, string $who): array
     } elseif (($uname = friends_username_clean($who)) === null) {
         return ['ok' => false, 'msg' => 'Please enter a valid email address or a @username.'];
     }
+    // Asking for yourself: say so plainly (you already know your own address, so nothing is revealed)
+    $mine = $conn->prepare('SELECT email, username FROM users WHERE id = ?');
+    $mine->execute([$me]);
+    $my = $mine->fetch(PDO::FETCH_ASSOC) ?: [];
+    if ($byEmail ? strtolower((string) ($my['email'] ?? '')) === $email : (string) ($my['username'] ?? '') === $uname) {
+        return ['ok' => false, 'msg' => 'That is your own ' . ($byEmail ? 'email address' : 'username') . '. You cannot send a friend request to yourself. Type your friend\'s ' . ($byEmail ? 'email' : '@username') . ' instead.'];
+    }
     $key = rl_key((string) $me);
     if (rl_blocked($conn, 'friend_req', $key, 15, 3600)) {
         return ['ok' => false, 'msg' => 'Too many requests just now. Please try again later.'];
@@ -95,7 +102,7 @@ function friends_request(PDO $conn, int $me, string $who): array
     }
     $oid = (int) $other['id'];
     if ($oid === $me) {
-        return ['ok' => false, 'msg' => 'That is you.'];
+        return ['ok' => false, 'msg' => 'You cannot send a friend request to yourself.'];
     }
     $ex = $conn->prepare('SELECT id, requester_id, status FROM friend_links WHERE (requester_id = ? AND addressee_id = ?) OR (requester_id = ? AND addressee_id = ?) LIMIT 1');
     $ex->execute([$me, $oid, $oid, $me]);
