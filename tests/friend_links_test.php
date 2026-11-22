@@ -5,7 +5,7 @@ require __DIR__.'/../modules/shared/lib.php'; require __DIR__.'/../modules/frien
 shared_ensure_schema($conn); $fail=0; function ok($c,$m){global $fail;if(!$c){$fail++;echo "FAIL $m\n";}}
 $t='fx'.bin2hex(random_bytes(3)); $u=[];
 foreach(['A','B','C'] as $i=>$n){$conn->prepare('INSERT INTO users(name,email,password) VALUES(?,?,?)')->execute([$n,"$t$i@t.local",'x']);$u[$n]=(int)$conn->lastInsertId();}
-ok(!friends_request($conn,$u['A'],'bad')['ok'],'invalid email');
+ok(!friends_request($conn,$u['A'],'not an email!')['ok'],'invalid email');
 ok(!friends_request($conn,$u['A'],"{$t}0@t.local")['ok'],'self');
 $r=friends_request($conn,$u['A'],"{$t}1@t.local"); ok($r['ok'],'request');
 $g=friends_request($conn,$u['A'],"nobody$t@t.local"); ok($g['msg']===$r['msg'],'generic reply same');
