@@ -90,12 +90,12 @@ function currency_select_options(?string $selected = null): string
         }
         $isSelected = ($selected !== null && strtoupper($selected) === $code) ? ' selected' : '';
         $groups[$group][] = sprintf(
-            '<option value="%s"%s>%s %s (%s)</option>',
+            '<option value="%s"%s>%s %s – %s</option>',
             htmlspecialchars($code, ENT_QUOTES, 'UTF-8'),
             $isSelected,
             $flag,
-            htmlspecialchars(t($name), ENT_QUOTES, 'UTF-8'),
-            htmlspecialchars($code, ENT_QUOTES, 'UTF-8')
+            htmlspecialchars($code, ENT_QUOTES, 'UTF-8'),
+            htmlspecialchars(t($name), ENT_QUOTES, 'UTF-8')
         );
     }
 
