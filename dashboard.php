@@ -225,7 +225,7 @@ if ($gsSteps): $gsDone = count(array_filter($gsSteps, fn($x) => $x['done'])); ?>
     <button class="btn sm" type="submit"><?= e(t('Search')) ?></button>
 </form>
 <?php endif; ?>
-<div class="chips" style="margin-bottom:2px">
+<div class="chips chips-scroll" style="margin-bottom:2px">
 <?php foreach ($presets as $label => $q): ?>
     <a class="chip<?= $activePreset === $label ? ' on' : '' ?>" href="<?= e($base_url . '/dashboard.php' . ($q ? '?' . http_build_query($q) : '')) ?>"><?= e(t($label)) ?></a>
 <?php endforeach; ?>
@@ -297,6 +297,16 @@ if ($budgetItems): $bcol = ['ok' => '#0d9f6e', 'warn' => '#f59e0b', 'over' => '#
 </div>
 <?php endif; ?>
 
+<?php if ((int) $periodN === 0): ?>
+<div class="g card" style="text-align:center">
+    <div class="t" style="justify-content:center"><?= e(t('Nothing in this period yet')) ?></div>
+    <p class="k" style="margin:0 0 12px"><?= e(t('Add an expense or an income and your charts and insights appear here.')) ?></p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+        <a class="btn" href="<?= e($base_url) ?>/expense/add-expense.php"><?= e(t('Add expense')) ?></a>
+        <a class="btn o" href="<?= e($base_url) ?>/income/add-income.php"><?= e(t('Add income')) ?></a>
+    </div>
+</div>
+<?php else: ?>
 <div class="G2">
     <div class="g card">
         <div class="t"><?= e(t('Where your money goes')) ?></div>
@@ -315,6 +325,7 @@ if ($budgetItems): $bcol = ['ok' => '#0d9f6e', 'warn' => '#f59e0b', 'over' => '#
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 <div class="G2">
     <div class="g card">
@@ -356,15 +367,15 @@ if ($budgetItems): $bcol = ['ok' => '#0d9f6e', 'warn' => '#f59e0b', 'over' => '#
         </div>
         <?php endif; ?>
         <?php if (!$use_date_range): ?>
-        <div class="g card" id="base">
-            <div class="t"><?= e(t('Base currency for %s', ef_month_year($period_start))) ?></div>
-            <form method="POST" action="<?= e($base_url) ?>/change-base-currency.php" style="display:flex;gap:10px;flex-wrap:wrap">
+        <details class="more" id="base" style="background:transparent">
+            <summary><span><?= e(t('Base currency')) ?><small><?= e($display_currency) ?> · <?= e(ef_month_year($period_start)) ?></small></span></summary>
+            <form method="POST" action="<?= e($base_url) ?>/change-base-currency.php" style="display:flex;gap:10px;flex-wrap:wrap;padding:0 14px 14px">
                 <?= csrf_field() ?>
                 <input type="hidden" name="year_month" value="<?= e($year_month) ?>">
                 <select class="inp" name="new_base_currency" style="flex:1;min-width:150px" aria-label="<?= e(t('Base currency')) ?>"><?= currency_select_options($display_currency) ?></select>
                 <button class="btn" type="submit"><?= e(t('Change')) ?></button>
             </form>
-        </div>
+        </details>
         <?php endif; ?>
     </div>
 </div>
