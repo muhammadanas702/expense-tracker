@@ -425,7 +425,7 @@ details.sec[open] .sec-ch{transform:rotate(45deg)}
 
 
 /* Part 110c: add-expense form: amount and currency on one line, rarely used fields in "More options" */
-.fgrid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}.fgrid2 select.inp{padding-left:10px;padding-right:28px;text-overflow:ellipsis}
+.fgrid2{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:12px}.fgrid2 select.inp{padding-left:10px;padding-right:28px;text-overflow:ellipsis}
 .fgrid2 .fl{margin-bottom:14px}
 .more{border:1px solid var(--gb);border-radius:16px;margin:4px 0 16px;background:rgba(255,255,255,.4)}
 .more>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;font-weight:700;min-height:48px}

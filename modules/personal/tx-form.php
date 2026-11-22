@@ -225,10 +225,12 @@ function personal_tx_page(string $kind, ?int $editId = null): void
       <?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e($error) ?></div><?php endif; ?>
       <form class="txf" method="POST" autocomplete="off" style="--t:<?= e($accent) ?>"<?= $isEdit ? '' : ' data-offline-queue="' . e($kind) . '"' ?>>
         <?= csrf_field() ?>
+        <div class="fgrid2">
         <div class="fl"><label for="amount"><?= e(t('Amount')) ?></label>
           <input class="inp amt" id="amount" type="number" inputmode="decimal" step="0.01" min="0.01" max="99999999.99" name="amount" value="<?= e($old['amount']) ?>" placeholder="0.00" required></div>
         <div class="fl"><label for="currency"><?= e(t('Currency')) ?></label>
           <select class="inp" id="currency" name="currency" required><?= currency_select_options($old['currency']) ?></select></div>
+        </div>
         <div class="fl"><label for="title"><?= e(t('Title')) ?></label>
           <input class="inp" id="title" type="text" name="title" maxlength="100" value="<?= e($old['title']) ?>" placeholder="<?= e(t($isExpense ? 'e.g. Groceries, Rent' : 'e.g. Salary, Freelance')) ?>" required></div>
         <?php if ($isExpense): ?>

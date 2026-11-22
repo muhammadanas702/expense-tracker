@@ -101,10 +101,12 @@ ef_page_start(['title' => 'Budgets', 'sub' => t('Monthly limits for %s', ef_mont
             <select class="inp" id="bcat" name="category" required>
               <?php foreach (array_keys($cats) as $c): ?><option value="<?= e($c) ?>"><?= e(t($c)) ?></option><?php endforeach; ?>
             </select></div>
+          <div class="fgrid2">
           <div class="fl"><label for="bamt"><?= e(t('Monthly limit')) ?></label>
             <input class="inp amt" id="bamt" type="number" inputmode="decimal" step="0.01" min="0.01" name="amount" placeholder="<?= e(t('e.g. 20000')) ?>" required></div>
           <div class="fl"><label for="bcur"><?= e(t('Currency')) ?></label>
             <select class="inp" id="bcur" name="currency" required><?= currency_select_options('PKR') ?></select></div>
+          </div>
           <button class="btn" type="submit" style="width:100%;margin-top:10px;padding:14px"><?= e(t('Save budget')) ?></button>
           <p style="color:var(--mu);font-size:.82rem;margin-top:8px"><?= e(t('Setting a budget for a category that already has one changes its limit.')) ?></p>
         </form>
