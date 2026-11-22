@@ -111,7 +111,7 @@ ef_page_start(['title' => 'Savings goals', 'sub' => 'Save for something that mat
             <input class="inp" id="gname" type="text" name="name" maxlength="60" placeholder="<?= e(t('e.g. New laptop, Emergency fund')) ?>" required></div>
           <div class="fgrid2">
           <div class="fl"><label for="gtarget"><?= e(t('Target amount')) ?></label>
-            <input class="inp amt" id="gtarget" type="number" inputmode="decimal" step="0.01" min="0.01" name="target" placeholder="<?= e(t('e.g. 100000')) ?>" required></div>
+            <input class="inp amt" id="gtarget" type="number" inputmode="decimal" step="0.01" min="0.01" name="target" placeholder="<?= e('0.00') ?>" required></div>
           <div class="fl"><label for="gcur"><?= e(t('Currency')) ?></label>
             <select class="inp" id="gcur" name="currency" required><?= currency_select_options('PKR') ?></select></div>
           </div>

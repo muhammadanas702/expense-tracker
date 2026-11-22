@@ -109,8 +109,8 @@ ef_page_start(['title' => 'Reminders', 'sub' => 'Never miss a bill', 'mode' => '
           <div class="fl"><label for="rdue"><?= e(t('Due date')) ?></label>
             <input class="inp" id="rdue" type="date" name="due_date" value="<?= e(date('Y-m-d', strtotime('+7 days'))) ?>" required></div>
           <div class="fgrid2">
-          <div class="fl"><label for="ramt"><?= e(t('Amount')) ?> <span style="text-transform:none;font-weight:500">(<?= e(t('optional')) ?>)</span></label>
-            <input class="inp amt" id="ramt" type="number" inputmode="decimal" step="0.01" min="0.01" name="amount" placeholder="<?= e(t('e.g. 3500')) ?>"></div>
+          <div class="fl"><label for="ramt"><?= e(t('Amount')) ?></label>
+            <input class="inp amt" id="ramt" type="number" inputmode="decimal" step="0.01" min="0.01" name="amount" placeholder="<?= e('0.00') ?>"></div>
           <div class="fl"><label for="rcur"><?= e(t('Currency')) ?></label>
             <select class="inp" id="rcur" name="currency" required><?= currency_select_options('PKR') ?></select></div>
           </div>
