@@ -35,7 +35,7 @@ settings_page_start('account', $user);
       <form method="POST">
         <?= csrf_field() ?>
         <div class="fl"><label for="name">Name</label><input class="inp" id="name" type="text" name="name" maxlength="100" value="<?= e($user['name']) ?>" required></div>
-        <div class="fl"><label for="username">Username <span class="k">(optional)</span></label><input class="inp" id="username" type="text" name="username" maxlength="20" value="<?= e((string) $myUsername) ?>" placeholder="e.g. ali.raza" autocomplete="off" autocapitalize="none" spellcheck="false"><small class="k">Friends can find you with @username instead of your e-mail. 3 to 20 letters, digits, "_" or ".". Leave empty for none.</small></div>
+        <div class="fl"><label for="username">Username <span class="k">(optional)</span></label><input class="inp" id="username" type="text" name="username" maxlength="20" value="<?= e((string) $myUsername) ?>" placeholder="e.g. ali.raza" autocomplete="off" autocapitalize="none" spellcheck="false"><small class="k">Friends can find you with @username instead of your email. 3 to 20 letters, digits, "_" or ".". Leave empty for none.</small></div>
         <div class="fl"><label for="email">E-mail</label><input class="inp" id="email" type="email" value="<?= e($user['email']) ?>" readonly><small class="k">Your e-mail is your sign-in. To change it, contact support.</small></div>
         <button class="btn" type="submit">Update profile</button>
       </form>

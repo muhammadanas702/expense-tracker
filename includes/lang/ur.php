@@ -687,4 +687,5 @@ return [
     'Biggest expense' => 'سب سے بڑا خرچ',
     'Biggest income' => 'سب سے بڑی آمدنی',
     'Entries in this period' => 'اس مدت کی اندراجات',
+    'No entries in this period yet. Add an expense or an income to see your insight. 📝' => 'اس مدت میں ابھی کوئی اندراج نہیں۔ تجزیہ دیکھنے کے لیے خرچ یا آمدنی شامل کریں۔ 📝',
 ];
