@@ -18,21 +18,8 @@ $phrase = function (array $net) {
 ef_page_start(['title' => 'Friends', 'sub' => 'People you split bills with', 'mode' => 's', 'active' => 'fr', 'user' => $user]);
 ?>
 <?php $pend = friends_pending($conn, $user_id); ?>
-<div class="fr-top">
-  <div class="g card">
-    <div class="t">Add a friend</div>
-    <form method="post" action="<?= e(ef_url('friends/action.php')) ?>" class="frform">
-      <?= csrf_field() ?><input type="hidden" name="do" value="add">
-      <input type="text" name="email" required maxlength="150" placeholder="Email or @username" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Friend's email or username">
-      <button class="btn" type="submit"><?= ef_icon('pl') ?> Send request</button>
-    </form>
-    <p class="k">Type their email or @username. They get a request and become your friend once they accept. You can also invite people through a group link.<?php $mu = friends_username_of($conn, $user_id); ?> <?= $mu ? 'Your username: <b>@' . e($mu) . '</b>' : '<a href="' . e(ef_url('settings/account.php')) . '" style="color:var(--a1);font-weight:700">Set your username</a> so friends can find you easily.' ?></p>
-  </div>
-</div>
-
 <?php if ($pend['in'] || $pend['out']): ?>
-<div class="g card" style="margin-bottom:14px">
-  <div class="t">Requests</div>
+<?php shared_panel('Requests', 'users', count($pend['in']) + count($pend['out']) . ' waiting', (string) (count($pend['in']) + count($pend['out'])), 'orange'); ?>
   <?php foreach ($pend['in'] as $r): ?>
   <div class="row"><span><?= e($r['name']) ?><small>wants to be your friend</small></span>
     <form method="post" action="<?= e(ef_url('friends/action.php')) ?>" class="inl"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $r['id'] ?>">
@@ -42,16 +29,15 @@ ef_page_start(['title' => 'Friends', 'sub' => 'People you split bills with', 'mo
     <form method="post" action="<?= e(ef_url('friends/action.php')) ?>" class="inl"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $r['id'] ?>">
       <button class="btn sm o" name="do" value="cancel">Cancel</button></form></div>
   <?php endforeach; ?>
-</div>
+<?php shared_panel_end(); ?>
 <?php endif; ?>
 
-<div class="g card">
-  <div class="t">Your friends (<?= count($friends) ?>)</div>
-  <form method="get" class="sbar" role="search" style="margin-bottom:8px">
+<?php shared_panel('Your friends', 'usr', $friends ? count($friends) . (count($friends) === 1 ? ' friend' : ' friends') : 'No friends yet', $friends ? (string) count($friends) : ''); ?>
+  <?php if (count($friends) > 6 || $q !== ''): ?><form method="get" class="sbar" role="search" style="margin-bottom:8px">
     <?= ef_icon('search') ?>
     <input type="search" name="q" id="frq" value="<?= e($q) ?>" placeholder="Search by name" maxlength="60" autocomplete="off" aria-label="Search friends">
     <?php if ($q !== ''): ?><a class="sx" href="<?= e(ef_url('friends/index.php')) ?>" aria-label="Clear search">&times;</a><?php endif; ?>
-  </form>
+  </form><?php endif; ?>
   <?php if ($friends): $i = 0; foreach ($friends as $f): $net = friends_net($f); $i++; ?>
   <a class="row frrow" data-n="<?= e(mb_strtolower($f['name'])) ?>" href="<?= e(ef_url('friends/view.php?id=' . (int) $f['id'])) ?>" style="text-decoration:none;color:inherit">
     <?= shared_avatar($f['name'], $i) ?>
@@ -63,9 +49,17 @@ ef_page_start(['title' => 'Friends', 'sub' => 'People you split bills with', 'mo
     <?php endif; ?>
   </a>
   <?php endforeach; else: ?>
-    <p class="k" style="padding:12px 0"><?= $q !== '' ? 'No friend matches that name.' : 'No friends yet. Add one by email above, or create a group and share its invite link.' ?></p>
+    <p class="k" style="padding:12px 0"><?= $q !== '' ? 'No friend matches that name.' : 'No friends yet. Add one below by email or @username, or create a group and share its invite link.' ?></p>
     <?php if ($q === ''): ?><a class="btn" href="<?= e(ef_url('shared/groups.php')) ?>"><?= ef_icon('pl') ?> Create a group</a><?php endif; ?>
   <?php endif; ?>
-</div>
+<?php shared_panel_end(); ?>
 <script>(function(){var i=document.getElementById('frq');if(!i)return;i.addEventListener('input',function(){var v=i.value.trim().toLowerCase();document.querySelectorAll('.frrow').forEach(function(r){r.style.display=!v||r.dataset.n.indexOf(v)>-1?'':'none'})});i.form.addEventListener('submit',function(e){e.preventDefault()})})();</script>
-<?php ef_page_end(['mode' => 's', 'active' => 'fr']);
+<?php shared_sec('fr-add', 'Add a friend', 'pl', 'blue', !$friends, 'By email or @username'); ?>
+    <form method="post" action="<?= e(ef_url('friends/action.php')) ?>" class="frform">
+      <?= csrf_field() ?><input type="hidden" name="do" value="add">
+      <input type="text" name="email" required maxlength="150" placeholder="Email or @username" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Friend's email or username">
+      <button class="btn" type="submit"><?= ef_icon('pl') ?> Send request</button>
+    </form>
+    <p class="k">Type their email or @username. They get a request and become your friend once they accept. You can also invite people through a group link.<?php $mu = friends_username_of($conn, $user_id); ?> <?= $mu ? 'Your username: <b>@' . e($mu) . '</b>' : '<a href="' . e(ef_url('settings/account.php')) . '" style="color:var(--a1);font-weight:700">Set your username</a> so friends can find you easily.' ?></p>
+  <?php shared_sec_end(); ?>
+<?php ef_page_end(['mode' => 's', 'active' => 'fr', 'scripts' => shared_sec_js()]);

@@ -423,3 +423,15 @@ details.sec[open] .sec-ch{transform:rotate(45deg)}
 
 /* Part 110d: the "add expense" button sits in the middle of the phone bar, as a round button raised above it */
 
+
+/* Part 110c: add-expense form: amount and currency on one line, rarely used fields in "More options" */
+.fgrid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}.fgrid2 select.inp{padding-left:10px;padding-right:28px;text-overflow:ellipsis}
+.fgrid2 .fl{margin-bottom:14px}
+.more{border:1px solid var(--gb);border-radius:16px;margin:4px 0 16px;background:rgba(255,255,255,.4)}
+.more>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;font-weight:700;min-height:48px}
+.more>summary::-webkit-details-marker{display:none}
+.more>summary small{display:block;font-weight:500;color:var(--mu);font-size:.78rem;margin-top:2px}
+.more>summary::after{content:"";flex:0 0 auto;width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:-3px 4px 0 0;transition:transform .2s}
+.more[open]>summary::after{transform:rotate(-135deg);margin-top:3px}
+.more>.fl,.more>div{padding:0 14px}
+.more>.fl:last-child{padding-bottom:6px}
