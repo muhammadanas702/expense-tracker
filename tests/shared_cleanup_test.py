@@ -27,7 +27,7 @@ with sync_playwright() as p:
         ok(pg.evaluate('document.documentElement.scrollWidth-innerWidth') <= 1, f'{w}px: overview does not scroll sideways')
         pg.goto(B + '/friends/index.php'); pg.wait_for_timeout(500); t = pg.inner_text('body')
         ok('Find in your friends' not in t and 'Type to filter' not in t, f'{w}px: separate search card is gone')
-        ok(pg.locator('#frq').count() == 1 and pg.evaluate("document.querySelector('#frq').closest('.card').innerText.includes('Your friends')"), f'{w}px: search is inside the friends list')
+        ok(pg.locator('#frq').count() == 0 or pg.evaluate("document.querySelector('#frq').closest('.card').innerText.includes('Your friends')"), f'{w}px: friend search (shown only with more than 6 friends) is inside the friends list, never a separate card')
         pg.fill('#frq', 'zzzz'); pg.wait_for_timeout(200)
         ok(pg.evaluate("[...document.querySelectorAll('.frrow')].every(r=>r.style.display==='none')"), f'{w}px: typing filters the list')
         ok(pg.evaluate('document.documentElement.scrollWidth-innerWidth') <= 1, f'{w}px: friends does not scroll sideways')

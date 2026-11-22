@@ -447,3 +447,9 @@ details.sec[open] .sec-ch{transform:rotate(45deg)}
 .fr-me a{font-weight:700;color:var(--a1);white-space:nowrap;text-decoration:none}
 .frrow>svg:last-child{width:16px;height:16px;flex:0 0 auto;color:var(--mu)}
 @media(max-width:520px){.frform{grid-template-columns:1fr}}
+
+/* Part 112: Settle, Search and Groups pages use the same panels */
+.sp-clear{margin:0 0 10px}
+.sp-more>summary{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:999px;background:rgba(255,255,255,.65);border:1px solid var(--gb);font-weight:700}
+.sec-body>form{padding-top:12px}
+.sp-more{margin:10px 0 12px}

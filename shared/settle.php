@@ -78,21 +78,28 @@ $opts = function (string $sel) use ($members, $user_id) {
     return $h;
 };
 ?>
-<div class="g" style="max-width:560px;margin:0 auto;padding:22px">
+<div style="max-width:560px;margin:0 auto">
+<?php shared_panel('Record a payment', 'send', 'Someone paid someone back', '', 'orange'); ?>
   <?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e($error) ?></div><?php endif; ?>
   <form method="POST" autocomplete="off">
     <?= csrf_field() ?>
     <input type="hidden" name="group_id" value="<?= $gid ?>"><input type="hidden" name="ft" value="<?= e($ftoken) ?>">
     <div class="fl"><label for="from">Who paid</label><select class="inp" id="from" name="from"><?= $opts($old['from']) ?></select></div>
     <div class="fl"><label for="to">Paid to</label><select class="inp" id="to" name="to"><option value="">Choose…</option><?= $opts($old['to']) ?></select></div>
+    <div class="fgrid2">
     <div class="fl"><label for="amount">Amount</label>
       <input class="inp amt" id="amount" type="number" inputmode="decimal" step="0.01" min="0.01" max="99999999.99" name="amount" value="<?= e($old['amount']) ?>" placeholder="0.00" required></div>
     <div class="fl"><label for="currency">Currency</label><select class="inp" id="currency" name="currency" required><?= currency_select_options($old['currency']) ?></select></div>
+    </div>
+    <details class="more"<?= ($old['note'] !== '' || $old['settled_on'] !== date('Y-m-d')) ? ' open' : '' ?>>
+      <summary><span>More options<small>Date and note</small></span></summary>
     <div class="fl"><label for="settled_on">Date</label><input class="inp" id="settled_on" type="date" name="settled_on" value="<?= e($old['settled_on']) ?>" max="<?= e(date('Y-m-d', strtotime('+1 day'))) ?>" required></div>
     <div class="fl"><label for="note">Note (optional)</label><input class="inp" id="note" type="text" name="note" maxlength="255" value="<?= e($old['note']) ?>" placeholder="e.g. Cash, Easypaisa"></div>
+    </details>
     <p class="k" style="margin-bottom:12px">This only records a payment that already happened. No money moves through the app.</p>
     <button class="btn" type="submit" style="width:100%;padding:14px">Record payment</button>
     <a class="btn o" style="width:100%;margin-top:8px;text-align:center" href="<?= e(ef_url('shared/group.php?id=' . $gid)) ?>">Cancel</a>
   </form>
+<?php shared_panel_end(); ?>
 </div>
 <?php ef_page_end(['mode' => 's', 'active' => 'grp', 'scripts' => '<script>(function(){var f=document.querySelector("form");if(f)f.addEventListener("submit",function(){var b=f.querySelector("button[type=submit]");if(b)setTimeout(function(){b.disabled=true},0)})})()</script>']);
