@@ -17,7 +17,8 @@ foreach (['a', 'b', 'c'] as $n) {
 }
 [$a, $b, $c] = array_values($ids);
 ok(friends_username_clean('@Ali.Raza ') === 'ali.raza', 'cleans @ and capitals');
-foreach (['ab', 'a b', 'ali..raza', 'ali.', '_ali', 'x@y.com', str_repeat('a', 21), 'علی'] as $bad) { ok(friends_username_clean($bad) === null, 'rejects "' . $bad . '"'); }
+foreach (['ab', 'a b', 'ali..raza', 'ali.', '.ali', 'x@y.com', str_repeat('a', 21), 'علی'] as $bad) { ok(friends_username_clean($bad) === null, 'rejects "' . $bad . '"'); }
+foreach (['_ali_', 'ali_123', '123456', 'ali__raza', 'a.b_c9'] as $good) { ok(friends_username_clean($good) === $good, 'accepts "' . $good . '"'); }
 ok(!friends_username_set($conn, $a, 'admin')['ok'], 'reserved name refused');
 ok(friends_username_set($conn, $a, 'usr.alpha')['ok'] && friends_username_of($conn, $a) === 'usr.alpha', 'username saved');
 ok(!friends_username_set($conn, $b, 'USR.Alpha')['ok'], 'taken (even in other capitals)');

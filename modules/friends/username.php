@@ -29,7 +29,8 @@ function friends_username_clean($raw): ?string
 {
     $u = strtolower(trim((string) $raw));
     $u = ltrim($u, '@');
-    if (!preg_match('/^[a-z0-9][a-z0-9_.]{2,19}$/', $u) || preg_match('/[_.]{2}/', $u) || preg_match('/[_.]$/', $u)) {
+    // letters, digits and "_" anywhere; "." only between other characters, never two in a row
+    if (!preg_match('/^[a-z0-9_.]{3,20}$/', $u) || $u[0] === '.' || substr($u, -1) === '.' || strpos($u, '..') !== false) {
         return null;
     }
     return $u;
@@ -45,7 +46,7 @@ function friends_username_set(PDO $conn, int $userId, string $raw): array
     }
     $u = friends_username_clean($raw);
     if ($u === null) {
-        return ['ok' => false, 'msg' => 'Username must be 3 to 20 characters: letters, digits, "_" or ".", starting with a letter or digit, and not ending with "_" or ".".'];
+        return ['ok' => false, 'msg' => 'Username must be 3 to 20 characters: letters, digits, "_" or "." (a dot cannot be first, last or doubled).'];
     }
     if (in_array($u, FRIENDS_RESERVED_USERNAMES, true)) {
         return ['ok' => false, 'msg' => 'That username is reserved. Please choose another one.'];
