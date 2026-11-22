@@ -109,10 +109,12 @@ ef_page_start(['title' => 'Savings goals', 'sub' => 'Save for something that mat
           <?= csrf_field() ?><input type="hidden" name="do" value="create">
           <div class="fl"><label for="gname"><?= e(t('Name')) ?></label>
             <input class="inp" id="gname" type="text" name="name" maxlength="60" placeholder="<?= e(t('e.g. New laptop, Emergency fund')) ?>" required></div>
+          <div class="fgrid2">
           <div class="fl"><label for="gtarget"><?= e(t('Target amount')) ?></label>
             <input class="inp amt" id="gtarget" type="number" inputmode="decimal" step="0.01" min="0.01" name="target" placeholder="<?= e(t('e.g. 100000')) ?>" required></div>
           <div class="fl"><label for="gcur"><?= e(t('Currency')) ?></label>
             <select class="inp" id="gcur" name="currency" required><?= currency_select_options('PKR') ?></select></div>
+          </div>
           <div class="fl"><label for="gdl"><?= e(t('Deadline')) ?> <span style="text-transform:none;font-weight:500">(<?= e(t('optional')) ?>)</span></label>
             <input class="inp" id="gdl" type="date" name="deadline" min="<?= e(date('Y-m-d', strtotime('+1 day'))) ?>"></div>
           <button class="btn" type="submit" style="width:100%;margin-top:10px;padding:14px"><?= e(t('Create goal')) ?></button>
