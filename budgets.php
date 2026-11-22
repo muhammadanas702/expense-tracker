@@ -103,7 +103,7 @@ ef_page_start(['title' => 'Budgets', 'sub' => t('Monthly limits for %s', ef_mont
             </select></div>
           <div class="fgrid2">
           <div class="fl"><label for="bamt"><?= e(t('Monthly limit')) ?></label>
-            <input class="inp amt" id="bamt" type="number" inputmode="decimal" step="0.01" min="0.01" name="amount" placeholder="<?= e(t('e.g. 20000')) ?>" required></div>
+            <input class="inp amt" id="bamt" type="number" inputmode="decimal" step="0.01" min="0.01" name="amount" placeholder="0.00" required></div>
           <div class="fl"><label for="bcur"><?= e(t('Currency')) ?></label>
             <select class="inp" id="bcur" name="currency" required><?= currency_select_options('PKR') ?></select></div>
           </div>

@@ -456,3 +456,12 @@ details.sec[open] .sec-ch{transform:rotate(45deg)}
 
 /* Part 113: Dashboard - period chips in one row that scrolls on phones */
 @media(max-width:640px){.chips-scroll{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-inline:-4px;padding:2px 4px}.chips-scroll::-webkit-scrollbar{display:none}.chips-scroll .chip{flex:0 0 auto;white-space:nowrap}}
+
+/* Part 118: add-expense form alignment - amount same height as other fields, every field full width */
+.fgrid2{align-items:start}
+.fgrid2 .amt{font-size:1.15rem;font-weight:700;padding:12px 14px;min-height:48px;letter-spacing:0}
+.fgrid2 .inp,.fgrid2 select.inp{height:48px;min-height:48px;box-sizing:border-box}
+@media(max-width:480px){.fgrid2{grid-template-columns:minmax(0,.66fr) minmax(0,1.34fr)}}
+form .fl select.inp,form .fl input.inp,form .fl textarea.inp{width:100%;max-width:100%;box-sizing:border-box}
+.fgrid2 .fl label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:480px){.fgrid2 select.inp{font-size:.88rem;padding-left:8px;padding-right:24px}}

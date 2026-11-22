@@ -101,13 +101,8 @@ p.k[style*="padding:12px 0"]::before,.np-e::before{content:"";display:block;widt
  background:rgba(15,118,110,.10) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%230f766e' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 12h-6l-2 3h-4l-2-3H2'/%3E%3Cpath d='M5.5 5.1L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.5-6.9A2 2 0 0016.8 4H7.2a2 2 0 00-1.7 1.1z'/%3E%3C/svg%3E") center/26px no-repeat}
 .shub>a:last-child:nth-child(odd){grid-column:1/-1}
 .view>.g.card{align-self:stretch;width:auto}
-/* Part 81: Add shared expense is a proper padded card, two columns on wide screens */
-@media(min-width:1000px){.g[style*="max-width:720px"]:has(>form#sx){max-width:920px!important}}
-@media(min-width:1000px){
- form#sx{display:grid;grid-template-columns:1fr 1fr;column-gap:20px;align-items:start}
- form#sx>*{grid-column:1/-1}
- form#sx>.fl:has(#amount),form#sx>.fl:has(#currency),form#sx>.fl:has(#paid_by),form#sx>.fl:has(#expense_date),form#sx>.fl:has(#note),form#sx>.fl:has(#receipt){grid-column:auto}
-}
+/* Part 118: Add shared expense is one tidy column on every screen width (no half-empty rows) */
+@media(min-width:1000px){.g[style*="max-width:720px"]:has(>form#sx){max-width:760px!important}}
 .view>.fl{width:100%}
 
 /* Part 98f: the phone tab bar is nearly opaque so page text never shows through its labels */
