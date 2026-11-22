@@ -435,3 +435,15 @@ details.sec[open] .sec-ch{transform:rotate(45deg)}
 .more[open]>summary::after{transform:rotate(-135deg);margin-top:3px}
 .more>.fl,.more>div{padding:0 14px}
 .more>.fl:last-child{padding-bottom:6px}
+
+/* Part 110f: Friends page - add-a-friend box on top, input and button properly styled */
+.frform{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:stretch}
+.frform .inp{min-width:0;width:100%;min-height:48px}
+.frform .btn{min-height:48px;justify-content:center}
+.fr-hint{margin:10px 2px 0;line-height:1.5}
+.fr-me{display:flex;align-items:center;gap:8px;margin-top:12px;padding:10px 12px;border-radius:14px;background:rgba(37,99,235,.07);font-size:.88rem}
+.fr-me svg{width:18px;height:18px;flex:0 0 auto;color:var(--a1)}
+.fr-me span{flex:1;min-width:0;overflow-wrap:anywhere}
+.fr-me a{font-weight:700;color:var(--a1);white-space:nowrap;text-decoration:none}
+.frrow>svg:last-child{width:16px;height:16px;flex:0 0 auto;color:var(--mu)}
+@media(max-width:520px){.frform{grid-template-columns:1fr}}
