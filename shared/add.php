@@ -204,18 +204,18 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
     <input type="hidden" name="group_id" value="<?= $gid ?>"><input type="hidden" name="ft" value="<?= e($ftoken) ?>">
     <div class="fl"><label for="title">Description</label>
       <input class="inp" id="title" type="text" name="title" maxlength="100" value="<?= e($old['title']) ?>" placeholder="e.g. Dinner, Hotel, Petrol" required></div>
+    <div class="fgrid2">
     <div class="fl"><label for="amount">Total amount</label>
       <input class="inp amt" id="amount" type="number" inputmode="decimal" step="0.01" min="0.01" max="99999999.99" name="amount" value="<?= e($old['amount']) ?>" placeholder="0.00" required></div>
     <div class="fl"><label for="currency">Currency</label>
       <select class="inp" id="currency" name="currency" required><?= currency_select_options($old['currency']) ?></select></div>
+    </div>
     <div class="fl"><label for="paid_by">Paid by</label>
       <select class="inp" id="paid_by" name="paid_by">
         <?php foreach ($members as $m): ?>
         <option value="<?= (int) $m['id'] ?>"<?= (string) $m['id'] === $old['paid_by'] ? ' selected' : '' ?>><?= e($m['name']) ?><?= (int) $m['id'] === $user_id ? ' (you)' : '' ?></option>
         <?php endforeach; ?>
       </select></div>
-    <div class="fl"><label for="expense_date">Date</label>
-      <input class="inp" id="expense_date" type="date" name="expense_date" value="<?= e($old['expense_date']) ?>" max="<?= e(date('Y-m-d', strtotime('+1 day'))) ?>" required></div>
 
     <div class="fl"><label>Split</label>
       <div class="chips">
@@ -241,6 +241,10 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
       <p class="k" id="sum" style="margin-top:8px" aria-live="polite"></p>
     </div>
 
+    <details class="more"<?= ($existing || $old['note'] !== '' || $old['expense_date'] !== date('Y-m-d')) ? ' open' : '' ?>>
+      <summary><span>More options<small>Date, note, receipt<?= $isCreator ? ', personal copy' : '' ?></small></span></summary>
+    <div class="fl"><label for="expense_date">Date</label>
+      <input class="inp" id="expense_date" type="date" name="expense_date" value="<?= e($old['expense_date']) ?>" max="<?= e(date('Y-m-d', strtotime('+1 day'))) ?>" required></div>
     <div class="fl"><label for="note">Note (optional)</label>
       <input class="inp" id="note" type="text" name="note" maxlength="255" value="<?= e($old['note']) ?>"></div>
 
@@ -266,6 +270,7 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
       </select></div>
     </div>
     <?php endif; ?>
+    </details>
 
     <button class="btn" type="submit" style="width:100%;padding:14px"><?= $existing ? 'Save changes' : 'Add expense' ?></button>
     <a class="btn o" style="width:100%;margin-top:8px;text-align:center" href="<?= e(ef_url('shared/group.php?id=' . $gid)) ?>">Cancel</a>

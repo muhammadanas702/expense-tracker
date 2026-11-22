@@ -114,7 +114,7 @@ function activity_unread_count(PDO $conn, int $userId): int
 function activity_notifications(PDO $conn, int $userId, int $limit = 50): array
 {
     $q = $conn->prepare(
-        'SELECT n.id AS nid, n.read_at, e.*, TIMESTAMPDIFF(SECOND, e.created_at, NOW()) AS age_s, DATEDIFF(CURDATE(), DATE(e.created_at)) AS day_diff, g.name AS group_name, a.name AS actor_name, t.name AS target_name
+        'SELECT n.id AS nid, n.read_at, e.*, TIMESTAMPDIFF(SECOND, e.created_at, NOW()) AS age_s, DATEDIFF(CURDATE(), DATE(e.created_at)) AS day_diff, IF(g.is_direct = 1, \'Just you two\', g.name) AS group_name, a.name AS actor_name, t.name AS target_name
          FROM activity_notifications n
          JOIN activity_events e ON e.id = n.event_id
          LEFT JOIN shared_groups g ON g.id = e.group_id
@@ -143,7 +143,7 @@ function activity_mark_read(PDO $conn, int $userId): void
  */
 function activity_feed(PDO $conn, int $userId, int $groupId = 0, int $limit = 100): array
 {
-    $sql = 'SELECT e.*, TIMESTAMPDIFF(SECOND, e.created_at, NOW()) AS age_s, DATEDIFF(CURDATE(), DATE(e.created_at)) AS day_diff, g.name AS group_name, a.name AS actor_name, t.name AS target_name
+    $sql = 'SELECT e.*, TIMESTAMPDIFF(SECOND, e.created_at, NOW()) AS age_s, DATEDIFF(CURDATE(), DATE(e.created_at)) AS day_diff, IF(g.is_direct = 1, \'Just you two\', g.name) AS group_name, a.name AS actor_name, t.name AS target_name
             FROM activity_events e
             JOIN shared_members m ON m.group_id = e.group_id AND m.user_id = ? AND e.created_at >= m.joined_at
             JOIN shared_groups g ON g.id = e.group_id
