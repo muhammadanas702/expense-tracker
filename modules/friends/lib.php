@@ -5,6 +5,8 @@
  * debts the groups show; only the direct friend links are stored (table friend_links).
  */
 
+require_once __DIR__ . '/username.php';
+
 function friends_ensure_schema(PDO $conn): void
 {
     if (function_exists('ef_schema_ok') && ef_schema_ok(__FUNCTION__, __FILE__)) {
@@ -57,31 +59,43 @@ function friends_pending(PDO $conn, int $userId): array
 }
 
 /**
- * Send a friend request by e-mail. The reply never reveals whether an address has an account.
+ * Send a friend request by e-mail or by @username. The reply never reveals whether an address or username has an account.
  * @return array{ok:bool,msg:string}
  */
-function friends_request(PDO $conn, int $me, string $email): array
+function friends_request(PDO $conn, int $me, string $who): array
 {
     friends_ensure_schema($conn);
-    $email = strtolower(trim($email));
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 150) {
-        return ['ok' => false, 'msg' => 'Please enter a valid email address.'];
+    friends_username_ensure($conn);
+    $who = trim($who);
+    $byEmail = strpos($who, '@') !== false && $who[0] !== '@';
+    if ($byEmail) {
+        $email = strtolower($who);
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 150) {
+            return ['ok' => false, 'msg' => 'Please enter a valid email address or a @username.'];
+        }
+    } elseif (($uname = friends_username_clean($who)) === null) {
+        return ['ok' => false, 'msg' => 'Please enter a valid email address or a @username.'];
     }
     $key = rl_key((string) $me);
     if (rl_blocked($conn, 'friend_req', $key, 15, 3600)) {
         return ['ok' => false, 'msg' => 'Too many requests just now. Please try again later.'];
     }
     rl_hit($conn, 'friend_req', $key);
-    $generic = ['ok' => true, 'msg' => 'Done. If that email has an ExpenseFlow account, the person will see your request.'];
-    $st = $conn->prepare('SELECT id, name, email FROM users WHERE email = ? LIMIT 1');
-    $st->execute([$email]);
+    $generic = ['ok' => true, 'msg' => 'Done. If that ' . ($byEmail ? 'email' : 'username') . ' has an ExpenseFlow account, the person will see your request.'];
+    if ($byEmail) {
+        $st = $conn->prepare('SELECT id, name, email FROM users WHERE email = ? LIMIT 1');
+        $st->execute([$email]);
+    } else {
+        $st = $conn->prepare('SELECT id, name, email FROM users WHERE username = ? LIMIT 1');
+        $st->execute([$uname]);
+    }
     $other = $st->fetch(PDO::FETCH_ASSOC);
     if (!$other) {
         return $generic;
     }
     $oid = (int) $other['id'];
     if ($oid === $me) {
-        return ['ok' => false, 'msg' => 'That is your own email address.'];
+        return ['ok' => false, 'msg' => 'That is you.'];
     }
     $ex = $conn->prepare('SELECT id, requester_id, status FROM friend_links WHERE (requester_id = ? AND addressee_id = ?) OR (requester_id = ? AND addressee_id = ?) LIMIT 1');
     $ex->execute([$me, $oid, $oid, $me]);

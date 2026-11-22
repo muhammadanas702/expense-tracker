@@ -23,10 +23,10 @@ ef_page_start(['title' => 'Friends', 'sub' => 'People you split bills with', 'mo
     <div class="t">Add a friend</div>
     <form method="post" action="<?= e(ef_url('friends/action.php')) ?>" class="frform">
       <?= csrf_field() ?><input type="hidden" name="do" value="add">
-      <input type="email" name="email" required maxlength="150" placeholder="friend@example.com" autocomplete="off" aria-label="Friend's email">
+      <input type="text" name="email" required maxlength="150" placeholder="Email or @username" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Friend's email or username">
       <button class="btn" type="submit"><?= ef_icon('pl') ?> Send request</button>
     </form>
-    <p class="k">Enter the email they used for ExpenseFlow. They get a request and become your friend once they accept. You can also invite people through a group link.</p>
+    <p class="k">Type their email or @username. They get a request and become your friend once they accept. You can also invite people through a group link.<?php $mu = friends_username_of($conn, $user_id); ?> <?= $mu ? 'Your username: <b>@' . e($mu) . '</b>' : '<a href="' . e(ef_url('settings/account.php')) . '" style="color:var(--a1);font-weight:700">Set your username</a> so friends can find you easily.' ?></p>
   </div>
 </div>
 
