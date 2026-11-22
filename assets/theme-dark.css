@@ -40,3 +40,17 @@ html[data-theme=dark] .pub a:not(.btn){color:#5eead4}
 /* Part 116: dark mode - the accent used for TEXT (active tab, links, small buttons) is a light tint; backgrounds keep --a1 */
 html[data-theme=dark]{--at:#5eead4}
 html[data-theme=dark] [data-mode=s]{--at:#8ab4ff}
+
+/* Part 117: dark mode - surfaces added in Parts 110-115 had light backgrounds */
+html[data-theme=dark] .icopick span{background:rgba(255,255,255,.07);color:#b6c4d8;border-color:rgba(255,255,255,.12)}
+html[data-theme=dark] .icopick input:checked+span{background:var(--a1);color:#fff}
+html[data-theme=dark] .more{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
+html[data-theme=dark] .more>summary small{color:#9db0c7}
+html[data-theme=dark] .sp-more>summary{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.12)}
+html[data-theme=dark] .fr-me{background:rgba(138,180,255,.1)}
+html[data-theme=dark] input[type=file]{color:#c3d0e0}
+html[data-theme=dark] input[type=file]::file-selector-button{background:#2a3a52;color:#e6edf6;border:0;border-radius:8px;padding:8px 12px;margin-right:10px}
+html[data-theme=dark] .sp-more>summary{color:var(--at,#5eead4)}
+html[data-theme=dark] [data-mode=s] .btn.o,html[data-theme=dark] [data-mode=s] .btn.o svg{color:#8ab4ff}
+html[data-theme=dark] .sec-blue,html[data-theme=dark] .sec-panel{--sc:#7aa7ff}
+html[data-theme=dark] .sec-orange{--sc:#fb923c}
