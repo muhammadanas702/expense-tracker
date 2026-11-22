@@ -185,7 +185,7 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
   <div class="g card"><p class="k" style="padding:12px 0">You need a group first. <a href="<?= e(ef_url('shared/groups.php')) ?>" style="color:var(--at,var(--a1));font-weight:700">Create or join a group</a>, then come back to split a bill.</p></div>
 <?php elseif (!$group): ?>
   <div class="t">Which group?</div>
-  <div class="chips">
+  <div class="chips chips-scroll">
     <?php foreach ($groups as $gr): ?>
     <a class="chip" href="<?= e(ef_url('shared/add.php?group=' . (int) $gr['id'])) ?>"><?= ef_icon(shared_icon_key($gr['icon'])) ?><?= e($gr['name']) ?></a>
     <?php endforeach; ?>
@@ -193,7 +193,7 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
 <?php else: ?>
   <?php if (!$existing && count($groups) > 1 && empty($group['is_direct'])): ?>
   <div class="fl"><label>Group</label>
-    <div class="chips">
+    <div class="chips chips-scroll">
       <?php foreach ($groups as $gr): ?>
       <a class="chip<?= (int) $gr['id'] === $gid ? ' on' : '' ?>" href="<?= e(ef_url('shared/add.php?group=' . (int) $gr['id'])) ?>"><?= ef_icon(shared_icon_key($gr['icon'])) ?><?= e($gr['name']) ?></a>
       <?php endforeach; ?>

@@ -10,19 +10,19 @@ $buckets = ['Today' => [], 'Yesterday' => [], 'Earlier' => []];
 foreach ($rows as $r) {
     $buckets[(int) $r['day_diff'] === 0 ? 'Today' : ((int) $r['day_diff'] === 1 ? 'Yesterday' : 'Earlier')][] = $r;
 }
-$unread = activity_unread_count($conn, $user_id);
 
 ef_page_start(['title' => 'Activity', 'sub' => 'Everything happening in your groups', 'mode' => 's', 'active' => 'act', 'user' => $user]);
 ?>
-<div class="g card" style="margin-bottom:14px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-  <div class="chips" style="flex:1;min-width:0">
+<?php if (count($groups) > 1): ?>
+<div class="g card" style="margin-bottom:14px;padding:10px 12px">
+  <div class="chips chips-scroll">
     <a class="chip<?= $gid === 0 ? ' on' : '' ?>" href="<?= e(ef_url('activity/index.php')) ?>">All groups</a>
     <?php foreach ($groups as $g): ?>
     <a class="chip<?= (int) $g['id'] === $gid ? ' on' : '' ?>" href="<?= e(ef_url('activity/index.php?group=' . (int) $g['id'])) ?>"><?= ef_icon(shared_icon_key($g['icon'])) ?><?= e($g['name']) ?></a>
     <?php endforeach; ?>
   </div>
-  <a class="btn o sm" href="<?= e(ef_url('activity/notifications.php')) ?>"><?= ef_icon('bell') ?> Notifications<?= $unread ? ' (' . $unread . ')' : '' ?></a>
 </div>
+<?php endif; ?>
 <?php if (!$rows): ?>
 <div class="g card"><p class="k" style="padding:12px 0">Nothing yet. Add an expense or settle up in a group and it shows here.</p></div>
 <?php endif; ?>
