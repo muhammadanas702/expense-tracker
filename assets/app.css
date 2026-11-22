@@ -453,3 +453,6 @@ details.sec[open] .sec-ch{transform:rotate(45deg)}
 .sp-more>summary{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:999px;background:rgba(255,255,255,.65);border:1px solid var(--gb);font-weight:700}
 .sec-body>form{padding-top:12px}
 .sp-more{margin:10px 0 12px}
+
+/* Part 113: Dashboard - period chips in one row that scrolls on phones */
+@media(max-width:640px){.chips-scroll{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-inline:-4px;padding:2px 4px}.chips-scroll::-webkit-scrollbar{display:none}.chips-scroll .chip{flex:0 0 auto;white-space:nowrap}}

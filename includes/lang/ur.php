@@ -680,4 +680,11 @@ return [
     'Built by Muhammad Anas, a student in Lahore.' => 'محمد انس نے بنایا، لاہور کے ایک طالب علم۔',
     'Trip to Murree' => 'مری کا ٹرپ',
     '4 people' => '4 افراد',
+    'Nothing in this period yet' => 'اس مدت میں ابھی کچھ نہیں',
+    'Add an expense or an income and your charts and insights appear here.' => 'خرچ یا آمدنی شامل کریں تو چارٹس اور تجزیہ یہاں نظر آئیں گے۔',
+    'Add expense' => 'خرچ شامل کریں',
+    'Add income' => 'آمدنی شامل کریں',
+    'Biggest expense' => 'سب سے بڑا خرچ',
+    'Biggest income' => 'سب سے بڑی آمدنی',
+    'Entries in this period' => 'اس مدت کی اندراجات',
 ];
