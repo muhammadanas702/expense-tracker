@@ -182,7 +182,7 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
 <div class="g" style="max-width:720px;margin:0 auto;padding:22px">
 <?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e($error) ?></div><?php endif; ?>
 <?php if (!$groups && !$group): ?>
-  <div class="g card"><p class="k" style="padding:12px 0">You need a group first. <a href="<?= e(ef_url('shared/groups.php')) ?>" style="color:var(--a1);font-weight:700">Create or join a group</a>, then come back to split a bill.</p></div>
+  <div class="g card"><p class="k" style="padding:12px 0">You need a group first. <a href="<?= e(ef_url('shared/groups.php')) ?>" style="color:var(--at,var(--a1));font-weight:700">Create or join a group</a>, then come back to split a bill.</p></div>
 <?php elseif (!$group): ?>
   <div class="t">Which group?</div>
   <div class="chips">
@@ -253,7 +253,7 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
       <input class="inp" id="receipt" type="file" name="receipt" accept="image/jpeg,image/png,image/webp" capture="environment">
       <small class="k">JPG, PNG or WebP, up to 3 MB. Only group members can see it.</small>
       <?php if ($curReceipt): ?>
-      <div class="row" style="border:0;padding:6px 0"><a href="<?= e(ef_url('receipts/view.php?id=' . (int) $curReceipt)) ?>" target="_blank" rel="noopener" style="color:var(--a1);font-weight:700">View current receipt</a>
+      <div class="row" style="border:0;padding:6px 0"><a href="<?= e(ef_url('receipts/view.php?id=' . (int) $curReceipt)) ?>" target="_blank" rel="noopener" style="color:var(--at,var(--a1));font-weight:700">View current receipt</a>
         <label style="margin-left:auto;display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;font-size:.8rem;color:var(--tx)"><input type="checkbox" name="remove_receipt" value="1"> Remove it</label></div>
       <?php endif; ?>
     </div>

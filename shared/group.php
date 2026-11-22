@@ -118,7 +118,7 @@ shared_panel('Expenses', 'wal', $expenses ? count($expenses) . ' expense' . (cou
     $open = $xc && isset($_GET['c']) && (int) $_GET['c'] === (int) $x['id'];
   ?>
   <div class="row sg-x" id="x<?= (int) $x['id'] ?>">
-    <div class="sg-xh"><span class="sg-xm"><b><?= e($x['title']) ?></b><?php if (!empty($rcpts[(int) $x['id']])): ?> <a href="<?= e(ef_url('receipts/view.php?id=' . (int) $rcpts[(int) $x['id']])) ?>" target="_blank" rel="noopener" title="View receipt" style="color:var(--a1)"><?= ef_icon('rcp') ?></a><?php endif; ?>
+    <div class="sg-xh"><span class="sg-xm"><b><?= e($x['title']) ?></b><?php if (!empty($rcpts[(int) $x['id']])): ?> <a href="<?= e(ef_url('receipts/view.php?id=' . (int) $rcpts[(int) $x['id']])) ?>" target="_blank" rel="noopener" title="View receipt" style="color:var(--at,var(--a1))"><?= ef_icon('rcp') ?></a><?php endif; ?>
       <small><?= e($x['payer_name'] ?? 'Former member') ?> paid <?= shared_money($total, $cur) ?> · <?= e(date('d M Y', strtotime($x['expense_date']))) ?></small></span>
     <span class="tag <?= $cls ?>"><?= e($label) ?><?= $net > 0 ? ' ' . shared_money($net, $cur) : '' ?></span></div>
       <details class="sg-d"<?= $open ? ' open' : '' ?>><summary>Details<?= $xc ? ' · ' . count($xc) . ' comment' . (count($xc) === 1 ? '' : 's') : '' ?></summary>

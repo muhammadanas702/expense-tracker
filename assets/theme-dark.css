@@ -36,3 +36,7 @@ html[data-theme=dark] .thm button{background:rgba(255,255,255,.07)}html[data-the
 html[data-theme=dark] .pub p,html[data-theme=dark] .pub li{color:#c3d0e0}
 html[data-theme=dark] .pub h1,html[data-theme=dark] .pub h2,html[data-theme=dark] .pub .gc b{color:#e6edf6}
 html[data-theme=dark] .pub a:not(.btn){color:#5eead4}
+
+/* Part 116: dark mode - the accent used for TEXT (active tab, links, small buttons) is a light tint; backgrounds keep --a1 */
+html[data-theme=dark]{--at:#5eead4}
+html[data-theme=dark] [data-mode=s]{--at:#8ab4ff}

@@ -29,7 +29,7 @@ shared_ensure_schema($conn);
 /** Round avatar with initials; the colour depends on the position so members look different. */
 function shared_avatar(string $name, int $i = 0): string
 {
-    $colors = ['#0f766e', '#1d4ed8', '#F59E0B', '#f97316', '#4DA8DA', '#a855f7'];
+    $colors = ['#0f766e', '#1d4ed8', '#b45309', '#b43c0a', '#0369a1', '#7e22ce'];
     return '<i class="av" style="background:' . $colors[$i % count($colors)] . '">' . e(ef_initials($name)) . '</i>';
 }
 
