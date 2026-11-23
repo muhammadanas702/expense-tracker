@@ -54,3 +54,7 @@ html[data-theme=dark] .sp-more>summary{color:var(--at,#5eead4)}
 html[data-theme=dark] [data-mode=s] .btn.o,html[data-theme=dark] [data-mode=s] .btn.o svg{color:#8ab4ff}
 html[data-theme=dark] .sec-blue,html[data-theme=dark] .sec-panel{--sc:#7aa7ff}
 html[data-theme=dark] .sec-orange{--sc:#fb923c}
+
+/* Part 121: dark mode - the selected chip stays the accent colour (the generic dark chip rule had overridden it) */
+html[data-theme=dark] .chip.on,html[data-theme=dark] .chips input:checked+.chip{background:var(--a1);color:#fff;border-color:transparent}
+html[data-theme=dark] .txf .chips input:checked+.chip{background:var(--a1)}

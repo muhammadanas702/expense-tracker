@@ -76,12 +76,11 @@ ef_page_start(['title' => 'Search', 'sub' => 'Find any income or expense', 'mode
       <?php if ($myTags): ?>
       <div class="chips sp-tags">
         <?php foreach ($myTags as $t): ?><a class="chip tag-chip<?= $f['tag'] === $t ? ' on' : '' ?>" href="<?= e($base_url) ?>/search.php?tag=<?= e(rawurlencode($t)) ?>">#<?= e($t) ?></a><?php endforeach; ?>
-        <?php if ($searched): ?><a class="chip" href="<?= e($base_url) ?>/search.php">Clear</a><?php endif; ?>
       </div>
-      <?php elseif ($searched): ?><div class="chips sp-tags"><a class="chip" href="<?= e($base_url) ?>/search.php">Clear</a></div><?php endif; ?>
+      <?php endif; ?>
       <?php if ($loadError === ''): ?>
-      <div class="card" id="results">
-        <div class="t"><?php if ($searched): ?><?= (int) $res['count'] ?> result<?= $res['count'] === 1 ? '' : 's' ?><?php else: ?>Latest entries<?php endif; ?>
+      <div class="g card" id="results">
+        <div class="t"><?php if ($searched): ?><a class="chip" style="order:3;margin-left:auto" href="<?= e($base_url) ?>/search.php">Clear search</a><?= (int) $res['count'] ?> result<?= $res['count'] === 1 ? '' : 's' ?><?php else: ?>Latest entries<?php endif; ?>
           <?php if ($res['count']): ?><small style="font-weight:500;color:var(--mu)">income PKR <?= e(number_format($res['income_pkr'], 2)) ?> · expenses PKR <?= e(number_format($res['expense_pkr'], 2)) ?></small><?php endif; ?></div>
         <?php if (!$res['rows']): ?><p style="color:var(--mu)"><?= $searched ? 'Nothing matches. Try fewer filters or a shorter word.' : 'No entries yet. Add an income or expense and it will show up here.' ?></p><?php endif; ?>
         <?php foreach ($res['rows'] as $r): $isExp = $r['kind'] === 'expense'; ?>

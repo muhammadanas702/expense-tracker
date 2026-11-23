@@ -246,8 +246,8 @@ if ($gsSteps): $gsDone = count(array_filter($gsSteps, fn($x) => $x['done'])); ?>
 
 <div class="G3">
     <div class="g card hero"><div class="k"><?= e(t('Net balance')) ?></div><div class="v" data-countup><?= $balance < 0 ? '−' : '' ?> <?= $fmt(abs($balance)) ?> <?= e($display_currency) ?></div><span class="badge"><?= e(t($balance > 0 ? 'Surplus this period' : ($balance < 0 ? 'Deficit this period' : 'Break-even'))) ?></span></div>
-    <div class="g card"><div class="k"><?= e(t('Total income')) ?></div><div class="v in"><?= $fmt($total_income) ?> <?= e($display_currency) ?></div></div>
-    <div class="g card"><div class="k"><?= e(t('Total expense')) ?></div><div class="v ex"><?= $fmt($total_expense) ?> <?= e($display_currency) ?></div></div>
+    <div class="g card"><div class="k"><?= e(t('Total income')) ?></div><div class="v in"><?= $fmt($total_income) ?> <small class="cu"><?= e($display_currency) ?></small></div></div>
+    <div class="g card"><div class="k"><?= e(t('Total expense')) ?></div><div class="v ex"><?= $fmt($total_expense) ?> <small class="cu"><?= e($display_currency) ?></small></div></div>
 </div>
 
 <?php

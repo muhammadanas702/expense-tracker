@@ -73,7 +73,7 @@ ef_page_start(['title' => 'Budgets', 'sub' => t('Monthly limits for %s', ef_mont
       <div class="card">
         <div class="t"><?= ef_icon('tgt') ?> <?= e(t('This month')) ?></div>
         <?php if (!$items): ?>
-          <p style="color:var(--mu)"><?= e(t('No budgets yet. Pick a category below and set how much you want to spend on it each month. You will get a notification at 80% and again at 100%.')) ?></p>
+          <p style="color:var(--mu)"><i class="no-items" hidden></i><?= e(t('No budgets yet. Pick a category below and set how much you want to spend on it each month. You will get a notification at 80% and again at 100%.')) ?></p>
         <?php endif; ?>
         <?php foreach ($items as $b): $w = min(100, $b['pct']); ?>
           <div class="bud-row" data-level="<?= e($b['level']) ?>" style="padding:12px 0;border-top:1px solid rgba(91,107,128,.15)">

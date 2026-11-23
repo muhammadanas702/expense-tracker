@@ -49,7 +49,7 @@ ef_page_start(['title' => 'Friends', 'sub' => 'People you split bills with', 'mo
   </form><?php endif; ?>
   <?php if ($friends): $i = 0; foreach ($friends as $f): $net = friends_net($f); $i++; ?>
   <a class="row frrow" data-n="<?= e(mb_strtolower($f['name'])) ?>" href="<?= e(ef_url('friends/view.php?id=' . (int) $f['id'])) ?>" style="text-decoration:none;color:inherit">
-    <?= shared_avatar($f['name'], $i) ?>
+    <?= shared_avatar_for((int) $f['id'], $f['name']) ?>
     <span><?= e($f['name']) ?><small><?= $f['groups'] ? count($f['groups']) . ' shared group' . (count($f['groups']) === 1 ? '' : 's') : 'Added directly' ?></small></span>
     <?php if ($net): ?>
       <b class="<?= max($net) > 0 ? 'in' : 'ex' ?>"><?= e($phrase($net)) ?></b>

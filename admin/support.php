@@ -16,7 +16,7 @@ admin_page_start(['title' => 'Support', 'sub' => $counts['open'] . ' waiting for
 <div class="g card">
   <form method="get" class="toolbar">
     <?php if ($status !== ''): ?><input type="hidden" name="s" value="<?= e($status) ?>"><?php endif; ?>
-    <input class="inp" type="search" name="q" value="<?= e($q) ?>" placeholder="Search subject, name or email" maxlength="60">
+    <input class="inp" type="search" name="q" value="<?= e($q) ?>" placeholder="Search…" maxlength="60">
     <button class="btn sm" type="submit">Search</button>
     <a class="btn sm o" href="support.php">Clear</a>
   </form>
