@@ -919,3 +919,7 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 - 111b: **private two-person account with a friend** (Friend page > "Just between you two"): a hidden group (`shared_groups.is_direct=1`, column auto-added) shown under the friend's name; not in group lists, not joinable by link, no members/settings, does not count to the group limit; counted in Overview totals and friend balance. `shared_direct_group()` in `modules/shared/lib.php`, test `tests/direct_ledger_test.php`. Activity calls it "Just you two".
 - 111c/111d/111e: optional **@username** (column `users.username`, `modules/friends/username.php`; 3-20 of a-z 0-9 `_` and `.` (no dot first/last/doubled); reserved names blocked). Friend request box takes email or @username; same generic answer for unknown accounts; asking for yourself gives a clear message. Tests `tests/username_test.php`, `tests/friend_links_test.php`.
 
+
+## Part 107 — Standby host restore (2026-11-23)
+- `tools/restore-standby.php` (opens .sql / .sql.gz / encrypted .enc, restores into an empty database, optional `--write-config`), `docs/STANDBY.md` (8 steps), test `tests/restore_standby_test.php`.
+- Still owner-side: off-site GitHub copy set up and passphrase kept; apps rebuild with the new domain after the site checks are green.
