@@ -32,3 +32,12 @@ Owner: Muhammad Anas. Stack: PHP 8 + MySQL, no framework. Repo `muhammadanas702/
 - The sandbox cannot reach the live site or the Cloudflare / InfinityFree / name.com dashboards: the owner does those clicks and sends screenshots.
 - The stop-hook "unpushed commit(s) and no remote branch" message is a false alarm: check `git ls-remote --heads origin <branch>` equals `git rev-parse HEAD`.
 - GitHub GraphQL is blocked in the sandbox: create PRs with `gh api repos/muhammadanas702/expense-tracker/pulls -f ...`.
+
+## Parts 112-122 (UI polish after the Shared redesign)
+- 112-116: Personal pages (dashboard, goals, reminders, budgets, tx forms, reports, account) moved to the calm panel/drop-down design; `.fgrid2` (amount + currency), `.more`, `.chips-scroll`, `--at` (accent for text).
+- 117: dark mode surfaces (icon picker, More options, file input, outline buttons) in `assets/theme-dark.css`.
+- 118-119: Add shared expense is one column; amount/currency same height; currency options read `PKR - Pakistani Rupee` so the code is never cut on phones.
+- 120: Activity/Add-expense group chips are one scrolling row; duplicate Notifications button removed (header bell does it).
+- 121: full audit: avatar colour by user id (`shared_avatar_for`), dashboard `.cu` currency suffix, search results in a panel, report/settings alignment, admin phone layouts (`.row[data-state]` stacks, backups buttons), dark selected chips, empty Goals/Reminders/Budgets stay one column (`.no-items` marker).
+- 122: Features page used the global `.tx` class (orange tint): renamed `.ftx`.
+- Audit method: seed rich data, crawl every page at 390 and 1366, light and dark, build contact sheets, then fix. Admin needs `role='super'`.

@@ -12,15 +12,15 @@ admin_page_start(['title' => 'Features on/off', 'sub' => $n ? $n . ' switched of
 .ft-grp{margin-bottom:14px}.ft-grp h3{margin:0 0 4px}
 .ft{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-top:1px solid var(--line,#e2e8f0)}
 .ft:first-of-type{border-top:0}
-.ft .tx{flex:1;min-width:0}.ft .tx b{font-size:1rem}.ft .tx p{margin:4px 0 0;line-height:1.5}
-.ft .wh{display:block;margin-top:6px;font-size:.84rem;color:#64748b}
+.ft .ftx{flex:1;min-width:0}.ft .ftx b{font-size:1rem}.ft .ftx p{margin:4px 0 0;line-height:1.5}
+.ft .wh b{font-size:inherit}.ft .wh{display:block;margin-top:6px;font-size:.84rem;color:#64748b}
 .ft form{margin:0;flex:none}
 .fsw{display:inline-flex;align-items:center;gap:10px;border:0;background:none;cursor:pointer;font:inherit;font-weight:700;padding:4px;min-height:44px}
 .fsw i{position:relative;width:52px;height:30px;border-radius:99px;background:#cbd5e1;transition:background .2s;flex:none}
 .fsw i:after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
 .fsw.on i{background:#0d9f6e}.fsw.on i:after{transform:translateX(22px)}
 .fsw span{min-width:28px;text-align:left}.fsw.on span{color:#0d9f6e}.fsw:not(.on) span{color:#b45309}
-.ft.isoff .tx b{color:#92400e}
+.ft.isoff .ftx b{color:#92400e}
 .ft .tag{margin-inline-start:6px}
 @media(max-width:560px){.ft{flex-direction:column;gap:6px}.ft form{align-self:flex-start}}
 </style>
@@ -38,8 +38,8 @@ admin_page_start(['title' => 'Features on/off', 'sub' => $n ? $n . ' switched of
   <h3><?= e($group) ?></h3>
 <?php foreach ($list as $id => $f): $on = !in_array($id, $off, true); $parentOff = !empty($f['needs']) && !ef_feature_on($f['needs']); ?>
   <div class="ft<?= $on && !$parentOff ? '' : ' isoff' ?>" id="f-<?= e($id) ?>">
-    <div class="tx">
-      <b><?= e($f['label']) ?></b><?php if (!$on): ?><span class="tag tx">OFF</span><?php elseif ($parentOff): ?><span class="tag tx">OFF (because <?= e(features_flat()[$f['needs']]['label']) ?> is off)</span><?php endif; ?>
+    <div class="ftx">
+      <b><?= e($f['label']) ?></b><?php if (!$on): ?><span class="tag tx">OFF</span><?php elseif ($parentOff): ?><span class="tag">OFF (because <?= e(features_flat()[$f['needs']]['label']) ?> is off)</span><?php endif; ?>
       <p class="mut"><?= e($f['desc']) ?></p>
       <span class="wh"><b>When off:</b> <?= e($f['off']) ?></span>
     </div>
