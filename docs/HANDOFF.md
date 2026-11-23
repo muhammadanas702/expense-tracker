@@ -22,7 +22,7 @@ Owner: Muhammad Anas. Stack: PHP 8 + MySQL, no framework. Repo `muhammadanas702/
 
 ## Still to do
 - **Apps (needs a Part, then a build):** `php tools/change-domain.php expenseflow.page`, then run the Actions workflow "Build apps & publish release" (APK, exe), then update the Microsoft Store listing (`docs/MICROSOFT_STORE.md`). Do this only after check 1-2 above are green. Not built yet, so the installed apps still use the old address (which redirects).
-- **Part 107 — standby host:** a restore guide/script so the site can move to another host quickly if InfinityFree is down (`docs/RESILIENCE.md` has the background). If InfinityFree itself is down, `.rf.gd` cannot answer; then the `.page` A records in Cloudflare must point to the standby host.
+- **Part 107 — standby host: DONE** (`tools/restore-standby.php`, `docs/STANDBY.md`, `tests/restore_standby_test.php`). If InfinityFree itself is down, `.rf.gd` cannot answer; then the `.page` A records in Cloudflare must point to the standby host. Owner can still open a spare free host in advance (optional).
 - **Owner-side setup not confirmed done:** Admin > Backups > "Off-site copy (GitHub)" (private repo `muhammadanas702/expenseflow-backups`, fine-grained token, passphrase); optionally GitHub Pages from branch `status-page` for the public status page.
 - Domain renewal: name.com auto-renew is OFF; renew before 2027-11-11 (about 18.99 USD) or turn auto-renew on.
 
