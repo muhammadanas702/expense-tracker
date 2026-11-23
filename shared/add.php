@@ -3,6 +3,13 @@
 require_once __DIR__ . '/../modules/shared/boot.php';
 
 $groups = array_values(array_filter(shared_groups_of($conn, $user_id), fn($g) => empty($g['is_direct']))); // a private ledger with one friend is opened from the friend's page
+$friendId = filter_var($_GET['friend'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
+if ($friendId && !isset($_GET['group'])) { // "Just you two": open (or start) the private ledger with this friend
+    $dg = shared_direct_group($conn, $user_id, $friendId);
+    shared_back($dg ? 'shared/add.php?group=' . $dg : 'friends/index.php');
+}
+$directIds = function_exists('friends_direct_ids') ? friends_direct_ids($conn, $user_id) : [];
+$friendsPick = array_values(array_filter(friends_list($conn, $user_id), fn($f) => isset($directIds[(int) $f['id']])));
 $editId = filter_var($_GET['edit'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
 $gid = filter_var($_POST['group_id'] ?? ($_GET['group'] ?? null), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
 
@@ -181,21 +188,34 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
 ?>
 <div class="g" style="max-width:720px;margin:0 auto;padding:16px">
 <?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e($error) ?></div><?php endif; ?>
-<?php if (!$groups && !$group): ?>
+<?php if (!$groups && !$friendsPick && !$group): ?>
   <div class="g card"><p class="k" style="padding:12px 0">You need a group first. <a href="<?= e(ef_url('shared/groups.php')) ?>" style="color:var(--at,var(--a1));font-weight:700">Create or join a group</a>, then come back to split a bill.</p></div>
 <?php elseif (!$group): ?>
+  <?php if ($groups): ?>
   <div class="t">Which group?</div>
   <div class="chips chips-scroll">
     <?php foreach ($groups as $gr): ?>
     <a class="chip" href="<?= e(ef_url('shared/add.php?group=' . (int) $gr['id'])) ?>"><?= ef_icon(shared_icon_key($gr['icon'])) ?><?= e($gr['name']) ?></a>
     <?php endforeach; ?>
   </div>
+  <?php endif; ?>
+  <?php if ($friendsPick): ?>
+  <div class="t" style="margin-top:14px">Or just one friend <small class="k">(only you two see it)</small></div>
+  <div class="chips chips-scroll">
+    <?php foreach ($friendsPick as $f): ?>
+    <a class="chip" href="<?= e(ef_url('shared/add.php?friend=' . (int) $f['id'])) ?>"><?= ef_icon('usr') ?><?= e($f['name']) ?></a>
+    <?php endforeach; ?>
+  </div>
+  <?php endif; ?>
 <?php else: ?>
-  <?php if (!$existing && count($groups) > 1 && empty($group['is_direct'])): ?>
-  <div class="fl"><label>Group</label>
+  <?php if (!$existing && (count($groups) + count($friendsPick)) > 1): ?>
+  <div class="fl"><label><?= !empty($group['is_direct']) ? 'Friend or group' : 'Group' ?></label>
     <div class="chips chips-scroll">
       <?php foreach ($groups as $gr): ?>
       <a class="chip<?= (int) $gr['id'] === $gid ? ' on' : '' ?>" href="<?= e(ef_url('shared/add.php?group=' . (int) $gr['id'])) ?>"><?= ef_icon(shared_icon_key($gr['icon'])) ?><?= e($gr['name']) ?></a>
+      <?php endforeach; ?>
+      <?php foreach ($friendsPick as $f): $on = !empty($group['is_direct']) && in_array((int) $f['id'], array_map(fn($m) => (int) $m['id'], $members), true); ?>
+      <a class="chip<?= $on ? ' on' : '' ?>" href="<?= e(ef_url('shared/add.php?friend=' . (int) $f['id'])) ?>"><?= ef_icon('usr') ?><?= e($f['name']) ?></a>
       <?php endforeach; ?>
     </div></div>
   <?php endif; ?>

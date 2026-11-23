@@ -97,3 +97,5 @@ html[data-theme=dark] .row>b[style*="#0d9f6e"]{color:#34d399!important}
 html[data-theme=dark] .ft .wh{color:#9db0c7}
 html[data-theme=dark] .fsw.on span{color:#34d399}
 html[data-theme=dark] .fsw:not(.on) span{color:#fbbf24}
+.tb .bkapp{display:inline-flex;align-items:center;gap:5px;text-decoration:none;font-weight:700;background:rgba(15,118,110,.12);color:var(--at,#0f766e);white-space:nowrap}
+.tb .bkapp svg{width:14px;height:14px}

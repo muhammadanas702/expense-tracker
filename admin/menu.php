@@ -3,7 +3,9 @@
 require_once __DIR__ . '/auth.php';
 $menu = admin_visible_menu($conn, $admin['role']);
 admin_page_start(['title' => 'All pages', 'sub' => 'Everything you can open', 'active' => 'more']);
-foreach ($menu as $section => $items): ?>
+?>
+<div class="g card" style="margin-bottom:12px"><a class="nv" style="height:auto;padding-block:10px" href="<?= e(ef_url('dashboard.php')) ?>"><?= ef_icon('home') ?><span><b>Back to the normal app</b><small class="k" style="display:block">Your dashboard, income, expenses and shared groups</small></span></a></div>
+<?php foreach ($menu as $section => $items): ?>
 <div class="g card" style="margin-bottom:12px">
   <b class="k" style="text-transform:uppercase;font-size:.75rem;letter-spacing:.1em"><?= e($section) ?></b>
   <small class="k" style="display:block;margin:2px 0 4px"><?= e(admin_section_info()[$section] ?? '') ?></small>
