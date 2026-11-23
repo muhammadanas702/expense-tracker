@@ -70,7 +70,7 @@ return [
     'By %s' => '%s تک', 'save about' => 'تقریباً بچائیں', 'a month' => 'ماہانہ', 'Amount for %s' => '%s کے لیے رقم',
     'Add' => 'شامل کریں', 'Take out' => 'نکالیں', 'Remove this goal and its history?' => 'یہ ہدف اور اس کی تاریخ ہٹائیں؟',
     'Remove goal' => 'ہدف ہٹائیں', 'New goal' => 'نیا ہدف', 'Name' => 'نام', 'e.g. New laptop, Emergency fund' => 'مثلاً نیا لیپ ٹاپ، ایمرجنسی فنڈ',
-    'Target amount' => 'مطلوبہ رقم', 'e.g. 100000' => 'مثلاً 100000', 'Deadline' => 'آخری تاریخ', 'optional' => 'اختیاری', 'Create goal' => 'ہدف بنائیں',
+    'Target amount' => 'مطلوبہ رقم', 'Target' => 'ہدف کی رقم', 'e.g. 100000' => 'مثلاً 100000', 'Deadline' => 'آخری تاریخ', 'optional' => 'اختیاری', 'Create goal' => 'ہدف بنائیں',
     'Overdue by 1 day' => '1 دن کی تاخیر', 'Overdue by %s days' => '%s دن کی تاخیر', 'Due today' => 'آج واجب الادا', 'Due tomorrow' => 'کل واجب الادا',
     'Due in %s days' => '%s دن میں واجب الادا',
     'Reminders could not load right now. Please try again in a moment.' => 'یاد دہانیاں ابھی لوڈ نہیں ہو سکیں۔ براہِ کرم تھوڑی دیر بعد دوبارہ کوشش کریں۔',

@@ -78,7 +78,7 @@ ef_page_start(['title' => 'Reminders', 'sub' => 'Never miss a bill', 'mode' => '
       <?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e($error) ?></div><?php endif; ?>
       <div class="card">
         <div class="t"><?= ef_icon('bell') ?> <?= e(t('Coming up')) ?></div>
-        <?php if (!$items && $loadError === ''): ?><p style="color:var(--mu)"><?= e(t('No reminders yet. Add a bill below (rent, internet, a loan instalment) and you will get a notification 3 days before it is due.')) ?></p><?php endif; ?>
+        <?php if (!$items && $loadError === ''): ?><p style="color:var(--mu)"><i class="no-items" hidden></i><?= e(t('No reminders yet. Add a bill below (rent, internet, a loan instalment) and you will get a notification 3 days before it is due.')) ?></p><?php endif; ?>
         <?php foreach ($items as $r): ?>
           <div class="rem-row" data-state="<?= e($r['state']) ?>" style="padding:12px 0;border-top:1px solid rgba(91,107,128,.15)">
             <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline">

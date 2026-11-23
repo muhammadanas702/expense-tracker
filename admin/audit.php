@@ -35,7 +35,7 @@ admin_page_start(['title' => 'Audit log', 'sub' => 'What staff did, newest first
 <div class="g card">
   <form method="get" class="toolbar">
     <?php if ($group !== 'all'): ?><input type="hidden" name="g" value="<?= e($group) ?>"><?php endif; ?>
-    <input class="inp" type="search" name="q" value="<?= e($q) ?>" placeholder="Search details or staff name" maxlength="60">
+    <input class="inp" type="search" name="q" value="<?= e($q) ?>" placeholder="Search…" maxlength="60">
     <input class="inp" type="date" name="from" value="<?= e($from) ?>" aria-label="From date" style="flex:0 0 150px">
     <input class="inp" type="date" name="to" value="<?= e($to) ?>" aria-label="To date" style="flex:0 0 150px">
     <button class="btn sm" type="submit">Filter</button>

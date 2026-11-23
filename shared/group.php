@@ -64,7 +64,7 @@ ef_page_start(['title' => $group['name'], 'sub' => count($members) . ' member' .
   <div class="gh">
     <div class="gi" style="margin:0"><?= ef_icon(shared_icon_key($group['icon']), '#1d4ed8') ?></div>
     <div style="flex:1;min-width:0"><div class="k">Members</div>
-      <div class="stk" style="margin-top:6px"><?php foreach (array_slice($members, 0, 6) as $i => $m) { echo shared_avatar($m['name'], $i); } ?></div></div>
+      <div class="stk" style="margin-top:6px"><?php foreach (array_slice($members, 0, 6) as $i => $m) { echo shared_avatar_for((int) $m['id'], $m['name']); } ?></div></div>
     <div style="text-align:right"><div class="k">Total spent</div>
       <?php if ($totals): foreach (array_slice($totals, 0, 3) as $t): ?><div class="v" style="margin:0;font-size:1.15rem"><?= shared_money((int) $t['total'], $t['currency']) ?></div><?php endforeach; else: ?><div class="v" style="margin:0">0.00</div><?php endif; ?></div>
   </div>
@@ -180,7 +180,7 @@ shared_panel('Expenses', 'wal', $expenses ? count($expenses) . ' expense' . (cou
 <?php shared_sec('grp-members', 'Members', 'usr', 'blue', false, implode(', ', array_map(fn($m) => $m['name'], array_slice($members, 0, 4))) . (count($members) > 4 ? ' +' . (count($members) - 4) : ''), (string) count($members)); ?>
     <?php foreach ($members as $i => $m): ?>
     <div class="row">
-      <?= shared_avatar($m['name'], $i) ?>
+      <?= shared_avatar_for((int) $m['id'], $m['name']) ?>
       <span><?= e($m['name']) ?><?= (int) $m['id'] === $user_id ? ' (you)' : '' ?><small><?= $m['role'] === 'owner' ? 'Owner' : 'Member' ?> · joined <?= e(date('d M Y', strtotime($m['joined_at']))) ?></small></span>
       <?php if ($isOwner && (int) $m['id'] !== $user_id): ?>
       <span class="acts"><a class="del" href="<?= e($action) ?>" data-post data-csrf="<?= e($csrf) ?>" data-fields='{"do":"remove","group_id":<?= $gid ?>,"user_id":<?= (int) $m['id'] ?>}' onclick="return confirm('Remove <?= e(addslashes($m['name'])) ?> from this group?')" aria-label="Remove <?= e($m['name']) ?>"><?= ef_icon('tr') ?></a></span>

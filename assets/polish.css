@@ -151,3 +151,19 @@ p.k[style*="padding:12px 0"]::before,.np-e::before{content:"";display:block;widt
 .btn.sm,.btn.xs,.toolbar .btn.sm,.tb-search .btn,form button.btn.sm[type=submit],button.btn.sm{min-height:38px}
 .btn.sm,.btn.xs{align-self:center}
 .btn.sm{display:inline-flex;align-items:center;justify-content:center}
+
+/* Part 121: report rows on phones - one divider per row, not one per cell */
+@media(max-width:700px){table.rtx td{border:0!important}table.rtx tr{border-bottom:1px solid var(--gb,rgba(0,0,0,.08))}table.rtx tr:last-child{border-bottom:0}}
+details.qhelp{padding:0;background:none;border:0;box-shadow:none;backdrop-filter:none;margin-top:12px}
+
+/* Part 121: admin on phones - check rows stack (label, then value), backup buttons wrap, filter inputs never cut */
+@media(max-width:560px){
+ .row[data-state]{flex-wrap:wrap}.row[data-state]>span{flex:1 1 100%}.row[data-state]>b{margin-left:0;text-align:left!important;white-space:normal}
+ table.tbl.fixm{min-width:0!important}td.bk-act{white-space:normal!important;flex:1 1 100%;min-width:0}td.bk-act form{display:flex!important;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+}
+
+/* Part 121: with nothing saved yet the list/new-form pages stay one tidy column (no empty left half on wide screens) */
+@media(min-width:1000px){
+ .g[style*="max-width:720px"][style*="padding:6px 0"]:has(.no-items){display:block;max-width:760px!important;margin:0 auto!important;padding:6px 0!important}
+ .g[style*="max-width:720px"][style*="padding:6px 0"]:has(.no-items)>.card{margin-bottom:14px}
+}

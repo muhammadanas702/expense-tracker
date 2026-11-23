@@ -244,7 +244,7 @@ ef_page_start(['title' => 'Full Report', 'sub' => 'Filter, analyse and export', 
         <div class="t">Category breakdown</div>
         <?php foreach ($catTotals as $name => $val): $pct = $total_expense > 0 ? $val / $total_expense * 100 : 0; ?>
             <div style="margin-bottom:12px;font-size:.8rem">
-                <div style="display:flex;justify-content:space-between;gap:8px"><span><?= ef_icon($catIcons[$name] ?? 'more') ?> <?= e($name) ?></span><b><?= $fmt((float) $val) ?> · <?= round($pct) ?>%</b></div>
+                <div style="display:flex;justify-content:space-between;gap:8px"><span style="display:inline-flex;align-items:center;gap:6px"><?= ef_icon($catIcons[$name] ?? 'more') ?> <?= e($name) ?></span><b><?= $fmt((float) $val) ?> · <?= round($pct) ?>%</b></div>
                 <div class="bar"><i style="width:<?= round($pct, 1) ?>%;background:var(--a1)"></i></div>
             </div>
         <?php endforeach; if (!$catTotals): ?><p class="k">No expenses in this period.</p><?php endif; ?>

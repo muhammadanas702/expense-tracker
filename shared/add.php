@@ -179,7 +179,7 @@ $csrf = csrf_token();
 $ftoken = ($_SERVER['REQUEST_METHOD'] === 'POST' && shared_token_valid($_POST['ft'] ?? null)) ? (string) $_POST['ft'] : shared_token_new();
 ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expense', 'sub' => $group ? $group['name'] : 'Split a bill with your group', 'mode' => 's', 'active' => 'sadd', 'user' => $user]);
 ?>
-<div class="g" style="max-width:720px;margin:0 auto;padding:22px">
+<div class="g" style="max-width:720px;margin:0 auto;padding:16px">
 <?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e($error) ?></div><?php endif; ?>
 <?php if (!$groups && !$group): ?>
   <div class="g card"><p class="k" style="padding:12px 0">You need a group first. <a href="<?= e(ef_url('shared/groups.php')) ?>" style="color:var(--at,var(--a1));font-weight:700">Create or join a group</a>, then come back to split a bill.</p></div>
@@ -229,7 +229,7 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
       <div class="row" style="gap:12px">
         <label style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;text-transform:none;letter-spacing:0;font-size:.85rem;color:var(--tx);cursor:pointer">
           <input type="checkbox" name="part[<?= $uid ?>]" value="1" class="pc"<?= isset($old['part'][(string) $uid]) ? ' checked' : '' ?>>
-          <?= shared_avatar($m['name'], $i) ?><span style="overflow-wrap:anywhere"><?= e($m['name']) ?><?= $uid === $user_id ? ' (you)' : '' ?></span>
+          <?= shared_avatar_for((int) $m['id'], $m['name']) ?><span style="overflow-wrap:anywhere"><?= e($m['name']) ?><?= $uid === $user_id ? ' (you)' : '' ?></span>
         </label>
         <span class="vw" style="display:flex;align-items:center;gap:6px">
           <input class="inp vi" style="width:104px;padding:8px 10px" type="text" inputmode="decimal" name="val[<?= $uid ?>]" value="<?= e($old['val'][(string) $uid] ?? '') ?>" aria-label="Value for <?= e($m['name']) ?>">

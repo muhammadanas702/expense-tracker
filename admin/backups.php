@@ -51,10 +51,10 @@ admin_page_start(['title' => 'Backups', 'sub' => count($list) . ' saved (the new
     <tr>
       <td><b><?= e(date('d M Y, H:i', $b['time'])) ?></b><small class="dt-m"><?= e(backup_size_label($b['size'])) ?></small></td>
       <td class="hm"><?= e(backup_size_label($b['size'])) ?></td>
-      <td class="nw">
+      <td class="nw bk-act">
         <form method="post" action="backup-action.php" style="display:inline"><?= csrf_field() ?><input type="hidden" name="name" value="<?= e($b['name']) ?>"><input type="hidden" name="pass" value="">
           <button class="btn sm o" name="do" value="download" type="submit">Download</button>
-          <button class="btn sm o" name="do" value="download_enc" type="submit" onclick="var p=document.getElementById('encpass');if(!p.value||p.value.length<8){alert('Type a passphrase of at least 8 characters first.');return false}this.form.elements.pass.value=p.value">Download encrypted</button>
+          <button class="btn sm o" name="do" value="download_enc" type="submit" onclick="var p=document.getElementById('encpass');if(!p.value||p.value.length<8){alert('Type a passphrase of at least 8 characters first.');return false}this.form.elements.pass.value=p.value">Encrypted</button>
           <button class="btn sm o" name="do" value="delete" type="submit" onclick="return confirm('Delete this backup?')">Delete</button></form>
       </td>
     </tr>

@@ -17,7 +17,7 @@ admin_page_start(['title' => 'Groups', 'sub' => $all['groups'] . ' groups · ' .
 ?>
 <div class="g card">
   <form method="get" class="toolbar">
-    <input class="inp" type="search" name="q" value="<?= e($q) ?>" placeholder="Search group, owner name or email" maxlength="60">
+    <input class="inp" type="search" name="q" value="<?= e($q) ?>" placeholder="Search…" maxlength="60">
     <select class="inp" name="sort" style="max-width:170px" aria-label="Sort"><?php foreach ($sorts as $k => $l): ?><option value="<?= e($k) ?>"<?= $sort === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select>
     <button class="btn sm" type="submit">Apply</button>
     <a class="btn sm o" href="groups.php">Clear</a>
