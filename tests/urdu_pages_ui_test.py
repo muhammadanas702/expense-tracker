@@ -25,7 +25,7 @@ with sync_playwright() as pw:
     for u in ('/budgets.php', '/goals.php', '/reminders.php'): p.goto(B + u)  # creates the tables
     seed()
     for url, words, shot in [('/budgets.php', ['بجٹ مقرر کریں', 'ماہانہ حد', 'بجٹ محفوظ کریں', 'کھانا', 'میں سے'], 'bud'),
-                             ('/goals.php', ['نیا ہدف', 'مطلوبہ رقم', 'ہدف بنائیں', 'نکالیں', 'باقی'], 'goal'),
+                             ('/goals.php', ['نیا ہدف', 'ہدف کی رقم', 'ہدف بنائیں', 'نکالیں', 'باقی'], 'goal'),
                              ('/reminders.php', ['نئی یاد دہانی', 'ادا ہو گیا', 'کل واجب الادا', 'ہر مہینے', 'یاد دہانی محفوظ کریں'], 'rem')]:
         p.goto(B + url); p.wait_for_timeout(500)
         t = p.inner_text('body')
