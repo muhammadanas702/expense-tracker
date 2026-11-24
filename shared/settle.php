@@ -73,7 +73,7 @@ ef_page_start(['title' => 'Settle up', 'sub' => $group['name'], 'mode' => 's', '
 $opts = function (string $sel) use ($members, $user_id) {
     $h = '';
     foreach ($members as $m) {
-        $h .= '<option value="' . (int) $m['id'] . '"' . ((string) $m['id'] === $sel ? ' selected' : '') . '>' . e($m['name']) . ((int) $m['id'] === $user_id ? ' (you)' : '') . '</option>';
+        $h .= '<option value="' . (int) $m['id'] . '"' . ((string) $m['id'] === $sel ? ' selected' : '') . '>' . e($m['name']) . ((int) $m['id'] === $user_id ? ' ' . t('(you)') : '') . '</option>';
     }
     return $h;
 };
@@ -84,21 +84,21 @@ $opts = function (string $sel) use ($members, $user_id) {
   <form method="POST" autocomplete="off">
     <?= csrf_field() ?>
     <input type="hidden" name="group_id" value="<?= $gid ?>"><input type="hidden" name="ft" value="<?= e($ftoken) ?>">
-    <div class="fl"><label for="from">Who paid</label><select class="inp" id="from" name="from"><?= $opts($old['from']) ?></select></div>
-    <div class="fl"><label for="to">Paid to</label><select class="inp" id="to" name="to"><option value="">Choose…</option><?= $opts($old['to']) ?></select></div>
+    <div class="fl"><label for="from"><?= e(t('Who paid')) ?></label><select class="inp" id="from" name="from"><?= $opts($old['from']) ?></select></div>
+    <div class="fl"><label for="to"><?= e(t('Paid to')) ?></label><select class="inp" id="to" name="to"><option value=""><?= e(t('Choose…')) ?></option><?= $opts($old['to']) ?></select></div>
     <div class="fgrid2">
-    <div class="fl"><label for="amount">Amount</label>
+    <div class="fl"><label for="amount"><?= e(t('Amount')) ?></label>
       <input class="inp amt" id="amount" type="number" inputmode="decimal" step="0.01" min="0.01" max="99999999.99" name="amount" value="<?= e($old['amount']) ?>" placeholder="0.00" required></div>
-    <div class="fl"><label for="currency">Currency</label><select class="inp" id="currency" name="currency" required><?= currency_select_options($old['currency']) ?></select></div>
+    <div class="fl"><label for="currency"><?= e(t('Currency')) ?></label><select class="inp" id="currency" name="currency" required><?= currency_select_options($old['currency']) ?></select></div>
     </div>
     <details class="more"<?= ($old['note'] !== '' || $old['settled_on'] !== date('Y-m-d')) ? ' open' : '' ?>>
-      <summary><span>More options<small>Date and note</small></span></summary>
-    <div class="fl"><label for="settled_on">Date</label><input class="inp" id="settled_on" type="date" name="settled_on" value="<?= e($old['settled_on']) ?>" max="<?= e(date('Y-m-d', strtotime('+1 day'))) ?>" required></div>
-    <div class="fl"><label for="note">Note (optional)</label><input class="inp" id="note" type="text" name="note" maxlength="255" value="<?= e($old['note']) ?>" placeholder="e.g. Cash, Easypaisa"></div>
+      <summary><span><?= e(t('More options')) ?><small><?= e(t('Date and note')) ?></small></span></summary>
+    <div class="fl"><label for="settled_on"><?= e(t('Date')) ?></label><input class="inp" id="settled_on" type="date" name="settled_on" value="<?= e($old['settled_on']) ?>" max="<?= e(date('Y-m-d', strtotime('+1 day'))) ?>" required></div>
+    <div class="fl"><label for="note"><?= e(t('Note (optional)')) ?></label><input class="inp" id="note" type="text" name="note" maxlength="255" value="<?= e($old['note']) ?>" placeholder="<?= e(t('e.g. Cash, Easypaisa')) ?>"></div>
     </details>
-    <p class="k" style="margin-bottom:12px">This only records a payment that already happened. No money moves through the app.</p>
-    <button class="btn" type="submit" style="width:100%;padding:14px">Record payment</button>
-    <a class="btn o" style="width:100%;margin-top:8px;text-align:center" href="<?= e(ef_url('shared/group.php?id=' . $gid)) ?>">Cancel</a>
+    <p class="k" style="margin-bottom:12px"><?= e(t('This only records a payment that already happened. No money moves through the app.')) ?></p>
+    <button class="btn" type="submit" style="width:100%;padding:14px"><?= e(t('Record payment')) ?></button>
+    <a class="btn o" style="width:100%;margin-top:8px;text-align:center" href="<?= e(ef_url('shared/group.php?id=' . $gid)) ?>"><?= e(t('Cancel')) ?></a>
   </form>
 <?php shared_panel_end(); ?>
 </div>

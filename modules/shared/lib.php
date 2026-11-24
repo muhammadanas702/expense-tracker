@@ -177,7 +177,7 @@ function shared_create_group(PDO $conn, int $userId, string $name, string $icon,
     $cnt = $conn->prepare('SELECT COUNT(*) FROM shared_members m JOIN shared_groups g ON g.id = m.group_id WHERE m.user_id = ? AND g.is_direct = 0');
     $cnt->execute([$userId]);
     if ((int) $cnt->fetchColumn() >= SHARED_MAX_GROUPS_PER_USER) {
-        $error = 'You are in the maximum number of groups (' . SHARED_MAX_GROUPS_PER_USER . ').';
+        $error = t('You are in the maximum number of groups (%d).', SHARED_MAX_GROUPS_PER_USER);
         return null;
     }
     try {
