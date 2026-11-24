@@ -104,7 +104,7 @@ function shared_invite_respond(PDO $conn, int $me, int $inviteId, string $do): a
         $others = array_map(fn($m) => (int) $m['id'], shared_members_of($conn, (int) $i['group_id']));
         shared_emit($conn, (int) $i['group_id'], $me, 'member_join', [], $others);
     }
-    return ['ok' => true, 'msg' => 'You joined ' . $i['name'] . '.', 'group' => (int) $i['group_id']];
+    return ['ok' => true, 'msg' => t('You joined %s.', $i['name']), 'group' => (int) $i['group_id']];
 }
 
 /** Card with pending invitations for the top of Groups and Overview. */

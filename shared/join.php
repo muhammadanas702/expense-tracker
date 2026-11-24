@@ -7,7 +7,7 @@ require_once __DIR__ . '/../config/db.php';
 $code = (string) ($_GET['code'] ?? '');
 if (!preg_match('/^[0-9a-f]{32}$/', $code)) {
     http_response_code(404);
-    exit('This invite link is not valid.');
+    exit(t('This invite link is not valid.'));
 }
 if (!isset($_SESSION['user_id'])) {
     // Remember the link: login.php sends the user back here after signing in.
@@ -35,12 +35,12 @@ ef_page_start(['title' => 'Join group', 'sub' => 'You were invited', 'mode' => '
 <div class="g card" style="max-width:480px;margin:0 auto;text-align:center;padding:26px">
   <div class="gi" style="margin:0 auto 12px"><?= ef_icon(shared_icon_key($g['icon']), '#1d4ed8') ?></div>
   <b style="font-size:1.2rem"><?= e($g['name']) ?></b>
-  <p class="k" style="margin:8px 0 18px"><?= e((string) $g['owner_name']) ?> invited you · <?= (int) $g['n'] ?> member<?= (int) $g['n'] === 1 ? '' : 's' ?></p>
+  <p class="k" style="margin:8px 0 18px"><?= e(t('%s invited you · %d members', (string) $g['owner_name'], (int) $g['n'])) ?></p>
   <form method="POST" action="<?= e(ef_url('shared/action.php')) ?>">
     <?= csrf_field() ?>
     <input type="hidden" name="do" value="join"><input type="hidden" name="code" value="<?= e($code) ?>">
-    <button class="btn" type="submit" style="width:100%;padding:14px">Join group</button>
+    <button class="btn" type="submit" style="width:100%;padding:14px"><?= e(t('Join group')) ?></button>
   </form>
-  <a class="lnk" style="display:block;margin-top:14px" href="<?= e(ef_url('shared/groups.php')) ?>">Not now</a>
+  <a class="lnk" style="display:block;margin-top:14px" href="<?= e(ef_url('shared/groups.php')) ?>"><?= e(t('Not now')) ?></a>
 </div>
 <?php ef_page_end(['mode' => 's', 'active' => 'grp']);

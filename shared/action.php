@@ -70,7 +70,7 @@ if ($do === 'join') {
         $others = array_map(fn($m) => (int) $m['id'], shared_members_of($conn, (int) $g['id']));
         shared_emit($conn, (int) $g['id'], $user_id, 'member_join', [], $others);
         logAction($conn, $user_id, 'shared_join_group', 'Group ID: ' . (int) $g['id']);
-        $_SESSION['success'] = 'You joined ' . $g['name'] . '.';
+        $_SESSION['success'] = t('You joined %s.', $g['name']);
     }
     shared_back('shared/group.php?id=' . (int) $g['id']);
 }
