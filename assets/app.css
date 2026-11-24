@@ -470,5 +470,6 @@ form .fl select.inp,form .fl input.inp,form .fl textarea.inp{width:100%;max-widt
 .v .cu{font-size:.55em;font-weight:700;letter-spacing:0;opacity:.85;white-space:nowrap}
 .txf .chips input:checked+.chip{background:var(--a1)}
 .langpick{display:flex;gap:8px}.langpick .btn{flex:1;justify-content:center;text-align:center}
+.langpick .btn[lang=ur]{font-size:1.15rem;line-height:1.2}
 .row>span>svg:first-child{display:inline-block;vertical-align:-3px;margin-right:6px}
 .qhelp>summary{text-align:left;justify-content:flex-start}
