@@ -22,7 +22,7 @@ if ($popup) {
     header('Cache-Control: no-store');
     echo '<div class="np-h"><b>Notifications</b><a href="' . e(ef_url('activity/notifications.php')) . '">See all</a></div>';
     foreach ($supportRows as $t) {
-        echo '<a class="np-r new" href="' . e(ef_url('support/ticket.php?id=' . (int) $t['id'])) . '"><span class="gi">' . ef_icon('bell', '#1d4ed8') . '</span><span><b>Support replied</b><small>' . e($t['subject']) . ' · ' . e(support_ago((string) $t['updated_at'])) . '</small></span></a>';
+        echo '<a class="np-r new" href="' . e(ef_url('support/ticket.php?id=' . (int) $t['id'])) . '"><span class="gi">' . ef_icon('bell', '#1d4ed8') . '</span><span><b>' . e(t('Support replied')) . '</b><small>' . e($t['subject']) . ' · ' . e(support_ago((string) $t['updated_at'])) . '</small></span></a>';
     }
     if (!$rows && !$supportRows) {
         echo '<p class="k np-e">No notifications yet. You are told when someone adds or changes an expense that involves you.</p>';
@@ -38,17 +38,17 @@ if ($popup) {
     exit();
 }
 
-ef_page_start(['title' => 'Notifications', 'sub' => $unread ? count($unread) . ' new' : 'You are all caught up', 'neutral' => true, 'active' => 'notif', 'user' => $user]);
+ef_page_start(['title' => 'Notifications', 'sub' => $unread ? t('%d new', count($unread)) : t('You are all caught up'), 'neutral' => true, 'active' => 'notif', 'user' => $user]);
 ?>
 <div class="g card">
-  <div class="t">Notifications <a href="<?= e(ef_url('activity/index.php')) ?>">Activity feed →</a></div>
+  <div class="t"><?= e(t('Notifications')) ?> <a href="<?= e(ef_url('activity/index.php')) ?>"><?= e(t('Activity feed →')) ?></a></div>
   <?php foreach ($supportRows as $t): ?>
   <a class="row" href="<?= e(ef_url('support/ticket.php?id=' . (int) $t['id'])) ?>" style="background:rgba(29,78,216,.07);border-radius:12px;padding-left:8px;padding-right:8px">
     <span class="gi" style="margin:0;width:36px;height:36px;flex:none"><?= ef_icon('bell', '#1d4ed8') ?></span>
-    <span><b>Support replied</b><small><?= e($t['subject']) ?> · <?= e(support_ago((string) $t['updated_at'])) ?></small></span>
+    <span><b><?= e(t('Support replied')) ?></b><small><?= e($t['subject']) ?> · <?= e(support_ago((string) $t['updated_at'])) ?></small></span>
   </a>
   <?php endforeach; ?>
-  <?php if (!$rows && !$supportRows): ?><p class="k" style="padding:12px 0">No notifications yet. You are told when someone adds or changes an expense that involves you, or records a payment to you.</p><?php endif; ?>
+  <?php if (!$rows && !$supportRows): ?><p class="k" style="padding:12px 0"><?= e(t('No notifications yet. You are told when someone adds or changes an expense that involves you, or records a payment to you.')) ?></p><?php endif; ?>
   <?php foreach ($rows as $r): [$icon, $text, $amt] = activity_describe($r, $user_id); $isNew = in_array((int) $r['nid'], $firstView, true); ?>
   <?php $href = !empty($r['group_id']) ? ef_url('shared/group.php?id=' . (int) $r['group_id']) : ''; ?>
   <<?= $href ? 'a href="' . e($href) . '"' : 'div' ?> class="row"<?= $isNew ? ' style="background:rgba(29,78,216,.07);border-radius:12px;padding-left:8px;padding-right:8px"' : '' ?>>

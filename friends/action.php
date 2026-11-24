@@ -24,13 +24,13 @@ if ($do === 'add') {
     if (!$f || $cur === null) {
         $_SESSION['error'] = 'This friend does not owe you anything right now.';
     } elseif (rl_blocked($conn, 'settle_nudge', rl_key((string) $user_id, (string) $fid), 1, 3 * 86400)) {
-        $_SESSION['error'] = 'You already reminded ' . $f['name'] . ' recently. You can remind again in a few days.';
+        $_SESSION['error'] = t('You already reminded %s recently. You can remind again in a few days.', $f['name']);
     } else {
         rl_hit($conn, 'settle_nudge', rl_key((string) $user_id, (string) $fid));
         if (function_exists('activity_record')) {
             activity_record($conn, 0, $user_id, 'settle_nudge', ['amount_minor' => (int) $f['owed'][$cur], 'currency' => $cur, 'target_id' => $fid], [$fid]);
         }
-        $_SESSION['success'] = 'Reminder sent to ' . $f['name'] . '.';
+        $_SESSION['success'] = t('Reminder sent to %s.', $f['name']);
     }
     shared_back('friends/view.php?id=' . (int) $fid);
 } elseif (in_array($do, ['accept', 'decline', 'cancel', 'remove'], true)) {

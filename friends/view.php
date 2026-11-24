@@ -12,30 +12,30 @@ $net = friends_net($f);
 ef_page_start(['title' => $f['name'], 'sub' => 'Your balance with this friend', 'mode' => 's', 'active' => 'fr', 'user' => $user]);
 ?>
 <div class="G3">
-  <div class="g card hero"><div class="k">Net with <?= e($f['name']) ?></div><div class="v"><?php if ($net): foreach (array_slice($net, 0, 3, true) as $cur => $v): ?><div><?= $v < 0 ? '−' : '' ?><?= shared_money(abs($v), $cur) ?></div><?php endforeach; else: ?>0.00<?php endif; ?></div><span class="badge"><?= $net ? 'Open balance' : 'All settled' ?></span></div>
-  <div class="g card"><div class="k"><?= e($f['name']) ?> owes you</div><div class="v in"><?php if ($f['owed']): foreach ($f['owed'] as $cur => $v): ?><div><?= shared_money($v, $cur) ?></div><?php endforeach; else: ?><span>0.00</span><?php endif; ?></div></div>
-  <div class="g card"><div class="k">You owe <?= e($f['name']) ?></div><div class="v ex"><?php if ($f['owe']): foreach ($f['owe'] as $cur => $v): ?><div><?= shared_money($v, $cur) ?></div><?php endforeach; else: ?><span>0.00</span><?php endif; ?></div></div>
+  <div class="g card hero"><div class="k"><?= e(t('Net with %s', $f['name'])) ?></div><div class="v"><?php if ($net): foreach (array_slice($net, 0, 3, true) as $cur => $v): ?><div><?= $v < 0 ? '−' : '' ?><?= shared_money(abs($v), $cur) ?></div><?php endforeach; else: ?>0.00<?php endif; ?></div><span class="badge"><?= $net ? 'Open balance' : 'All settled' ?></span></div>
+  <div class="g card"><div class="k"><?= e($f['name']) ?> <?= e(t('owes you')) ?></div><div class="v in"><?php if ($f['owed']): foreach ($f['owed'] as $cur => $v): ?><div><?= shared_money($v, $cur) ?></div><?php endforeach; else: ?><span>0.00</span><?php endif; ?></div></div>
+  <div class="g card"><div class="k"><?= e(t('You owe')) ?> <?= e($f['name']) ?></div><div class="v ex"><?php if ($f['owe']): foreach ($f['owe'] as $cur => $v): ?><div><?= shared_money($v, $cur) ?></div><?php endforeach; else: ?><span>0.00</span><?php endif; ?></div></div>
 </div>
 
 <?php if ($f['direct'] || $f['ledger']): ?>
 <div class="g card" style="margin:14px 0">
-  <div class="t">Just between you two</div>
-  <p class="k" style="margin:0 0 10px">Keep a private account with <?= e($f['name']) ?>. Only the two of you see it, and it does not show in your group list.</p>
+  <div class="t"><?= e(t('Just between you two')) ?></div>
+  <p class="k" style="margin:0 0 10px"><?= e(t('Keep a private account with %s. Only the two of you see it, and it does not show in your group list.', $f['name'])) ?></p>
   <form method="post" action="<?= e(ef_url('friends/action.php')) ?>" class="sg-acts">
     <?= csrf_field() ?><input type="hidden" name="do" value="direct"><input type="hidden" name="id" value="<?= (int) $fid ?>">
-    <button class="btn" name="go" value="add" type="submit"><?= ef_icon('pl') ?> Add expense</button>
-    <?php if ($f['ledger']): ?><button class="btn o" name="go" value="open" type="submit">Open account</button><?php endif; ?>
+    <button class="btn" name="go" value="add" type="submit"><?= ef_icon('pl') ?> <?= e(t('Add expense')) ?></button>
+    <?php if ($f['ledger']): ?><button class="btn o" name="go" value="open" type="submit"><?= e(t('Open account')) ?></button><?php endif; ?>
   </form>
 </div>
 <?php endif; ?>
 
 <?php if ($f['todo']): ?>
 <div class="g card" style="margin:14px 0">
-  <div class="t">To settle</div>
+  <div class="t"><?= e(t('To settle')) ?></div>
   <?php foreach ($f['todo'] as $p): $pay = $p['from'] === $user_id; ?>
   <div class="row"><span><?= $pay ? 'You pay ' . e($f['name']) : e($f['name']) . ' pays you' ?><small><?= e($f['groups'][$p['group']] ?? 'Just you two') ?></small></span>
     <b class="<?= $pay ? 'ex' : 'in' ?>"><?= shared_money($p['amount'], $p['currency']) ?></b>
-    <a class="btn sm o" href="<?= e(ef_url('shared/settle.php?' . http_build_query(['group' => $p['group'], 'from' => $p['from'], 'to' => $p['to'], 'amount' => shared_from_minor($p['amount']), 'currency' => $p['currency']]))) ?>">Settle</a></div>
+    <a class="btn sm o" href="<?= e(ef_url('shared/settle.php?' . http_build_query(['group' => $p['group'], 'from' => $p['from'], 'to' => $p['to'], 'amount' => shared_from_minor($p['amount']), 'currency' => $p['currency']]))) ?>"><?= e(t('Settle')) ?></a></div>
   <?php endforeach; ?>
 </div>
 <?php endif; ?>
@@ -43,17 +43,17 @@ ef_page_start(['title' => $f['name'], 'sub' => 'Your balance with this friend', 
 <?php if ($f['owed']): ?>
 <div class="g card" style="margin:14px 0"><form method="post" action="<?= e(ef_url('friends/action.php')) ?>">
   <?= csrf_field() ?><input type="hidden" name="do" value="nudge"><input type="hidden" name="id" value="<?= (int) $fid ?>">
-  <button class="btn sm" type="submit"><?= ef_icon('bell') ?> Remind <?= e($f['name']) ?> to settle up</button>
-  <p class="k" style="margin:8px 0 0">They get a notification. You can remind each friend once every 3 days.</p></form></div>
+  <button class="btn sm" type="submit"><?= ef_icon('bell') ?> <?= e(t('Remind')) ?> <?= e($f['name']) ?> <?= e(t('to settle up')) ?></button>
+  <p class="k" style="margin:8px 0 0"><?= e(t('They get a notification. You can remind each friend once every 3 days.')) ?></p></form></div>
 <?php endif; ?>
 <?php if ($f['direct']): ?>
-<div class="g card" style="margin:14px 0"><form method="post" action="<?= e(ef_url('friends/action.php')) ?>" onsubmit="return confirm('Remove this friend?')">
+<div class="g card" style="margin:14px 0"><form method="post" action="<?= e(ef_url('friends/action.php')) ?>" onsubmit="return confirm(<?= e(json_encode(t('Remove this friend?'), JSON_UNESCAPED_UNICODE)) ?>)">
   <?= csrf_field() ?><input type="hidden" name="do" value="remove"><input type="hidden" name="id" value="<?= (int) $f['link_id'] ?>">
-  <button class="btn sm o" type="submit">Remove friend</button></form></div>
+  <button class="btn sm o" type="submit"><?= e(t('Remove friend')) ?></button></form></div>
 <?php endif; ?>
 <?php if ($f['groups']): ?>
 <div class="g card" style="margin:14px 0">
-  <div class="t">Shared groups</div>
+  <div class="t"><?= e(t('Shared groups')) ?></div>
   <?php foreach ($f['groups'] as $gid => $gname): ?>
   <a class="row" href="<?= e(ef_url('shared/group.php?id=' . (int) $gid)) ?>" style="text-decoration:none;color:inherit"><span><?= e($gname) ?></span><?= ef_icon('chev') ?></a>
   <?php endforeach; ?>
@@ -61,13 +61,13 @@ ef_page_start(['title' => $f['name'], 'sub' => 'Your balance with this friend', 
 <?php endif; ?>
 
 <div class="g card">
-  <div class="t">Payments between you</div>
+  <div class="t"><?= e(t('Payments between you')) ?></div>
   <?php if ($pays): foreach ($pays as $s): $mine = (int) $s['from_user'] === $user_id; ?>
   <div class="row"><span><?= $mine ? 'You paid ' . e($f['name']) : e($f['name']) . ' paid you' ?><small><?= e($f['groups'][$s['group_id']] ?? 'Just you two') ?> · <?= e($s['settled_on']) ?></small></span>
     <b class="<?= $mine ? 'ex' : 'in' ?>"><?= shared_money((int) $s['amount_minor'], $s['currency']) ?></b></div>
   <?php endforeach; else: ?>
-  <p class="k" style="padding:12px 0">No payments recorded yet.</p>
+  <p class="k" style="padding:12px 0"><?= e(t('No payments recorded yet.')) ?></p>
   <?php endif; ?>
 </div>
-<p style="margin-top:14px"><a class="btn o sm" href="<?= e(ef_url('friends/index.php')) ?>"><?= ef_icon('bk') ?> All friends</a></p>
+<p style="margin-top:14px"><a class="btn o sm" href="<?= e(ef_url('friends/index.php')) ?>"><?= ef_icon('bk') ?> <?= e(t('All friends')) ?></a></p>
 <?php ef_page_end(['mode' => 's', 'active' => 'fr']);
