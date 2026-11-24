@@ -16,7 +16,7 @@ ef_page_start(['title' => 'Activity', 'sub' => 'Everything happening in your gro
 <?php if (count($groups) > 1): ?>
 <div class="g card" style="margin-bottom:14px;padding:10px 12px">
   <div class="chips chips-scroll">
-    <a class="chip<?= $gid === 0 ? ' on' : '' ?>" href="<?= e(ef_url('activity/index.php')) ?>">All groups</a>
+    <a class="chip<?= $gid === 0 ? ' on' : '' ?>" href="<?= e(ef_url('activity/index.php')) ?>"><?= e(t('All groups')) ?></a>
     <?php foreach ($groups as $g): ?>
     <a class="chip<?= (int) $g['id'] === $gid ? ' on' : '' ?>" href="<?= e(ef_url('activity/index.php?group=' . (int) $g['id'])) ?>"><?= ef_icon(shared_icon_key($g['icon'])) ?><?= e($g['name']) ?></a>
     <?php endforeach; ?>
@@ -24,14 +24,14 @@ ef_page_start(['title' => 'Activity', 'sub' => 'Everything happening in your gro
 </div>
 <?php endif; ?>
 <?php if (!$rows): ?>
-<div class="g card"><p class="k" style="padding:12px 0">Nothing yet. Add an expense or settle up in a group and it shows here.</p></div>
+<div class="g card"><p class="k" style="padding:12px 0"><?= e(t('Nothing yet. Add an expense or settle up in a group and it shows here.')) ?></p></div>
 <?php endif; ?>
 <?php foreach ($buckets as $label => $list): if (!$list) { continue; } ?>
-<?php shared_panel($label, 'act', count($list) . ' update' . (count($list) === 1 ? '' : 's')); ?>
+<?php shared_panel($label, 'act', count($list) === 1 ? t('1 update') : t('%d updates', count($list))); ?>
   <?php foreach ($list as $r): [$icon, $text, $amt] = activity_describe($r, $user_id); ?>
   <div class="row">
     <span class="gi" style="margin:0;width:36px;height:36px;flex:none"><?= ef_icon($icon, '#1d4ed8') ?></span>
-    <span><?= e($text) ?><small><a href="<?= e(ef_url('shared/group.php?id=' . (int) $r['group_id'])) ?>" style="color:inherit"><?= e($r['group_name'] ?? 'Group') ?></a> · <?= e(activity_ago((int) $r['age_s'], $r['created_at'])) ?></small></span>
+    <span><?= e($text) ?><small><a href="<?= e(ef_url('shared/group.php?id=' . (int) $r['group_id'])) ?>" style="color:inherit"><?= e($r['group_name'] ?? t('Group')) ?></a> · <?= e(activity_ago((int) $r['age_s'], $r['created_at'])) ?></small></span>
     <?php if ($amt !== ''): ?><b><?= e($amt) ?></b><?php endif; ?>
   </div>
   <?php endforeach; ?>

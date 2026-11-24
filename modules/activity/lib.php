@@ -163,38 +163,39 @@ function activity_feed(PDO $conn, int $userId, int $groupId = 0, int $limit = 10
 /** [icon, sentence, amount text] for one event row, from the viewer's point of view. */
 function activity_describe(array $r, int $viewerId): array
 {
-    $who = (int) $r['actor_id'] === $viewerId ? 'You' : ($r['actor_name'] ?? 'Former member');
-    $target = (int) ($r['target_id'] ?? 0) === $viewerId ? 'you' : ($r['target_name'] ?? 'Former member');
+    $who = (int) $r['actor_id'] === $viewerId ? t('You') : ($r['actor_name'] ?? t('Former member'));
+    $target = (int) ($r['target_id'] ?? 0) === $viewerId ? t('you') : ($r['target_name'] ?? t('Former member'));
     $t = $r['title'] !== null ? '“' . $r['title'] . '”' : '';
     $amt = $r['amount_minor'] !== null ? ($r['currency'] ?? '') . ' ' . number_format((int) $r['amount_minor'] / 100, 2) : '';
+    $pct = (int) $r['amount_minor'];
     switch ($r['kind']) {
-        case 'expense_add':    return ['food', "$who added $t", $amt];
-        case 'expense_edit':   return ['pen', "$who changed $t", $amt];
-        case 'expense_delete': return ['tr', "$who deleted $t", $amt];
-        case 'settle':         return ['wal', "$who paid $target", $amt];
-        case 'settle_delete':  return ['tr', "$who deleted a payment to $target", $amt];
-        case 'member_join':    return ['users', "$who joined the group", ''];
-        case 'member_leave':   return ['out', "$who left the group", ''];
-        case 'member_remove':  return ['users', "$who removed $target from the group", ''];
-        case 'group_create':   return ['users', "$who created the group", ''];
-        case 'group_rename':   return ['pen', "$who renamed the group", ''];
-        case 'comment':        return ['msg', "$who commented on $t", ''];
-        case 'budget_80':      return ['tgt', ($r['title'] ?? 'A category') . ' has used ' . (int) $r['amount_minor'] . '% of its monthly budget', ''];
-        case 'reminder_soon':  return ['bell', "“" . ($r['title'] ?? 'A payment') . "” is due " . ((int) $r['amount_minor'] === 0 ? 'today' : 'in ' . (int) $r['amount_minor'] . ' day' . ((int) $r['amount_minor'] === 1 ? '' : 's')), ''];
-        case 'reminder_late':  return ['bell', "“" . ($r['title'] ?? 'A payment') . "” is overdue", ''];
-        case 'settle_nudge':   return ['wal', "$who reminded you to settle up", $amt];
-        case 'budget_100':     return ['tgt', ($r['title'] ?? 'A category') . ' went over its monthly budget (' . (int) $r['amount_minor'] . '%)', ''];
+        case 'expense_add':    return ['food', t('%s added %s', $who, $t), $amt];
+        case 'expense_edit':   return ['pen', t('%s changed %s', $who, $t), $amt];
+        case 'expense_delete': return ['tr', t('%s deleted %s', $who, $t), $amt];
+        case 'settle':         return ['wal', t('%s paid %s', $who, $target), $amt];
+        case 'settle_delete':  return ['tr', t('%s deleted a payment to %s', $who, $target), $amt];
+        case 'member_join':    return ['users', t('%s joined the group', $who), ''];
+        case 'member_leave':   return ['out', t('%s left the group', $who), ''];
+        case 'member_remove':  return ['users', t('%s removed %s from the group', $who, $target), ''];
+        case 'group_create':   return ['users', t('%s created the group', $who), ''];
+        case 'group_rename':   return ['pen', t('%s renamed the group', $who), ''];
+        case 'comment':        return ['msg', t('%s commented on %s', $who, $t), ''];
+        case 'budget_80':      return ['tgt', t('%s has used %d%% of its monthly budget', $r['title'] ?? t('A category'), $pct), ''];
+        case 'reminder_soon':  return ['bell', $pct === 0 ? t('“%s” is due today', $r['title'] ?? t('A payment')) : ($pct === 1 ? t('“%s” is due in 1 day', $r['title'] ?? t('A payment')) : t('“%s” is due in %d days', $r['title'] ?? t('A payment'), $pct)), ''];
+        case 'reminder_late':  return ['bell', t('“%s” is overdue', $r['title'] ?? t('A payment')), ''];
+        case 'settle_nudge':   return ['wal', t('%s reminded you to settle up', $who), $amt];
+        case 'budget_100':     return ['tgt', t('%s went over its monthly budget (%d%%)', $r['title'] ?? t('A category'), $pct), ''];
     }
-    return ['act', "$who did something", ''];
+    return ['act', t('%s did something', $who), ''];
 }
 
 /** Human time from the age in seconds (computed by the database, so time zones cannot disturb it). */
 function activity_ago(int $seconds, string $ts): string
 {
-    if ($seconds < 60) { return 'just now'; }
-    if ($seconds < 3600) { return floor($seconds / 60) . ' min ago'; }
-    if ($seconds < 86400) { return floor($seconds / 3600) . ' h ago'; }
-    if ($seconds < 7 * 86400) { return floor($seconds / 86400) . ' d ago'; }
+    if ($seconds < 60) { return t('just now'); }
+    if ($seconds < 3600) { return t('%d min ago', (int) floor($seconds / 60)); }
+    if ($seconds < 86400) { return t('%d h ago', (int) floor($seconds / 3600)); }
+    if ($seconds < 7 * 86400) { return t('%d d ago', (int) floor($seconds / 86400)); }
     return date('d M Y', strtotime($ts));
 }
 

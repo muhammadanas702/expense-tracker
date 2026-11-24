@@ -104,7 +104,7 @@ function ef_page_start(array $o): void
 <?php
     foreach (['success' => 'ok', 'error' => 'err'] as $key => $cls) {
         if (!empty($_SESSION[$key]) && is_string($_SESSION[$key])) {
-            echo '<div class="msg ' . $cls . '" role="status" data-flash>' . e($_SESSION[$key]) . '</div>';
+            echo '<div class="msg ' . $cls . '" role="status" data-flash>' . e(t((string) $_SESSION[$key])) . '</div>';
         }
         unset($_SESSION[$key]);
     }
