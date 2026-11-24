@@ -80,7 +80,7 @@ $opts = function (string $sel) use ($members, $user_id) {
 ?>
 <div style="max-width:560px;margin:0 auto">
 <?php shared_panel('Record a payment', 'send', 'Someone paid someone back', '', 'orange'); ?>
-  <?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e($error) ?></div><?php endif; ?>
+  <?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e(t((string) $error)) ?></div><?php endif; ?>
   <form method="POST" autocomplete="off">
     <?= csrf_field() ?>
     <input type="hidden" name="group_id" value="<?= $gid ?>"><input type="hidden" name="ft" value="<?= e($ftoken) ?>">

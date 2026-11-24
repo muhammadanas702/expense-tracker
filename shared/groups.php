@@ -7,19 +7,19 @@ ef_page_start(['title' => 'Groups', 'sub' => 'Trips, rent, family and friends', 
 ?>
 <?= shared_invites_html($conn, $user_id, ef_url('shared/action.php'), csrf_field()) ?>
 <div class="G2">
-  <?php shared_panel('Your groups', 'users', $groups ? count($groups) . ' group' . (count($groups) === 1 ? '' : 's') : 'No groups yet'); ?>
+  <?php shared_panel('Your groups', 'users', $groups ? (count($groups) === 1 ? t('1 group') : t('%d groups', count($groups))) : 'No groups yet'); ?>
     <?php if ($groups): ?>
     <div class="glist">
       <?php foreach ($groups as $gr): ?>
       <a class="grow" href="<?= e(ef_url('shared/group.php?id=' . (int) $gr['id'])) ?>">
         <span class="gi"><?= ef_icon(shared_icon_key($gr['icon']), '#1d4ed8') ?></span>
-        <span class="gn"><b><?= e($gr['name']) ?></b><small><?= (int) $gr['member_count'] ?> member<?= (int) $gr['member_count'] === 1 ? '' : 's' ?><?= $gr['my_role'] === 'owner' ? ' · owner' : '' ?></small></span>
+        <span class="gn"><b><?= e($gr['name']) ?></b><small><?= e((int) $gr['member_count'] === 1 ? t('1 member') : t('%d members', (int) $gr['member_count'])) ?><?= $gr['my_role'] === 'owner' ? ' · ' . e(t('owner')) : '' ?></small></span>
         <span class="sec-ch" aria-hidden="true"></span>
       </a>
       <?php endforeach; ?>
     </div>
     <?php else: ?>
-      <p class="k" style="padding:12px 0">You are not in any group yet. Create one, or open an invite link a friend sent you.</p>
+      <p class="k" style="padding:12px 0"><?= e(t('You are not in any group yet. Create one, or open an invite link a friend sent you.')) ?></p>
     <?php endif; ?>
   <?php shared_panel_end(); ?>
 
@@ -27,14 +27,14 @@ ef_page_start(['title' => 'Groups', 'sub' => 'Trips, rent, family and friends', 
     <form method="POST" action="<?= e(ef_url('shared/action.php')) ?>" autocomplete="off">
       <?= csrf_field() ?>
       <input type="hidden" name="do" value="create">
-      <div class="fl"><label for="gname">Group name</label><input class="inp" id="gname" type="text" name="name" maxlength="60" placeholder="e.g. Murree Trip" required></div>
-      <div class="fl"><label>Icon</label>
+      <div class="fl"><label for="gname"><?= e(t('Group name')) ?></label><input class="inp" id="gname" type="text" name="name" maxlength="60" placeholder="<?= e(t('e.g. Murree Trip')) ?>" required></div>
+      <div class="fl"><label><?= e(t('Icon')) ?></label>
         <div class="icopick">
           <?php foreach (shared_icons() as $key => $label): ?>
           <label title="<?= e($label) ?>"><input type="radio" name="icon" value="<?= e($key) ?>" aria-label="<?= e($label) ?>"<?= $key === 'users' ? ' checked' : '' ?>><span><?= ef_icon($key) ?></span></label>
           <?php endforeach; ?>
         </div></div>
-      <button class="btn" type="submit" style="width:100%;padding:14px">Create group</button>
+      <button class="btn" type="submit" style="width:100%;padding:14px"><?= e(t('Create group')) ?></button>
     </form>
   <?php shared_panel_end(); ?>
 </div>

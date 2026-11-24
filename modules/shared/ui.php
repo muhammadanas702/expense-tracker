@@ -18,7 +18,7 @@ function shared_sec(string $key, string $title, string $icon, string $color, boo
     $color = in_array($color, SHARED_SEC_COLORS, true) ? $color : 'blue';
     echo '<details class="g card sec sec-' . $color . '" data-sec="' . e($key) . '"' . ($open ? ' open' : '') . '>';
     echo '<summary><span class="sec-ic">' . ef_icon($icon) . '</span>';
-    echo '<span class="sec-tt"><b>' . e($title) . '</b>' . ($meta !== '' ? '<small>' . e($meta) . '</small>' : '') . '</span>';
+    echo '<span class="sec-tt"><b>' . e(t($title)) . '</b>' . ($meta !== '' ? '<small>' . e(t($meta)) . '</small>' : '') . '</span>';
     echo ($badge !== '' ? '<span class="sec-bd">' . e($badge) . '</span>' : '<span></span>');
     echo '<span class="sec-ch" aria-hidden="true"></span></summary><div class="sec-body">';
 }
@@ -28,7 +28,7 @@ function shared_panel(string $title, string $icon, string $meta = '', string $ba
 {
     $tone = $tone === 'orange' ? 'orange' : 'blue';
     echo '<section class="g card sec-panel sec-' . $tone . '"><div class="sec-head"><span class="sec-ic">' . ef_icon($icon) . '</span>';
-    echo '<span class="sec-tt"><b>' . e($title) . '</b>' . ($meta !== '' ? '<small class="sec-meta">' . e($meta) . '</small>' : '') . '</span>';
+    echo '<span class="sec-tt"><b>' . e(t($title)) . '</b>' . ($meta !== '' ? '<small class="sec-meta">' . e(t($meta)) . '</small>' : '') . '</span>';
     echo '</div><div class="sec-body">'; // $badge is accepted so panel and section calls look alike; panels show the summary line instead
 }
 

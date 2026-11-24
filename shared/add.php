@@ -171,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 shared_emit($conn, $gid, $user_id, $existing ? 'expense_edit' : 'expense_add', ['title' => $title, 'amount_minor' => $totalMinor, 'currency' => $currency], array_merge(array_keys($res['shares']), [$payer]));
                 logAction($conn, $user_id, $existing ? 'shared_edit_expense' : 'shared_add_expense', "Group ID: $gid, expense ID: $id");
-                $_SESSION['success'] = ($existing ? 'Expense updated.' : 'Expense added and split.') . $warn;
+                $_SESSION['success'] = t($existing ? 'Expense updated.' : 'Expense added and split.') . $warn;
                 shared_back('shared/group.php?id=' . $gid);
             } catch (Throwable $e) {
                 error_log('ExpenseFlow shared expense save failed: ' . $e->getMessage());
@@ -187,12 +187,12 @@ $ftoken = ($_SERVER['REQUEST_METHOD'] === 'POST' && shared_token_valid($_POST['f
 ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expense', 'sub' => $group ? $group['name'] : 'Split a bill with your group', 'mode' => 's', 'active' => 'sadd', 'user' => $user]);
 ?>
 <div class="g" style="max-width:720px;margin:0 auto;padding:16px">
-<?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e($error) ?></div><?php endif; ?>
+<?php if ($error !== ''): ?><div class="msg err" role="alert"><?= e(t((string) $error)) ?></div><?php endif; ?>
 <?php if (!$groups && !$friendsPick && !$group): ?>
-  <div class="g card"><p class="k" style="padding:12px 0">You need a group first. <a href="<?= e(ef_url('shared/groups.php')) ?>" style="color:var(--at,var(--a1));font-weight:700">Create or join a group</a>, then come back to split a bill.</p></div>
+  <div class="g card"><p class="k" style="padding:12px 0"><?= e(t('You need a group first.')) ?> <a href="<?= e(ef_url('shared/groups.php')) ?>" style="color:var(--at,var(--a1));font-weight:700"><?= e(t('Create or join a group')) ?></a><?= e(t(', then come back to split a bill.')) ?></p></div>
 <?php elseif (!$group): ?>
   <?php if ($groups): ?>
-  <div class="t">Which group?</div>
+  <div class="t"><?= e(t('Which group?')) ?></div>
   <div class="chips chips-scroll">
     <?php foreach ($groups as $gr): ?>
     <a class="chip" href="<?= e(ef_url('shared/add.php?group=' . (int) $gr['id'])) ?>"><?= ef_icon(shared_icon_key($gr['icon'])) ?><?= e($gr['name']) ?></a>
@@ -200,7 +200,7 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
   </div>
   <?php endif; ?>
   <?php if ($friendsPick): ?>
-  <div class="t" style="margin-top:14px">Or just one friend <small class="k">(only you two see it)</small></div>
+  <div class="t" style="margin-top:14px"><?= e(t('Or just one friend')) ?> <small class="k"><?= e(t('(only you two see it)')) ?></small></div>
   <div class="chips chips-scroll">
     <?php foreach ($friendsPick as $f): ?>
     <a class="chip" href="<?= e(ef_url('shared/add.php?friend=' . (int) $f['id'])) ?>"><?= ef_icon('usr') ?><?= e($f['name']) ?></a>
@@ -209,7 +209,7 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
   <?php endif; ?>
 <?php else: ?>
   <?php if (!$existing && (count($groups) + count($friendsPick)) > 1): ?>
-  <div class="fl"><label><?= !empty($group['is_direct']) ? 'Friend or group' : 'Group' ?></label>
+  <div class="fl"><label><?= e(t(!empty($group['is_direct']) ? 'Friend or group' : 'Group')) ?></label>
     <div class="chips chips-scroll">
       <?php foreach ($groups as $gr): ?>
       <a class="chip<?= (int) $gr['id'] === $gid ? ' on' : '' ?>" href="<?= e(ef_url('shared/add.php?group=' . (int) $gr['id'])) ?>"><?= ef_icon(shared_icon_key($gr['icon'])) ?><?= e($gr['name']) ?></a>
@@ -222,29 +222,29 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
   <form method="POST" enctype="multipart/form-data" autocomplete="off" id="sx" data-type="<?= e($old['split_type']) ?>">
     <?= csrf_field() ?>
     <input type="hidden" name="group_id" value="<?= $gid ?>"><input type="hidden" name="ft" value="<?= e($ftoken) ?>">
-    <div class="fl"><label for="title">Description</label>
-      <input class="inp" id="title" type="text" name="title" maxlength="100" value="<?= e($old['title']) ?>" placeholder="e.g. Dinner, Hotel, Petrol" required></div>
+    <div class="fl"><label for="title"><?= e(t('Description')) ?></label>
+      <input class="inp" id="title" type="text" name="title" maxlength="100" value="<?= e($old['title']) ?>" placeholder="<?= e(t('e.g. Dinner, Hotel, Petrol')) ?>" required></div>
     <div class="fgrid2">
-    <div class="fl"><label for="amount">Total amount</label>
+    <div class="fl"><label for="amount"><?= e(t('Total amount')) ?></label>
       <input class="inp amt" id="amount" type="number" inputmode="decimal" step="0.01" min="0.01" max="99999999.99" name="amount" value="<?= e($old['amount']) ?>" placeholder="0.00" required></div>
-    <div class="fl"><label for="currency">Currency</label>
+    <div class="fl"><label for="currency"><?= e(t('Currency')) ?></label>
       <select class="inp" id="currency" name="currency" required><?= currency_select_options($old['currency']) ?></select></div>
     </div>
-    <div class="fl"><label for="paid_by">Paid by</label>
+    <div class="fl"><label for="paid_by"><?= e(t('Paid by')) ?></label>
       <select class="inp" id="paid_by" name="paid_by">
         <?php foreach ($members as $m): ?>
         <option value="<?= (int) $m['id'] ?>"<?= (string) $m['id'] === $old['paid_by'] ? ' selected' : '' ?>><?= e($m['name']) ?><?= (int) $m['id'] === $user_id ? ' (you)' : '' ?></option>
         <?php endforeach; ?>
       </select></div>
 
-    <div class="fl"><label>Split</label>
+    <div class="fl"><label><?= e(t('Split')) ?></label>
       <div class="chips">
         <?php foreach (SHARED_SPLIT_TYPES as $k => $label): ?>
         <label><input type="radio" name="split_type" value="<?= e($k) ?>"<?= $old['split_type'] === $k ? ' checked' : '' ?>><span class="chip"><?= e($label) ?></span></label>
         <?php endforeach; ?>
       </div></div>
 
-    <div class="fl"><label>Split between</label>
+    <div class="fl"><label><?= e(t('Split between')) ?></label>
       <?php foreach ($members as $i => $m): $uid = (int) $m['id']; ?>
       <div class="row" style="gap:12px">
         <label style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;text-transform:none;letter-spacing:0;font-size:.85rem;color:var(--tx);cursor:pointer">
@@ -262,19 +262,19 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
     </div>
 
     <details class="more"<?= ($existing || $old['note'] !== '' || $old['expense_date'] !== date('Y-m-d')) ? ' open' : '' ?>>
-      <summary><span>More options<small>Date, note, receipt<?= $isCreator ? ', personal copy' : '' ?></small></span></summary>
-    <div class="fl"><label for="expense_date">Date</label>
+      <summary><span><?= e(t('More options')) ?><small><?= e(t('Date, note, receipt')) ?><?= $isCreator ? ', personal copy' : '' ?></small></span></summary>
+    <div class="fl"><label for="expense_date"><?= e(t('Date')) ?></label>
       <input class="inp" id="expense_date" type="date" name="expense_date" value="<?= e($old['expense_date']) ?>" max="<?= e(date('Y-m-d', strtotime('+1 day'))) ?>" required></div>
-    <div class="fl"><label for="note">Note (optional)</label>
+    <div class="fl"><label for="note"><?= e(t('Note (optional)')) ?></label>
       <input class="inp" id="note" type="text" name="note" maxlength="255" value="<?= e($old['note']) ?>"></div>
 
     <?php if (ef_feature_on('receipts') && function_exists('receipts_check_upload')): ?>
-    <div class="fl"><label for="receipt">Receipt photo (optional)</label>
+    <div class="fl"><label for="receipt"><?= e(t('Receipt photo (optional)')) ?></label>
       <input class="inp" id="receipt" type="file" name="receipt" accept="image/jpeg,image/png,image/webp" capture="environment">
-      <small class="k">JPG, PNG or WebP, up to 3 MB. Only group members can see it.</small>
+      <small class="k"><?= e(t('JPG, PNG or WebP, up to 3 MB. Only group members can see it.')) ?></small>
       <?php if ($curReceipt): ?>
-      <div class="row" style="border:0;padding:6px 0"><a href="<?= e(ef_url('receipts/view.php?id=' . (int) $curReceipt)) ?>" target="_blank" rel="noopener" style="color:var(--at,var(--a1));font-weight:700">View current receipt</a>
-        <label style="margin-left:auto;display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;font-size:.8rem;color:var(--tx)"><input type="checkbox" name="remove_receipt" value="1"> Remove it</label></div>
+      <div class="row" style="border:0;padding:6px 0"><a href="<?= e(ef_url('receipts/view.php?id=' . (int) $curReceipt)) ?>" target="_blank" rel="noopener" style="color:var(--at,var(--a1));font-weight:700"><?= e(t('View current receipt')) ?></a>
+        <label style="margin-left:auto;display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;font-size:.8rem;color:var(--tx)"><input type="checkbox" name="remove_receipt" value="1"> <?= e(t('Remove it')) ?></label></div>
       <?php endif; ?>
     </div>
     <?php endif; ?>
@@ -282,18 +282,18 @@ ef_page_start(['title' => $existing ? 'Edit shared expense' : 'Add shared expens
     <?php if ($isCreator): ?>
     <div class="fl">
       <label class="row" style="border:0;padding:0;text-transform:none;letter-spacing:0;font-size:.88rem;color:var(--tx);cursor:pointer;gap:12px">
-        <span style="flex:1">Add my share to Personal expenses<small>Saves only your share as an expense in your Personal account.</small></span>
+        <span style="flex:1"><?= e(t('Add my share to Personal expenses')) ?><small><?= e(t('Saves only your share as an expense in your Personal account.')) ?></small></span>
         <input type="checkbox" class="swc" id="personal" name="personal" value="1"<?= $old['personal'] === '1' ? ' checked' : '' ?>><span class="sw"></span>
       </label>
-      <div id="catbox" style="margin-top:8px"><select class="inp" name="category" aria-label="Personal category">
+      <div id="catbox" style="margin-top:8px"><select class="inp" name="category" aria-label="<?= e(t('Personal category')) ?>">
         <?php foreach ($cats as $c): ?><option<?= $old['category'] === $c ? ' selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
       </select></div>
     </div>
     <?php endif; ?>
     </details>
 
-    <button class="btn" type="submit" style="width:100%;padding:14px"><?= $existing ? 'Save changes' : 'Add expense' ?></button>
-    <a class="btn o" style="width:100%;margin-top:8px;text-align:center" href="<?= e(ef_url('shared/group.php?id=' . $gid)) ?>">Cancel</a>
+    <button class="btn" type="submit" style="width:100%;padding:14px"><?= e(t($existing ? 'Save changes' : 'Add expense')) ?></button>
+    <a class="btn o" style="width:100%;margin-top:8px;text-align:center" href="<?= e(ef_url('shared/group.php?id=' . $gid)) ?>"><?= e(t('Cancel')) ?></a>
   </form>
 <?php endif; ?>
 </div>
