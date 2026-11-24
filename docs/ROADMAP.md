@@ -923,3 +923,6 @@ Say: "ROADMAP.md padho aur agla part karo." Read this file, `README.md`, and the
 ## Part 107 — Standby host restore (2026-11-23)
 - `tools/restore-standby.php` (opens .sql / .sql.gz / encrypted .enc, restores into an empty database, optional `--write-config`), `docs/STANDBY.md` (8 steps), test `tests/restore_standby_test.php`.
 - Still owner-side: off-site GitHub copy set up and passphrase kept; apps rebuild with the new domain after the site checks are green.
+
+## Parts 123-126 (done)
+Friend pick in the Shared add flow, admin back-to-app, Urdu for all Shared/Friends/Activity pages, final dark/desktop audit of admin and Settings.

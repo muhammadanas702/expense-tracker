@@ -41,3 +41,10 @@ Owner: Muhammad Anas. Stack: PHP 8 + MySQL, no framework. Repo `muhammadanas702/
 - 121: full audit: avatar colour by user id (`shared_avatar_for`), dashboard `.cu` currency suffix, search results in a panel, report/settings alignment, admin phone layouts (`.row[data-state]` stacks, backups buttons), dark selected chips, empty Goals/Reminders/Budgets stay one column (`.no-items` marker).
 - 122: Features page used the global `.tx` class (orange tint): renamed `.ftx`.
 - Audit method: seed rich data, crawl every page at 390 and 1366, light and dark, build contact sheets, then fix. Admin needs `role='super'`.
+
+## Parts 123-126 (2026-11-24)
+- Part 123: Shared "+" add flow can pick one friend ("just you two", `?friend=ID` opens the direct group); admin has a "Back to app" button in the top bar and on the All pages card.
+- Part 124: Urdu amounts stay left-to-right; checkboxes/radios use the accent colour.
+- Parts 125a/125b: all Shared, Friends and Activity pages (home, groups, add, search, group, settle, join, friend view, notifications), the activity sentences and all flash/error messages go through `t()`; Urdu text is in `includes/lang/ur.php`. English output is unchanged. New text must use `t()` and a `%s`/`%d` form for dynamic parts (never glue English pieces together).
+- Part 126: Urdu language button font size. Audit of admin (desktop, dark), Settings (dark) and a very long group name found no other layout problems.
+- Known test noise: 2 ViewTransition failures in `shared_cleanup_test` and `theme_http_test` "loaded on /" fail on main too.
