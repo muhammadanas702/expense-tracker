@@ -131,7 +131,7 @@ switch ($do) {
         $xid = filter_var($_POST['expense_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
         $x = $xid ? shared_expense_get($conn, $xid, $gid) : null;
         if (!$x) { $_SESSION['error'] = 'Expense not found.'; break; }
-        if (!shared_can_edit($x, $group, $user_id)) { $_SESSION['error'] = 'Only the person who added it, or the group owner, can delete this expense.'; break; }
+        if (!shared_can_edit($x, $group, $user_id, $conn)) { $_SESSION['error'] = 'Only the person who added it can delete this expense.'; break; }
         $involved = array_merge(array_keys(shared_splits_of($conn, $xid)), [(int) $x['paid_by']]);
         shared_expense_delete($conn, $x);
         shared_emit($conn, $gid, $user_id, 'expense_delete', ['title' => $x['title'], 'amount_minor' => (int) $x['amount_minor'], 'currency' => $x['currency']], $involved);
@@ -143,7 +143,7 @@ switch ($do) {
         $sid = filter_var($_POST['settlement_id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
         $st = $sid ? shared_settlement_get($conn, $sid, $gid) : null;
         if (!$st) { $_SESSION['error'] = 'Payment not found.'; break; }
-        if ((int) $st['created_by'] !== $user_id && !$isOwner) { $_SESSION['error'] = 'Only the person who recorded it, or the group owner, can delete this payment.'; break; }
+        if (!shared_can_manage((int) $st['created_by'], $gid, $group, $user_id, $conn)) { $_SESSION['error'] = 'Only the person who recorded it can delete this payment.'; break; }
         $conn->prepare('DELETE FROM shared_settlements WHERE id = ?')->execute([$sid]);
         shared_emit($conn, $gid, (int) $st['from_user'], 'settle_delete', ['amount_minor' => (int) $st['amount_minor'], 'currency' => $st['currency'], 'target_id' => (int) $st['to_user'], 'by' => $user_id], [(int) $st['from_user'], (int) $st['to_user']]);
         logAction($conn, $user_id, 'shared_delete_settlement', "Group ID: $gid, settlement ID: $sid");

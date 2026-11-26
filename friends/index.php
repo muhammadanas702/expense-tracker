@@ -28,7 +28,7 @@ ef_page_start(['title' => 'Friends', 'sub' => 'People you split bills with', 'mo
 <?php shared_panel_end(); ?>
 <?php $pend = friends_pending($conn, $user_id); ?>
 <?php if ($pend['in'] || $pend['out']): ?>
-<?php shared_panel('Requests', 'users', count($pend['in']) + count($pend['out']) . ' waiting', (string) (count($pend['in']) + count($pend['out'])), 'orange'); ?>
+<?php shared_panel('Requests', 'usrp', count($pend['in']) + count($pend['out']) . ' waiting', (string) (count($pend['in']) + count($pend['out'])), 'orange'); ?>
   <?php foreach ($pend['in'] as $r): ?>
   <div class="row"><span><?= e($r['name']) ?><small><?= e(t('wants to be your friend')) ?></small></span>
     <form method="post" action="<?= e(ef_url('friends/action.php')) ?>" class="inl"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $r['id'] ?>">

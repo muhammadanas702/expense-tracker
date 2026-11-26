@@ -54,7 +54,7 @@ ef_page_start(['title' => 'Shared Overview', 'sub' => 'Who owes whom, across all
 <?php shared_panel_end(); ?>
 <?php endif; ?>
 
-<?php shared_panel('Your groups', 'users', $groups ? (count($groups) === 1 ? t('1 group') : t('%d groups', count($groups))) : 'No groups yet', $groups ? (string) count($groups) : ''); ?>
+<?php shared_panel('Your groups', 'grid', $groups ? (count($groups) === 1 ? t('1 group') : t('%d groups', count($groups))) : 'No groups yet', $groups ? (string) count($groups) : ''); ?>
   <?php if ($groups): ?>
   <div class="glist">
     <?php foreach (array_slice($groups, 0, 6) as $gr): ?>

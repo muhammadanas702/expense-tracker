@@ -491,9 +491,29 @@ function shared_expense_delete(PDO $conn, array $expense): void
 }
 
 /** Who may change an expense: the person who added it, or the group owner. */
-function shared_can_edit(array $expense, array $group, int $userId): bool
+function shared_can_edit(array $expense, array $group, int $userId, ?PDO $conn = null): bool
 {
-    return (int) $expense['created_by'] === $userId || $group['my_role'] === 'owner';
+    return shared_can_manage((int) $expense['created_by'], (int) $expense['group_id'], $group, $userId, $conn);
+}
+
+/**
+ * Only the person who added an expense or payment may change or delete it.
+ * One exception so nothing gets stuck: the group owner may manage it when its
+ * creator is no longer in the group.
+ */
+function shared_can_manage(int $createdBy, int $groupId, array $group, int $userId, ?PDO $conn = null): bool
+{
+    if ($createdBy === $userId) {
+        return true;
+    }
+    if ($conn === null || $group['my_role'] !== 'owner') {
+        return false;
+    }
+    static $ids = [];
+    if (!isset($ids[$groupId])) {
+        $ids[$groupId] = array_map(fn($m) => (int) $m['id'], shared_members_of($conn, $groupId));
+    }
+    return !in_array($createdBy, $ids[$groupId], true);
 }
 
 
