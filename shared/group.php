@@ -86,12 +86,13 @@ ef_page_start(['title' => $group['name'], 'sub' => count($members) . ' member' .
   </div>
 </div>
 
-<?php if ($debts):
+<?php
   $nPay = count(array_filter($mine, fn($p) => $p['from'] === $user_id)); $nGet = count(array_filter($mine, fn($p) => $p['to'] === $user_id));
-  $meta = !$mine ? t('Nothing for you to pay or receive') : (($iOwe ? t('You pay %d', $nPay) . ' · ' : '') . ($iGet ? t('You get from %d', $nGet) : ''));
+  $meta = !$debts ? t('All settled up') : (!$mine ? t('Nothing for you to pay or receive') : (($iOwe ? t('You pay %d', $nPay) . ' · ' : '') . ($iGet ? t('You get from %d', $nGet) : '')));
   shared_panel('Settle up', 'send', rtrim($meta, ' ·'), $mine ? (string) count($mine) : '', 'orange');
 ?>
-  <?php if (!$mine): ?><p class="k" style="padding:12px 0 4px"><?= e(t('You have nothing to pay or receive here.')) ?></p><?php endif; ?>
+  <?php if (!$debts): ?><p class="k" style="padding:12px 0 4px"><?= e(t('Everyone is settled up. What you owe each other adds up to zero, so nothing is left to pay.')) ?></p>
+  <?php elseif (!$mine): ?><p class="k" style="padding:12px 0 4px"><?= e(t('You have nothing to pay or receive here.')) ?></p><?php endif; ?>
   <?php foreach ($mine as $p) { echo $debtRow($p); } ?>
   <?php if ($others): ?>
   <details class="sg-d"><summary><?= e(t('Between other members (%d)', count($others))) ?></summary>
@@ -99,9 +100,6 @@ ef_page_start(['title' => $group['name'], 'sub' => count($members) . ' member' .
   </details>
   <?php endif; ?>
 <?php shared_panel_end(); ?>
-<?php elseif ($expenses || $settlements): ?>
-<p class="k" style="margin:0 4px 14px"><?= e(t('Everyone is settled up. What you owe each other adds up to zero, so nothing is left to pay.')) ?></p>
-<?php endif; ?>
 
 <?php
 $firstTot = $totals ? shared_money((int) $totals[0]['total'], $totals[0]['currency']) : '';
@@ -114,7 +112,7 @@ shared_panel('Expenses', 'wal', $expenses ? (count($expenses) === 1 ? t('1 expen
     if ($paidMe) { $net = $total - (int) ($mineShare ?? 0); $label = $net > 0 ? t('you lent') : t('you paid'); $cls = 'tg'; }
     elseif ($mineShare) { $net = $mineShare; $label = t('you owe'); $cls = 'tx'; }
     else { $net = 0; $label = t('not involved'); $cls = 'tn'; }
-    $can = shared_can_edit($x, $group, $user_id);
+    $can = shared_can_edit($x, $group, $user_id, $conn);
     $xc = (ef_feature_on('comments') && function_exists('comments_add')) ? ($cmts[(int) $x['id']] ?? []) : null;
     $open = $xc && isset($_GET['c']) && (int) $_GET['c'] === (int) $x['id'];
   ?>
@@ -153,9 +151,9 @@ shared_panel('Expenses', 'wal', $expenses ? (count($expenses) === 1 ? t('1 expen
   <?php endforeach; ?>
 <?php shared_panel_end(); ?>
 
-<?php if ($settlements): ?>
-<?php $lastSt = $settlements[0]; shared_sec('grp-payments', 'Payments made', 'ok', 'blue', false, t('Last:') . ' ' . ($lastSt['from_name'] ?? t('Former member')) . ' ' . t('paid') . ' ' . ($lastSt['to_name'] ?? t('Former member')) . ' ' . shared_money((int) $lastSt['amount_minor'], $lastSt['currency']), (string) count($settlements)); ?>
-  <?php foreach ($settlements as $st): $canDel = (int) $st['created_by'] === $user_id || $isOwner; ?>
+<?php $lastSt = $settlements[0] ?? null; shared_sec('grp-payments', 'Payments made', 'ok', 'blue', false, !$lastSt ? t('No payments yet') : t('Last:') . ' ' . ($lastSt['from_name'] ?? t('Former member')) . ' ' . t('paid') . ' ' . ($lastSt['to_name'] ?? t('Former member')) . ' ' . shared_money((int) $lastSt['amount_minor'], $lastSt['currency']), (string) count($settlements)); ?>
+  <?php if (!$settlements): ?><p class="k"><?= e(t('No payments recorded yet.')) ?></p><?php endif; ?>
+  <?php foreach ($settlements as $st): $canDel = shared_can_manage((int) $st['created_by'], $gid, $group, $user_id, $conn); ?>
   <div class="row">
     <span><?= e($st['from_name'] ?? t('Former member')) ?> <?= e(t('paid')) ?> <?= e($st['to_name'] ?? t('Former member')) ?><small><?= e(date('d M Y', strtotime($st['settled_on']))) ?><?= $st['note'] ? ' · ' . e($st['note']) : '' ?></small></span>
     <b><?= shared_money((int) $st['amount_minor'], $st['currency']) ?></b>
@@ -163,10 +161,9 @@ shared_panel('Expenses', 'wal', $expenses ? (count($expenses) === 1 ? t('1 expen
   </div>
   <?php endforeach; ?>
 <?php shared_sec_end(); ?>
-<?php endif; ?>
 
-<?php if ($nets): ?>
-<?php shared_sec('grp-balance', "Everyone's balance", 'users', 'blue', false, 'Who paid how much and who gets back'); ?>
+<?php shared_sec('grp-balance', "Everyone's balance", 'bar', 'blue', false, 'Who paid how much and who gets back'); ?>
+    <?php if (!$nets): ?><p class="k"><?= e(t('Nothing to show yet. Balances appear after the first expense.')) ?></p><?php endif; ?>
     <?php foreach ($nets as $cur => $byUser): ksort($byUser); ?>
       <div class="k" style="margin-top:6px"><?= e($cur) ?></div>
       <?php foreach ($byUser as $uid => $n): $pt = $parts[$cur][$uid]; ?>
@@ -175,7 +172,6 @@ shared_panel('Expenses', 'wal', $expenses ? (count($expenses) === 1 ? t('1 expen
       <?php endforeach; ?>
     <?php endforeach; ?>
 <?php shared_sec_end(); ?>
-<?php endif; ?>
 
 <?php if (!$isDirect): ?>
 <?php shared_sec('grp-members', 'Members', 'usr', 'blue', false, implode(', ', array_map(fn($m) => $m['name'], array_slice($members, 0, 4))) . (count($members) > 4 ? ' +' . (count($members) - 4) : ''), (string) count($members)); ?>
@@ -190,7 +186,7 @@ shared_panel('Expenses', 'wal', $expenses ? (count($expenses) === 1 ? t('1 expen
     <?php endforeach; ?>
 <?php shared_sec_end(); ?>
 <?php $invitable = function_exists('shared_invitable_friends') && function_exists('friends_direct_ids') ? shared_invitable_friends($conn, $gid, $user_id) : []; ?>
-<?php shared_sec('grp-invite', 'Add people', 'link', 'blue', count($members) === 1, $invitable ? 'Pick a friend, or share the link' : 'Share the link on WhatsApp or copy it'); ?>
+<?php shared_sec('grp-invite', 'Add people', 'link', 'blue', false, $invitable ? 'Pick a friend, or share the link' : 'Share the link on WhatsApp or copy it'); ?>
     <?php if ($invitable): ?>
     <div class="k" style="margin:2px 0 4px"><b><?= e(t('Your friends')) ?></b> <?= e(t('· they join after they accept')) ?></div>
     <?php foreach ($invitable as $f): ?>

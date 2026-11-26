@@ -26,7 +26,7 @@ if (!$gid && count($groups) === 1) {
 $group = $gid ? shared_group_for($conn, $gid, $user_id) : null;
 if ($editId) {
     $existing = $group ? shared_expense_get($conn, $editId, $gid) : null;
-    if (!$existing || !shared_can_edit($existing, $group, $user_id)) {
+    if (!$existing || !shared_can_edit($existing, $group, $user_id, $conn)) {
         $_SESSION['error'] = 'Expense not found, or you cannot change it.';
         shared_back($group ? 'shared/group.php?id=' . $gid : 'shared/groups.php');
     }

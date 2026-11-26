@@ -40,15 +40,21 @@ ok('sec-panel' in t and '<b>Settle up</b>' in t and '<b>Expenses</b>' in t, 'mai
 ok(not opens(t, 'grp-balance') and not opens(t, 'grp-members') and not opens(t, 'grp-settings'), 'secondary sections (balance, members, settings) start closed')
 ok('sec-orange' in t and 'sec-violet' not in t and 'sec-green' not in t, 'calm colours: one blue accent, orange only for Settle up')
 ok('ef-sec-' in t, 'open/closed choice is remembered (script present)')
-ok('Edit</a>' in t and 'Delete</a>' in t, 'Edit and Delete have words, not only icons')
+ok('Edit</a>' not in t and 'Delete</a>' not in t, 'the group owner cannot edit or delete an expense someone else added')
 ok('data-sec="grp-balance"' in t and 'data-sec="grp-settings"' in t, 'balance table and settings are drop-down sections')
 ok('Delete group' in t, 'owner still finds Delete group (inside settings)')
 t2 = s2.get(f'{B}/shared/group.php?id={g}').text
+ok('Edit</a>' in t2 and 'Delete</a>' in t2, 'the person who added it sees Edit and Delete with words')
 ok('You get' in t2, 'the person who paid sees "You get <amount>"')
 ok('Leave group' in t2 and 'Group settings' not in t2, 'member sees Leave group, not owner settings')
 # actions still work
 r = s1.get(f'{B}/shared/group.php?id={g}'); tok = re.search(r'data-csrf="([^"]+)"', r.text).group(1)
-r = s1.post(f'{B}/shared/action.php', data={'do': 'delete_expense', 'group_id': g, 'expense_id': x, 'csrf_token': tok}, allow_redirects=True)
+s1.post(f'{B}/shared/action.php', data={'do': 'delete_expense', 'group_id': g, 'expense_id': x, 'csrf_token': tok}, allow_redirects=True)
+ok(sql(f"SELECT COUNT(*) FROM shared_expenses WHERE id={x}") == '1', 'the owner cannot delete it by posting the action either')
+ok('id="sx"' not in s1.get(f'{B}/shared/add.php?edit={x}&group={g}', allow_redirects=True).text, 'owner is turned away from the edit page')
+ok('id="sx"' in s2.get(f'{B}/shared/add.php?edit={x}&group={g}', allow_redirects=True).text, 'the creator can open the edit page')
+r = s2.get(f'{B}/shared/group.php?id={g}'); tok = re.search(r'data-csrf="([^"]+)"', r.text).group(1)
+r = s2.post(f'{B}/shared/action.php', data={'do': 'delete_expense', 'group_id': g, 'expense_id': x, 'csrf_token': tok}, allow_redirects=True)
 ok(sql(f"SELECT COUNT(*) FROM shared_expenses WHERE id={x}") == '0', 'the Delete action still deletes the expense')
 t = s1.get(f'{B}/shared/group.php?id={g}').text
 ok('All settled up' in t or 'No expenses yet' in t, 'empty state wording after the delete')

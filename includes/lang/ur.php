@@ -858,8 +858,8 @@ return [
     'Not now' => 'ابھی نہیں',
     'Note:' => 'نوٹ:',
     'Only the group owner can do that.' => 'یہ صرف گروپ کا مالک کر سکتا ہے۔',
-    'Only the person who added it, or the group owner, can delete this expense.' => 'اس خرچ کو صرف شامل کرنے والا یا گروپ کا مالک حذف کر سکتا ہے۔',
-    'Only the person who recorded it, or the group owner, can delete this payment.' => 'اس ادائیگی کو صرف درج کرنے والا یا گروپ کا مالک حذف کر سکتا ہے۔',
+    'Only the person who added it can delete this expense.' => 'اس خرچ کو صرف شامل کرنے والا ہی حذف کر سکتا ہے۔',
+    'Only the person who recorded it can delete this payment.' => 'اس ادائیگی کو صرف درج کرنے والا ہی حذف کر سکتا ہے۔',
     'Open account' => 'حساب کھولیں',
     'Owner' => 'مالک',
     'Paid to' => 'وصول کنندہ',
@@ -951,4 +951,7 @@ return [
     'Rename, change icon, delete the group' => 'نام بدلیں، آئیکن بدلیں، گروپ حذف کریں',
     'Stop seeing this group' => 'یہ گروپ دیکھنا بند کریں',
     'This invite link is not valid.' => 'یہ دعوتی لنک درست نہیں۔',
+    'All settled up' => 'سب کا حساب برابر',
+    'No payments yet' => 'ابھی کوئی ادائیگی نہیں',
+    'Nothing to show yet. Balances appear after the first expense.' => 'ابھی دکھانے کو کچھ نہیں۔ پہلے خرچ کے بعد بیلنس نظر آئیں گے۔',
 ];
