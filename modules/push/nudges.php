@@ -8,6 +8,7 @@
  * Only people with Phone alerts turned on (a saved device) and "Notifications" on in Settings get anything.
  */
 require_once __DIR__ . '/lib.php';
+require_once __DIR__ . '/app.php';
 require_once __DIR__ . '/../../includes/i18n.php';
 foreach (['shared/lib.php', 'activity/lib.php'] as $f) {
     if (is_file(__DIR__ . '/../' . $f)) {
@@ -106,13 +107,13 @@ function push_tick(PDO $conn, bool $force = false): array
         if (!$force && $lock->rowCount() === 0) {
             return $sent;
         }
-        $conn->exec('INSERT IGNORE INTO push_nudges (user_id, last_seen) SELECT user_id, MIN(created_at) FROM push_subscriptions GROUP BY user_id');
+        $conn->exec('INSERT IGNORE INTO push_nudges (user_id, last_seen) SELECT user_id, MIN(created_at) FROM (SELECT user_id, created_at FROM push_subscriptions UNION ALL SELECT user_id, created_at FROM app_devices) d GROUP BY user_id');
         $on = "u.id NOT IN (SELECT user_id FROM user_settings WHERE notifications = 0)";
 
         // 1. debt reminders
         $debtCut = PUSH_DEBT_EVERY_DAYS;
         $rows = $conn->query("SELECT n.user_id FROM push_nudges n JOIN users u ON u.id = n.user_id WHERE n.user_id > 0 AND $on
-            AND EXISTS (SELECT 1 FROM push_subscriptions s WHERE s.user_id = n.user_id)
+            AND (EXISTS (SELECT 1 FROM push_subscriptions s WHERE s.user_id = n.user_id) OR EXISTS (SELECT 1 FROM app_devices a WHERE a.user_id = n.user_id))
             AND (n.debt_at IS NULL OR n.debt_at < NOW() - INTERVAL $debtCut DAY)
             AND (n.debt_check_at IS NULL OR n.debt_check_at < NOW() - INTERVAL 6 HOUR)
             ORDER BY n.debt_check_at IS NOT NULL, n.debt_check_at LIMIT " . PUSH_TICK_BATCH)->fetchAll(PDO::FETCH_COLUMN);
@@ -130,7 +131,7 @@ function push_tick(PDO $conn, bool $force = false): array
         // 2. people who have not opened the app for a long time
         $rows = $conn->query("SELECT n.user_id, n.idle_stage, DATEDIFF(NOW(), n.last_seen) AS days FROM push_nudges n JOIN users u ON u.id = n.user_id
             WHERE n.user_id > 0 AND $on AND n.idle_stage < " . count(PUSH_IDLE_DAYS) . "
-            AND EXISTS (SELECT 1 FROM push_subscriptions s WHERE s.user_id = n.user_id)
+            AND (EXISTS (SELECT 1 FROM push_subscriptions s WHERE s.user_id = n.user_id) OR EXISTS (SELECT 1 FROM app_devices a WHERE a.user_id = n.user_id))
             AND n.last_seen < NOW() - INTERVAL " . PUSH_IDLE_DAYS[0] . " DAY
             AND (n.idle_at IS NULL OR n.idle_at < NOW() - INTERVAL 2 DAY) LIMIT " . PUSH_TICK_BATCH)->fetchAll(PDO::FETCH_ASSOC);
         foreach ($rows as $r) {
