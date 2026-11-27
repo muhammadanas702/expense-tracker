@@ -48,3 +48,10 @@ Owner: Muhammad Anas. Stack: PHP 8 + MySQL, no framework. Repo `muhammadanas702/
 - Parts 125a/125b: all Shared, Friends and Activity pages (home, groups, add, search, group, settle, join, friend view, notifications), the activity sentences and all flash/error messages go through `t()`; Urdu text is in `includes/lang/ur.php`. English output is unchanged. New text must use `t()` and a `%s`/`%d` form for dynamic parts (never glue English pieces together).
 - Part 126: Urdu language button font size. Audit of admin (desktop, dark), Settings (dark) and a very long group name found no other layout problems.
 - Known test noise: 2 ViewTransition failures in `shared_cleanup_test` and `theme_http_test` "loaded on /" fail on main too.
+
+## Part 129: phone nudges
+- Split alerts already existed; the push now says "<name> added “<title>” · your share is <amount>" in the receiver's language (`push_subscriptions.lang`, saved from the language cookie when the device is turned on).
+- New `modules/push/nudges.php`: debt reminder every 2 days (one message per person, names the biggest debt), "we miss you" at 3/7/14/30 days away (4 at most, restarts when the person opens the app). Table `push_nudges`.
+- No cron: `health.php?db=1` (the uptime monitor, every 10 min) and normal page visits call `push_tick()`, which runs at most every 30 minutes and only 04:00-17:00 UTC (9:00-22:00 Pakistan).
+- Phone alerts only work in the browser (Chrome/Edge, installed web app); the Android/Windows app shells do not receive Web Push. Native app push would need Firebase (FCM) and is a separate job.
+- Test: `php tests/push_nudges_test.php`.

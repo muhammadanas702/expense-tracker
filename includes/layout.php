@@ -45,6 +45,21 @@ function ef_page_start(array $o): void
     $home = ef_nav('p')[0][0] ?? 'dashboard.php';
     $sharedHome = ef_nav('s')[0][0] ?? null;
 
+    // Phone nudges (Part 129): remember that this person is active, and let the visit run the (rare) nudge round.
+    if (isset($_SESSION['user_id']) && isset(ef_modules()['push']) && is_file(__DIR__ . '/../modules/push/nudges.php')) {
+        global $conn;
+        try {
+            require_once __DIR__ . '/../modules/push/nudges.php';
+            push_touch_seen($conn, (int) $_SESSION['user_id']);
+            if (($_SESSION['ef_tick_at'] ?? 0) < time() - 1800) {
+                $_SESSION['ef_tick_at'] = time();
+                push_defer(fn() => push_tick($conn));
+            }
+        } catch (Throwable $e) {
+            error_log('ExpenseFlow nudges hook failed: ' . $e->getMessage());
+        }
+    }
+
     // Notification bell: only when the optional Activity module is installed and enabled.
     $unread = null;
     if (isset(ef_modules()['activity']) && isset($_SESSION['user_id'])) {

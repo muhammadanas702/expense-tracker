@@ -40,7 +40,7 @@ try {
     $endpoint = (string) ($sub['endpoint'] ?? '');
     $action = (string) ($in['action'] ?? '');
     if ($action === 'subscribe') {
-        $ok = push_subscribe($conn, $uid, $endpoint, (string) ($sub['keys']['p256dh'] ?? ''), (string) ($sub['keys']['auth'] ?? ''));
+        $ok = push_subscribe($conn, $uid, $endpoint, (string) ($sub['keys']['p256dh'] ?? ''), (string) ($sub['keys']['auth'] ?? ''), ef_lang() === 'ur' ? 'ur' : 'en');
         if (!$ok) {
             http_response_code(422);
             echo json_encode(['error' => 'invalid']);
