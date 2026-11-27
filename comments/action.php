@@ -44,7 +44,7 @@ if ($do === 'add') {
     $c = $cid ? comments_get($conn, $cid, $gid) : null;
     if (!$c) {
         $_SESSION['error'] = 'Comment not found.';
-    } elseif ((int) $c['user_id'] !== $user_id && $group['my_role'] !== 'owner') {
+    } elseif ((int) $c['user_id'] !== $user_id) {
         $_SESSION['error'] = 'You can only delete your own comments.';
     } else {
         comments_delete($conn, $cid);
