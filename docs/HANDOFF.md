@@ -69,3 +69,8 @@ Owner: Muhammad Anas. Stack: PHP 8 + MySQL, no framework. Repo `muhammadanas702/
 - Not instant: Android decides the exact run time (15-30 min, longer in battery saver). Instant delivery would need Firebase (FCM).
 - Known: `tests/urdu_pages_ui_test.py` has 1 old failure ("کل واجب الادا" on /reminders.php) that also fails on main. SMS auto-add in the app also posts to the old address and relied on the redirect; `AlertPoller` handles it, `SmsSync` does not yet.
 - Tests: `tests/app_alerts_ui_test.py` (pretend Android bridge).
+
+## Part 131: Admin > Notifications
+- `admin/notifications.php` (+ `-action.php`, permission "set"): status (browsers, Android phones, alerts waiting, last nudge round), send a test or announcement (me / one person by e-mail or @username / everyone with alerts on, 10-minute guard), and controls saved in `app_settings` (`modules/push/config.php`): browser channel, Android channel, shared-bill alerts, reminders and budgets, debt reminder (+ every N days), "we miss you" (+ day list, 1-4 numbers), nudge hours (Pakistan time). Real events ignore the hours.
+- The switches are enforced in `push_notify`, `push_notify_i18n`, `push_for_event` and `push_tick`. Features on/off > "Phone notifications" still switches everything off.
+- Tests: `tests/push_admin_test.php`, `tests/admin_notifications_ui_test.py`.

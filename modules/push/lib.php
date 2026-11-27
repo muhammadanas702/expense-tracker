@@ -195,7 +195,12 @@ function push_notify(PDO $conn, array $userIds, string $title, string $body, str
         push_ensure_schema($conn);
         $subs = $conn->query('SELECT id, user_id, endpoint, p256dh, auth FROM push_subscriptions WHERE user_id IN (' . implode(',', $ids) . ') LIMIT ' . PUSH_MAX_PER_CALL)->fetchAll(PDO::FETCH_ASSOC);
         $json = json_encode(['title' => mb_substr($title, 0, 80), 'body' => mb_substr($body, 0, 200), 'url' => $url], JSON_UNESCAPED_UNICODE);
-        $ok += app_inbox_enqueue($conn, $ids, fn() => [$title, $body], $url);
+        if (push_cfg_on($conn, 'push_app')) {
+            $ok += app_inbox_enqueue($conn, $ids, fn() => [$title, $body], $url);
+        }
+        if (!push_cfg_on($conn, 'push_web')) {
+            return $ok;
+        }
         foreach ($subs as $s) {
             $code = push_send_one($conn, $s, $json);
             if ($code >= 200 && $code < 300) {
@@ -224,7 +229,12 @@ function push_notify_i18n(PDO $conn, array $userIds, callable $make, string $url
         }
         push_ensure_schema($conn);
         $subs = $conn->query('SELECT id, user_id, endpoint, p256dh, auth, lang FROM push_subscriptions WHERE user_id IN (' . implode(',', $ids) . ') LIMIT ' . PUSH_MAX_PER_CALL)->fetchAll(PDO::FETCH_ASSOC);
-        $ok += app_inbox_enqueue($conn, $ids, $make, $url);
+        if (push_cfg_on($conn, 'push_app')) {
+            $ok += app_inbox_enqueue($conn, $ids, $make, $url);
+        }
+        if (!push_cfg_on($conn, 'push_web')) {
+            return $ok;
+        }
         $cache = [];
         foreach ($subs as $sub) {
             $lang = ($sub['lang'] ?? 'en') === 'ur' ? 'ur' : 'en';
@@ -256,6 +266,10 @@ function push_for_event(PDO $conn, int $eventId, array $users): void
         $row = $q->fetch(PDO::FETCH_ASSOC);
         if (!$row) {
             return;
+        }
+        $isReminder = str_starts_with((string) $row['kind'], 'reminder') || str_starts_with((string) $row['kind'], 'budget');
+        if (!push_cfg_on($conn, $isReminder ? 'push_reminders' : 'push_events')) {
+            return; // switched off by the admin (Admin > Notifications)
         }
         $personal = (int) $row['group_id'] === 0;
         foreach ($users as $u) {
@@ -349,3 +363,4 @@ function push_after_event(PDO $conn, int $eventId, array $users): void
 }
 
 require_once __DIR__ . '/app.php';
+require_once __DIR__ . '/config.php';
