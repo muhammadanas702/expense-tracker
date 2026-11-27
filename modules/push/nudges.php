@@ -16,8 +16,6 @@ foreach (['shared/lib.php', 'activity/lib.php'] as $f) {
     }
 }
 
-const PUSH_DEBT_EVERY_DAYS = 2;
-const PUSH_IDLE_DAYS = [3, 7, 14, 30];
 const PUSH_TICK_BATCH = 10;
 
 /** Remembers that $userId used the app (at most one write every 30 minutes per session). */
@@ -96,10 +94,10 @@ function push_tick(PDO $conn, bool $force = false): array
     $sent = [0, 0];
     try {
         push_ensure_schema($conn);
-        $h = (int) gmdate('G');
-        if (!$force && ($h < 4 || $h >= 17)) {
-            return $sent; // 9:00-22:00 in Pakistan: never wake anybody up
+        if (!$force && !push_in_window($conn)) {
+            return $sent; // outside the hours chosen in Admin > Notifications (default 9:00-22:00 Pakistan time): never wake anybody up
         }
+        $idleDays = push_idle_days($conn);
         // one run per 30 minutes, even when many requests arrive together
         $conn->exec("INSERT IGNORE INTO push_nudges (user_id, last_seen) VALUES (0, '2000-01-01 00:00:00')");
         $lock = $conn->prepare('UPDATE push_nudges SET last_seen = NOW() WHERE user_id = 0 AND last_seen < NOW() - INTERVAL 30 MINUTE');
@@ -111,12 +109,12 @@ function push_tick(PDO $conn, bool $force = false): array
         $on = "u.id NOT IN (SELECT user_id FROM user_settings WHERE notifications = 0)";
 
         // 1. debt reminders
-        $debtCut = PUSH_DEBT_EVERY_DAYS;
-        $rows = $conn->query("SELECT n.user_id FROM push_nudges n JOIN users u ON u.id = n.user_id WHERE n.user_id > 0 AND $on
+        $debtCut = max(1, min(30, (int) push_cfg($conn, 'push_debt_days')));
+        $rows = push_cfg_on($conn, 'push_debt') ? $conn->query("SELECT n.user_id FROM push_nudges n JOIN users u ON u.id = n.user_id WHERE n.user_id > 0 AND $on
             AND (EXISTS (SELECT 1 FROM push_subscriptions s WHERE s.user_id = n.user_id) OR EXISTS (SELECT 1 FROM app_devices a WHERE a.user_id = n.user_id))
             AND (n.debt_at IS NULL OR n.debt_at < NOW() - INTERVAL $debtCut DAY)
             AND (n.debt_check_at IS NULL OR n.debt_check_at < NOW() - INTERVAL 6 HOUR)
-            ORDER BY n.debt_check_at IS NOT NULL, n.debt_check_at LIMIT " . PUSH_TICK_BATCH)->fetchAll(PDO::FETCH_COLUMN);
+            ORDER BY n.debt_check_at IS NOT NULL, n.debt_check_at LIMIT " . PUSH_TICK_BATCH)->fetchAll(PDO::FETCH_COLUMN) : [];
         foreach ($rows as $uid) {
             $uid = (int) $uid;
             $d = push_debt_summary($conn, $uid);
@@ -129,14 +127,14 @@ function push_tick(PDO $conn, bool $force = false): array
         }
 
         // 2. people who have not opened the app for a long time
-        $rows = $conn->query("SELECT n.user_id, n.idle_stage, DATEDIFF(NOW(), n.last_seen) AS days FROM push_nudges n JOIN users u ON u.id = n.user_id
-            WHERE n.user_id > 0 AND $on AND n.idle_stage < " . count(PUSH_IDLE_DAYS) . "
+        $rows = !push_cfg_on($conn, 'push_idle') ? [] : $conn->query("SELECT n.user_id, n.idle_stage, DATEDIFF(NOW(), n.last_seen) AS days FROM push_nudges n JOIN users u ON u.id = n.user_id
+            WHERE n.user_id > 0 AND $on AND n.idle_stage < " . count($idleDays) . "
             AND (EXISTS (SELECT 1 FROM push_subscriptions s WHERE s.user_id = n.user_id) OR EXISTS (SELECT 1 FROM app_devices a WHERE a.user_id = n.user_id))
-            AND n.last_seen < NOW() - INTERVAL " . PUSH_IDLE_DAYS[0] . " DAY
+            AND n.last_seen < NOW() - INTERVAL " . $idleDays[0] . " DAY
             AND (n.idle_at IS NULL OR n.idle_at < NOW() - INTERVAL 2 DAY) LIMIT " . PUSH_TICK_BATCH)->fetchAll(PDO::FETCH_ASSOC);
         foreach ($rows as $r) {
             $stage = (int) $r['idle_stage'];
-            if ((int) $r['days'] < PUSH_IDLE_DAYS[$stage]) {
+            if ((int) $r['days'] < $idleDays[$stage]) {
                 continue;
             }
             $next = $stage + 1;
