@@ -37,6 +37,18 @@ function push_ensure_schema(PDO $conn): void
             `public_key` VARCHAR(120) NOT NULL,
             PRIMARY KEY (`id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        $conn->exec("CREATE TABLE IF NOT EXISTS `push_nudges` (
+            `user_id` INT UNSIGNED NOT NULL,
+            `last_seen` DATETIME NULL,
+            `idle_stage` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+            `idle_at` DATETIME NULL,
+            `debt_at` DATETIME NULL,
+            `debt_check_at` DATETIME NULL,
+            PRIMARY KEY (`user_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        if (!$conn->query("SHOW COLUMNS FROM `push_subscriptions` LIKE 'lang'")->fetch()) {
+            $conn->exec("ALTER TABLE `push_subscriptions` ADD COLUMN `lang` VARCHAR(5) NOT NULL DEFAULT 'en'");
+        }
     } catch (Throwable $e) {
         error_log('ExpenseFlow push schema failed: ' . $e->getMessage());
     }
@@ -175,6 +187,39 @@ function push_notify(PDO $conn, array $userIds, string $title, string $body, str
     return $ok;
 }
 
+/**
+ * Like push_notify, but the words are made per device language: $make(lang) returns [title, body].
+ * Returns how many devices accepted the message.
+ */
+function push_notify_i18n(PDO $conn, array $userIds, callable $make, string $url = ''): int
+{
+    $ok = 0;
+    try {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $userIds), fn($u) => $u > 0)));
+        if (!$ids) {
+            return 0;
+        }
+        push_ensure_schema($conn);
+        $subs = $conn->query('SELECT id, user_id, endpoint, p256dh, auth, lang FROM push_subscriptions WHERE user_id IN (' . implode(',', $ids) . ') LIMIT ' . PUSH_MAX_PER_CALL)->fetchAll(PDO::FETCH_ASSOC);
+        $cache = [];
+        foreach ($subs as $sub) {
+            $lang = ($sub['lang'] ?? 'en') === 'ur' ? 'ur' : 'en';
+            $cache[$lang] ??= ef_with_lang($lang, fn() => $make($lang));
+            [$title, $body] = $cache[$lang];
+            $json = json_encode(['title' => mb_substr($title, 0, 80), 'body' => mb_substr($body, 0, 200), 'url' => $url], JSON_UNESCAPED_UNICODE);
+            $code = push_send_one($conn, $sub, $json);
+            if ($code >= 200 && $code < 300) {
+                $ok++;
+            } elseif ($code === 404 || $code === 410) {
+                $conn->prepare('DELETE FROM push_subscriptions WHERE id = ?')->execute([(int) $sub['id']]);
+            }
+        }
+    } catch (Throwable $e) {
+        error_log('ExpenseFlow push i18n failed: ' . $e->getMessage());
+    }
+    return $ok;
+}
+
 /** Pushes the activity event $eventId to $users, worded from each person's point of view. */
 function push_for_event(PDO $conn, int $eventId, array $users): void
 {
@@ -190,8 +235,19 @@ function push_for_event(PDO $conn, int $eventId, array $users): void
         }
         $personal = (int) $row['group_id'] === 0;
         foreach ($users as $u) {
-            [, $text, $amt] = activity_describe($row, (int) $u);
-            push_notify($conn, [(int) $u], 'ExpenseFlow', trim($text . ($amt !== '' ? ' · ' . $amt : '')), $personal ? 'reminders.php' : 'activity.php');
+            $u = (int) $u;
+            push_notify_i18n($conn, [$u], function () use ($conn, $row, $u): array {
+                [, $text, $amt] = activity_describe($row, $u);
+                $body = trim($text . ($amt !== '' ? ' · ' . $amt : ''));
+                if (in_array($row['kind'], ['expense_add', 'expense_edit'], true) && function_exists('shared_money')) {
+                    $q = $conn->prepare('SELECT s.share_minor, e.currency FROM shared_splits s JOIN shared_expenses e ON e.id = s.expense_id WHERE e.group_id = ? AND e.created_by = ? AND e.title = ? AND s.user_id = ? ORDER BY e.id DESC LIMIT 1');
+                    $q->execute([(int) $row['group_id'], (int) $row['actor_id'], (string) $row['title'], $u]);
+                    if (($sh = $q->fetch(PDO::FETCH_ASSOC)) && (int) $sh['share_minor'] > 0 && $u !== (int) $row['actor_id']) {
+                        $body = t('%s added “%s” · your share is %s', (string) ($row['actor_name'] ?? t('Someone')), (string) $row['title'], shared_money((int) $sh['share_minor'], (string) $sh['currency']));
+                    }
+                }
+                return ['ExpenseFlow', $body];
+            }, $personal ? 'reminders.php' : 'activity.php');
         }
     } catch (Throwable $e) {
         error_log('ExpenseFlow push event failed: ' . $e->getMessage());
@@ -204,7 +260,7 @@ function push_valid_endpoint(string $e): bool
     return strlen($e) <= 600 && $p && ($p['scheme'] ?? '') === 'https' && !empty($p['host']) && str_contains($p['host'], '.') && !filter_var($p['host'], FILTER_VALIDATE_IP);
 }
 
-function push_subscribe(PDO $conn, int $userId, string $endpoint, string $p256dh, string $auth): bool
+function push_subscribe(PDO $conn, int $userId, string $endpoint, string $p256dh, string $auth, string $lang = 'en'): bool
 {
     push_ensure_schema($conn);
     if (!push_valid_endpoint($endpoint) || strlen(push_unb64u($p256dh)) !== 65 || strlen(push_unb64u($auth)) !== 16) {
@@ -216,9 +272,9 @@ function push_subscribe(PDO $conn, int $userId, string $endpoint, string $p256dh
     if ((int) $n->fetchColumn() >= PUSH_MAX_PER_USER) {
         $conn->prepare('DELETE FROM push_subscriptions WHERE user_id = ? ORDER BY id ASC LIMIT 1')->execute([$userId]); // oldest device makes room
     }
-    $conn->prepare('INSERT INTO push_subscriptions (user_id, endpoint_hash, endpoint, p256dh, auth) VALUES (?,?,?,?,?)
-        ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), endpoint = VALUES(endpoint), p256dh = VALUES(p256dh), auth = VALUES(auth)')
-        ->execute([$userId, $h, $endpoint, $p256dh, $auth]);
+    $conn->prepare('INSERT INTO push_subscriptions (user_id, endpoint_hash, endpoint, p256dh, auth, lang) VALUES (?,?,?,?,?,?)
+        ON DUPLICATE KEY UPDATE user_id = VALUES(user_id), endpoint = VALUES(endpoint), p256dh = VALUES(p256dh), auth = VALUES(auth), lang = VALUES(lang)')
+        ->execute([$userId, $h, $endpoint, $p256dh, $auth, $lang === 'ur' ? 'ur' : 'en']);
     return true;
 }
 

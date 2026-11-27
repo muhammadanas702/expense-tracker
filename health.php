@@ -23,6 +23,15 @@ if (isset($_GET['db'])) {
             try {
                 require_once __DIR__ . '/modules/health/lib.php';
                 health_record($conn, 'ping', round((microtime(true) - $t0) * 1000, 1), true, 240);
+                if (is_file(__DIR__ . '/modules/push/nudges.php')) {
+                    require_once __DIR__ . '/modules/push/nudges.php';
+                    // the monitor's ping doubles as the clock for phone nudges (max once per 30 minutes), run AFTER the answer is sent
+                    push_defer(function () use ($conn) {
+                        ignore_user_abort(true);
+                        @set_time_limit(60);
+                        push_tick($conn);
+                    });
+                }
             } catch (Throwable $e) {
                 // the history is optional; the answer below must never fail because of it
             }

@@ -19,7 +19,7 @@ settings_page_start('notifications', $user);
       <form method="POST">
         <?= csrf_field() ?>
         <label class="row" style="cursor:pointer">
-          <span><?= ef_icon('bell') ?> Notifications<small>Alerts for shared bills, settle-ups and replies from support</small></span>
+          <span><?= ef_icon('bell') ?> <?= e(t('Notifications')) ?><small><?= e(t('Alerts for shared bills, a reminder every 2 days while you owe money, and a nudge if you have been away for a while')) ?></small></span>
           <b><input class="swc" type="checkbox" name="notifications" value="1"<?= $settings['notifications'] ? ' checked' : '' ?>><i class="sw"></i></b>
         </label>
         <button class="btn" type="submit" style="margin-top:10px">Save</button>
@@ -29,8 +29,8 @@ settings_page_start('notifications', $user);
 $pushOn = isset(ef_modules()['push']) && is_file(__DIR__ . '/../modules/push/lib.php');
 if ($pushOn) {
     $pushT = ['turnOn' => t('Turn on phone alerts'), 'turnOff' => t('Turn off on this device'),
-        'off' => t('Off on this device. Turn it on to get shared bills, reminders and budget alerts even when ExpenseFlow is closed.'),
-        'on' => t('On for this device. You will get shared bills, reminders and budget alerts here.'),
+        'off' => t('Off on this device. Turn it on to get shared bills, settle-up reminders and budget alerts even when ExpenseFlow is closed.'),
+        'on' => t('On for this device. You will get shared bills, settle-up reminders and budget alerts here.'),
         'denied' => t('Notifications are blocked for this site. Allow them in the browser or phone settings, then try again.'),
         'unsupported' => t('This browser cannot show phone alerts. Use Chrome or Edge on Android or a computer.'),
         'shell' => t('Phone alerts work in the browser (Chrome or Edge). The installed Android and Windows apps show the bell list instead.'),

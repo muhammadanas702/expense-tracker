@@ -47,11 +47,23 @@ function t(string $en, string ...$args): string
 {
     static $ur = null;
     $out = $en;
-    if (ef_lang() === 'ur') {
+    if (($GLOBALS['__ef_lang_force'] ?? ef_lang()) === 'ur') {
         $ur ??= require __DIR__ . '/lang/ur.php';
         $out = $ur[$en] ?? $en;
     }
     return $args ? vsprintf($out, $args) : $out;
+}
+
+/** Runs $fn with t() answering in $lang ('en'|'ur'), e.g. to word a phone alert in the RECEIVER's language. */
+function ef_with_lang(string $lang, callable $fn)
+{
+    $old = $GLOBALS['__ef_lang_force'] ?? null;
+    $GLOBALS['__ef_lang_force'] = $lang === 'ur' ? 'ur' : 'en';
+    try {
+        return $fn();
+    } finally {
+        $GLOBALS['__ef_lang_force'] = $old;
+    }
 }
 
 /** The extra style sheet for right-to-left pages (empty for English). */
