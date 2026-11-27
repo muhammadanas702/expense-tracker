@@ -80,12 +80,22 @@ public class MainActivity extends Activity {
         } catch (Exception e) { return null; }
     }
 
+    /** A tapped alert: opens that page of the site (the path was checked when the notification was made). */
+    private String alertUrl(Intent i) {
+        try {
+            String p = i == null ? null : i.getStringExtra("open_path");
+            if (p == null || p.isEmpty() || p.startsWith("/") || p.contains(":") || p.contains("..")) return null;
+            return "https://" + HOST + "/" + p;
+        } catch (Exception e) { return null; }
+    }
+
     @Override
     protected void onNewIntent(Intent i) {
         super.onNewIntent(i);
         setIntent(i);
         String back = googleReturnUrl(i);
         if (back == null) back = shareUrl(i);
+        if (back == null) back = alertUrl(i);
         if (back != null && web != null) web.loadUrl(back);
     }
 
@@ -203,11 +213,23 @@ public class MainActivity extends Activity {
         /** JSON array [{id, from, date, text}] of the newest money messages of the last {days} days (max 40); "[]" without permission. */
         /** JSON counts for the "Check my SMS setup" panel (see SmsSync.probe). */
         @JavascriptInterface public String smsProbe(int days, double sinceMs) { return SmsSync.probe(MainActivity.this, Math.max(1, Math.min(days, 90)), (long) sinceMs).toString(); }
+        // ---- Alerts (Part 130b): the page registers this phone and asks for the notification permission ----
+        @JavascriptInterface public boolean alertsSupported() { return true; }
+        @JavascriptInterface public boolean alertsHasToken() { return AlertPoller.hasToken(MainActivity.this); }
+        @JavascriptInterface public void alertsSetToken(String token, String base) {
+            if (token != null && token.matches("[0-9a-f]{64}") && base != null && (("https://" + HOST).equals(base) || "https://expenseflow.page".equals(base))) AlertPoller.saveToken(MainActivity.this, token, base);
+        }
+        @JavascriptInterface public void alertsClearToken() { AlertPoller.clearToken(MainActivity.this); }
+        @JavascriptInterface public boolean alertsNotifGranted() { return Build.VERSION.SDK_INT < 33 || checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED; }
+        @JavascriptInterface public void alertsAsk() {
+            runOnUiThread(() -> { if (Build.VERSION.SDK_INT >= 33) requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, ALERT_REQ); });
+        }
         @JavascriptInterface public boolean smsNotifGranted() { return Build.VERSION.SDK_INT < 33 || checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED; }
         @JavascriptInterface public String smsRead(int days) { return readMoneySms(Math.max(1, Math.min(days, 90))); }
     }
 
     private static final int SMS_REQ = 2;
+    private static final int ALERT_REQ = 3;
     /** Reads the inbox on the phone and keeps only messages that look like a payment (see SmsSync). Nothing is sent anywhere. */
     private String readMoneySms(int days) { return SmsSync.readMoneySms(this, days).toString(); }
 
@@ -400,6 +422,8 @@ public class MainActivity extends Activity {
         });
         String back = googleReturnUrl(getIntent());
         if (back == null) back = shareUrl(getIntent());
+        if (back == null) back = alertUrl(getIntent());
+        AlertPoller.schedule(this);
         if (back != null) web.loadUrl(back); else if (b != null) web.restoreState(b); else web.loadUrl(HOME);
         checkForUpdate();
         web.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);

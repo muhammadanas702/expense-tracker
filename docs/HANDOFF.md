@@ -61,3 +61,11 @@ Owner: Muhammad Anas. Stack: PHP 8 + MySQL, no framework. Repo `muhammadanas702/
 - `app-alerts.php`: signed-in page `POST {csrf, action:'register'}` -> `{token}`; the phone `POST {token, action:'poll'}` -> `{items}` (each item is handed out once; items older than 3 days are dropped; 60 polls/hour per token).
 - Nudges (2-day debt reminder, we-miss-you) also reach app-only people.
 - Part 130b (next): the Android side (poll every ~15 min with JobScheduler, show a notification, tap opens the page) and automatic turn-on. Tests: `tests/app_alerts_test.php`, `tests/app_alerts_http_test.py`.
+
+## Part 130b: alerts inside the Android app
+- New `AlertPoller` + `AlertJob` (JobScheduler, every ~15 min, survives restarts via `BootReceiver`): POST `app-alerts.php {token, action:'poll'}` (follows the .rf.gd -> .page redirect keeping POST), shows each item as a notification; tapping opens that page (`open_path` extra, relative paths only).
+- Bridge: `alertsSupported / alertsHasToken / alertsSetToken / alertsClearToken / alertsNotifGranted / alertsAsk`. Needs the new APK (manifest adds RECEIVE_BOOT_COMPLETED + the job service).
+- `assets/alerts-auto.js` (signed-in pages): in the app it registers the phone and asks for the notification permission by itself (on by default); in a browser it asks once on the first tap and subscribes to Web Push. Turning alerts off in Settings > Notifications sets `localStorage.ef_alerts_off` so it never switches itself on again.
+- Not instant: Android decides the exact run time (15-30 min, longer in battery saver). Instant delivery would need Firebase (FCM).
+- Known: `tests/urdu_pages_ui_test.py` has 1 old failure ("کل واجب الادا" on /reminders.php) that also fails on main. SMS auto-add in the app also posts to the old address and relied on the redirect; `AlertPoller` handles it, `SmsSync` does not yet.
+- Tests: `tests/app_alerts_ui_test.py` (pretend Android bridge).
