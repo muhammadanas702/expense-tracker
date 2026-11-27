@@ -8,6 +8,22 @@
   function b64u(s) { s = (s + '==='.slice((s.length + 3) % 4)).replace(/-/g, '+').replace(/_/g, '/'); var r = atob(s), a = new Uint8Array(r.length); for (var i = 0; i < r.length; i++) { a[i] = r.charCodeAt(i); } return a; }
   function post(body) { body.csrf = csrf; return fetch(URL_, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(function (r) { return r.json().then(function (j) { j.status = r.status; return j; }); }); }
   var shell = !!window.EFApp || /ExpenseFlowApp|; wv\)|Electron/i.test(navigator.userAgent);
+  var app = window.EFApp;
+  if (app && typeof app.alertsSupported === 'function') { // Android app: alerts are fetched by the phone itself (Part 130b)
+    test.hidden = true;
+    var appOn = function () { var t = false, g = false; try { t = app.alertsHasToken(); g = app.alertsNotifGranted(); } catch (e) { } return t && g; };
+    var paintApp = function () { var on = appOn(); btn.hidden = false; btn.textContent = on ? T.turnOff : T.turnOn; say(on ? 'appOn' : 'appOff'); };
+    paintApp();
+    btn.addEventListener('click', function () {
+      if (appOn()) { try { app.alertsClearToken(); localStorage.setItem('ef_alerts_off', '1'); } catch (e) { } paintApp(); return; }
+      try { localStorage.removeItem('ef_alerts_off'); if (!app.alertsNotifGranted()) { app.alertsAsk(); } } catch (e) { }
+      fetch(URL_.replace('push-subscribe.php', 'app-alerts.php'), { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (j) {
+        return fetch(URL_.replace('push-subscribe.php', 'app-alerts.php'), { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ csrf: j.csrf, action: 'register' }) });
+      }).then(function (r) { return r.json(); }).then(function (t) { if (t && t.token) { app.alertsSetToken(t.token, location.origin); } paintApp(); }).catch(function () { say('error'); });
+    });
+    setInterval(paintApp, 2000);
+    return;
+  }
   if (shell) { say('shell'); btn.hidden = true; return; }
   if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) { say('unsupported'); btn.hidden = true; return; }
   function paint() {
@@ -24,10 +40,11 @@
     btn.disabled = true;
     var done = function (k) { btn.disabled = false; if (k) { say(k); } else { paint(); } };
     if (sub) {
-      var ep = sub.endpoint;
+      var ep = sub.endpoint; try { localStorage.setItem('ef_alerts_off', '1'); } catch (e) { }
       sub.unsubscribe().then(function () { sub = null; return post({ action: 'unsubscribe', subscription: { endpoint: ep } }); }).then(function () { done(); }, function () { done('error'); });
       return;
     }
+    try { localStorage.removeItem('ef_alerts_off'); } catch (e) { }
     Notification.requestPermission().then(function (p) {
       if (p !== 'granted') { return done('denied'); }
       return reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(box.getAttribute('data-key')) }).then(function (s) {

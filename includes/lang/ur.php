@@ -971,4 +971,6 @@ return [
     'Alerts for shared bills, a reminder every 2 days while you owe money, and a nudge if you have been away for a while' => 'مشترکہ بلوں کا الرٹ، قرض باقی ہو تو ہر 2 دن بعد یاد دہانی، اور کافی دن نہ آنے پر ایک نرم یاد دہانی',
     'Off on this device. Turn it on to get shared bills, settle-up reminders and budget alerts even when ExpenseFlow is closed.' => 'اس ڈیوائس پر بند ہے۔ اسے آن کریں تاکہ ExpenseFlow بند ہونے پر بھی مشترکہ بل، حساب برابر کرنے کی یاد دہانیاں اور بجٹ الرٹ ملیں۔',
     'On for this device. You will get shared bills, settle-up reminders and budget alerts here.' => 'اس ڈیوائس پر آن ہے۔ آپ کو یہاں مشترکہ بل، حساب برابر کرنے کی یاد دہانیاں اور بجٹ الرٹ ملیں گے۔',
+    'On for this phone. Alerts arrive within about 15 to 30 minutes, even when the app is closed.' => 'اس فون پر آن ہے۔ ایپ بند ہو تب بھی الرٹ تقریباً 15 سے 30 منٹ میں پہنچ جاتے ہیں۔',
+    'Off on this phone. Turn it on to get alerts about shared bills, settle-up reminders and budgets, even when the app is closed.' => 'اس فون پر بند ہے۔ اسے آن کریں تاکہ ایپ بند ہو تب بھی مشترکہ بلوں، حساب برابر کرنے کی یاد دہانیوں اور بجٹ کے الرٹ ملیں۔',
 ];

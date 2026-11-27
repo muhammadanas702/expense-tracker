@@ -33,6 +33,8 @@ if ($pushOn) {
         'on' => t('On for this device. You will get shared bills, settle-up reminders and budget alerts here.'),
         'denied' => t('Notifications are blocked for this site. Allow them in the browser or phone settings, then try again.'),
         'unsupported' => t('This browser cannot show phone alerts. Use Chrome or Edge on Android or a computer.'),
+        'appOn' => t('On for this phone. Alerts arrive within about 15 to 30 minutes, even when the app is closed.'),
+        'appOff' => t('Off on this phone. Turn it on to get alerts about shared bills, settle-up reminders and budgets, even when the app is closed.'),
         'shell' => t('Phone alerts work in the browser (Chrome or Edge). The installed Android and Windows apps show the bell list instead.'),
         'sent' => t('Test sent. It should appear in a few seconds.'), 'notsent' => t('The test could not be delivered. Turn alerts off and on again.'),
         'error' => t('Something went wrong. Please try again.')];
