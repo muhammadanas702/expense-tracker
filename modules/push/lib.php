@@ -46,6 +46,28 @@ function push_ensure_schema(PDO $conn): void
             `debt_check_at` DATETIME NULL,
             PRIMARY KEY (`user_id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        $conn->exec("CREATE TABLE IF NOT EXISTS `app_devices` (
+            `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+            `user_id` INT UNSIGNED NOT NULL,
+            `token_hash` CHAR(64) NOT NULL,
+            `lang` VARCHAR(5) NOT NULL DEFAULT 'en',
+            `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `last_poll` DATETIME NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `uq_app_device` (`token_hash`),
+            KEY `idx_app_device_user` (`user_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        $conn->exec("CREATE TABLE IF NOT EXISTS `app_inbox` (
+            `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+            `user_id` INT UNSIGNED NOT NULL,
+            `title` VARCHAR(80) NOT NULL,
+            `body` VARCHAR(200) NOT NULL,
+            `url` VARCHAR(120) NOT NULL DEFAULT '',
+            `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `delivered_at` DATETIME NULL,
+            PRIMARY KEY (`id`),
+            KEY `idx_inbox_user` (`user_id`, `delivered_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         if (!$conn->query("SHOW COLUMNS FROM `push_subscriptions` LIKE 'lang'")->fetch()) {
             $conn->exec("ALTER TABLE `push_subscriptions` ADD COLUMN `lang` VARCHAR(5) NOT NULL DEFAULT 'en'");
         }
@@ -173,6 +195,7 @@ function push_notify(PDO $conn, array $userIds, string $title, string $body, str
         push_ensure_schema($conn);
         $subs = $conn->query('SELECT id, user_id, endpoint, p256dh, auth FROM push_subscriptions WHERE user_id IN (' . implode(',', $ids) . ') LIMIT ' . PUSH_MAX_PER_CALL)->fetchAll(PDO::FETCH_ASSOC);
         $json = json_encode(['title' => mb_substr($title, 0, 80), 'body' => mb_substr($body, 0, 200), 'url' => $url], JSON_UNESCAPED_UNICODE);
+        $ok += app_inbox_enqueue($conn, $ids, fn() => [$title, $body], $url);
         foreach ($subs as $s) {
             $code = push_send_one($conn, $s, $json);
             if ($code >= 200 && $code < 300) {
@@ -201,6 +224,7 @@ function push_notify_i18n(PDO $conn, array $userIds, callable $make, string $url
         }
         push_ensure_schema($conn);
         $subs = $conn->query('SELECT id, user_id, endpoint, p256dh, auth, lang FROM push_subscriptions WHERE user_id IN (' . implode(',', $ids) . ') LIMIT ' . PUSH_MAX_PER_CALL)->fetchAll(PDO::FETCH_ASSOC);
+        $ok += app_inbox_enqueue($conn, $ids, $make, $url);
         $cache = [];
         foreach ($subs as $sub) {
             $lang = ($sub['lang'] ?? 'en') === 'ur' ? 'ur' : 'en';
@@ -297,6 +321,8 @@ function push_on_user_deleted(PDO $conn, int $userId): void
 {
     push_ensure_schema($conn);
     $conn->prepare('DELETE FROM push_subscriptions WHERE user_id = ?')->execute([$userId]);
+    $conn->prepare('DELETE FROM app_devices WHERE user_id = ?')->execute([$userId]);
+    $conn->prepare('DELETE FROM app_inbox WHERE user_id = ?')->execute([$userId]);
 }
 
 /** Runs $job after the page was sent (so a slow push service never slows a page); at once on the command line (tests). */
@@ -321,3 +347,5 @@ function push_after_event(PDO $conn, int $eventId, array $users): void
         push_defer(fn() => push_for_event($conn, $eventId, $users));
     }
 }
+
+require_once __DIR__ . '/app.php';

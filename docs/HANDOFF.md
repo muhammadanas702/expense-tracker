@@ -55,3 +55,9 @@ Owner: Muhammad Anas. Stack: PHP 8 + MySQL, no framework. Repo `muhammadanas702/
 - No cron: `health.php?db=1` (the uptime monitor, every 10 min) and normal page visits call `push_tick()`, which runs at most every 30 minutes and only 04:00-17:00 UTC (9:00-22:00 Pakistan).
 - Phone alerts only work in the browser (Chrome/Edge, installed web app); the Android/Windows app shells do not receive Web Push. Native app push would need Firebase (FCM) and is a separate job.
 - Test: `php tests/push_nudges_test.php`.
+
+## Part 130a: alerts for the Android app (server side)
+- The Android app is a WebView shell and cannot receive Web Push. Every alert is now ALSO queued in `app_inbox` for people who have a registered phone (`app_devices`, token hash only, max 3 phones, language saved).
+- `app-alerts.php`: signed-in page `POST {csrf, action:'register'}` -> `{token}`; the phone `POST {token, action:'poll'}` -> `{items}` (each item is handed out once; items older than 3 days are dropped; 60 polls/hour per token).
+- Nudges (2-day debt reminder, we-miss-you) also reach app-only people.
+- Part 130b (next): the Android side (poll every ~15 min with JobScheduler, show a notification, tap opens the page) and automatic turn-on. Tests: `tests/app_alerts_test.php`, `tests/app_alerts_http_test.py`.
